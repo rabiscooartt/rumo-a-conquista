@@ -794,6 +794,9 @@ export default function SagasPage() {
       : emblemsByYear.find((item) => item.year === activeYear)?.count || 0;
 
   const filteredGroups = useMemo(() => {
+    const shouldSortByConquestDate =
+      activeYear !== "all" || activeFilter === "completed";
+
     const groups = emblemGroups
       .map((group) => {
         const emblems = group.emblems
@@ -811,7 +814,7 @@ export default function SagasPage() {
             return true;
           })
           .sort((emblemA, emblemB) => {
-            if (activeYear === "all") {
+            if (!shouldSortByConquestDate) {
               return 0;
             }
 
@@ -827,7 +830,7 @@ export default function SagasPage() {
       })
       .filter((group) => group.emblems.length > 0);
 
-    if (activeYear === "all") {
+    if (!shouldSortByConquestDate) {
       return groups;
     }
 
@@ -929,7 +932,7 @@ export default function SagasPage() {
                   </p>
 
                   <p className="mt-1 text-3xl font-black text-cyan-300">
-                    {totalProgress}%
+                    {activeYear === "all" ? totalProgress : 100}%
                   </p>
                 </div>
               </div>
