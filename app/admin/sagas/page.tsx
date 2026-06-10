@@ -433,6 +433,8 @@ function SagaEditorCard({
 }
 
 export default function AdminSagasPage() {
+  const [isClientReady, setIsClientReady] = useState(false);
+
   const {
     allSagasList,
     addSaga,
@@ -448,13 +450,21 @@ export default function AdminSagasPage() {
 
   const { gamesList } = useSiteGames();
 
+  useEffect(() => {
+    setIsClientReady(true);
+  }, []);
+
   const activeGames = useMemo<GameOption[]>(() => {
+    if (!isClientReady) {
+      return [];
+    }
+
     return gamesList.map((game) => ({
       slug: game.slug,
       title: game.title,
       subtitle: game.subtitle,
     }));
-  }, [gamesList]);
+  }, [gamesList, isClientReady]);
 
   const [form, setForm] = useState<SagaFormInput>(emptyForm);
 
@@ -489,6 +499,20 @@ export default function AdminSagasPage() {
     if (!success) return;
 
     setForm(emptyForm);
+  }
+
+  if (!isClientReady) {
+    return (
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
+        <Navbar />
+
+        <section className="mx-auto w-full max-w-[1500px] px-8 py-8">
+          <div className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-8 text-sm font-bold text-white/50 shadow-xl">
+            Carregando editor de sagas...
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (

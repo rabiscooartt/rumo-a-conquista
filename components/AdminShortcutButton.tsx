@@ -38,7 +38,7 @@ export default function AdminShortcutButton() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] w-[220px] rounded-3xl border border-red-500/35 bg-black/80 p-3 shadow-[0_0_35px_rgba(239,68,68,0.35)] backdrop-blur-md">
+    <div className="fixed bottom-6 right-6 z-[9999] w-[240px] rounded-3xl border border-red-500/35 bg-black/80 p-3 shadow-[0_0_35px_rgba(239,68,68,0.35)] backdrop-blur-md">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl">⚙️</span>
@@ -60,12 +60,32 @@ export default function AdminShortcutButton() {
 
       <div className="grid gap-2">
         <Link
+          href="/admin/backlog"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between rounded-2xl border border-cyan-400/30 bg-cyan-500/15 px-4 py-3 text-sm font-black text-cyan-100 transition hover:-translate-y-0.5 hover:bg-cyan-500/25"
+        >
+          <span>💎 Maestrias</span>
+          <span>↗</span>
+        </Link>
+
+        <Link
           href="/admin/jogos"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between rounded-2xl border border-red-500/30 bg-red-500/15 px-4 py-3 text-sm font-black text-red-100 transition hover:-translate-y-0.5 hover:bg-red-500/25"
         >
           <span>🎮 Jogos</span>
+          <span>↗</span>
+        </Link>
+
+        <Link
+          href="/admin/sagas"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between rounded-2xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-3 text-sm font-black text-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-500/25"
+        >
+          <span>🛡️ Sagas</span>
           <span>↗</span>
         </Link>
       </div>
