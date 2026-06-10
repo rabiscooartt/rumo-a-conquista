@@ -1883,6 +1883,46 @@ export default function AdminJogosPage() {
               </span>
               .
             </p>
+
+            <div className="mt-5 rounded-[22px] border border-red-400/20 bg-black/25 p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-200/80">
+                Checklist para cadastrar jogo novo
+              </p>
+
+              <div className="mt-4 grid gap-3 text-xs font-bold leading-relaxed text-white/50 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                  <p className="font-black text-white">1. Crie a pasta</p>
+                  <p className="mt-1">
+                    public/images/games/{generatedSlug || "nome-do-jogo"}/
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                  <p className="font-black text-white">2. Coloque as imagens</p>
+                  <p className="mt-1">banner.jpg, cover.jpg e emblem.png.</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                  <p className="font-black text-white">3. Preencha o jogo</p>
+                  <p className="mt-1">
+                    Nome, status, horas, objetivo, subtítulo e emblema.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                  <p className="font-black text-white">4. Oficialize depois</p>
+                  <p className="mt-1">
+                    Adicionar jogo → abrir o jogo → Copiar para data/games.ts.
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 rounded-2xl border border-yellow-400/15 bg-yellow-500/[0.045] px-4 py-3 text-xs font-bold leading-relaxed text-yellow-100/70">
+                Dica: primeiro digite o nome do jogo para gerar o slug. Depois clique
+                em “Usar caminhos automáticos” para preencher banner, capa/card e
+                emblema sem escrever os caminhos manualmente.
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
