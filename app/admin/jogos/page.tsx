@@ -112,6 +112,24 @@ const reviewStatusOptions: {
 
 const rankOptions: AchievementRank[] = ["Bronze", "Prata", "Ouro", "Diamante"];
 
+const commitMessageOptions = [
+  "Atualiza dados dos jogos",
+  "Adiciona novo jogo",
+  "Atualiza imagens dos jogos",
+  "Atualiza emblemas dos jogos",
+  "Adiciona data dos emblemas",
+  "Melhora painel admin",
+  "Corrige login do admin",
+  "Atualiza pagina de emblemas",
+  "Corrige exibicao dos jogos",
+  "Atualiza reviews dos jogos",
+  "Atualiza conquistas dos jogos",
+  "Oculta jogos incompletos",
+  "Atualiza proximas maestrias",
+  "Melhora organizacao do site",
+  "Corrige ajustes gerais",
+];
+
 function rankToTrophy(rank: AchievementRank) {
   if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
@@ -1738,6 +1756,17 @@ export default function AdminJogosPage() {
     setForm(emptyGameForm);
   }
 
+  async function handleCopyCommitCommand(message: string) {
+    const command = `git commit -m "${message}"`;
+
+    try {
+      await navigator.clipboard.writeText(command);
+      alert(`Comando copiado:\n\n${command}`);
+    } catch {
+      window.prompt("Copie este comando:", command);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
       <Navbar />
@@ -1788,6 +1817,46 @@ export default function AdminJogosPage() {
             </div>
           </div>
         </header>
+
+        <section className="mt-8 rounded-[28px] border border-cyan-400/15 bg-cyan-500/[0.035] p-6 shadow-xl">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
+                Ajuda rápida
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black text-white">
+                Frases prontas para Git Commit
+              </h2>
+
+              <p className="mt-2 max-w-[850px] text-sm leading-relaxed text-white/50">
+                Clique em uma opção para copiar o comando completo. Depois de
+                rodar <span className="font-black text-white">npm run build</span>{" "}
+                e <span className="font-black text-white">git add .</span>,
+                cole o comando no terminal e finalize com{" "}
+                <span className="font-black text-white">git push</span>.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[420px]">
+              Fluxo seguro: npm run build → git status → git add . → escolher
+              uma frase abaixo → colar no terminal → git push.
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {commitMessageOptions.map((message) => (
+              <button
+                key={message}
+                type="button"
+                onClick={() => handleCopyCommitCommand(message)}
+                className="rounded-2xl border border-cyan-400/20 bg-cyan-500/[0.06] px-4 py-3 text-left text-xs font-black uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-500/[0.12]"
+              >
+                {message}
+              </button>
+            ))}
+          </div>
+        </section>
 
         <section className="mt-8 rounded-[28px] border border-red-500/20 bg-red-500/5 p-6 shadow-xl">
           <div>
