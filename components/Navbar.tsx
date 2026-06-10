@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AdminAvatarLogin from "@/components/AdminAvatarLogin";
 
 type IconProps = {
   className?: string;
@@ -292,6 +293,8 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-5 lg:flex">
+          <AdminAvatarLogin />
+
           <a
             href="https://www.youtube.com/@orabiisco"
             target="_blank"
@@ -314,6 +317,8 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3 lg:hidden">
+          <AdminAvatarLogin />
+
           <Link
             href="/biblioteca"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white/70"
