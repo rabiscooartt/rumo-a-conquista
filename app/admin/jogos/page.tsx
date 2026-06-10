@@ -693,6 +693,35 @@ function GameEditorCard({
     alert("Jogo salvo com sucesso.");
   }
 
+  function createGameExportCode() {
+    const update = buildGameUpdate(achievements);
+
+    const exportedGame = {
+      ...game,
+      ...update,
+      slug: game.slug,
+      updatedAt: new Date().toISOString(),
+    };
+
+    return `"${game.slug}": ${JSON.stringify(exportedGame, null, 2)},`;
+  }
+
+  async function handleExportGame() {
+    const exportCode = createGameExportCode();
+
+    try {
+      await navigator.clipboard.writeText(exportCode);
+      alert(
+        "Código oficial do jogo copiado. Use isso quando quiser transformar as alterações do Admin em dados permanentes do site. Cole/substitua este bloco dentro de data/games.ts, rode npm run build e depois faça git add, commit e push."
+      );
+    } catch {
+      window.prompt(
+        "Não consegui copiar automaticamente. Copie este bloco e cole/substitua no data/games.ts quando quiser publicar essa alteração oficialmente:",
+        exportCode
+      );
+    }
+  }
+
   function handleRemoveGame() {
     const confirmed = window.confirm(
       `Ocultar/remover "${game.title}" do site?`
@@ -840,11 +869,49 @@ function GameEditorCard({
 
               <button
                 type="button"
+                onClick={handleExportGame}
+                className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-4 py-3 text-sm font-black text-yellow-100 transition hover:bg-yellow-500/20"
+              >
+                Copiar para data/games.ts
+              </button>
+
+              <button
+                type="button"
                 onClick={handleRemoveGame}
                 className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20"
               >
                 Ocultar/remover
               </button>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-[22px] border border-yellow-400/20 bg-yellow-500/[0.055] p-4">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-yellow-200/80">
+                  Quando usar “Copiar para data/games.ts”?
+                </p>
+
+                <p className="mt-2 text-sm font-bold leading-relaxed text-white/55">
+                  Use esse botão apenas quando terminar uma alteração no Admin e quiser
+                  transformar ela em dado oficial do projeto, para aparecer para todo
+                  mundo no site online.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[520px]">
+                <p>
+                  <span className="font-black text-yellow-100">Fluxo:</span>{" "}
+                  Salvar jogo → Copiar para data/games.ts → substituir o bloco
+                  desse jogo em <span className="font-black text-white">data/games.ts</span>{" "}
+                  → npm run build → git add . → commit → push.
+                </p>
+
+                <p className="mt-2">
+                  Se for só testar visualmente no seu navegador, não precisa copiar
+                  para o arquivo oficial.
+                </p>
+              </div>
             </div>
           </div>
 
