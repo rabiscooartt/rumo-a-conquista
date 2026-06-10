@@ -56,6 +56,7 @@ export type GameEmblem = {
   title: string;
   image: string;
   description: string;
+  unlockedAt?: string;
   tags?: string[];
 };
 
@@ -131,6 +132,7 @@ export const games = {
     "emblem": {
       "title": "Ídolo da Dor Eterna",
       "image": "/images/games/crisol-theater-of-idols/emblem.png",
+      "unlockedAt": "2026-04-09",
       "description": "Uma relíquia sombria concedida ao jogador que atravessou os horrores de Tormentosa, enfrentou seus ídolos vivos e resistiu ao teatro sagrado de sangue, fé e sofrimento. O Ídolo da Dor Eterna representa a marca final de quem sobreviveu à maldição de Crisol e transformou dor, sacrifício e devoção em conquista.",
       "tags": [
         "Horror Religioso",
@@ -141,6 +143,7 @@ export const games = {
     "gameEmblem": {
       "title": "Ídolo da Dor Eterna",
       "image": "/images/games/crisol-theater-of-idols/emblem.png",
+      "unlockedAt": "2026-04-09",
       "description": "Uma relíquia sombria concedida ao jogador que atravessou os horrores de Tormentosa, enfrentou seus ídolos vivos e resistiu ao teatro sagrado de sangue, fé e sofrimento. O Ídolo da Dor Eterna representa a marca final de quem sobreviveu à maldição de Crisol e transformou dor, sacrifício e devoção em conquista.",
       "tags": [
         "Horror Religioso",
@@ -315,6 +318,7 @@ export const games = {
     "emblem": {
       "title": "Relíquia de Hogwarts",
       "image": "/images/games/howgarts-legacy/emblem.png",
+      "unlockedAt": "2026-03-17",
       "description": "Uma relíquia simbólica concedida ao bruxo que explorou Hogwarts por completo, dominou seus desafios e revelou todos os segredos deixados pelo legado mágico. O Legado Absoluto representa a conclusão definitiva da jornada e a marca de quem se tornou um verdadeiro guardião dessa história.",
       "tags": [
         "Magia Ancestral",
@@ -325,6 +329,7 @@ export const games = {
     "gameEmblem": {
       "title": "Relíquia de Hogwarts",
       "image": "/images/games/howgarts-legacy/emblem.png",
+      "unlockedAt": "2026-03-17",
       "description": "Uma relíquia simbólica concedida ao bruxo que explorou Hogwarts por completo, dominou seus desafios e revelou todos os segredos deixados pelo legado mágico. O Legado Absoluto representa a conclusão definitiva da jornada e a marca de quem se tornou um verdadeiro guardião dessa história.",
       "tags": [
         "Magia Ancestral",

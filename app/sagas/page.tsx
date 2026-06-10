@@ -27,6 +27,7 @@ type EmblemItem = {
   fallbackIcon: string;
   progress: number;
   isCompleted: boolean;
+  unlockedAt?: string;
 };
 
 type EmblemGroup = {
@@ -152,6 +153,60 @@ function normalizeStatus(status?: string) {
   return "progress";
 }
 
+function normalizeDate(date?: string) {
+  const value = readText(date, "").trim();
+
+  if (!value) {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [day, month, year] = value.split("/");
+    return `${year}-${month}-${day}`;
+  }
+
+  return "";
+}
+
+function formatDate(date?: string) {
+  const normalizedDate = normalizeDate(date);
+
+  if (!normalizedDate) {
+    return "";
+  }
+
+  const [year, month, day] = normalizedDate.split("-");
+
+  return `${day}/${month}/${year}`;
+}
+
+function getYearFromDate(date?: string) {
+  const normalizedDate = normalizeDate(date);
+
+  if (!normalizedDate) {
+    return "";
+  }
+
+  return normalizedDate.slice(0, 4);
+}
+
+
+function getManualEmblemUnlockedAt(gameSlug: string) {
+  if (gameSlug === "howgarts-legacy" || gameSlug === "hogwarts-legacy") {
+    return "2026-03-17";
+  }
+
+  if (gameSlug === "crisol-theater-of-idols") {
+    return "2026-04-09";
+  }
+
+  return "";
+}
+
 function isAchievementCompleted(achievement: unknown) {
   if (!achievement || typeof achievement !== "object") {
     return false;
@@ -197,6 +252,7 @@ function hasExplicitEmblemData(game: Record<string, unknown>) {
         image?: string;
         description?: string;
         tags?: string[] | string;
+        unlockedAt?: string;
       }
     | undefined;
 
@@ -205,6 +261,17 @@ function hasExplicitEmblemData(game: Record<string, unknown>) {
         title?: string;
         image?: string;
         icon?: string;
+        unlockedAt?: string;
+      }
+    | undefined;
+
+  const gameEmblem = game.gameEmblem as
+    | {
+        title?: string;
+        image?: string;
+        description?: string;
+        tags?: string[] | string;
+        unlockedAt?: string;
       }
     | undefined;
 
@@ -212,13 +279,21 @@ function hasExplicitEmblemData(game: Record<string, unknown>) {
     readText(emblem?.title, "") ||
       readText(emblem?.image, "") ||
       readText(emblem?.description, "") ||
+      readText(emblem?.unlockedAt, "") ||
       readStringList(emblem?.tags).length > 0 ||
       readText(game.emblemTitle, "") ||
       readText(game.emblemImage, "") ||
       readText(game.emblemDescription, "") ||
+      readText(game.emblemUnlockedAt, "") ||
       readStringList(game.emblemTags).length > 0 ||
+      readText(gameEmblem?.title, "") ||
+      readText(gameEmblem?.image, "") ||
+      readText(gameEmblem?.description, "") ||
+      readText(gameEmblem?.unlockedAt, "") ||
+      readStringList(gameEmblem?.tags).length > 0 ||
       readText(finalBadge?.title, "") ||
-      readText(finalBadge?.image, "")
+      readText(finalBadge?.image, "") ||
+      readText(finalBadge?.unlockedAt, "")
   );
 }
 
@@ -237,6 +312,7 @@ function getGameEmblem(
         image?: string;
         description?: string;
         tags?: string[] | string;
+        unlockedAt?: string;
       }
     | undefined;
 
@@ -245,6 +321,17 @@ function getGameEmblem(
         title?: string;
         image?: string;
         icon?: string;
+        unlockedAt?: string;
+      }
+    | undefined;
+
+  const gameEmblem = game.gameEmblem as
+    | {
+        title?: string;
+        image?: string;
+        description?: string;
+        tags?: string[] | string;
+        unlockedAt?: string;
       }
     | undefined;
 
@@ -254,34 +341,56 @@ function getGameEmblem(
     normalizeText(game.title).includes("hogwarts")
   ) {
     return {
-      title: "Legado Absoluto",
-      image: "/images/games/howgarts-legacy/emblem.png",
+      title:
+        readText(emblem?.title, "") ||
+        readText(gameEmblem?.title, "") ||
+        readText(game.emblemTitle, "") ||
+        "Legado Absoluto",
+      image:
+        readText(emblem?.image, "") ||
+        readText(gameEmblem?.image, "") ||
+        readText(game.emblemImage, "") ||
+        "/images/games/howgarts-legacy/emblem.png",
       fallbackIcon: "💎",
+      unlockedAt:
+        readText(emblem?.unlockedAt, "") ||
+        readText(gameEmblem?.unlockedAt, "") ||
+        readText(game.emblemUnlockedAt, "") ||
+        readText(finalBadge?.unlockedAt, "") ||
+        getManualEmblemUnlockedAt(gameSlug),
     };
   }
 
   const emblemTitle =
     readText(emblem?.title, "") ||
+    readText(gameEmblem?.title, "") ||
     readText(game.emblemTitle, "") ||
     readText(finalBadge?.title, "") ||
     readText(game.title, "Emblema do Jogo");
 
   const emblemImage =
     readText(emblem?.image, "") ||
+    readText(gameEmblem?.image, "") ||
     readText(game.emblemImage, "") ||
     readText(finalBadge?.image, "") ||
     fallbackImage ||
     `/images/games/${gameSlug}/emblem.png`;
 
   const fallbackIcon =
-    readText(finalBadge?.icon, "") ||
-    readText(game.fallbackIcon, "") ||
-    "🏆";
+    readText(finalBadge?.icon, "") || readText(game.fallbackIcon, "") || "🏆";
+
+  const unlockedAt =
+    readText(emblem?.unlockedAt, "") ||
+    readText(gameEmblem?.unlockedAt, "") ||
+    readText(game.emblemUnlockedAt, "") ||
+    readText(finalBadge?.unlockedAt, "") ||
+    getManualEmblemUnlockedAt(gameSlug);
 
   return {
     title: emblemTitle,
     image: emblemImage,
     fallbackIcon,
+    unlockedAt,
   };
 }
 
@@ -386,7 +495,7 @@ function EmblemCard({
         <div
           className={`h-full w-full transition duration-300 ${
             isLocked
-              ? "opacity-25 grayscale saturate-0 blur-[5px] brightness-[0.45] scale-[0.98]"
+              ? "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
               : "group-hover:scale-[1.03]"
           }`}
         >
@@ -440,6 +549,10 @@ function EmblemCard({
 
 function EmblemGroupCard({ group }: { group: EmblemGroup }) {
   const hasSingleEmblem = group.emblems.length === 1;
+  const unlockedEmblem = group.emblems.find(
+    (emblem) => emblem.isCompleted && emblem.unlockedAt
+  );
+  const unlockedDate = formatDate(unlockedEmblem?.unlockedAt);
 
   return (
     <article
@@ -450,13 +563,32 @@ function EmblemGroupCard({ group }: { group: EmblemGroup }) {
       }`}
     >
       <div className="border-b border-white/10 pb-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
-          Franquia / Jogo
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
+              Franquia / Jogo
+            </p>
 
-        <h2 className="mt-1 line-clamp-1 text-2xl font-black text-white">
-          {group.title}
-        </h2>
+            <h2 className="mt-1 line-clamp-1 text-2xl font-black text-white">
+              {group.title}
+            </h2>
+          </div>
+
+          {unlockedDate ? (
+            <div className="shrink-0 pt-1 text-right">
+              <p className="text-[8px] font-black uppercase tracking-[0.22em] text-emerald-300/45">
+                Conquistado
+              </p>
+
+              <time
+                dateTime={unlockedEmblem?.unlockedAt}
+                className="mt-1 block text-xs font-black tracking-[0.08em] text-emerald-200/70"
+              >
+                {unlockedDate}
+              </time>
+            </div>
+          ) : null}
+        </div>
 
         {group.subtitle && (
           <p className={`mt-1 line-clamp-1 text-xs font-bold ${group.theme.text}`}>
@@ -490,6 +622,8 @@ export default function SagasPage() {
   const { gamesList, gamesMap } = useSiteGames();
 
   const [activeFilter, setActiveFilter] = useState<EmblemFilter>("all");
+  const [activeYear, setActiveYear] = useState<string>("all");
+  const [yearInput, setYearInput] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -514,9 +648,7 @@ export default function SagasPage() {
     const sagaGroups = sagasList.map((saga) => {
       const gameSlugs = getSagaGameSlugs(saga);
 
-      const activeGameSlugs = gameSlugs.filter((slug) =>
-        Boolean(gamesMap[slug])
-      );
+      const activeGameSlugs = gameSlugs.filter((slug) => Boolean(gamesMap[slug]));
 
       const emblems = activeGameSlugs
         .map((gameSlug) => {
@@ -539,6 +671,7 @@ export default function SagasPage() {
             fallbackIcon: emblem.fallbackIcon,
             progress,
             isCompleted,
+            unlockedAt: emblem.unlockedAt,
           } satisfies EmblemItem;
         })
         .filter(Boolean) as EmblemItem[];
@@ -594,6 +727,7 @@ export default function SagasPage() {
           fallbackIcon: emblem.fallbackIcon,
           progress,
           isCompleted,
+          unlockedAt: emblem.unlockedAt,
         };
 
         return {
@@ -631,15 +765,55 @@ export default function SagasPage() {
   const totalProgress =
     totalEmblems > 0 ? Math.round((completedEmblems / totalEmblems) * 100) : 0;
 
-  const filteredGroups = useMemo(() => {
-    return emblemGroups
-      .map((group) => {
-        const emblems = group.emblems.filter((emblem) => {
-          if (activeFilter === "completed") return emblem.isCompleted;
-          if (activeFilter === "locked") return !emblem.isCompleted;
+  const emblemsByYear = Object.entries(
+    allEmblems.reduce<Record<string, number>>((accumulator, emblem) => {
+      if (!emblem.isCompleted) {
+        return accumulator;
+      }
 
-          return true;
-        });
+      const year = getYearFromDate(emblem.unlockedAt);
+
+      if (!year) {
+        return accumulator;
+      }
+
+      accumulator[year] = (accumulator[year] || 0) + 1;
+
+      return accumulator;
+    }, {})
+  )
+    .map(([year, count]) => ({
+      year,
+      count,
+    }))
+    .sort((yearA, yearB) => Number(yearB.year) - Number(yearA.year));
+
+  const filteredGroups = useMemo(() => {
+    const groups = emblemGroups
+      .map((group) => {
+        const emblems = group.emblems
+          .filter((emblem) => {
+            if (activeYear !== "all") {
+              return (
+                emblem.isCompleted &&
+                getYearFromDate(emblem.unlockedAt) === activeYear
+              );
+            }
+
+            if (activeFilter === "completed") return emblem.isCompleted;
+            if (activeFilter === "locked") return !emblem.isCompleted;
+
+            return true;
+          })
+          .sort((emblemA, emblemB) => {
+            if (activeYear === "all") {
+              return 0;
+            }
+
+            return normalizeDate(emblemA.unlockedAt).localeCompare(
+              normalizeDate(emblemB.unlockedAt)
+            );
+          });
 
         return {
           ...group,
@@ -647,7 +821,36 @@ export default function SagasPage() {
         };
       })
       .filter((group) => group.emblems.length > 0);
-  }, [activeFilter, emblemGroups]);
+
+    if (activeYear === "all") {
+      return groups;
+    }
+
+    return groups.sort((groupA, groupB) => {
+      const firstDateA = normalizeDate(groupA.emblems[0]?.unlockedAt);
+      const firstDateB = normalizeDate(groupB.emblems[0]?.unlockedAt);
+
+      return firstDateA.localeCompare(firstDateB);
+    });
+  }, [activeFilter, activeYear, emblemGroups]);
+
+  function applyYearFilter(year: string) {
+    const normalizedYear = year.trim();
+
+    if (!/^\d{4}$/.test(normalizedYear)) {
+      alert("Digite um ano com 4 números. Ex: 2026");
+      return;
+    }
+
+    setActiveYear(normalizedYear);
+    setActiveFilter("completed");
+  }
+
+  function clearYearFilter() {
+    setActiveYear("all");
+    setYearInput("");
+    setActiveFilter("all");
+  }
 
   function scrollToTop() {
     window.scrollTo({
@@ -740,27 +943,94 @@ export default function SagasPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex overflow-hidden rounded-full border border-white/10 bg-black/35">
+                <input
+                  value={yearInput}
+                  onChange={(event) => {
+                    const onlyNumbers = event.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 4);
+
+                    setYearInput(onlyNumbers);
+
+                    if (onlyNumbers.length === 4) {
+                      applyYearFilter(onlyNumbers);
+                    }
+
+                    if (onlyNumbers.length === 0) {
+                      clearYearFilter();
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      applyYearFilter(yearInput);
+                    }
+                  }}
+                  placeholder="Ano"
+                  inputMode="numeric"
+                  className="w-[82px] bg-transparent px-4 py-2 text-xs font-black text-white outline-none placeholder:text-white/30"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => applyYearFilter(yearInput)}
+                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-xs font-black text-red-200 transition hover:bg-red-500/20"
+                  aria-label="Filtrar por ano"
+                  title="Filtrar por ano"
+                >
+                  🔎
+                </button>
+              </div>
+
+              {activeYear !== "all" && (
+                <button
+                  type="button"
+                  onClick={clearYearFilter}
+                  className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-200 transition hover:bg-emerald-500/[0.14]"
+                >
+                  {activeYear} ×
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={() => setActiveFilter("all")}
-                className={getFilterButtonClass(activeFilter === "all")}
+                onClick={() => {
+                  setActiveFilter("all");
+                  setActiveYear("all");
+                  setYearInput("");
+                }}
+                className={getFilterButtonClass(
+                  activeFilter === "all" && activeYear === "all"
+                )}
               >
                 Todos {totalEmblems}
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveFilter("completed")}
-                className={getFilterButtonClass(activeFilter === "completed")}
+                onClick={() => {
+                  setActiveFilter("completed");
+                  setActiveYear("all");
+                  setYearInput("");
+                }}
+                className={getFilterButtonClass(
+                  activeFilter === "completed" && activeYear === "all"
+                )}
               >
                 Conquistados {completedEmblems}
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveFilter("locked")}
-                className={getFilterButtonClass(activeFilter === "locked")}
+                onClick={() => {
+                  setActiveFilter("locked");
+                  setActiveYear("all");
+                  setYearInput("");
+                }}
+                className={getFilterButtonClass(
+                  activeFilter === "locked" && activeYear === "all"
+                )}
               >
                 Bloqueados {lockedEmblems}
               </button>
