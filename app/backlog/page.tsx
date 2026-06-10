@@ -312,6 +312,34 @@ function BacklogPageContent() {
     saveItems(createDefaultBacklogItems());
   }
 
+  function createOfficialBacklogCode() {
+    const officialSlugs = normalizeBacklogOrder(items)
+      .map((item) => item.slug)
+      .filter(Boolean);
+
+    const slugsCode = officialSlugs
+      .map((slug) => `  "${slug}",`)
+      .join("\n");
+
+    return `const DEFAULT_BACKLOG_SLUGS = [\n${slugsCode}\n];`;
+  }
+
+  async function handleCopyOfficialBacklog() {
+    const exportCode = createOfficialBacklogCode();
+
+    try {
+      await navigator.clipboard.writeText(exportCode);
+      alert(
+        "Fila oficial copiada. Use isso quando quiser transformar a ordem atual das Próximas Maestrias em padrão do site. Substitua o bloco DEFAULT_BACKLOG_SLUGS neste arquivo, rode npm run build e depois faça git add, commit e push."
+      );
+    } catch {
+      window.prompt(
+        "Não consegui copiar automaticamente. Copie este bloco e substitua o DEFAULT_BACKLOG_SLUGS no arquivo da página de backlog:",
+        exportCode
+      );
+    }
+  }
+
   const sortedItems = normalizeBacklogOrder(items);
 
   const visibleSortedItems = sortedItems.filter((item) => {
@@ -419,6 +447,14 @@ function BacklogPageContent() {
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
+                  onClick={handleCopyOfficialBacklog}
+                  className="w-fit rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 transition hover:bg-yellow-500/20"
+                >
+                  Copiar fila oficial
+                </button>
+
+                <button
+                  type="button"
                   onClick={resetToDefaultBacklog}
                   className="w-fit rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
                 >
@@ -432,6 +468,37 @@ function BacklogPageContent() {
                 >
                   Limpar fila
                 </button>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] border border-yellow-400/20 bg-yellow-500/[0.055] p-4">
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-yellow-200/80">
+                    Quando usar “Copiar fila oficial”?
+                  </p>
+
+                  <p className="mt-2 text-sm font-bold leading-relaxed text-white/55">
+                    Use esse botão quando terminar de organizar a fila e quiser
+                    transformar a ordem atual em padrão oficial do site para todos.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[560px]">
+                  <p>
+                    <span className="font-black text-yellow-100">Fluxo:</span>{" "}
+                    organize a fila → Copiar fila oficial → substituir o bloco{" "}
+                    <span className="font-black text-white">
+                      DEFAULT_BACKLOG_SLUGS
+                    </span>{" "}
+                    neste arquivo → npm run build → git add . → commit → push.
+                  </p>
+
+                  <p className="mt-2">
+                    Se for só testar a ordem no seu navegador, não precisa copiar
+                    a fila oficial.
+                  </p>
+                </div>
               </div>
             </div>
 
