@@ -788,6 +788,11 @@ export default function SagasPage() {
     }))
     .sort((yearA, yearB) => Number(yearB.year) - Number(yearA.year));
 
+  const activeYearEmblemsCount =
+    activeYear === "all"
+      ? completedEmblems
+      : emblemsByYear.find((item) => item.year === activeYear)?.count || 0;
+
   const filteredGroups = useMemo(() => {
     const groups = emblemGroups
       .map((group) => {
@@ -810,8 +815,8 @@ export default function SagasPage() {
               return 0;
             }
 
-            return normalizeDate(emblemA.unlockedAt).localeCompare(
-              normalizeDate(emblemB.unlockedAt)
+            return normalizeDate(emblemB.unlockedAt).localeCompare(
+              normalizeDate(emblemA.unlockedAt)
             );
           });
 
@@ -830,7 +835,7 @@ export default function SagasPage() {
       const firstDateA = normalizeDate(groupA.emblems[0]?.unlockedAt);
       const firstDateB = normalizeDate(groupB.emblems[0]?.unlockedAt);
 
-      return firstDateA.localeCompare(firstDateB);
+      return firstDateB.localeCompare(firstDateA);
     });
   }, [activeFilter, activeYear, emblemGroups]);
 
@@ -908,11 +913,13 @@ export default function SagasPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                    Emblemas
+                    {activeYear === "all" ? "Emblemas" : `Emblemas ${activeYear}`}
                   </p>
 
                   <p className="mt-1 text-3xl font-black text-white">
-                    {completedEmblems}/{totalEmblems}
+                    {activeYear === "all"
+                      ? `${completedEmblems}/${totalEmblems}`
+                      : activeYearEmblemsCount}
                   </p>
                 </div>
 
