@@ -39,6 +39,7 @@ type GameEditorForm = {
   emblemImage: string;
   emblemDescription: string;
   emblemTags: string;
+  emblemUnlockedAt: string;
 };
 
 type ReviewStatus = "bloqueada" | "em-andamento" | "liberada";
@@ -82,6 +83,7 @@ const emptyGameForm: GameFormInput = {
   emblemImage: "",
   emblemDescription: "",
   emblemTags: "",
+  emblemUnlockedAt: "",
 };
 
 const statusOptions = [
@@ -276,15 +278,16 @@ function createReviewPayload(review: EditableReview) {
 function createEmblemPayload(
   form: Pick<
     GameEditorForm,
-    "emblemTitle" | "emblemImage" | "emblemDescription" | "emblemTags"
+    "emblemTitle" | "emblemImage" | "emblemDescription" | "emblemTags" | "emblemUnlockedAt"
   >
 ): SiteGame["emblem"] {
   const title = form.emblemTitle.trim();
   const image = form.emblemImage.trim();
   const description = form.emblemDescription.trim();
   const tags = splitLines(form.emblemTags);
+  const unlockedAt = form.emblemUnlockedAt.trim();
 
-  if (!title && !image && !description && tags.length === 0) {
+  if (!title && !image && !description && tags.length === 0 && !unlockedAt) {
     return undefined;
   }
 
@@ -293,6 +296,7 @@ function createEmblemPayload(
     image,
     description,
     tags,
+    unlockedAt,
   };
 }
 
@@ -466,6 +470,7 @@ function GameEditorCard({
     emblemImage: String(game.emblem?.image || ""),
     emblemDescription: String(game.emblem?.description || ""),
     emblemTags: readArrayAsLines(game.emblem?.tags),
+    emblemUnlockedAt: String(game.emblem?.unlockedAt || ""),
   });
 
   const [achievements, setAchievements] = useState<EditableAchievement[]>(
@@ -490,6 +495,7 @@ function GameEditorCard({
       emblemImage: String(game.emblem?.image || ""),
       emblemDescription: String(game.emblem?.description || ""),
       emblemTags: readArrayAsLines(game.emblem?.tags),
+      emblemUnlockedAt: String(game.emblem?.unlockedAt || ""),
     });
 
     setAchievements(normalizeAchievements(game.achievementsList, game.slug));
@@ -1062,6 +1068,24 @@ function GameEditorCard({
                     }))
                   }
                   placeholder={`/images/games/${game.slug}/emblem.png`}
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-violet-400/40"
+                />
+              </label>
+
+              <label>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                  Data do emblema
+                </span>
+
+                <input
+                  type="date"
+                  value={form.emblemUnlockedAt}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      emblemUnlockedAt: event.target.value,
+                    }))
+                  }
                   className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-violet-400/40"
                 />
               </label>
@@ -1968,6 +1992,24 @@ export default function AdminJogosPage() {
                     }))
                   }
                   placeholder={`/images/games/${generatedSlug || "nome-do-jogo"}/emblem.png`}
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-violet-400/40"
+                />
+              </label>
+
+              <label>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                  Data do emblema
+                </span>
+
+                <input
+                  type="date"
+                  value={form.emblemUnlockedAt || ""}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      emblemUnlockedAt: event.target.value,
+                    }))
+                  }
                   className="mt-2 w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-violet-400/40"
                 />
               </label>

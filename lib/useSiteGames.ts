@@ -23,6 +23,7 @@ export type GameEmblemInput = {
   image?: string;
   description?: string;
   tags?: string[];
+  unlockedAt?: string;
 };
 
 export type SiteGame = {
@@ -74,6 +75,7 @@ export type GameFormInput = {
   emblemImage?: string;
   emblemDescription?: string;
   emblemTags?: string;
+  emblemUnlockedAt?: string;
 };
 
 type AchievementState = {
@@ -182,8 +184,9 @@ function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
   const image = readText(record.image, "").trim();
   const description = readText(record.description, "").trim();
   const tags = readStringArray(record.tags);
+  const unlockedAt = readText(record.unlockedAt, "").trim();
 
-  if (!title && !image && !description && tags.length === 0) {
+  if (!title && !image && !description && tags.length === 0 && !unlockedAt) {
     return undefined;
   }
 
@@ -192,6 +195,7 @@ function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
     image,
     description,
     tags,
+    unlockedAt,
   };
 }
 
@@ -862,6 +866,7 @@ const hiddenGamesList = useMemo(() => {
         image: input.emblemImage,
         description: input.emblemDescription,
         tags: input.emblemTags,
+        unlockedAt: input.emblemUnlockedAt,
       }),
       achievementsList: [],
       createdAt: now,
