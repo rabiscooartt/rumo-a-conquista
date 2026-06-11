@@ -373,13 +373,6 @@ export default function AdminBacklogPage() {
             </Link>
 
             <Link
-              href="/admin/sagas"
-              className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-white/65 transition hover:border-white/20 hover:text-white"
-            >
-              Admin Sagas →
-            </Link>
-
-            <Link
               href="/backlog"
               className="inline-flex w-fit rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
             >
