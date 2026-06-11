@@ -113,7 +113,7 @@ export default function AdminAvatarLogin() {
                 </h2>
 
                 <p className="mx-auto mt-5 max-w-[500px] text-base font-bold leading-relaxed text-white/55">
-                  Atalho privado para editar jogos, sagas, emblemas e próximas
+                  Atalho privado para editar jogos, emblemas e próximas
                   maestrias do projeto Rumo à Conquista.
                 </p>
 
