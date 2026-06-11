@@ -13,7 +13,7 @@ function unauthorizedResponse() {
   });
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (!pathname.startsWith("/admin")) {
@@ -25,6 +25,9 @@ export function middleware(request: NextRequest) {
       "Admin não configurado. Defina ADMIN_USER e ADMIN_PASSWORD.",
       {
         status: 500,
+        headers: {
+          "Cache-Control": "no-store",
+        },
       }
     );
   }
