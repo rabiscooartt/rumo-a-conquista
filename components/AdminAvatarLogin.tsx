@@ -59,10 +59,29 @@ export default function AdminAvatarLogin() {
     };
   }, [isOpen]);
 
-  function hideAdminIcon() {
+  function disableAdminClick() {
     localStorage.removeItem(OWNER_MODE_KEY);
     setIsOwnerMode(false);
     setIsOpen(false);
+  }
+
+  function AvatarImage() {
+    if (!imageHasError) {
+      return (
+        <img
+          src={AVATAR_SRC}
+          alt="Avatar Rabiisco"
+          className="h-full w-full object-cover"
+          onError={() => setImageHasError(true)}
+        />
+      );
+    }
+
+    return (
+      <span className="flex h-full w-full items-center justify-center text-sm">
+        ⚙️
+      </span>
+    );
   }
 
   const modal =
@@ -82,16 +101,7 @@ export default function AdminAvatarLogin() {
 
               <div className="relative z-10">
                 <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-red-400/45 bg-red-500/10 shadow-[0_0_45px_rgba(239,68,68,0.35)]">
-                  {!imageHasError ? (
-                    <img
-                      src={AVATAR_SRC}
-                      alt="Avatar do criador"
-                      className="h-full w-full object-cover"
-                      onError={() => setImageHasError(true)}
-                    />
-                  ) : (
-                    <span className="text-4xl">⚙️</span>
-                  )}
+                  <AvatarImage />
                 </div>
 
                 <p className="mt-7 text-xs font-black uppercase tracking-[0.35em] text-red-300">
@@ -113,10 +123,11 @@ export default function AdminAvatarLogin() {
                   </p>
 
                   <p className="mt-2 text-xs font-bold leading-relaxed text-yellow-50/60">
-                    O avatar aparece só neste navegador porque o modo dono está
-                    ativado. Para esconder o ícone, clique em{" "}
+                    O avatar só abre este painel neste navegador porque o modo
+                    dono está ativado. Para deixar o avatar visível, mas sem
+                    clique de Admin, use{" "}
                     <span className="font-black text-yellow-100">
-                      Ocultar ícone Admin
+                      Desativar clique Admin
                     </span>
                     . Para ativar novamente, abra o site usando{" "}
                     <span className="font-black text-white">?admin=1</span>.
@@ -140,10 +151,10 @@ export default function AdminAvatarLogin() {
 
                   <button
                     type="button"
-                    onClick={hideAdminIcon}
+                    onClick={disableAdminClick}
                     className="rounded-2xl border border-yellow-400/25 bg-yellow-500/10 px-6 py-3 text-sm font-black text-yellow-100/80 transition hover:bg-yellow-500/20 hover:text-yellow-50"
                   >
-                    Ocultar ícone Admin
+                    Desativar clique Admin
                   </button>
 
                   <button
@@ -165,8 +176,20 @@ export default function AdminAvatarLogin() {
         )
       : null;
 
-  if (!isLoaded || !isOwnerMode) {
+  if (!isLoaded) {
     return null;
+  }
+
+  if (!isOwnerMode) {
+    return (
+      <div
+        className="flex h-10 w-10 cursor-default items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.035] opacity-75"
+        title="Rabiisco"
+        aria-label="Avatar Rabiisco"
+      >
+        <AvatarImage />
+      </div>
+    );
   }
 
   return (
@@ -178,18 +201,7 @@ export default function AdminAvatarLogin() {
         title="Área Admin"
         aria-label="Abrir área admin"
       >
-        {!imageHasError ? (
-          <img
-            src={AVATAR_SRC}
-            alt="Login Admin"
-            className="h-full w-full object-cover"
-            onError={() => setImageHasError(true)}
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-sm">
-            ⚙️
-          </span>
-        )}
+        <AvatarImage />
       </button>
 
       {modal}
