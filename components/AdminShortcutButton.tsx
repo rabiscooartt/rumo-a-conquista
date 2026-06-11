@@ -78,16 +78,6 @@ export default function AdminShortcutButton() {
           <span>🎮 Jogos</span>
           <span>↗</span>
         </Link>
-
-        <Link
-          href="/admin/sagas"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between rounded-2xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-3 text-sm font-black text-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-500/25"
-        >
-          <span>🛡️ Sagas</span>
-          <span>↗</span>
-        </Link>
       </div>
     </div>
   );
