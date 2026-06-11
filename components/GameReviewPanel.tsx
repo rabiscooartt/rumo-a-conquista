@@ -353,8 +353,7 @@ export default function GameReviewPanel({
           <ScoreDisplay nota="?" />
 
           <p className="mt-5 text-sm leading-relaxed text-white/45">
-            A review será liberada quando todas as conquistas forem concluídas
-            ou quando você marcar a review como liberada no Admin.
+            A review será liberada quando todas as conquistas forem concluídas.
           </p>
         </div>
 
