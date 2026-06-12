@@ -433,12 +433,6 @@ export default function JornadaPage() {
             ← Voltar para Home
           </Link>
 
-          <Link
-            href="/admin/jornada"
-            className="inline-flex w-fit rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-200 transition hover:border-cyan-300/50 hover:bg-cyan-500/20"
-          >
-            Editar Jornada →
-          </Link>
         </div>
 
         <header className="mt-8 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
@@ -501,12 +495,6 @@ export default function JornadaPage() {
                 mais recente para a mais antiga.
               </p>
 
-              <Link
-                href="/admin/jornada"
-                className="mt-6 inline-flex rounded-xl border border-red-500/35 bg-red-500/15 px-5 py-3 text-sm font-black text-red-100 transition hover:bg-red-500/25"
-              >
-                Criar primeira anotação →
-              </Link>
             </div>
           ) : (
             displayEntries.map((entry, index) => (
