@@ -378,22 +378,7 @@ function normalizeAchievements(
   });
 }
 
-function createEmptyAchievement(
-  gameSlug: string,
-  index: number
-): EditableAchievement {
-  return {
-    id: `${gameSlug}-achievement-${Date.now()}`,
-    title: `Nova conquista ${index + 1}`,
-    description: "",
-    trophy: "🥉",
-    difficulty: "Bronze",
-    status: "locked",
-    image: "",
-    isCustom: true,
-    isHidden: false,
-  };
-}
+
 
 function getCompletedAchievements(achievements: EditableAchievement[]) {
   return achievements.filter((achievement) => achievement.status === "completed")
@@ -493,7 +478,33 @@ function GameEditorCard({
 
   const [achievements, setAchievements] = useState<EditableAchievement[]>(
     normalizeAchievements(game.achievementsList, game.slug)
+    
   );
+  function handleAddAchievement() {
+  const newAchievement: EditableAchievement = {
+    id: `${game.slug}-achievement-${crypto.randomUUID()}`,
+    title: "Nova conquista",
+    description: "",
+    trophy: "🥉",
+    difficulty: "Bronze",
+    status: "locked",
+    image: "",
+    isCustom: true,
+    isHidden: false,
+  };
+
+  const nextAchievements = [
+    newAchievement,
+    ...achievements,
+  ];
+
+  setAchievements(nextAchievements);
+
+  onSave(
+    game.slug,
+    buildGameUpdate(nextAchievements)
+  );
+}
 
   const [review, setReview] = useState<EditableReview>(
     normalizeReview(game.review)
@@ -532,12 +543,41 @@ function GameEditorCard({
     }));
   }
 
-  function handleAddAchievement() {
-    setAchievements((current) => [
-      ...current,
-      createEmptyAchievement(game.slug, current.length),
-    ]);
-  }
+  function handleImportAchievements() {
+  const input = window.prompt(
+    "Cole a lista de conquistas, uma por linha:"
+  );
+
+  if (!input?.trim()) return;
+
+  const imported = input
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((title) => ({
+      id: `${game.slug}-achievement-${crypto.randomUUID()}`,
+      title,
+      description: "",
+      trophy: "🥉",
+      difficulty: "Bronze" as AchievementRank,
+      status: "locked" as AchievementStatus,
+      image: "",
+      isCustom: true,
+      isHidden: false,
+    }));
+
+  const nextAchievements = [
+      ...imported,
+      ...achievements,
+    ];
+
+  setAchievements(nextAchievements);
+
+  onSave(
+    game.slug,
+    buildGameUpdate(nextAchievements)
+  );
+}
 
   function normalizeAchievementsForSave(
     nextAchievements: EditableAchievement[]
@@ -549,9 +589,7 @@ function GameEditorCard({
       const trophy = achievement.trophy || rankToTrophy(rank);
 
       return {
-        id:
-          achievement.id ||
-          `${game.slug}-achievement-${index + 1}-${slugify(title)}`,
+        id: achievement.id || crypto.randomUUID(),
         title,
         description,
         trophy,
@@ -1400,13 +1438,13 @@ function GameEditorCard({
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleAddAchievement}
-                className="rounded-xl border border-red-500/35 bg-red-500/15 px-5 py-3 text-sm font-black text-red-100 transition hover:bg-red-500/25"
-              >
-                + Adicionar conquista
-              </button>
+             <button
+  type="button"
+  onClick={handleImportAchievements}
+  className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
+>
+  📋 Importar lista
+</button>
             </div>
 
             <div className="mt-5 space-y-4">
