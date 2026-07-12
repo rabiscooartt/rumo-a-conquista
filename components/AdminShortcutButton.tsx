@@ -59,6 +59,17 @@ export default function AdminShortcutButton() {
       </div>
 
       <div className="grid gap-2">
+
+        <Link
+          href="/admin/jornada"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between rounded-2xl border border-purple-400/30 bg-purple-500/15 px-4 py-3 text-sm font-black text-purple-100 transition hover:-translate-y-0.5 hover:bg-purple-500/25"
+        >
+          <span>📖 Jornada</span>
+          <span>↗</span>
+        </Link>
+
         <Link
           href="/admin/backlog"
           target="_blank"
@@ -78,6 +89,7 @@ export default function AdminShortcutButton() {
           <span>🎮 Jogos</span>
           <span>↗</span>
         </Link>
+
       </div>
     </div>
   );
