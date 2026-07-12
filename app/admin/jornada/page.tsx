@@ -127,6 +127,7 @@ export default function AdminJornadaPage() {
   const [form, setForm] = useState<JourneyEntryInput>(emptyForm);
   const [tagsInput, setTagsInput] = useState("");
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const games = useMemo(() => {
     return (gamesList || []).map((game) => ({
@@ -135,6 +136,10 @@ export default function AdminJornadaPage() {
       subtitle: readText(game.subtitle, ""),
     }));
   }, [gamesList]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!form.date) {
@@ -333,11 +338,12 @@ export default function AdminJornadaPage() {
                       : "Carregando jogos..."}
                   </option>
 
-                  {games.map((game) => (
-                    <option key={game.slug} value={game.slug}>
-                      {game.title}
-                    </option>
-                  ))}
+                  {mounted &&
+                    games.map((game) => (
+                      <option key={game.slug} value={game.slug}>
+                        {game.title}
+                      </option>
+                    ))}
                 </select>
               </label>
 
