@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { journeyEntries as baseJourneyEntries } from "@/data/journeyEntries";
 
 export type JourneyEntry = {
   id: string;
@@ -34,7 +35,9 @@ export type JourneyEntryInput = {
 };
 
 const JOURNEY_STORAGE_KEY = "rumo-a-conquista-journey-entries";
-export const JOURNEY_UPDATED_EVENT = "rumo-a-conquista-journey-updated";
+
+export const JOURNEY_UPDATED_EVENT =
+  "rumo-a-conquista-journey-updated";
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -42,7 +45,10 @@ function createId() {
 
 function normalizeText(value: unknown, fallback = "") {
   if (typeof value === "string") return value;
-  if (typeof value === "number") return String(value);
+
+  if (typeof value === "number") {
+    return String(value);
+  }
 
   return fallback;
 }
@@ -58,7 +64,9 @@ function normalizeTags(tags: unknown) {
     .slice(0, 8);
 }
 
-function normalizeStoredEntry(entry: Partial<JourneyEntry>): JourneyEntry {
+function normalizeStoredEntry(
+  entry: Partial<JourneyEntry>
+): JourneyEntry {
   const now = new Date().toISOString();
 
   return {
@@ -66,9 +74,18 @@ function normalizeStoredEntry(entry: Partial<JourneyEntry>): JourneyEntry {
     gameTitle: normalizeText(entry.gameTitle, "Jogo"),
     gameSlug: normalizeText(entry.gameSlug, ""),
     dayLabel: normalizeText(entry.dayLabel, "Dia 1"),
-    status: normalizeText(entry.status, "🟣 AO VIVO - TWITCH"),
-    weekDay: normalizeText(entry.weekDay, "Segunda-feira"),
-    date: normalizeText(entry.date, now.slice(0, 10)),
+    status: normalizeText(
+      entry.status,
+      "🟣 AO VIVO - TWITCH"
+    ),
+    weekDay: normalizeText(
+      entry.weekDay,
+      "Segunda-feira"
+    ),
+    date: normalizeText(
+      entry.date,
+      now.slice(0, 10)
+    ),
     title: normalizeText(entry.title, ""),
     notes: normalizeText(entry.notes, ""),
     highlight: normalizeText(entry.highlight, ""),
@@ -81,35 +98,55 @@ function normalizeStoredEntry(entry: Partial<JourneyEntry>): JourneyEntry {
 
 function readLocalJourneyEntries() {
   if (typeof window === "undefined") {
-    return [] as JourneyEntry[];
+    return baseJourneyEntries.map((entry) =>
+      normalizeStoredEntry(entry)
+    );
   }
 
-  const savedData = localStorage.getItem(JOURNEY_STORAGE_KEY);
+  const savedData = localStorage.getItem(
+    JOURNEY_STORAGE_KEY
+  );
 
   if (!savedData) {
-    return [];
+    return baseJourneyEntries.map((entry) =>
+      normalizeStoredEntry(entry)
+    );
   }
 
   try {
     const parsedData = JSON.parse(savedData);
 
     if (!Array.isArray(parsedData)) {
-      return [];
+      return baseJourneyEntries.map((entry) =>
+        normalizeStoredEntry(entry)
+      );
     }
 
-    return parsedData.map((entry) => normalizeStoredEntry(entry));
+    return parsedData.map((entry) =>
+      normalizeStoredEntry(entry)
+    );
   } catch {
-    return [];
+    return baseJourneyEntries.map((entry) =>
+      normalizeStoredEntry(entry)
+    );
   }
 }
 
-function saveLocalJourneyEntries(entries: JourneyEntry[]) {
+function saveLocalJourneyEntries(
+  entries: JourneyEntry[]
+) {
   if (typeof window === "undefined") {
     return;
   }
 
-  localStorage.setItem(JOURNEY_STORAGE_KEY, JSON.stringify(entries));
-  window.dispatchEvent(new Event(JOURNEY_UPDATED_EVENT));
+  localStorage.setItem(
+    JOURNEY_STORAGE_KEY,
+    JSON.stringify(entries)
+  );
+
+  window.dispatchEvent(
+    new Event(JOURNEY_UPDATED_EVENT)
+  );
 }
 
 function getDateTimeValue(entry: JourneyEntry) {
@@ -141,7 +178,9 @@ function sortEntries(entries: JourneyEntry[]) {
   });
 }
 
-function normalizeEntryInput(input: JourneyEntryInput): JourneyEntryInput {
+function normalizeEntryInput(
+  input: JourneyEntryInput
+): JourneyEntryInput {
   return {
     gameTitle: input.gameTitle.trim(),
     gameSlug: input.gameSlug?.trim() || "",
@@ -171,14 +210,36 @@ export function useJourneyEntries() {
   useEffect(() => {
     loadEntries();
 
-    window.addEventListener(JOURNEY_UPDATED_EVENT, loadEntries);
-    window.addEventListener("storage", loadEntries);
-    window.addEventListener("focus", loadEntries);
+    window.addEventListener(
+      JOURNEY_UPDATED_EVENT,
+      loadEntries
+    );
+
+    window.addEventListener(
+      "storage",
+      loadEntries
+    );
+
+    window.addEventListener(
+      "focus",
+      loadEntries
+    );
 
     return () => {
-      window.removeEventListener(JOURNEY_UPDATED_EVENT, loadEntries);
-      window.removeEventListener("storage", loadEntries);
-      window.removeEventListener("focus", loadEntries);
+      window.removeEventListener(
+        JOURNEY_UPDATED_EVENT,
+        loadEntries
+      );
+
+      window.removeEventListener(
+        "storage",
+        loadEntries
+      );
+
+      window.removeEventListener(
+        "focus",
+        loadEntries
+      );
     };
   }, [loadEntries]);
 
@@ -188,9 +249,13 @@ export function useJourneyEntries() {
 
   const addEntry = useCallback(
     (input: JourneyEntryInput) => {
-      const normalizedInput = normalizeEntryInput(input);
+      const normalizedInput =
+        normalizeEntryInput(input);
 
-      if (!normalizedInput.gameTitle || !normalizedInput.notes) {
+      if (
+        !normalizedInput.gameTitle ||
+        !normalizedInput.notes
+      ) {
         return null;
       }
 
@@ -203,9 +268,13 @@ export function useJourneyEntries() {
         updatedAt: now,
       };
 
-      const nextEntries = sortEntries([newEntry, ...entries]);
+      const nextEntries = sortEntries([
+        newEntry,
+        ...entries,
+      ]);
 
       setEntries(nextEntries);
+
       saveLocalJourneyEntries(nextEntries);
 
       return newEntry;
@@ -214,8 +283,12 @@ export function useJourneyEntries() {
   );
 
   const updateEntry = useCallback(
-    (entryId: string, input: JourneyEntryInput) => {
-      const normalizedInput = normalizeEntryInput(input);
+    (
+      entryId: string,
+      input: JourneyEntryInput
+    ) => {
+      const normalizedInput =
+        normalizeEntryInput(input);
 
       const nextEntries = sortEntries(
         entries.map((entry) => {
@@ -226,12 +299,14 @@ export function useJourneyEntries() {
           return {
             ...entry,
             ...normalizedInput,
-            updatedAt: new Date().toISOString(),
+            updatedAt:
+              new Date().toISOString(),
           };
         })
       );
 
       setEntries(nextEntries);
+
       saveLocalJourneyEntries(nextEntries);
     },
     [entries]
@@ -239,9 +314,12 @@ export function useJourneyEntries() {
 
   const removeEntry = useCallback(
     (entryId: string) => {
-      const nextEntries = entries.filter((entry) => entry.id !== entryId);
+      const nextEntries = entries.filter(
+        (entry) => entry.id !== entryId
+      );
 
       setEntries(nextEntries);
+
       saveLocalJourneyEntries(nextEntries);
     },
     [entries]
@@ -249,6 +327,7 @@ export function useJourneyEntries() {
 
   const clearEntries = useCallback(() => {
     setEntries([]);
+
     saveLocalJourneyEntries([]);
   }, []);
 
