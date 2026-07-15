@@ -103,34 +103,16 @@ function readLocalJourneyEntries() {
     );
   }
 
-  const savedData = localStorage.getItem(
-    JOURNEY_STORAGE_KEY
+  // Migração:
+  // remove dados antigos do navegador
+  // e carrega os dados oficiais do projeto
+  localStorage.removeItem(JOURNEY_STORAGE_KEY);
+
+  return baseJourneyEntries.map((entry) =>
+    normalizeStoredEntry(entry)
   );
-
-  if (!savedData) {
-    return baseJourneyEntries.map((entry) =>
-      normalizeStoredEntry(entry)
-    );
-  }
-
-  try {
-    const parsedData = JSON.parse(savedData);
-
-    if (!Array.isArray(parsedData)) {
-      return baseJourneyEntries.map((entry) =>
-        normalizeStoredEntry(entry)
-      );
-    }
-
-    return parsedData.map((entry) =>
-      normalizeStoredEntry(entry)
-    );
-  } catch {
-    return baseJourneyEntries.map((entry) =>
-      normalizeStoredEntry(entry)
-    );
-  }
 }
+
 
 function saveLocalJourneyEntries(
   entries: JourneyEntry[]
