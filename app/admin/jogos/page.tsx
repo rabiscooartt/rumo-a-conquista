@@ -10,6 +10,7 @@ import {
   slugify,
   useSiteGames,
 } from "@/lib/useSiteGames";
+import { saveAchievementsForGame } from "@/lib/achievements/repository";
 
 type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
@@ -1743,6 +1744,21 @@ export default function AdminJogosPage() {
 
   const displayedGames = normalizedSearchQuery ? searchResults : filteredGames;
 
+  function handleSaveGame(slug: string, update: Partial<SiteGame>) {
+    updateGame(slug, update);
+
+    if (!Array.isArray(update.achievementsList)) {
+      return;
+    }
+
+    void saveAchievementsForGame(slug, update.achievementsList).catch(
+      (error) => {
+        // A gravação local feita por useSiteGames continua como fallback.
+        console.error("Erro salvando conquistas no Supabase:", error);
+      }
+    );
+  }
+
   function handleOpenGame(slug: string) {
     setExpandedGameSlug((current) => (current === slug ? null : slug));
 
@@ -2491,7 +2507,7 @@ export default function AdminJogosPage() {
                 <GameEditorCard
                   key={game.slug}
                   game={game}
-                  onSave={updateGame}
+                  onSave={handleSaveGame}
                   onRemove={removeGame}
                   isExpanded={expandedGameSlug === game.slug}
                   onToggleExpand={() => handleOpenGame(game.slug)}

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSiteAchievements } from "@/lib/useSiteAchievements";
+import type { SiteAchievement } from "@/lib/achievements/types";
 
 export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
@@ -384,11 +386,27 @@ export default function GameAchievementsPanel(
 
   const gameTitle = props.gameTitle ?? props.title ?? props.game?.title ?? "Jogo";
 
-  const baseAchievements =
+  const legacyBaseAchievements =
     props.achievements ??
     props.achievementsList ??
     props.game?.achievementsList ??
     [];
+
+  const {
+    achievements: persistedAchievements,
+    source: achievementsSource,
+    save: saveToSupabase,
+  } = useSiteAchievements(
+    gameSlug,
+    legacyBaseAchievements as SiteAchievement[]
+  );
+
+  // Enquanto o banco ainda não possuir registros, o fluxo local existente é
+  // mantido integralmente. Quando houver dados no Supabase, ele vira a fonte.
+  const baseAchievements =
+    achievementsSource === "supabase"
+      ? (persistedAchievements as AchievementInput[])
+      : legacyBaseAchievements;
 
   const onStatesChange = props.onStatesChange;
 
@@ -451,6 +469,16 @@ export default function GameAchievementsPanel(
   useEffect(() => {
     const defaultStates = createDefaultStates(baseAchievements);
 
+    if (achievementsSource === "supabase") {
+      const timeout = window.setTimeout(() => {
+        setCustomAchievements([]);
+        setHiddenAchievementTitles([]);
+        setManualStates(defaultStates);
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
+    }
+
     const savedStates = localStorage.getItem(statesStorageKey);
     const savedCustomAchievements = localStorage.getItem(customStorageKey);
     const savedHiddenAchievements = localStorage.getItem(hiddenStorageKey);
@@ -493,7 +521,13 @@ export default function GameAchievementsPanel(
       ...customDefaultStates,
       ...parsedStates,
     });
-  }, [baseAchievements, customStorageKey, hiddenStorageKey, statesStorageKey]);
+  }, [
+    achievementsSource,
+    baseAchievements,
+    customStorageKey,
+    hiddenStorageKey,
+    statesStorageKey,
+  ]);
 
   useEffect(() => {
     onStatesChange?.(manualStates);
@@ -685,6 +719,30 @@ export default function GameAchievementsPanel(
 
     onStatesChange?.(manualStates);
     window.dispatchEvent(new Event(ACHIEVEMENTS_UPDATED_EVENT));
+
+    const snapshot = [...baseAchievements, ...customAchievements].map(
+      (achievement) => {
+        const state = manualStates[achievement.title];
+        const rank = state?.rank ?? getDefaultRank(achievement);
+
+        return {
+          ...achievement,
+          rank,
+          difficulty: rank,
+          status: state?.status ?? normalizeStatus(achievement.status),
+          earnedDate: state?.date ?? achievement.earnedDate ?? "",
+          image: state?.image ?? achievement.image ?? "",
+          isHidden:
+            hiddenAchievementTitles.includes(achievement.title) ||
+            achievement.isHidden === true,
+        } as SiteAchievement;
+      }
+    );
+
+    void saveToSupabase(snapshot).catch((error) => {
+      // O localStorage já foi atualizado acima e é o fallback desta etapa.
+      console.error("Erro salvando conquistas no Supabase:", error);
+    });
 
     if (showAlert) {
       alert("Conquistas salvas com sucesso!");
