@@ -1751,7 +1751,26 @@ export default function AdminJogosPage() {
       return;
     }
 
-    void saveAchievementsForGame(slug, update.achievementsList).catch(
+    void saveAchievementsForGame(
+      slug,
+      update.achievementsList.map((achievement) => ({
+        id:
+          achievement.id ??
+          `achievement-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2)}`,
+        title: achievement.title?.trim() || "Nova conquista",
+        description: achievement.description ?? "",
+        trophy: achievement.trophy ?? achievement.icon ?? "🥉",
+        icon: achievement.icon ?? achievement.trophy ?? "🏆",
+        difficulty: achievement.difficulty ?? "Bronze",
+        rank: achievement.rank ?? achievement.difficulty ?? "Bronze",
+        status: achievement.status ?? "locked",
+        earnedDate: achievement.earnedDate ?? "",
+        image: achievement.image ?? "",
+        isCustom: achievement.isCustom ?? true,
+      }))
+    ).catch(
       (error) => {
         // A gravação local feita por useSiteGames continua como fallback.
         console.error("Erro salvando conquistas no Supabase:", error);

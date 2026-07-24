@@ -9,7 +9,6 @@ import {
 
 import { supabase } from "@/lib/supabase";
 
-
 export type JourneyEntry = {
   id: string;
   gameTitle: string;
@@ -26,7 +25,6 @@ export type JourneyEntry = {
   createdAt: string;
   updatedAt: string;
 };
-
 
 export type JourneyEntryInput = {
   gameTitle: string;
@@ -54,6 +52,7 @@ function normalizeTags(tags: unknown) {
     .slice(0, 8);
 }
 
+
 function mapDatabaseEntry(entry: any): JourneyEntry {
   return {
     id: entry.id,
@@ -77,22 +76,21 @@ function mapDatabaseEntry(entry: any): JourneyEntry {
 function normalizeInput(
   input: JourneyEntryInput
 ): JourneyEntryInput {
-
   return {
     gameTitle: input.gameTitle.trim(),
     gameSlug: input.gameSlug?.trim() || "",
     dayLabel: input.dayLabel.trim(),
     status: input.status.trim(),
     weekDay: input.weekDay.trim(),
-    date: input.date,
+    date: input.date.trim(),
     title: input.title?.trim() || "",
     notes: input.notes.trim(),
     highlight: input.highlight?.trim() || "",
     threadsUrl: input.threadsUrl?.trim() || "",
     tags: normalizeTags(input.tags),
   };
-
 }
+
 
 function sortEntries(entries: JourneyEntry[]) {
   return [...entries].sort((a, b) => {
@@ -117,7 +115,6 @@ export function useJourneyEntries() {
 
 
   const loadEntries = useCallback(async () => {
-
     const { data, error } = await supabase
       .from("journey_entries")
       .select("*")
@@ -153,95 +150,22 @@ export function useJourneyEntries() {
 
 
   useEffect(() => {
-
     loadEntries();
-
   }, [loadEntries]);
 
 
 
   const latestEntries = useMemo(() => {
-
     return sortEntries(entries).slice(0, 7);
-
   }, [entries]);
 
-function sortEntries(entries: JourneyEntry[]) {
-  return [...entries].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-
-    if (dateA !== dateB) {
-      return dateB - dateA;
-    }
-
-    return (
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime()
-    );
-  });
-}
 
 
-export function useJourneyEntries() {
-  const [entries, setEntries] = useState<JourneyEntry[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-
-  const loadEntries = useCallback(async () => {
-
-    const { data, error } = await supabase
-      .from("journey_entries")
-      .select("*")
-      .order("date", {
-        ascending: false,
-      });
-
-
-    if (error) {
-      console.error(
-        "Erro carregando jornada:",
-        error
-      );
-
-      setIsLoaded(true);
-      return;
-    }
-
-
-    const mappedEntries =
-      (data || []).map(mapDatabaseEntry);
-
-
-    setEntries(
-      sortEntries(mappedEntries)
-    );
-
-
-    setIsLoaded(true);
-
-  }, []);
-
-
-
-  useEffect(() => {
-
-    loadEntries();
-
-  }, [loadEntries]);
-
-
-
-  const latestEntries = useMemo(() => {
-
-    return sortEntries(entries).slice(0, 7);
-
-  }, [entries]);
-
-    const addEntry = useCallback(
+  const addEntry = useCallback(
     async (input: JourneyEntryInput) => {
 
-      const normalizedInput = normalizeInput(input);
+      const normalizedInput =
+        normalizeInput(input);
 
 
       if (
@@ -410,6 +334,7 @@ export function useJourneyEntries() {
     },
     []
   );
+
 
 
   return {
