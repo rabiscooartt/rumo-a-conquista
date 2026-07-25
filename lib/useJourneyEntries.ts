@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export type JourneyEntry = {
@@ -26,56 +20,34 @@ export type JourneyEntry = {
   updatedAt: string;
 };
 
-export type JourneyEntryInput = {
-  gameTitle: string;
-  gameSlug?: string;
-  dayLabel: string;
-  status: string;
-  weekDay: string;
-  date: string;
-  title?: string;
-  notes: string;
-  highlight?: string;
-  threadsUrl?: string;
-  tags: string[];
-};
-
+export type JourneyEntryInput = Omit<JourneyEntry, "id" | "createdAt" | "updatedAt">;
 
 function normalizeTags(tags: unknown) {
-  if (!Array.isArray(tags)) {
-    return [];
-  }
+  if (!Array.isArray(tags)) return [];
 
-  return tags
-    .map((tag) => String(tag).trim())
-    .filter(Boolean)
-    .slice(0, 8);
+  return tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 8);
 }
 
-
-function mapDatabaseEntry(entry: any): JourneyEntry {
+function mapDatabaseEntry(entry: Record<string, unknown>): JourneyEntry {
   return {
-    id: entry.id,
-    gameTitle: entry.gameTitle ?? "",
-    gameSlug: entry.gameSlug ?? "",
-    dayLabel: entry.dayLabel ?? "",
-    status: entry.status ?? "",
-    weekDay: entry.weekDay ?? "",
-    date: entry.date ?? "",
-    title: entry.title ?? "",
-    notes: entry.notes ?? "",
-    highlight: entry.highlight ?? "",
-    threadsUrl: entry.threadsUrl ?? "",
+    id: String(entry.id || ""),
+    gameTitle: String(entry.gameTitle || ""),
+    gameSlug: String(entry.gameSlug || ""),
+    dayLabel: String(entry.dayLabel || ""),
+    status: String(entry.status || ""),
+    weekDay: String(entry.weekDay || ""),
+    date: String(entry.date || ""),
+    title: String(entry.title || ""),
+    notes: String(entry.notes || ""),
+    highlight: String(entry.highlight || ""),
+    threadsUrl: String(entry.threadsUrl || ""),
     tags: normalizeTags(entry.tags),
-    createdAt: entry.createdAt,
-    updatedAt: entry.updatedAt,
+    createdAt: String(entry.createdAt || ""),
+    updatedAt: String(entry.updatedAt || ""),
   };
 }
 
-
-function normalizeInput(
-  input: JourneyEntryInput
-): JourneyEntryInput {
+function normalizeInput(input: JourneyEntryInput): JourneyEntryInput {
   return {
     gameTitle: input.gameTitle.trim(),
     gameSlug: input.gameSlug?.trim() || "",
@@ -91,259 +63,95 @@ function normalizeInput(
   };
 }
 
-
 function sortEntries(entries: JourneyEntry[]) {
   return [...entries].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-
-    if (dateA !== dateB) {
-      return dateB - dateA;
-    }
-
-    return (
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime()
-    );
+    const dateDifference = new Date(b.date).getTime() - new Date(a.date).getTime();
+    return dateDifference || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }
 
+async function requestAdminJourney<T>(method: "POST" | "PATCH" | "DELETE", body: unknown) {
+  const response = await fetch("/admin/api/jornada", {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = (await response.json().catch(() => null)) as
+    | { entry?: Record<string, unknown>; error?: string }
+    | null;
+
+  if (!response.ok) {
+    throw new Error(payload?.error || "Não foi possível salvar a anotação da Jornada.");
+  }
+
+  return payload as T;
+}
 
 export function useJourneyEntries() {
   const [entries, setEntries] = useState<JourneyEntry[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-
   const loadEntries = useCallback(async () => {
     const { data, error } = await supabase
       .from("journey_entries")
       .select("*")
-      .order("date", {
-        ascending: false,
-      });
-
+      .order("date", { ascending: false });
 
     if (error) {
-      console.error(
-        "Erro carregando jornada:",
-        error
-      );
-
+      console.error("Erro carregando jornada:", error);
       setIsLoaded(true);
       return;
     }
 
-
-    const mappedEntries =
-      (data || []).map(mapDatabaseEntry);
-
-
-    setEntries(
-      sortEntries(mappedEntries)
-    );
-
-
+    setEntries(sortEntries((data || []).map((entry) => mapDatabaseEntry(entry))));
     setIsLoaded(true);
-
   }, []);
 
-
-
   useEffect(() => {
-    loadEntries();
+    void loadEntries();
   }, [loadEntries]);
 
-
-
-  const latestEntries = useMemo(() => {
-    return sortEntries(entries).slice(0, 7);
-  }, [entries]);
-
-
-
-  const addEntry = useCallback(
-    async (input: JourneyEntryInput) => {
-
-      const normalizedInput =
-        normalizeInput(input);
-
-
-      if (
-        !normalizedInput.gameTitle ||
-        !normalizedInput.notes
-      ) {
-        return null;
-      }
-
-
-      const now = new Date().toISOString();
-
-
-      const newEntry = {
-        ...normalizedInput,
-        createdAt: now,
-        updatedAt: now,
-      };
-
-
-      const { data, error } = await supabase
-        .from("journey_entries")
-        .insert(newEntry)
-        .select()
-        .single();
-
-
-      if (error) {
-        console.error(
-          "Erro adicionando jornada:",
-          error
-        );
-
-        return null;
-      }
-
-
-      const mappedEntry =
-        mapDatabaseEntry(data);
-
-
-      setEntries((current) =>
-        sortEntries([
-          mappedEntry,
-          ...current,
-        ])
-      );
-
-
-      return mappedEntry;
-
-    },
-    []
-  );
-
-
-
-  const updateEntry = useCallback(
-    async (
-      entryId: string,
-      input: JourneyEntryInput
-    ) => {
-
-      const normalizedInput =
-        normalizeInput(input);
-
-
-      const { data, error } = await supabase
-        .from("journey_entries")
-        .update({
-          ...normalizedInput,
-          updatedAt:
-            new Date().toISOString(),
-        })
-        .eq("id", entryId)
-        .select()
-        .single();
-
-
-
-      if (error) {
-        console.error(
-          "Erro atualizando jornada:",
-          error
-        );
-
-        return;
-      }
-
-
-      const updatedEntry =
-        mapDatabaseEntry(data);
-
-
-      setEntries((current) =>
-        sortEntries(
-          current.map((entry) =>
-            entry.id === entryId
-              ? updatedEntry
-              : entry
-          )
-        )
-      );
-
-    },
-    []
-  );
-
-
-
-  const removeEntry = useCallback(
-    async (entryId: string) => {
-
-      const { error } = await supabase
-        .from("journey_entries")
-        .delete()
-        .eq("id", entryId);
-
-
-
-      if (error) {
-        console.error(
-          "Erro removendo jornada:",
-          error
-        );
-
-        return;
-      }
-
-
-      setEntries((current) =>
-        current.filter(
-          (entry) =>
-            entry.id !== entryId
-        )
-      );
-
-    },
-    []
-  );
-
-
-
-  const clearEntries = useCallback(
-    async () => {
-
-      const { error } = await supabase
-        .from("journey_entries")
-        .delete()
-        .neq("id", "");
-
-
-
-      if (error) {
-        console.error(
-          "Erro limpando jornada:",
-          error
-        );
-
-        return;
-      }
-
-
-      setEntries([]);
-
-    },
-    []
-  );
-
-
-
-  return {
-    entries,
-    latestEntries,
-    isLoaded,
-    addEntry,
-    updateEntry,
-    removeEntry,
-    clearEntries,
-  };
+  const latestEntries = useMemo(() => sortEntries(entries).slice(0, 7), [entries]);
+
+  const addEntry = useCallback(async (input: JourneyEntryInput) => {
+    const normalizedInput = normalizeInput(input);
+    if (!normalizedInput.gameTitle || !normalizedInput.notes) {
+      throw new Error("Nome do jogo e anotações são obrigatórios.");
+    }
+
+    const payload = await requestAdminJourney<{ entry: Record<string, unknown> }>(
+      "POST",
+      normalizedInput
+    );
+    const entry = mapDatabaseEntry(payload.entry);
+    setEntries((current) => sortEntries([entry, ...current]));
+    return entry;
+  }, []);
+
+  const updateEntry = useCallback(async (entryId: string, input: JourneyEntryInput) => {
+    const normalizedInput = normalizeInput(input);
+    if (!normalizedInput.gameTitle || !normalizedInput.notes) {
+      throw new Error("Nome do jogo e anotações são obrigatórios.");
+    }
+
+    const payload = await requestAdminJourney<{ entry: Record<string, unknown> }>(
+      "PATCH",
+      { id: entryId, entry: normalizedInput }
+    );
+    const updatedEntry = mapDatabaseEntry(payload.entry);
+    setEntries((current) => sortEntries(current.map((entry) => entry.id === entryId ? updatedEntry : entry)));
+    return updatedEntry;
+  }, []);
+
+  const removeEntry = useCallback(async (entryId: string) => {
+    await requestAdminJourney("DELETE", { id: entryId });
+    setEntries((current) => current.filter((entry) => entry.id !== entryId));
+  }, []);
+
+  const clearEntries = useCallback(async () => {
+    await requestAdminJourney("DELETE", { all: true });
+    setEntries([]);
+  }, []);
+
+  return { entries, latestEntries, isLoaded, addEntry, updateEntry, removeEntry, clearEntries };
 }

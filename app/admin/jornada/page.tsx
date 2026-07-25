@@ -128,6 +128,7 @@ export default function AdminJornadaPage() {
   const [tagsInput, setTagsInput] = useState("");
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const games = useMemo(() => {
     return (gamesList || []).map((game) => ({
@@ -185,7 +186,7 @@ export default function AdminJornadaPage() {
     setEditingEntryId(null);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const input: JourneyEntryInput = {
       ...form,
       status: normalizeStatus(form.status),
@@ -203,13 +204,37 @@ export default function AdminJornadaPage() {
       return;
     }
 
-    if (editingEntryId) {
-      updateEntry(editingEntryId, input);
-    } else {
-      addEntry(input);
-    }
+    setIsSubmitting(true);
 
-    resetForm();
+    try {
+      if (editingEntryId) {
+        await updateEntry(editingEntryId, input);
+      } else {
+        await addEntry(input);
+      }
+
+      resetForm();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar a anotação da Jornada."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleRemove(entryId: string) {
+    try {
+      await removeEntry(entryId);
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível remover a anotação da Jornada."
+      );
+    }
   }
 
   function handleEdit(entry: JourneyEntry) {
@@ -516,9 +541,14 @@ export default function AdminJornadaPage() {
               <button
                 type="button"
                 onClick={handleSubmit}
+                disabled={isSubmitting}
                 className="rounded-xl border border-green-500/35 bg-green-500/15 px-5 py-3 text-sm font-black text-green-100 transition hover:bg-green-500/25"
               >
-                {editingEntryId ? "Salvar alterações" : "+ Adicionar anotação"}
+                {isSubmitting
+                  ? "Salvando..."
+                  : editingEntryId
+                  ? "Salvar alterações"
+                  : "+ Adicionar anotação"}
               </button>
             </div>
           </div>
@@ -596,7 +626,7 @@ export default function AdminJornadaPage() {
                           );
 
                           if (confirmed) {
-                            removeEntry(entry.id);
+                            void handleRemove(entry.id);
                           }
                         }}
                         className="rounded-xl border border-red-500/35 bg-red-500/15 px-4 py-2 text-xs font-black text-red-100 transition hover:bg-red-500/25"
