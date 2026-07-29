@@ -24,6 +24,7 @@ const emptyForm: JourneyEntryInput = {
   highlight: "",
   threadsUrl: "",
   tags: [],
+  playedMinutes: 0,
 };
 
 const weekDays = [
@@ -124,11 +125,14 @@ export default function AdminJornadaPage() {
     removeEntry,
   } = useJourneyEntries();
 
-  const [form, setForm] = useState<JourneyEntryInput>(emptyForm);
-  const [tagsInput, setTagsInput] = useState("");
-  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+ const [form, setForm] = useState<JourneyEntryInput>(emptyForm);
+const [tagsInput, setTagsInput] = useState("");
+const [hoursInput, setHoursInput] = useState("0");
+const [minutesInput, setMinutesInput] = useState("0");
+const [mounted, setMounted] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+
 
   const games = useMemo(() => {
     return (gamesList || []).map((game) => ({
@@ -176,23 +180,31 @@ export default function AdminJornadaPage() {
     }));
   }
 
-  function resetForm() {
-    setForm({
-      ...emptyForm,
-      date: new Date().toISOString().slice(0, 10),
-    });
+ function resetForm() {
+  setForm({
+    ...emptyForm,
+    date: new Date().toISOString().slice(0, 10),
+  });
 
-    setTagsInput("");
-    setEditingEntryId(null);
-  }
+  setTagsInput("");
+
+  setHoursInput("0");
+  setMinutesInput("0");
+
+  setEditingEntryId(null);
+}
 
   async function handleSubmit() {
     const input: JourneyEntryInput = {
-      ...form,
-      status: normalizeStatus(form.status),
-      threadsUrl: form.threadsUrl?.trim() || "",
-      tags: normalizeTags(tagsInput),
-    };
+  ...form,
+  status: normalizeStatus(form.status),
+
+  playedMinutes:
+    Number(hoursInput || 0) * 60 +
+    Number(minutesInput || 0),
+
+  tags: normalizeTags(tagsInput),
+};
 
     if (!input.gameTitle.trim()) {
       alert("Coloque o nome do jogo.");
@@ -208,6 +220,8 @@ export default function AdminJornadaPage() {
 
     try {
       if (editingEntryId) {
+        console.log("EDITANDO:", editingEntryId);
+  console.log("DADOS:", input)
         await updateEntry(editingEntryId, input);
       } else {
         await addEntry(input);
@@ -240,21 +254,30 @@ export default function AdminJornadaPage() {
   function handleEdit(entry: JourneyEntry) {
     setEditingEntryId(entry.id);
 
-    setForm({
-      gameTitle: entry.gameTitle,
-      gameSlug: entry.gameSlug || "",
-      dayLabel: entry.dayLabel,
-      status: normalizeStatus(entry.status),
-      weekDay: entry.weekDay,
-      date: formatDateForInput(entry.date),
-      title: entry.title || "",
-      notes: entry.notes,
-      highlight: entry.highlight || "",
-      threadsUrl: entry.threadsUrl || "",
-      tags: entry.tags,
-    });
+   setForm({
+  gameTitle: entry.gameTitle,
+  gameSlug: entry.gameSlug || "",
+  dayLabel: entry.dayLabel,
+  status: normalizeStatus(entry.status),
+  weekDay: entry.weekDay,
+  date: formatDateForInput(entry.date),
+  title: entry.title || "",
+  notes: entry.notes,
+  highlight: entry.highlight || "",
+  threadsUrl: entry.threadsUrl || "",
+  playedMinutes: entry.playedMinutes || 0,
+  tags: entry.tags,
+});
 
     setTagsInput(tagsToInput(entry.tags));
+
+    setHoursInput(
+      String(Math.floor((entry.playedMinutes || 0) / 60))
+    );
+
+    setMinutesInput(
+      String((entry.playedMinutes || 0) % 60)
+    );
 
     window.scrollTo({
       top: 0,
@@ -483,36 +506,38 @@ export default function AdminJornadaPage() {
               />
             </label>
 
-            <label className="grid gap-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
-                Momento destaque opcional
-              </span>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
+                  Horas jogadas
+                </span>
 
-              <textarea
-                value={form.highlight || ""}
-                onChange={(event) =>
-                  updateField("highlight", event.target.value)
-                }
-                placeholder="Ex: Matei o Rathalos novamente com mais tranquilidade..."
-                rows={4}
-                className="resize-y rounded-2xl border border-white/10 bg-black/50 px-4 py-4 text-sm leading-relaxed text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50"
-              />
-            </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={hoursInput}
+                  onChange={(event) => setHoursInput(event.target.value)}
+                  placeholder="Ex: 2"
+                  className="rounded-2xl border border-white/10 bg-black/50 px-4 py-4 text-sm font-black text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50"
+                />
+              </label>
 
-            <label className="grid gap-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
-                Link do Threads opcional
-              </span>
+              <label className="grid gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
+                  Minutos jogados
+                </span>
 
-              <input
-                value={form.threadsUrl || ""}
-                onChange={(event) =>
-                  updateField("threadsUrl", event.target.value)
-                }
-                placeholder="Ex: https://www.threads.net/@orabiisco/post/..."
-                className="rounded-2xl border border-white/10 bg-black/50 px-4 py-4 text-sm font-black text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50"
-              />
-            </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={minutesInput}
+                  onChange={(event) => setMinutesInput(event.target.value)}
+                  placeholder="Ex: 30"
+                  className="rounded-2xl border border-white/10 bg-black/50 px-4 py-4 text-sm font-black text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50"
+                />
+              </label>
+            </div>
 
             <label className="grid gap-2">
               <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
@@ -604,7 +629,13 @@ export default function AdminJornadaPage() {
                         </p>
                       ) : null}
 
-                      <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/45">
+                      {entry.playedMinutes > 0 ? (
+                        <p className="mt-3 text-xs font-black uppercase tracking-[0.2em] text-green-300">
+                          Tempo jogado: {Math.floor(entry.playedMinutes / 60)}h {entry.playedMinutes % 60}min
+                        </p>
+                      ) : null}
+
+                      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-white/45">
                         {entry.notes}
                       </p>
                     </div>

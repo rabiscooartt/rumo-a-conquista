@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import { useMemo, useState } from "react";
 import { type JourneyEntry, useJourneyEntries } from "@/lib/useJourneyEntries";
 
 const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
   {
     id: "default-dia-21",
-    gameTitle: "Rumo á Conquista : Monster Hunter World - Iceborne",
+    gameTitle: "Monster Hunter: World - Iceborne",
     gameSlug: "",
     dayLabel: "Dia 21",
     status: "🟣 AO VIVO - TWITCH",
@@ -20,12 +21,13 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "Fica aqui o momento que matei o Rathalos novamente, dessa vez foi bem mais tranquilo enfrentar ele, matei de primeira, aos poucos estou ficando forte, eu acho",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYf2K5PgAji",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:43:39.757Z",
     updatedAt: "2026-05-31T21:43:39.757Z",
   },
   {
     id: "default-dia-20",
-    gameTitle: "Rumo á Conquista : Monster Hunter World - Iceborne",
+    gameTitle: "Monster Hunter: World - Iceborne",
     gameSlug: "monster-hunter-world-iceborne",
     dayLabel: "Dia 20",
     status: "🟣 AO VIVO - TWITCH",
@@ -38,12 +40,13 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "A luta contra o Deviljho foi pura loucura um monstro lindo, brutal e completamente desgraçado de enfrentar.",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYWnIt8FoYG",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:41:56.788Z",
     updatedAt: "2026-05-31T21:43:03.534Z",
   },
   {
     id: "default-dia-19",
-    gameTitle: "Rumo á Conquista : Monster Hunter World - Iceborne",
+    gameTitle: "Monster Hunter: World - Iceborne",
     gameSlug: "monster-hunter-world-iceborne",
     dayLabel: "Dia 19",
     status: "🟣 AO VIVO - TWITCH",
@@ -56,12 +59,13 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "Aqui foi o momento decisivo onde percebi que não dá mais. Pela décima vez tentando matar esse bicho, percebi que com essa armadura não dá para avançar mais.",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYURk8mgOGo",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:40:53.545Z",
     updatedAt: "2026-05-31T21:41:15.068Z",
   },
   {
     id: "default-dia-18",
-    gameTitle: "Rumo á Conquista : Monster Hunter World - Iceborne",
+    gameTitle: "Monster Hunter: World - Iceborne",
     gameSlug: "monster-hunter-world-iceborne",
     dayLabel: "Dia 18",
     status: "🟣 AO VIVO - TWITCH",
@@ -74,6 +78,7 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "Essa foi minha última tentativa contra o Deviljho. Amanhã eu volto mais preparado.",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYQcws7ACLD",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:40:13.480Z",
     updatedAt: "2026-05-31T21:40:13.480Z",
   },
@@ -92,12 +97,13 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "Fica aqui o momento mais importante da semana quando consegui de fato matar o Nergigante. Que batalha desgraçada, se loco.",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYOIgJrABQI",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:17:25.637Z",
     updatedAt: "2026-05-31T21:17:25.637Z",
   },
   {
     id: "default-dia-16-parte-2",
-    gameTitle: "Rumo á Conquista : Monster Hunter World - Iceborne",
+    gameTitle: "Monster Hunter: World - Iceborne",
     gameSlug: "monster-hunter-world-iceborne",
     dayLabel: "Dia 16 - Parte 2",
     status: "🟣 AO VIVO - TWITCH",
@@ -110,12 +116,13 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "🔴 Momento destaque: uma das tentativas ficou muito perto da vitória, mas dessa vez ainda não foi suficiente.",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYLRlSgAA-e",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:16:04.162Z",
     updatedAt: "2026-05-31T21:16:04.162Z",
   },
   {
     id: "default-dia-16-parte-1",
-    gameTitle: "Rumo á Conquista : Monster Hunter World - Iceborne",
+    gameTitle: "Monster Hunter: World - Iceborne",
     gameSlug: "monster-hunter-world-iceborne",
     dayLabel: "Dia 16 - Parte 1",
     status: "🟣 AO VIVO - TWITCH",
@@ -128,6 +135,7 @@ const DEFAULT_JOURNEY_ENTRIES: JourneyEntry[] = [
       "Já estava sofrendo contra um monstro quando, do nada, apareceram mais 3 ao mesmo tempo. Caos completo.",
     threadsUrl: "https://www.threads.com/@orabiisco/post/DYKhr0bAKlO",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T19:30:07.350Z",
     updatedAt: "2026-05-31T21:07:07.595Z",
   },
@@ -179,6 +187,14 @@ function formatStatus(status?: string) {
   return status;
 }
 
+function normalizeGameTitle(title?: string) {
+  if (!title) return "Sem jogo";
+
+  return title
+    .replace(/^Rumo\s*[àáa]\s*Conquista\s*:\s*/i, "")
+    .trim();
+}
+
 function cleanDayLabel(dayLabel?: string) {
   if (!dayLabel) return "Registro da Jornada";
 
@@ -189,7 +205,7 @@ function splitParagraphs(text?: string) {
   if (!text) return [];
 
   return text
-    .split(/\n\s*\n/g)
+    .split(/\n/g)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 }
@@ -261,6 +277,15 @@ function ThreadsButton({ threadsUrl }: { threadsUrl?: string }) {
   );
 }
 
+function formatPlayedTime(minutes = 0) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hours <= 0) return `${mins}min`;
+  if (mins <= 0) return `${hours}h`;
+  return `${hours}h ${mins}min`;
+}
+
 function JourneyEntryCard({
   entry,
   index,
@@ -308,7 +333,7 @@ function JourneyEntryCard({
               </div>
 
               <p className="mt-5 text-[11px] font-black uppercase tracking-[0.32em] text-red-400">
-                🏅 {entry.gameTitle}
+                🏅 {normalizeGameTitle(entry.gameTitle)}
               </p>
 
               <h2 className="mt-3 text-3xl font-black leading-tight text-white md:text-4xl">
@@ -340,7 +365,7 @@ function JourneyEntryCard({
         <div className="p-6 md:p-7 md:pl-12">
           <div className="rounded-2xl border border-white/10 bg-black/25 p-5 md:p-6">
             <p className="text-sm font-black uppercase tracking-[0.22em] text-blue-300">
-              {formatWeekDay(entry.weekDay)} • {formatDate(entry.date)}
+              {formatWeekDay(entry.weekDay)} • {formatDate(entry.date)} {`• ⏱️ ${formatPlayedTime(entry.playedMinutes || 0)}`}
             </p>
 
             <div className="mt-4 h-px w-full bg-gradient-to-r from-red-500/70 via-white/10 to-transparent" />
@@ -351,13 +376,15 @@ function JourneyEntryCard({
               </p>
 
               <div className="mt-5 max-w-[1080px] space-y-7 text-[20px] leading-[2.05] text-white/[0.86]">
-                {notesParagraphs.length > 0 ? (
-                  notesParagraphs.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))
-                ) : (
-                  <p className="text-white/35">Sem anotações cadastradas.</p>
-                )}
+             {entry.notes ? (
+  <p className="whitespace-pre-line">
+    {entry.notes}
+  </p>
+) : (
+  <p className="text-white/35">
+    Sem anotações cadastradas.
+  </p>
+)}
               </div>
 
               {highlightParagraphs.length === 0 ? (
@@ -368,57 +395,60 @@ function JourneyEntryCard({
             </section>
           </div>
 
-          {highlightParagraphs.length > 0 ? (
-            <section className="mt-5 overflow-hidden rounded-2xl border border-red-500/35 bg-gradient-to-br from-red-500/20 via-red-950/25 to-black/25">
-              <div className="border-b border-red-500/20 bg-red-500/[0.06] px-5 py-4 md:px-6">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-400/35 bg-red-500/25">
-                    <span className="h-3 w-3 rounded-full bg-red-400 shadow-[0_0_18px_rgba(248,113,113,0.9)]" />
-                  </span>
 
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.25em] text-red-300">
-                      Momento destaque
-                    </p>
-
-                    <p className="mt-1 text-xs font-bold text-white/40">
-                      Registro especial da gameplay
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-5 md:p-6">
-                <div className="max-w-[1080px] space-y-5 text-[19px] font-medium leading-[2] text-white/[0.9]">
-                  {highlightParagraphs.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                </div>
-
-                <div className="mt-6">
-                  <ThreadsButton threadsUrl={threadsUrl} />
-                </div>
-              </div>
-            </section>
-          ) : null}
         </div>
       </div>
     </article>
   );
 }
 
+
+function mergeJourneyEntries(
+  databaseEntries: JourneyEntry[],
+  fallbackEntries: JourneyEntry[]
+) {
+  // O banco agora é a fonte principal.
+  // Não usamos mais gameTitle + dia como chave porque registros de teste
+  // ou jornadas diferentes podem acabar sendo descartados.
+  const databaseIds = new Set(databaseEntries.map((entry) => entry.id));
+
+  const result = [
+    ...databaseEntries,
+    ...fallbackEntries.filter((entry) => !databaseIds.has(entry.id)),
+  ];
+
+  return result.sort(
+    (a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime() ||
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
 export default function JornadaPage() {
-  const { latestEntries, entries, isLoaded } = useJourneyEntries();
+  const { entries, isLoaded } = useJourneyEntries();
+  const [selectedGame, setSelectedGame] = useState("Todos");
 
-  const displayEntries =
-    isLoaded && latestEntries.length > 0
-      ? latestEntries
-      : isLoaded
-        ? DEFAULT_JOURNEY_ENTRIES
-        : [];
+  const sourceEntries = useMemo(
+    () => mergeJourneyEntries(entries, DEFAULT_JOURNEY_ENTRIES),
+    [entries]
+  );
 
-  const totalEntries =
-    isLoaded && entries.length > 0 ? entries.length : DEFAULT_JOURNEY_ENTRIES.length;
+  const games = useMemo(() => [
+    "Todos",
+    ...Array.from(new Set(sourceEntries.map((entry) => normalizeGameTitle(entry.gameTitle)))),
+  ], [sourceEntries]);
+
+  const displayEntries = useMemo(() => {
+    if (selectedGame === "Todos") return sourceEntries;
+    return sourceEntries.filter((entry) => normalizeGameTitle(entry.gameTitle) === selectedGame);
+  }, [selectedGame, sourceEntries]);
+
+  const totalEntries = sourceEntries.length;
+
+  const totalMinutes = displayEntries.reduce(
+    (total, entry) => total + Number(entry.playedMinutes || 0),
+    0
+  );
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
@@ -474,6 +504,16 @@ export default function JornadaPage() {
             </div>
           </div>
         </header>
+
+        <section className="mt-8 rounded-2xl border border-white/10 bg-zinc-950/80 p-5">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-red-400">Filtrar Jornada</p>
+          <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center">
+            <select value={selectedGame} onChange={(event) => setSelectedGame(event.target.value)} className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white">
+              {games.map((game) => <option key={game}>{game}</option>)}
+            </select>
+            <p className="font-bold text-white/60">Tempo jogado: <span className="text-white">{formatPlayedTime(totalMinutes)}</span></p>
+          </div>
+        </section>
 
         <section className="mt-8 grid gap-6">
           {!isLoaded ? (

@@ -16,16 +16,27 @@ export type JourneyEntry = {
   highlight?: string;
   threadsUrl?: string;
   tags: string[];
+  playedMinutes: number;
   createdAt: string;
   updatedAt: string;
 };
 
-export type JourneyEntryInput = Omit<JourneyEntry, "id" | "createdAt" | "updatedAt">;
+export type JourneyEntryInput = Omit<
+  JourneyEntry,
+  "id" | "createdAt" | "updatedAt"
+>;
 
 function normalizeTags(tags: unknown) {
   if (!Array.isArray(tags)) return [];
 
-  return tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 8);
+  return tags
+    .map((tag) => String(tag).trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeNotes(value: string) {
+  return value.replace(/\r\n/g, "\n").trim();
 }
 
 function mapDatabaseEntry(entry: Record<string, unknown>): JourneyEntry {
@@ -38,10 +49,11 @@ function mapDatabaseEntry(entry: Record<string, unknown>): JourneyEntry {
     weekDay: String(entry.weekDay || ""),
     date: String(entry.date || ""),
     title: String(entry.title || ""),
-    notes: String(entry.notes || ""),
+    notes: normalizeNotes(String(entry.notes || "")),
     highlight: String(entry.highlight || ""),
     threadsUrl: String(entry.threadsUrl || ""),
     tags: normalizeTags(entry.tags),
+    playedMinutes: Number(entry.playedMinutes || 0),
     createdAt: String(entry.createdAt || ""),
     updatedAt: String(entry.updatedAt || ""),
   };
@@ -56,32 +68,47 @@ function normalizeInput(input: JourneyEntryInput): JourneyEntryInput {
     weekDay: input.weekDay.trim(),
     date: input.date.trim(),
     title: input.title?.trim() || "",
-    notes: input.notes.trim(),
+    notes: normalizeNotes(input.notes),
     highlight: input.highlight?.trim() || "",
     threadsUrl: input.threadsUrl?.trim() || "",
     tags: normalizeTags(input.tags),
+    playedMinutes: Number(input.playedMinutes || 0),
   };
 }
 
 function sortEntries(entries: JourneyEntry[]) {
   return [...entries].sort((a, b) => {
-    const dateDifference = new Date(b.date).getTime() - new Date(a.date).getTime();
-    return dateDifference || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    const dateDifference =
+      new Date(b.date).getTime() -
+      new Date(a.date).getTime();
+
+    return (
+      dateDifference ||
+      new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
+    );
   });
 }
 
-async function requestAdminJourney<T>(method: "POST" | "PATCH" | "DELETE", body: unknown) {
+async function requestAdminJourney<T>(
+  method: "POST" | "PATCH" | "DELETE",
+  body: unknown
+) {
   const response = await fetch("/admin/api/jornada", {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
   });
-  const payload = (await response.json().catch(() => null)) as
-    | { entry?: Record<string, unknown>; error?: string }
-    | null;
+
+  const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(payload?.error || "Não foi possível salvar a anotação da Jornada.");
+    throw new Error(
+      payload?.error ||
+        "Não foi possível salvar a anotação da Jornada."
+    );
   }
 
   return payload as T;
@@ -95,7 +122,9 @@ export function useJourneyEntries() {
     const { data, error } = await supabase
       .from("journey_entries")
       .select("*")
-      .order("date", { ascending: false });
+      .order("date", {
+        ascending: false,
+      });
 
     if (error) {
       console.error("Erro carregando jornada:", error);
@@ -103,7 +132,14 @@ export function useJourneyEntries() {
       return;
     }
 
-    setEntries(sortEntries((data || []).map((entry) => mapDatabaseEntry(entry))));
+    setEntries(
+      sortEntries(
+        (data || []).map((entry) =>
+          mapDatabaseEntry(entry)
+        )
+      )
+    );
+
     setIsLoaded(true);
   }, []);
 
@@ -111,47 +147,94 @@ export function useJourneyEntries() {
     void loadEntries();
   }, [loadEntries]);
 
-  const latestEntries = useMemo(() => sortEntries(entries).slice(0, 7), [entries]);
+  const latestEntries = useMemo(
+    () => sortEntries(entries).slice(0, 7),
+    [entries]
+  );
 
-  const addEntry = useCallback(async (input: JourneyEntryInput) => {
-    const normalizedInput = normalizeInput(input);
-    if (!normalizedInput.gameTitle || !normalizedInput.notes) {
-      throw new Error("Nome do jogo e anotações são obrigatórios.");
-    }
+  const addEntry = useCallback(
+    async (input: JourneyEntryInput) => {
+      const normalizedInput = normalizeInput(input);
 
-    const payload = await requestAdminJourney<{ entry: Record<string, unknown> }>(
-      "POST",
-      normalizedInput
-    );
-    const entry = mapDatabaseEntry(payload.entry);
-    setEntries((current) => sortEntries([entry, ...current]));
-    return entry;
-  }, []);
+      const payload =
+        await requestAdminJourney<{
+          entry: Record<string, unknown>;
+        }>("POST", normalizedInput);
 
-  const updateEntry = useCallback(async (entryId: string, input: JourneyEntryInput) => {
-    const normalizedInput = normalizeInput(input);
-    if (!normalizedInput.gameTitle || !normalizedInput.notes) {
-      throw new Error("Nome do jogo e anotações são obrigatórios.");
-    }
+      const entry = mapDatabaseEntry(payload.entry);
 
-    const payload = await requestAdminJourney<{ entry: Record<string, unknown> }>(
-      "PATCH",
-      { id: entryId, entry: normalizedInput }
-    );
-    const updatedEntry = mapDatabaseEntry(payload.entry);
-    setEntries((current) => sortEntries(current.map((entry) => entry.id === entryId ? updatedEntry : entry)));
-    return updatedEntry;
-  }, []);
+      setEntries((current) =>
+        sortEntries([entry, ...current])
+      );
 
-  const removeEntry = useCallback(async (entryId: string) => {
-    await requestAdminJourney("DELETE", { id: entryId });
-    setEntries((current) => current.filter((entry) => entry.id !== entryId));
-  }, []);
+      return entry;
+    },
+    []
+  );
+
+  const updateEntry = useCallback(
+    async (
+      entryId: string,
+      input: JourneyEntryInput
+    ) => {
+      const normalizedInput = normalizeInput(input);
+
+      const payload =
+        await requestAdminJourney<{
+          entry: Record<string, unknown>;
+        }>("PATCH", {
+          id: entryId,
+          entry: normalizedInput,
+        });
+
+      const updatedEntry =
+        mapDatabaseEntry(payload.entry);
+
+      setEntries((current) =>
+        sortEntries(
+          current.map((entry) =>
+            entry.id === entryId
+              ? updatedEntry
+              : entry
+          )
+        )
+      );
+
+      return updatedEntry;
+    },
+    []
+  );
+
+  const removeEntry = useCallback(
+    async (entryId: string) => {
+      await requestAdminJourney("DELETE", {
+        id: entryId,
+      });
+
+      setEntries((current) =>
+        current.filter(
+          (entry) => entry.id !== entryId
+        )
+      );
+    },
+    []
+  );
 
   const clearEntries = useCallback(async () => {
-    await requestAdminJourney("DELETE", { all: true });
+    await requestAdminJourney("DELETE", {
+      all: true,
+    });
+
     setEntries([]);
   }, []);
 
-  return { entries, latestEntries, isLoaded, addEntry, updateEntry, removeEntry, clearEntries };
+  return {
+    entries,
+    latestEntries,
+    isLoaded,
+    addEntry,
+    updateEntry,
+    removeEntry,
+    clearEntries,
+  };
 }

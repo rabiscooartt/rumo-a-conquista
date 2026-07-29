@@ -13,6 +13,7 @@ type JourneyInput = {
   highlight?: string;
   threadsUrl?: string;
   tags?: unknown;
+  playedMinutes?: number;
 };
 
 function normalizeTags(tags: unknown) {
@@ -37,6 +38,7 @@ function normalizeInput(input: JourneyInput) {
     highlight: input.highlight?.trim() || "",
     threadsUrl: input.threadsUrl?.trim() || "",
     tags: normalizeTags(input.tags),
+    playedMinutes: Number(input.playedMinutes || 0),
   };
 }
 
