@@ -11,6 +11,7 @@ export const journeyEntries: JourneyEntry[] = [
     date: "2026-07-11",
     title: "",
     notes: `🎖️ Rumo à Conquista — Monster Hunter World: Iceborne | DIA 22
+      playedMinutes: 0,
 
 Depois de 2 meses longe do game, finalmente voltei e foi gostoso demais jogar novamente. Matei uma Rathian Rosa com mais facilidade do que esperava e derrotei meu primeiro Bazelgeuse.
 
@@ -22,6 +23,7 @@ Avancei na campanha e conheci dois dragões absurdos: Kushala Daora, praticament
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/Das7ikclLUa",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-07-12T18:06:18.245Z",
     updatedAt: "2026-07-12T18:06:18.245Z",
   },
@@ -43,6 +45,7 @@ Também aproveitei para fazer algumas missões secundárias e derrotei um Uragaa
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYf2K5PgAji",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:43:39.757Z",
     updatedAt: "2026-05-31T21:43:39.757Z",
   },
@@ -66,6 +69,7 @@ Além disso, criei uma nova armadura para meu Amigato parceiro e acabei descobri
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYWnIt8FoYG",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:41:56.788Z",
     updatedAt: "2026-05-31T21:41:56.788Z",
   },
@@ -87,6 +91,7 @@ Quando fui encarar o Bazelgeuse pela primeira vez, percebi que estou tomando dan
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYURk8mgOGo",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:40:53.545Z",
     updatedAt: "2026-05-31T21:41:15.068Z",
   },
@@ -110,6 +115,7 @@ O problema começou quando fui enfrentar o Deviljho. Tentei completar a missão 
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYQcws7ACLD",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:40:13.480Z",
     updatedAt: "2026-05-31T21:40:13.480Z",
   },
@@ -133,6 +139,7 @@ Depois fui fazer uma missão secundária contra um Diablos e apanhei bastante. F
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYOIgJrABQI",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:17:25.637Z",
     updatedAt: "2026-05-31T21:17:25.637Z",
   },
@@ -156,6 +163,7 @@ Ficou claro que ainda estou um pouco fraco para enfrentar esse monstro com mais 
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYLRlSgAA-e",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T21:16:04.162Z",
     updatedAt: "2026-05-31T21:16:04.162Z",
   },
@@ -183,6 +191,7 @@ Consegui derrotar apenas o Uragaan e o Dodogama, mas a dificuldade foi absurda, 
     threadsUrl:
       "https://www.threads.com/@orabiisco/post/DYKhr0bAKlO",
     tags: [],
+    playedMinutes: 0,
     createdAt: "2026-05-31T19:30:07.350Z",
     updatedAt: "2026-05-31T21:07:07.595Z",
   },
