@@ -861,6 +861,72 @@ export default function GameAchievementsPanel(
 
   return (
     <section className="mt-10 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/85 shadow-[0_0_55px_rgba(0,0,0,0.45)]">
+      <div className="relative z-20 border-b border-red-500/20 bg-zinc-950 p-5 md:p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
+              Filtro de conquistas
+            </p>
+            <h3 className="mt-1 text-lg font-black text-white">
+              Organizar jornada
+            </h3>
+            <p className="mt-1 text-xs font-bold text-white/35">
+              Por padrão, mostra somente conquistas ativas e em progresso.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {[
+              {
+                label: "🔥 Ativas e em progresso",
+                value: "active-progress" as AchievementFilter,
+              },
+              {
+                label: "👁 Ativas",
+                value: "active" as AchievementFilter,
+              },
+              {
+                label: "🔄 Em progresso",
+                value: "progress" as AchievementFilter,
+              },
+              {
+                label: "🏆 Concluídas",
+                value: "completed" as AchievementFilter,
+              },
+              {
+                label: "📋 Todas",
+                value: "all" as AchievementFilter,
+              },
+            ].map((filter) => (
+              <button
+                key={filter.value}
+                type="button"
+                onClick={() => setAchievementFilter(filter.value)}
+                aria-pressed={achievementFilter === filter.value}
+                className={`rounded-xl border px-4 py-2.5 text-xs font-black transition ${
+                  achievementFilter === filter.value
+                    ? "border-red-500/45 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.14)]"
+                    : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/35">
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+            Exibindo {sortedAchievements.length} de {allAchievements.length}
+          </span>
+          {achievementSearch.trim() && (
+            <span className="rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1.5 text-cyan-200/70">
+              Busca: "{achievementSearch}"
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="relative border-b border-white/10 p-7">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%)]" />
 
@@ -879,56 +945,6 @@ export default function GameAchievementsPanel(
             </p>
 
 
-            <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/30 p-4">
-              <div className="flex flex-col gap-3">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
-                    Visualizar conquistas
-                  </span>
-                  <p className="mt-1 text-xs font-bold text-white/35">
-                    Escolha quais conquistas deseja manter visíveis durante a organização.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    {
-                      label: "🔥 Ativas e em progresso",
-                      value: "active-progress" as AchievementFilter,
-                    },
-                    {
-                      label: "👁 Ativas",
-                      value: "active" as AchievementFilter,
-                    },
-                    {
-                      label: "🔄 Em progresso",
-                      value: "progress" as AchievementFilter,
-                    },
-                    {
-                      label: "🏆 Concluídas",
-                      value: "completed" as AchievementFilter,
-                    },
-                    {
-                      label: "📋 Todas",
-                      value: "all" as AchievementFilter,
-                    },
-                  ].map((filter) => (
-                    <button
-                      key={filter.value}
-                      type="button"
-                      onClick={() => setAchievementFilter(filter.value)}
-                      className={`rounded-xl border px-4 py-2 text-xs font-black transition ${
-                        achievementFilter === filter.value
-                          ? "border-red-500/40 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.14)]"
-                          : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className="w-full max-w-[520px]">
