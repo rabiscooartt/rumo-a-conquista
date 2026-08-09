@@ -877,6 +877,58 @@ export default function GameAchievementsPanel(
             <p className="mt-2 text-sm text-white/45">
               {completedCount}/{allAchievements.length} conquistas desbloqueadas
             </p>
+
+
+            <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/30 p-4">
+              <div className="flex flex-col gap-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
+                    Visualizar conquistas
+                  </span>
+                  <p className="mt-1 text-xs font-bold text-white/35">
+                    Escolha quais conquistas deseja manter visíveis durante a organização.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    {
+                      label: "🔥 Ativas e em progresso",
+                      value: "active-progress" as AchievementFilter,
+                    },
+                    {
+                      label: "👁 Ativas",
+                      value: "active" as AchievementFilter,
+                    },
+                    {
+                      label: "🔄 Em progresso",
+                      value: "progress" as AchievementFilter,
+                    },
+                    {
+                      label: "🏆 Concluídas",
+                      value: "completed" as AchievementFilter,
+                    },
+                    {
+                      label: "📋 Todas",
+                      value: "all" as AchievementFilter,
+                    },
+                  ].map((filter) => (
+                    <button
+                      key={filter.value}
+                      type="button"
+                      onClick={() => setAchievementFilter(filter.value)}
+                      className={`rounded-xl border px-4 py-2 text-xs font-black transition ${
+                        achievementFilter === filter.value
+                          ? "border-red-500/40 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.14)]"
+                          : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="w-full max-w-[520px]">
@@ -913,50 +965,6 @@ export default function GameAchievementsPanel(
                   onClick={() => handleSortClick(option.value)}
                 />
               ))}
-            </div>
-
-            <div className="mt-5">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
-                Visualizar conquistas
-              </span>
-
-              <div className="mt-2 flex flex-wrap gap-2">
-                {[
-                  {
-                    label: "🔥 Ativas e em progresso",
-                    value: "active-progress" as AchievementFilter,
-                  },
-                  {
-                    label: "👁 Ativas",
-                    value: "active" as AchievementFilter,
-                  },
-                  {
-                    label: "🔄 Em progresso",
-                    value: "progress" as AchievementFilter,
-                  },
-                  {
-                    label: "🏆 Concluídas",
-                    value: "completed" as AchievementFilter,
-                  },
-                  {
-                    label: "📋 Todas",
-                    value: "all" as AchievementFilter,
-                  },
-                ].map((filter) => (
-                  <button
-                    key={filter.value}
-                    type="button"
-                    onClick={() => setAchievementFilter(filter.value)}
-                    className={`rounded-xl border px-4 py-2 text-xs font-black transition ${
-                      achievementFilter === filter.value
-                        ? "border-red-500/35 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.12)]"
-                        : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/25 p-4">
