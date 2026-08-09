@@ -9,6 +9,12 @@ export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
 type SortMode = "rarity" | "status" | "title";
 type SortDirection = "asc" | "desc";
+type AchievementFilter =
+  | "active-progress"
+  | "active"
+  | "progress"
+  | "completed"
+  | "all";
 
 export type AchievementInput = {
   id?: string;
@@ -428,6 +434,8 @@ export default function GameAchievementsPanel(
 
   const [sortMode, setSortMode] = useState<SortMode>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [achievementFilter, setAchievementFilter] =
+    useState<AchievementFilter>("active-progress");
   const [savedAchievementTitle, setSavedAchievementTitle] = useState("");
   const [achievementSearch, setAchievementSearch] = useState("");
 
@@ -784,17 +792,63 @@ export default function GameAchievementsPanel(
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch).trim();
 
-    if (!search) {
-      return allAchievements;
-    }
-
     return allAchievements.filter((achievement) => {
+      const state =
+        manualStates[achievement.title] ??
+        createDefaultStates([achievement])[achievement.title];
+
+      const isHidden =
+        hiddenAchievementTitles.includes(achievement.title) ||
+        isAchievementPubliclyHidden(achievement);
+
+      const isActive = !isHidden;
+      const isProgress = state.status === "progress";
+      const isCompleted = state.status === "completed";
+
+      let matchesFilter = true;
+
+      switch (achievementFilter) {
+        case "active-progress":
+          matchesFilter = isActive && isProgress;
+          break;
+
+        case "active":
+          matchesFilter = isActive;
+          break;
+
+        case "progress":
+          matchesFilter = isProgress;
+          break;
+
+        case "completed":
+          matchesFilter = isCompleted;
+          break;
+
+        case "all":
+          matchesFilter = true;
+          break;
+      }
+
+      if (!matchesFilter) {
+        return false;
+      }
+
+      if (!search) {
+        return true;
+      }
+
       return (
         normalizeText(achievement.title).includes(search) ||
         normalizeText(achievement.description).includes(search)
       );
     });
-  }, [achievementSearch, allAchievements]);
+  }, [
+    achievementFilter,
+    achievementSearch,
+    allAchievements,
+    hiddenAchievementTitles,
+    manualStates,
+  ]);
 
   const sortedAchievements = useMemo(() => {
     return sortAchievements(
@@ -859,6 +913,50 @@ export default function GameAchievementsPanel(
                   onClick={() => handleSortClick(option.value)}
                 />
               ))}
+            </div>
+
+            <div className="mt-5">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
+                Visualizar conquistas
+              </span>
+
+              <div className="mt-2 flex flex-wrap gap-2">
+                {[
+                  {
+                    label: "🔥 Ativas e em progresso",
+                    value: "active-progress" as AchievementFilter,
+                  },
+                  {
+                    label: "👁 Ativas",
+                    value: "active" as AchievementFilter,
+                  },
+                  {
+                    label: "🔄 Em progresso",
+                    value: "progress" as AchievementFilter,
+                  },
+                  {
+                    label: "🏆 Concluídas",
+                    value: "completed" as AchievementFilter,
+                  },
+                  {
+                    label: "📋 Todas",
+                    value: "all" as AchievementFilter,
+                  },
+                ].map((filter) => (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    onClick={() => setAchievementFilter(filter.value)}
+                    className={`rounded-xl border px-4 py-2 text-xs font-black transition ${
+                      achievementFilter === filter.value
+                        ? "border-red-500/35 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.12)]"
+                        : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/25 p-4">
