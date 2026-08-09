@@ -1,0 +1,140 @@
+import { NextResponse } from "next/server";
+import { games as baseGames } from "../../../../../../data/games";
+import { createAdminSupabaseClient } from "../../../../../../lib/supabase-admin";
+
+type BaseGame = {
+  slug?: string;
+  title?: string;
+  subtitle?: string;
+  status?: string;
+  progress?: number;
+  hours?: string | number;
+  currentObjective?: string;
+  objective?: string;
+  image?: string;
+  cardImage?: string;
+  finalBadge?: unknown;
+  emblem?: unknown;
+  trophies?: unknown;
+};
+
+type ExistingGameRow = {
+  slug: string | null;
+};
+
+function readText(value: unknown, fallback = ""): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return fallback;
+}
+
+function normalizeGameForDatabase(
+  slug: string,
+  game: BaseGame,
+  now: string
+) {
+  return {
+    slug,
+    title: readText(game.title, "Jogo sem nome"),
+    subtitle: readText(game.subtitle, ""),
+    status: readText(game.status, "progress"),
+    progress: Number.isFinite(Number(game.progress))
+      ? Number(game.progress)
+      : 0,
+    hours: readText(game.hours, "0h"),
+    current_objective:
+      readText(game.currentObjective, "") ||
+      readText(game.objective, ""),
+    image:
+      readText(game.image, "") ||
+      `/images/games/${slug}/banner.jpg`,
+    card_image:
+      readText(game.cardImage, "") ||
+      `/images/games/${slug}/cover.jpg`,
+    final_badge: game.finalBadge ?? null,
+    emblem: game.emblem ?? null,
+    trophies: game.trophies ?? null,
+    is_hidden: false,
+    is_deleted: false,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
+export async function POST() {
+  try {
+    const client = createAdminSupabaseClient();
+
+    const {
+      data: existingRows,
+      error: existingError,
+    } = await client
+      .from("games")
+      .select("slug");
+
+    if (existingError) {
+      throw existingError;
+    }
+
+    const existingSlugs = new Set(
+      ((existingRows ?? []) as ExistingGameRow[])
+        .map((row: ExistingGameRow) => readText(row.slug).trim())
+        .filter(Boolean)
+    );
+
+    const now = new Date().toISOString();
+
+    const missingGames = Object.entries(
+      baseGames as unknown as Record<string, BaseGame>
+    )
+      .map(([slug, game]) => {
+        const safeSlug = readText(game.slug, slug).trim() || slug;
+
+        return normalizeGameForDatabase(
+          safeSlug,
+          game,
+          now
+        );
+      })
+      .filter((game) => !existingSlugs.has(game.slug));
+
+    if (missingGames.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        inserted: 0,
+        totalBaseGames: Object.keys(baseGames).length,
+        message: "Nenhum jogo novo para sincronizar.",
+      });
+    }
+
+    const { error: insertError } = await client
+      .from("games")
+      .insert(missingGames);
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      inserted: missingGames.length,
+      totalBaseGames: Object.keys(baseGames).length,
+      slugs: missingGames.map((game) => game.slug),
+    });
+  } catch (error) {
+    console.error(
+      "[Games Sync] Erro ao sincronizar jogos base:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Erro inesperado ao sincronizar jogos.",
+      },
+      { status: 500 }
+    );
+  }
+}

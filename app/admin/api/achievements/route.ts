@@ -12,6 +12,9 @@ type IncomingAchievement = {
   status?: string;
   earnedDate?: string;
   image?: string;
+  source?: "manual" | "playstation" | "steam" | "xbox";
+  externalId?: string;
+  officialImage?: string;
   isCustom?: boolean;
   isHidden?: boolean;
   hidden?: boolean;
@@ -38,6 +41,7 @@ export async function PUT(request: NextRequest) {
       gameSlug?: string;
       achievements?: IncomingAchievement[];
     };
+
     const gameSlug = body.gameSlug?.trim();
 
     if (!gameSlug || !Array.isArray(body.achievements)) {
@@ -45,6 +49,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const client = createAdminSupabaseClient();
+
     const definitions = body.achievements.map((achievement, index) => ({
       game_slug: gameSlug,
       legacy_id: legacyIdFor(achievement, index),
@@ -53,6 +58,9 @@ export async function PUT(request: NextRequest) {
       trophy: achievement.trophy?.trim() || achievement.icon?.trim() || "",
       rank: rankFrom(achievement.rank || achievement.difficulty),
       image: achievement.image?.trim() || "",
+      source: achievement.source ?? "manual",
+      external_id: achievement.externalId?.trim() || null,
+      official_image: achievement.officialImage?.trim() || null,
       sort_order: index,
       is_custom: achievement.isCustom === true,
       is_hidden: achievement.isHidden === true || achievement.hidden === true,
@@ -68,6 +76,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const idByLegacyId = new Map(saved.map((item) => [item.legacy_id, item.id]));
+
     const progress = body.achievements.map((achievement, index) => ({
       achievement_id: idByLegacyId.get(legacyIdFor(achievement, index)),
       owner_key: "default",
@@ -90,6 +99,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Erro salvando conquistas:", error);
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Erro inesperado." },
       { status: 500 }

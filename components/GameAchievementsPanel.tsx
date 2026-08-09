@@ -429,6 +429,7 @@ export default function GameAchievementsPanel(
   const [sortMode, setSortMode] = useState<SortMode>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [savedAchievementTitle, setSavedAchievementTitle] = useState("");
+  const [achievementSearch, setAchievementSearch] = useState("");
 
   const [newAchievement, setNewAchievement] = useState({
     title: "",
@@ -780,14 +781,29 @@ export default function GameAchievementsPanel(
       ? Math.round((completedCount / allAchievements.length) * 100)
       : 0;
 
+  const filteredAchievements = useMemo(() => {
+    const search = normalizeText(achievementSearch).trim();
+
+    if (!search) {
+      return allAchievements;
+    }
+
+    return allAchievements.filter((achievement) => {
+      return (
+        normalizeText(achievement.title).includes(search) ||
+        normalizeText(achievement.description).includes(search)
+      );
+    });
+  }, [achievementSearch, allAchievements]);
+
   const sortedAchievements = useMemo(() => {
     return sortAchievements(
-      allAchievements,
+      filteredAchievements,
       manualStates,
       sortMode,
       sortDirection
     );
-  }, [allAchievements, manualStates, sortDirection, sortMode]);
+  }, [filteredAchievements, manualStates, sortDirection, sortMode]);
 
   return (
     <section className="mt-10 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/85 shadow-[0_0_55px_rgba(0,0,0,0.45)]">
@@ -843,6 +859,41 @@ export default function GameAchievementsPanel(
                   onClick={() => handleSortClick(option.value)}
                 />
               ))}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/25 p-4">
+              <label className="block">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
+                  Buscar conquista
+                </span>
+
+                <div className="relative mt-2">
+                  <input
+                    type="search"
+                    value={achievementSearch}
+                    onChange={(event) => setAchievementSearch(event.target.value)}
+                    placeholder="Digite o nome da conquista..."
+                    aria-label="Buscar conquista pelo nome"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 pr-24 text-sm font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20"
+                  />
+
+                  {achievementSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setAchievementSearch("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white/50 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200"
+                    >
+                      Limpar
+                    </button>
+                  )}
+                </div>
+              </label>
+
+              <p className="mt-2 text-[11px] font-bold text-white/30">
+                {achievementSearch.trim()
+                  ? `${filteredAchievements.length} conquista${filteredAchievements.length === 1 ? "" : "s"} encontrada${filteredAchievements.length === 1 ? "" : "s"}`
+                  : `${allAchievements.length} conquistas cadastradas`}
+              </p>
             </div>
           </div>
         </div>
@@ -1203,7 +1254,9 @@ export default function GameAchievementsPanel(
           })
         ) : (
           <div className="p-8 text-sm text-white/45">
-            Nenhuma conquista cadastrada ainda.
+            {achievementSearch.trim()
+              ? `Nenhuma conquista encontrada para "${achievementSearch}".`
+              : "Nenhuma conquista cadastrada ainda."}
           </div>
         )}
       </div>

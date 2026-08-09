@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { games as baseGames } from "@/data/games";
+import { supabase } from "@/lib/supabase";
 
 export type FlexibleAchievementInput = {
   id?: string;
@@ -94,6 +95,26 @@ type AchievementProgressStats = {
 const CUSTOM_GAMES_KEY = "rumo-a-conquista-custom-games";
 const HIDDEN_GAMES_KEY = "rumo-a-conquista-hidden-games";
 const DELETED_GAMES_KEY = "rumo-a-conquista-deleted-games";
+type DatabaseGame = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  status: string | null;
+  progress: number | null;
+  hours: string | null;
+  current_objective: string | null;
+  image: string | null;
+  card_image: string | null;
+  final_badge: unknown;
+  emblem: unknown;
+  trophies: unknown;
+  is_hidden: boolean;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 
 export const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 export const ACHIEVEMENTS_UPDATED_EVENT =
@@ -172,6 +193,29 @@ function readStringArray(value: unknown) {
     .split(/[\n,]/g)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeFinalBadge(
+  value: unknown
+): SiteGame["finalBadge"] | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const title = readText(record.title, "").trim();
+  const icon = readText(record.icon, "").trim();
+  const image = readText(record.image, "").trim();
+
+  if (!title && !icon && !image) {
+    return undefined;
+  }
+
+  return {
+    title: title || "Maestria Final",
+    icon: icon || "💎",
+    image,
+  };
 }
 
 function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
@@ -406,10 +450,9 @@ function calculateAchievementProgress(
   achievementsList: FlexibleAchievementInput[],
   fallbackProgress: unknown
 ): AchievementProgressStats {
-  const activeAchievements = getActiveAchievementsForGame(
-    slug,
-    achievementsList
-  );
+ // A lista já chega normalizada.
+// Não recarregamos mais os estados aqui.
+const activeAchievements = achievementsList;
 
   const total = activeAchievements.length;
 
@@ -660,6 +703,115 @@ function readDeletedGames() {
   }
 }
 
+const BASE_GAMES_SYNC_KEY = "rumo-a-conquista-base-games-sync-v1";
+const BASE_GAMES_SYNC_INTERVAL = 5 * 60 * 1000;
+
+async function syncBaseGamesToSupabase() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const saved = sessionStorage.getItem(BASE_GAMES_SYNC_KEY);
+    const lastSync = Number(saved || 0);
+
+    if (
+      Number.isFinite(lastSync) &&
+      lastSync > 0 &&
+      Date.now() - lastSync < BASE_GAMES_SYNC_INTERVAL
+    ) {
+      return;
+    }
+
+    const response = await fetch("/api/youtube/channel/games/sync", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+
+      console.warn(
+        "[Games] Não foi possível sincronizar jogos base:",
+        payload?.error || response.statusText
+      );
+
+      return;
+    }
+
+    sessionStorage.setItem(BASE_GAMES_SYNC_KEY, String(Date.now()));
+
+    const payload = await response.json().catch(() => null);
+
+    console.info(
+      "[Games] Sincronização automática concluída:",
+      payload?.inserted ?? 0,
+      "jogo(s) novo(s)."
+    );
+  } catch (error) {
+    console.warn("[Games] Falha na sincronização automática:", error);
+  }
+}
+
+async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
+  const { data, error } = await supabase
+    .from("games")
+    .select(`
+      id,
+      slug,
+      title,
+      subtitle,
+      status,
+      progress,
+      hours,
+      current_objective,
+      image,
+      card_image,
+      final_badge,
+      emblem,
+      trophies,
+      is_hidden,
+      is_deleted,
+      created_at,
+      updated_at
+    `)
+    .eq("is_deleted", false)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("[Games] Erro ao carregar jogos do Supabase:", error);
+    return {};
+  }
+
+  const games: Record<string, SiteGame> = {};
+
+  for (const game of (data ?? []) as DatabaseGame[]) {
+    if (game.is_deleted) continue;
+
+    games[game.slug] = normalizeGame(game.slug, {
+      slug: game.slug,
+      title: game.title,
+      subtitle: game.subtitle ?? "",
+      status: game.status ?? "progress",
+      progress: game.progress ?? 0,
+      hours: game.hours ?? "0h",
+      currentObjective: game.current_objective ?? "",
+      image: game.image ?? "",
+      cardImage: game.card_image ?? "",
+      finalBadge: normalizeFinalBadge(game.final_badge),
+      emblem: game.emblem ?? undefined,
+      trophies: game.trophies ?? undefined,
+      createdAt: game.created_at,
+      updatedAt: game.updated_at,
+    });
+  }
+
+  console.info("[Games] Jogos carregados do Supabase:", Object.keys(games).length);
+
+  return games;
+}
 function removeGameRelatedLocalStorage(slug: string) {
   if (typeof window === "undefined") {
     return;
@@ -718,26 +870,44 @@ export function useSiteGames() {
     }, {});
   }, []);
 
-  const loadGames = useCallback(() => {
-    setCustomGames(readCustomGames());
-    setHiddenGameSlugs(readHiddenGames());
-    setDeletedGameSlugs(readDeletedGames());
+  const loadGames = useCallback(async () => {
+    const localCustomGames = readCustomGames();
+    const localHiddenGames = readHiddenGames();
+    const localDeletedGames = readDeletedGames();
+
+    setCustomGames(localCustomGames);
+    setHiddenGameSlugs(localHiddenGames);
+    setDeletedGameSlugs(localDeletedGames);
+
+    await syncBaseGamesToSupabase();
+
+    const supabaseGames = await loadGamesFromSupabase();
+
+    setCustomGames((current) => ({
+      ...current,
+      ...supabaseGames,
+    }));
+
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    loadGames();
+    void loadGames();
 
-    window.addEventListener(GAMES_UPDATED_EVENT, loadGames);
-    window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, loadGames);
-    window.addEventListener("storage", loadGames);
-    window.addEventListener("focus", loadGames);
+    const handleUpdate = () => {
+      void loadGames();
+    };
+
+    window.addEventListener(GAMES_UPDATED_EVENT, handleUpdate);
+    window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    window.addEventListener("focus", handleUpdate);
 
     return () => {
-      window.removeEventListener(GAMES_UPDATED_EVENT, loadGames);
-      window.removeEventListener(ACHIEVEMENTS_UPDATED_EVENT, loadGames);
-      window.removeEventListener("storage", loadGames);
-      window.removeEventListener("focus", loadGames);
+      window.removeEventListener(GAMES_UPDATED_EVENT, handleUpdate);
+      window.removeEventListener(ACHIEVEMENTS_UPDATED_EVENT, handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+      window.removeEventListener("focus", handleUpdate);
     };
   }, [loadGames]);
 

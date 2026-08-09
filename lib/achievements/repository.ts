@@ -16,9 +16,16 @@ type DatabaseAchievement = {
   trophy: string;
   rank: AchievementRank;
   image: string;
+
+  // Novos campos
+  source: "manual" | "playstation" | "steam" | "xbox" | null;
+  external_id: string | null;
+  official_image: string | null;
+
   sort_order: number;
   is_custom: boolean;
   is_hidden: boolean;
+
   achievement_progress?: Array<{
     status: AchievementStatus;
     earned_at: string | null;
@@ -86,21 +93,64 @@ export async function loadAchievementsForGame(
   gameSlug: string,
   baseAchievements: SiteAchievement[]
 ): Promise<AchievementLoadResult> {
+  console.group(`[Achievements] ${gameSlug}`);
+
   const { data, error } = await supabase
     .from("achievements")
     .select(
-      "id, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, achievement_progress(status, earned_at, rank_override, image_override)"
+      `
+      id,
+      legacy_id,
+      title,
+      description,
+      trophy,
+      rank,
+      image,
+      source,
+      external_id,
+      official_image,
+      sort_order,
+      is_custom,
+      is_hidden,
+      achievement_progress(
+        status,
+        earned_at,
+        rank_override,
+        image_override
+      )
+      `
     )
     .eq("game_slug", gameSlug)
     .order("sort_order", { ascending: true });
 
+  console.log("Game Slug:", gameSlug);
+  console.log("Supabase Error:", error);
+  console.log("Achievements encontrados:", data?.length ?? 0);
+
+  if (data && data.length > 0) {
+    console.table(
+      data.map((item) => ({
+        id: item.id,
+        legacy_id: item.legacy_id,
+        title: item.title,
+      }))
+    );
+  }
+
   if (error || !data || data.length === 0) {
+    console.warn("Usando FALLBACK");
+    console.groupEnd();
+
     const fallback = getLocalAchievementFallback(gameSlug, baseAchievements);
+
     return {
       achievements: fallback,
       source: fallback.length > 0 ? "localStorage" : "base",
     };
   }
+
+  console.info("Usando SUPABASE");
+  console.groupEnd();
 
   return {
     source: "supabase",
@@ -119,27 +169,40 @@ export async function loadAchievementsForGame(
         status: progress?.status ?? "locked",
         earnedDate: progress?.earned_at ?? "",
         image: progress?.image_override || achievement.image,
+
+        source: achievement.source ?? "manual",
+        externalId: achievement.external_id ?? undefined,
+        officialImage: achievement.official_image ?? undefined,
+
         isCustom: achievement.is_custom,
         isHidden: achievement.is_hidden,
       };
     }),
   };
 }
-
 export async function saveAchievementsForGame(
   gameSlug: string,
   achievements: SiteAchievement[]
 ) {
   const response = await fetch("/admin/api/achievements", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ gameSlug, achievements, ownerKey: OWNER_KEY }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      gameSlug,
+      achievements,
+      ownerKey: OWNER_KEY,
+    }),
   });
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
       error?: string;
     } | null;
-    throw new Error(body?.error || "Não foi possível salvar no Supabase.");
+
+    throw new Error(
+      body?.error ?? "Não foi possível salvar as conquistas."
+    );
   }
 }

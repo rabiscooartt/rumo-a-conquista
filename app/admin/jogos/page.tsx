@@ -481,6 +481,13 @@ function GameEditorCard({
     normalizeAchievements(game.achievementsList, game.slug)
     
   );
+
+  const [achievementSearch, setAchievementSearch] = useState("");
+
+  const [isEmblemEditorMinimized, setIsEmblemEditorMinimized] = useState(false);
+  const [isReviewEditorMinimized, setIsReviewEditorMinimized] = useState(false);
+  const [isAchievementsEditorMinimized, setIsAchievementsEditorMinimized] = useState(false);
+
   function handleAddAchievement() {
   const newAchievement: EditableAchievement = {
     id: `${game.slug}-achievement-${crypto.randomUUID()}`,
@@ -1145,20 +1152,33 @@ function GameEditorCard({
                 </span>
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setForm((current) => ({
-                    ...current,
-                    emblemImage: getImagePath(game.slug, "emblem.png"),
-                  }))
-                }
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEmblemEditorMinimized((current) => !current)}
+                  className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-black text-white/65 transition hover:border-white/20 hover:text-white"
+                >
+                  {isEmblemEditorMinimized ? "＋ Expandir" : "− Minimizar"}
+                </button>
+
+                {!isEmblemEditorMinimized && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((current) => ({
+                        ...current,
+                        emblemImage: getImagePath(game.slug, "emblem.png"),
+                      }))
+                    }
                 className="w-fit rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
-              >
-                Usar caminho padrão do emblema
-              </button>
+                  >
+                    Usar caminho padrão do emblema
+                  </button>
+                )}
+              </div>
             </div>
 
+            {!isEmblemEditorMinimized && (
             <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <label className="md:col-span-2">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
@@ -1252,6 +1272,7 @@ function GameEditorCard({
                 />
               </label>
             </div>
+            )}
           </section>
 
           <div className="mt-5 flex flex-wrap justify-end gap-3">
@@ -1272,20 +1293,31 @@ function GameEditorCard({
           </div>
 
           <section className="mt-8 rounded-[24px] border border-red-500/20 bg-red-500/[0.04] p-5">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-red-400">
-                Review
-              </p>
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-red-400">
+                  Review
+                </p>
 
-              <h4 className="mt-2 text-2xl font-black text-white">
-                Editor da review
-              </h4>
+                <h4 className="mt-2 text-2xl font-black text-white">
+                  Editor da review
+                </h4>
 
-              <p className="mt-1 text-sm text-white/45">
-                Edite a nota final, análise da jornada e os pontos positivos e negativos.
-              </p>
+                <p className="mt-1 text-sm text-white/45">
+                  Edite a nota final, análise da jornada e os pontos positivos e negativos.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsReviewEditorMinimized((current) => !current)}
+                className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-black text-white/65 transition hover:border-white/20 hover:text-white"
+              >
+                {isReviewEditorMinimized ? "＋ Expandir" : "− Minimizar"}
+              </button>
             </div>
 
+            {!isReviewEditorMinimized && (
             <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <label>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
@@ -1421,6 +1453,7 @@ function GameEditorCard({
                 />
               </label>
             </div>
+            )}
           </section>
 
           <section className="mt-8 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
@@ -1439,18 +1472,50 @@ function GameEditorCard({
                 </p>
               </div>
 
-             <button
-  type="button"
-  onClick={handleImportAchievements}
-  className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
->
-  📋 Importar lista
-</button>
+              <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
+                {!isAchievementsEditorMinimized && (
+                  <>
+                    <input
+                      type="text"
+                      value={achievementSearch}
+                      onChange={(event) => setAchievementSearch(event.target.value)}
+                      placeholder="Buscar conquista..."
+                      aria-label="Buscar conquista"
+                      className="w-full min-w-0 rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none placeholder:text-white/30 focus:border-red-500/40 sm:w-[280px]"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleImportAchievements}
+                      className="whitespace-nowrap rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
+                    >
+                      📋 Importar lista
+                    </button>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsAchievementsEditorMinimized((current) => !current)}
+                  className="whitespace-nowrap rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-black text-white/65 transition hover:border-white/20 hover:text-white"
+                >
+                  {isAchievementsEditorMinimized ? "＋ Expandir" : "− Minimizar"}
+                </button>
+              </div>
             </div>
 
+            {!isAchievementsEditorMinimized && (
             <div className="mt-5 space-y-4">
               {achievements.length > 0 ? (
-                achievements.map((achievement, index) => (
+                achievements
+                  .map((achievement, index) => ({ achievement, index }))
+                  .filter(({ achievement }) => {
+                    const search = normalizeText(achievementSearch);
+                    if (!search) return true;
+
+                    return normalizeText(achievement.title).includes(search);
+                  })
+                  .map(({ achievement, index }) => (
                   <article
                     key={achievement.id}
                     className={`rounded-2xl border p-4 transition ${
@@ -1626,14 +1691,21 @@ function GameEditorCard({
                 ))
               ) : (
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-6 text-sm text-white/45">
-                  Nenhuma conquista cadastrada ainda. Clique em{" "}
-                  <span className="font-black text-red-200">
-                    + Adicionar conquista
-                  </span>{" "}
-                  para começar.
+                  {achievementSearch.trim()
+                    ? `Nenhuma conquista encontrada para "${achievementSearch}".`
+                    : (
+                      <>
+                        Nenhuma conquista cadastrada ainda. Clique em{" "}
+                        <span className="font-black text-red-200">
+                          + Adicionar conquista
+                        </span>{" "}
+                        para começar.
+                      </>
+                    )}
                 </div>
               )}
             </div>
+            )}
           </section>
         </div>
       </div>
