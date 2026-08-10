@@ -14,6 +14,7 @@ import { saveAchievementsForGame } from "@/lib/achievements/repository";
 
 type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
+type AchievementFilter = "active-progress" | "active" | "completed" | "locked" | "all";
 
 type EditableAchievement = FlexibleAchievementInput & {
   id: string;
@@ -483,6 +484,44 @@ function GameEditorCard({
   );
 
   const [achievementSearch, setAchievementSearch] = useState("");
+  const [achievementFilter, setAchievementFilter] =
+    useState<AchievementFilter>("active-progress");
+
+  const filteredAchievements = useMemo(() => {
+    const search = normalizeText(achievementSearch);
+
+    return achievements.filter((achievement) => {
+      const matchesSearch =
+        !search || normalizeText(achievement.title).includes(search);
+
+      if (!matchesSearch) return false;
+
+      switch (achievementFilter) {
+        case "active-progress":
+          return !achievement.isHidden && achievement.status === "progress";
+        case "active":
+          return !achievement.isHidden;
+        case "completed":
+          return achievement.status === "completed";
+        case "locked":
+          return achievement.status === "locked";
+        case "all":
+        default:
+          return true;
+      }
+    });
+  }, [achievementFilter, achievementSearch, achievements]);
+
+  const achievementFilterOptions: {
+    label: string;
+    value: AchievementFilter;
+  }[] = [
+    { label: "🟠 Ativas e em progresso", value: "active-progress" },
+    { label: "👁️ Ativas", value: "active" },
+    { label: "🏆 Concluídas", value: "completed" },
+    { label: "🔒 Bloqueadas", value: "locked" },
+    { label: "📋 Todas", value: "all" },
+  ];
 
   const [isEmblemEditorMinimized, setIsEmblemEditorMinimized] = useState(false);
   const [isReviewEditorMinimized, setIsReviewEditorMinimized] = useState(false);
@@ -536,6 +575,8 @@ function GameEditorCard({
     });
 
     setAchievements(normalizeAchievements(game.achievementsList, game.slug));
+    setAchievementSearch("");
+    setAchievementFilter("active-progress");
     setReview(normalizeReview(game.review));
   }, [game]);
 
@@ -1505,16 +1546,62 @@ function GameEditorCard({
             </div>
 
             {!isAchievementsEditorMinimized && (
-            <div className="mt-5 space-y-4">
-              {achievements.length > 0 ? (
-                achievements
-                  .map((achievement, index) => ({ achievement, index }))
-                  .filter(({ achievement }) => {
-                    const search = normalizeText(achievementSearch);
-                    if (!search) return true;
+            <>
+            <div className="mt-5 rounded-[22px] border border-white/10 bg-black/20 p-4">
+              <div className="flex flex-col gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400">
+                    Filtro de conquistas
+                  </p>
+                  <h5 className="mt-1 text-lg font-black text-white">
+                    Organizar conquistas
+                  </h5>
+                  <p className="mt-1 text-xs font-bold text-white/35">
+                    Por padrão, mostra somente conquistas visíveis e em progresso.
+                  </p>
+                </div>
 
-                    return normalizeText(achievement.title).includes(search);
-                  })
+                <div className="flex flex-wrap gap-2">
+                  {achievementFilterOptions.map((option) => {
+                    const isActive = achievementFilter === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setAchievementFilter(option.value)}
+                        className={`rounded-xl border px-4 py-2.5 text-xs font-black transition ${
+                          isActive
+                            ? "border-red-500/40 bg-red-500/15 text-red-100"
+                            : "border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:text-white"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/35">
+                  <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                    Exibindo {filteredAchievements.length} de {achievements.length}
+                  </span>
+                  {achievementSearch.trim() && (
+                    <span className="rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1.5 text-cyan-200/70">
+                      Busca: &quot;{achievementSearch}&quot;
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {filteredAchievements.length > 0 ? (
+                filteredAchievements
+                  .map((achievement) => ({
+                    achievement,
+                    index: achievements.findIndex((item) => item.id === achievement.id),
+                  }))
                   .map(({ achievement, index }) => (
                   <article
                     key={achievement.id}
@@ -1691,20 +1778,23 @@ function GameEditorCard({
                 ))
               ) : (
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-6 text-sm text-white/45">
-                  {achievementSearch.trim()
-                    ? `Nenhuma conquista encontrada para "${achievementSearch}".`
-                    : (
-                      <>
-                        Nenhuma conquista cadastrada ainda. Clique em{" "}
-                        <span className="font-black text-red-200">
-                          + Adicionar conquista
-                        </span>{" "}
-                        para começar.
-                      </>
-                    )}
+                  {achievements.length === 0 ? (
+                    <>
+                      Nenhuma conquista cadastrada ainda. Clique em{" "}
+                      <span className="font-black text-red-200">
+                        + Adicionar conquista
+                      </span>{" "}
+                      para começar.
+                    </>
+                  ) : achievementSearch.trim() ? (
+                    `Nenhuma conquista encontrada para "${achievementSearch}" com o filtro selecionado.`
+                  ) : (
+                    "Nenhuma conquista corresponde ao filtro selecionado."
+                  )}
                 </div>
               )}
             </div>
+            </>
             )}
           </section>
         </div>
