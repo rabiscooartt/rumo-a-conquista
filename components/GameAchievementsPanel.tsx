@@ -9,12 +9,6 @@ export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
 type SortMode = "rarity" | "status" | "title";
 type SortDirection = "asc" | "desc";
-type AchievementFilter =
-  | "active-progress"
-  | "active"
-  | "progress"
-  | "completed"
-  | "all";
 
 export type AchievementInput = {
   id?: string;
@@ -434,8 +428,6 @@ export default function GameAchievementsPanel(
 
   const [sortMode, setSortMode] = useState<SortMode>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [achievementFilter, setAchievementFilter] =
-    useState<AchievementFilter>("active-progress");
   const [savedAchievementTitle, setSavedAchievementTitle] = useState("");
   const [achievementSearch, setAchievementSearch] = useState("");
 
@@ -792,63 +784,17 @@ export default function GameAchievementsPanel(
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch).trim();
 
+    if (!search) {
+      return allAchievements;
+    }
+
     return allAchievements.filter((achievement) => {
-      const state =
-        manualStates[achievement.title] ??
-        createDefaultStates([achievement])[achievement.title];
-
-      const isHidden =
-        hiddenAchievementTitles.includes(achievement.title) ||
-        isAchievementPubliclyHidden(achievement);
-
-      const isActive = !isHidden;
-      const isProgress = state.status === "progress";
-      const isCompleted = state.status === "completed";
-
-      let matchesFilter = true;
-
-      switch (achievementFilter) {
-        case "active-progress":
-          matchesFilter = isActive && isProgress;
-          break;
-
-        case "active":
-          matchesFilter = isActive;
-          break;
-
-        case "progress":
-          matchesFilter = isProgress;
-          break;
-
-        case "completed":
-          matchesFilter = isCompleted;
-          break;
-
-        case "all":
-          matchesFilter = true;
-          break;
-      }
-
-      if (!matchesFilter) {
-        return false;
-      }
-
-      if (!search) {
-        return true;
-      }
-
       return (
         normalizeText(achievement.title).includes(search) ||
         normalizeText(achievement.description).includes(search)
       );
     });
-  }, [
-    achievementFilter,
-    achievementSearch,
-    allAchievements,
-    hiddenAchievementTitles,
-    manualStates,
-  ]);
+  }, [achievementSearch, allAchievements]);
 
   const sortedAchievements = useMemo(() => {
     return sortAchievements(
@@ -861,88 +807,6 @@ export default function GameAchievementsPanel(
 
   return (
     <section className="mt-10 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/85 shadow-[0_0_55px_rgba(0,0,0,0.45)]">
-      <div className="relative z-20 border-b border-red-500/25 bg-zinc-950 p-5 md:p-6">
-        <div className="rounded-2xl border border-red-500/25 bg-red-500/[0.045] p-4 md:p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
-                Filtro de conquistas
-              </p>
-              <h3 className="mt-1 text-lg font-black text-white">
-                Organizar jornada
-              </h3>
-              <p className="mt-1 text-xs font-bold text-white/45">
-                O padrão é mostrar somente conquistas visíveis e em progresso.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  label: "🔥 Ativas e em progresso",
-                  value: "active-progress" as AchievementFilter,
-                },
-                {
-                  label: "👁 Ativas",
-                  value: "active" as AchievementFilter,
-                },
-                {
-                  label: "🔄 Em progresso",
-                  value: "progress" as AchievementFilter,
-                },
-                {
-                  label: "🏆 Concluídas",
-                  value: "completed" as AchievementFilter,
-                },
-                {
-                  label: "📋 Todas",
-                  value: "all" as AchievementFilter,
-                },
-              ].map((filter) => (
-                <button
-                  key={filter.value}
-                  type="button"
-                  onClick={() => setAchievementFilter(filter.value)}
-                  aria-pressed={achievementFilter === filter.value}
-                  className={`rounded-xl border px-4 py-2.5 text-xs font-black transition ${
-                    achievementFilter === filter.value
-                      ? "border-red-500/60 bg-red-500/20 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.18)]"
-                      : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/40">
-            <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">
-              Exibindo {sortedAchievements.length} de {allAchievements.length}
-            </span>
-
-            <span className="rounded-full border border-red-500/20 bg-red-500/[0.06] px-3 py-1.5 text-red-200/75">
-              Filtro atual:{" "}
-              {achievementFilter === "active-progress"
-                ? "Ativas e em progresso"
-                : achievementFilter === "active"
-                  ? "Ativas"
-                  : achievementFilter === "progress"
-                    ? "Em progresso"
-                    : achievementFilter === "completed"
-                      ? "Concluídas"
-                      : "Todas"}
-            </span>
-
-            {achievementSearch.trim() && (
-              <span className="rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1.5 text-cyan-200/70">
-                Busca: "{achievementSearch}"
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="relative border-b border-white/10 p-7">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%)]" />
 
@@ -959,8 +823,6 @@ export default function GameAchievementsPanel(
             <p className="mt-2 text-sm text-white/45">
               {completedCount}/{allAchievements.length} conquistas desbloqueadas
             </p>
-
-
           </div>
 
           <div className="w-full max-w-[520px]">
@@ -999,8 +861,9 @@ export default function GameAchievementsPanel(
               ))}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/25 p-4">
-              <label className="block">
+            {isEditMode && (
+              <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/25 p-4">
+                <label className="block">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
                   Buscar conquista
                 </span>
@@ -1031,8 +894,9 @@ export default function GameAchievementsPanel(
                 {achievementSearch.trim()
                   ? `${filteredAchievements.length} conquista${filteredAchievements.length === 1 ? "" : "s"} encontrada${filteredAchievements.length === 1 ? "" : "s"}`
                   : `${allAchievements.length} conquistas cadastradas`}
-              </p>
-            </div>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1391,30 +1255,10 @@ export default function GameAchievementsPanel(
             );
           })
         ) : (
-          <div className="border-t border-white/10 bg-black/20 p-8">
-            <p className="text-sm font-black text-white/70">
-              {achievementSearch.trim()
-                ? `Nenhuma conquista encontrada para "${achievementSearch}".`
-                : achievementFilter === "active-progress"
-                  ? "Nenhuma conquista ativa e em progresso no momento."
-                  : achievementFilter === "active"
-                    ? "Nenhuma conquista ativa no momento."
-                    : achievementFilter === "progress"
-                      ? "Nenhuma conquista em progresso no momento."
-                      : achievementFilter === "completed"
-                        ? "Nenhuma conquista concluída no momento."
-                        : "Nenhuma conquista cadastrada ainda."}
-            </p>
-
-            {!achievementSearch.trim() && achievementFilter !== "all" && allAchievements.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setAchievementFilter("all")}
-                className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-black text-white/60 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200"
-              >
-                Mostrar todas as conquistas
-              </button>
-            )}
+          <div className="p-8 text-sm text-white/45">
+            {achievementSearch.trim()
+              ? `Nenhuma conquista encontrada para "${achievementSearch}".`
+              : "Nenhuma conquista cadastrada ainda."}
           </div>
         )}
       </div>
