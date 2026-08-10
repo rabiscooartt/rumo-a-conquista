@@ -861,69 +861,85 @@ export default function GameAchievementsPanel(
 
   return (
     <section className="mt-10 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/85 shadow-[0_0_55px_rgba(0,0,0,0.45)]">
-      <div className="relative z-20 border-b border-red-500/20 bg-zinc-950 p-5 md:p-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
-              Filtro de conquistas
-            </p>
-            <h3 className="mt-1 text-lg font-black text-white">
-              Organizar jornada
-            </h3>
-            <p className="mt-1 text-xs font-bold text-white/35">
-              Por padrão, mostra somente conquistas ativas e em progresso.
-            </p>
+      <div className="relative z-20 border-b border-red-500/25 bg-zinc-950 p-5 md:p-6">
+        <div className="rounded-2xl border border-red-500/25 bg-red-500/[0.045] p-4 md:p-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
+                Filtro de conquistas
+              </p>
+              <h3 className="mt-1 text-lg font-black text-white">
+                Organizar jornada
+              </h3>
+              <p className="mt-1 text-xs font-bold text-white/45">
+                O padrão é mostrar somente conquistas visíveis e em progresso.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  label: "🔥 Ativas e em progresso",
+                  value: "active-progress" as AchievementFilter,
+                },
+                {
+                  label: "👁 Ativas",
+                  value: "active" as AchievementFilter,
+                },
+                {
+                  label: "🔄 Em progresso",
+                  value: "progress" as AchievementFilter,
+                },
+                {
+                  label: "🏆 Concluídas",
+                  value: "completed" as AchievementFilter,
+                },
+                {
+                  label: "📋 Todas",
+                  value: "all" as AchievementFilter,
+                },
+              ].map((filter) => (
+                <button
+                  key={filter.value}
+                  type="button"
+                  onClick={() => setAchievementFilter(filter.value)}
+                  aria-pressed={achievementFilter === filter.value}
+                  className={`rounded-xl border px-4 py-2.5 text-xs font-black transition ${
+                    achievementFilter === filter.value
+                      ? "border-red-500/60 bg-red-500/20 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.18)]"
+                      : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {[
-              {
-                label: "🔥 Ativas e em progresso",
-                value: "active-progress" as AchievementFilter,
-              },
-              {
-                label: "👁 Ativas",
-                value: "active" as AchievementFilter,
-              },
-              {
-                label: "🔄 Em progresso",
-                value: "progress" as AchievementFilter,
-              },
-              {
-                label: "🏆 Concluídas",
-                value: "completed" as AchievementFilter,
-              },
-              {
-                label: "📋 Todas",
-                value: "all" as AchievementFilter,
-              },
-            ].map((filter) => (
-              <button
-                key={filter.value}
-                type="button"
-                onClick={() => setAchievementFilter(filter.value)}
-                aria-pressed={achievementFilter === filter.value}
-                className={`rounded-xl border px-4 py-2.5 text-xs font-black transition ${
-                  achievementFilter === filter.value
-                    ? "border-red-500/45 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.14)]"
-                    : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/35">
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
-            Exibindo {sortedAchievements.length} de {allAchievements.length}
-          </span>
-          {achievementSearch.trim() && (
-            <span className="rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1.5 text-cyan-200/70">
-              Busca: "{achievementSearch}"
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/40">
+            <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">
+              Exibindo {sortedAchievements.length} de {allAchievements.length}
             </span>
-          )}
+
+            <span className="rounded-full border border-red-500/20 bg-red-500/[0.06] px-3 py-1.5 text-red-200/75">
+              Filtro atual:{" "}
+              {achievementFilter === "active-progress"
+                ? "Ativas e em progresso"
+                : achievementFilter === "active"
+                  ? "Ativas"
+                  : achievementFilter === "progress"
+                    ? "Em progresso"
+                    : achievementFilter === "completed"
+                      ? "Concluídas"
+                      : "Todas"}
+            </span>
+
+            {achievementSearch.trim() && (
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1.5 text-cyan-200/70">
+                Busca: "{achievementSearch}"
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1375,10 +1391,30 @@ export default function GameAchievementsPanel(
             );
           })
         ) : (
-          <div className="p-8 text-sm text-white/45">
-            {achievementSearch.trim()
-              ? `Nenhuma conquista encontrada para "${achievementSearch}".`
-              : "Nenhuma conquista cadastrada ainda."}
+          <div className="border-t border-white/10 bg-black/20 p-8">
+            <p className="text-sm font-black text-white/70">
+              {achievementSearch.trim()
+                ? `Nenhuma conquista encontrada para "${achievementSearch}".`
+                : achievementFilter === "active-progress"
+                  ? "Nenhuma conquista ativa e em progresso no momento."
+                  : achievementFilter === "active"
+                    ? "Nenhuma conquista ativa no momento."
+                    : achievementFilter === "progress"
+                      ? "Nenhuma conquista em progresso no momento."
+                      : achievementFilter === "completed"
+                        ? "Nenhuma conquista concluída no momento."
+                        : "Nenhuma conquista cadastrada ainda."}
+            </p>
+
+            {!achievementSearch.trim() && achievementFilter !== "all" && allAchievements.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setAchievementFilter("all")}
+                className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-black text-white/60 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200"
+              >
+                Mostrar todas as conquistas
+              </button>
+            )}
           </div>
         )}
       </div>
