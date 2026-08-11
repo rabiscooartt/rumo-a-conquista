@@ -14,7 +14,7 @@ import { saveAchievementsForGame } from "@/lib/achievements/repository";
 
 type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
-type AchievementFilter = "active-progress" | "active" | "completed" | "locked" | "all";
+type AchievementFilter = "active" | "completed" | "locked" | "all";
 
 type EditableAchievement = FlexibleAchievementInput & {
   id: string;
@@ -26,6 +26,7 @@ type EditableAchievement = FlexibleAchievementInput & {
   image: string;
   isCustom: boolean;
   isHidden: boolean;
+  isExophase: boolean;
 };
 
 type GameEditorForm = {
@@ -349,6 +350,7 @@ function normalizeAchievements(
     const achievementRecord = achievement as FlexibleAchievementInput & {
       isHidden?: unknown;
       hidden?: unknown;
+      isExophase?: unknown;
     };
 
     const title = readText(achievement.title, `Conquista ${index + 1}`);
@@ -376,6 +378,7 @@ function normalizeAchievements(
         achievementRecord.isHidden ?? achievementRecord.hidden,
         false
       ),
+      isExophase: readBoolean(achievementRecord.isExophase, false),
     };
   });
 }
@@ -485,7 +488,7 @@ function GameEditorCard({
 
   const [achievementSearch, setAchievementSearch] = useState("");
   const [achievementFilter, setAchievementFilter] =
-    useState<AchievementFilter>("active-progress");
+    useState<AchievementFilter>("all");
 
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch);
@@ -497,8 +500,6 @@ function GameEditorCard({
       if (!matchesSearch) return false;
 
       switch (achievementFilter) {
-        case "active-progress":
-          return !achievement.isHidden && achievement.status === "progress";
         case "active":
           return !achievement.isHidden;
         case "completed":
@@ -516,7 +517,6 @@ function GameEditorCard({
     label: string;
     value: AchievementFilter;
   }[] = [
-    { label: "🟠 Ativas e em progresso", value: "active-progress" },
     { label: "👁️ Ativas", value: "active" },
     { label: "🏆 Concluídas", value: "completed" },
     { label: "🔒 Bloqueadas", value: "locked" },
@@ -541,6 +541,7 @@ function GameEditorCard({
     image: "",
     isCustom: true,
     isHidden: false,
+    isExophase: false,
   };
 
   const nextAchievements = [
@@ -585,7 +586,7 @@ function GameEditorCard({
       )
     );
     setAchievementSearch("");
-    setAchievementFilter("active-progress");
+    setAchievementFilter("all");
     setReview(normalizeReview(game.review));
   }, [game]);
 
@@ -622,6 +623,7 @@ function GameEditorCard({
       image: "",
       isCustom: true,
       isHidden: false,
+      isExophase: false,
     }));
 
   const nextAchievements = [
@@ -682,6 +684,7 @@ function handleCopyAchievementNames() {
         image: achievement.image.trim(),
         isCustom: true,
         isHidden: Boolean(achievement.isHidden),
+        isExophase: Boolean(achievement.isExophase),
       };
     });
   }
@@ -1546,7 +1549,7 @@ function handleCopyAchievementNames() {
                     Organizar conquistas
                   </h5>
                   <p className="mt-1 text-xs font-bold text-white/35">
-                    Por padrão, mostra somente conquistas visíveis e em progresso.
+                    Por padrão, mostra todas as conquistas. O botão Exophase serve apenas para sua organização no Admin.
                   </p>
                 </div>
 
@@ -1611,9 +1614,18 @@ function handleCopyAchievementNames() {
                                 <AchievementImagePreview achievement={achievement} />
                               </div>
 
-                              <p className="min-w-0 truncate text-base font-black text-white">
-                                {achievement.title || "Nova conquista"}
-                              </p>
+                              <div className="min-w-0">
+                                <div className="flex min-w-0 items-center gap-2">
+                                  <p className="min-w-0 truncate text-base font-black text-white">
+                                    {achievement.title || "Nova conquista"}
+                                  </p>
+                                  {achievement.isExophase && (
+                                    <span className="shrink-0 rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-violet-200">
+                                      Exophase
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
                             <button
@@ -1642,9 +1654,16 @@ function handleCopyAchievementNames() {
                                     Conquista {index + 1}
                                   </p>
 
-                                  <h5 className="mt-1 text-xl font-black text-white">
-                                    {achievement.title || "Nova conquista"}
-                                  </h5>
+                                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                                    <h5 className="text-xl font-black text-white">
+                                      {achievement.title || "Nova conquista"}
+                                    </h5>
+                                    {achievement.isExophase && (
+                                      <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-violet-200">
+                                        Exophase
+                                      </span>
+                                    )}
+                                  </div>
 
                                   {achievement.isHidden && (
                                     <span className="mt-2 inline-flex rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-yellow-200">
@@ -1681,6 +1700,22 @@ function handleCopyAchievementNames() {
                                     }`}
                                   >
                                     {achievement.isHidden ? "🙈 Oculta" : "👁️ Visível"}
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateAchievement(index, {
+                                        isExophase: !achievement.isExophase,
+                                      })
+                                    }
+                                    className={`w-fit rounded-xl border px-4 py-2 text-xs font-black transition ${
+                                      achievement.isExophase
+                                        ? "border-violet-400/40 bg-violet-500/15 text-violet-100 hover:bg-violet-500/25"
+                                        : "border-white/10 bg-white/[0.03] text-white/55 hover:border-violet-400/25 hover:text-violet-200"
+                                    }`}
+                                  >
+                                    {achievement.isExophase ? "✓ Exophase" : "Exophase"}
                                   </button>
 
                                   <button
