@@ -526,7 +526,9 @@ function GameEditorCard({
   const [isEmblemEditorMinimized, setIsEmblemEditorMinimized] = useState(false);
   const [isReviewEditorMinimized, setIsReviewEditorMinimized] = useState(false);
   const [isAchievementsEditorMinimized, setIsAchievementsEditorMinimized] = useState(false);
-  const [minimizedAchievements, setMinimizedAchievements] = useState<Record<string, boolean>>({});
+  const [minimizedAchievements, setMinimizedAchievements] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(achievements.map((achievement) => [achievement.id, true]))
+  );
 
   function handleAddAchievement() {
   const newAchievement: EditableAchievement = {
@@ -575,8 +577,13 @@ function GameEditorCard({
       emblemUnlockedAt: String(game.emblem?.unlockedAt || ""),
     });
 
-    setAchievements(normalizeAchievements(game.achievementsList, game.slug));
-    setMinimizedAchievements({});
+    const normalizedGameAchievements = normalizeAchievements(game.achievementsList, game.slug);
+    setAchievements(normalizedGameAchievements);
+    setMinimizedAchievements(
+      Object.fromEntries(
+        normalizedGameAchievements.map((achievement) => [achievement.id, true])
+      )
+    );
     setAchievementSearch("");
     setAchievementFilter("active-progress");
     setReview(normalizeReview(game.review));
@@ -1599,9 +1606,15 @@ function handleCopyAchievementNames() {
                       >
                         {isAchievementMinimized ? (
                           <div className="flex items-center justify-between gap-4">
-                            <p className="min-w-0 truncate text-base font-black text-white">
-                              {achievement.title || "Nova conquista"}
-                            </p>
+                            <div className="flex min-w-0 items-center gap-3">
+                              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/40">
+                                <AchievementImagePreview achievement={achievement} />
+                              </div>
+
+                              <p className="min-w-0 truncate text-base font-black text-white">
+                                {achievement.title || "Nova conquista"}
+                              </p>
+                            </div>
 
                             <button
                               type="button"
