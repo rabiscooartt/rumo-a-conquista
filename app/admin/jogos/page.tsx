@@ -526,6 +526,7 @@ function GameEditorCard({
   const [isEmblemEditorMinimized, setIsEmblemEditorMinimized] = useState(false);
   const [isReviewEditorMinimized, setIsReviewEditorMinimized] = useState(false);
   const [isAchievementsEditorMinimized, setIsAchievementsEditorMinimized] = useState(false);
+  const [minimizedAchievements, setMinimizedAchievements] = useState<Record<string, boolean>>({});
 
   function handleAddAchievement() {
   const newAchievement: EditableAchievement = {
@@ -575,6 +576,7 @@ function GameEditorCard({
     });
 
     setAchievements(normalizeAchievements(game.achievementsList, game.slug));
+    setMinimizedAchievements({});
     setAchievementSearch("");
     setAchievementFilter("active-progress");
     setReview(normalizeReview(game.review));
@@ -873,78 +875,26 @@ function handleCopyAchievementNames() {
     return (
       <article
         id={`admin-game-${game.slug}`}
-        className="overflow-hidden rounded-[22px] border border-white/10 bg-zinc-950/75 shadow-xl transition hover:border-red-500/30 hover:bg-red-500/[0.035]"
+        className="overflow-hidden rounded-[20px] border border-white/10 bg-zinc-950/75 shadow-lg transition hover:border-red-500/30 hover:bg-red-500/[0.035]"
       >
         <button
           type="button"
           onClick={onToggleExpand}
-          className="grid w-full gap-4 p-4 text-left md:grid-cols-[150px_1fr_auto] md:items-center"
+          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+          aria-label={`Expandir editor de ${form.title || game.title}`}
         >
-          <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black/40 md:h-[86px] md:aspect-auto">
-            <GameImagePreview
-              src={form.cardImage || form.image}
-              title={form.title || game.title}
-              type="cover"
-            />
+          <p className="min-w-0 truncate text-lg font-black text-white">
+            {form.title || game.title}
+          </p>
 
-            <div className="absolute left-2 top-2 rounded-full border border-black/30 bg-black/70 px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-white/70">
-              Editor
-            </div>
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-2xl font-black text-white">
-                {form.title || game.title}
-              </p>
-
-              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-red-200">
-                {statusLabel}
-              </span>
-            </div>
-
-            <p className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-red-400">
-              {game.slug}
-            </p>
-
-            <p className="mt-1 line-clamp-1 text-sm font-bold text-blue-300">
-              {form.subtitle || "Sem subtítulo"}
-            </p>
-
-            <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-white/50">
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">
-                🏆 {completedAchievements}/{achievements.length} conquistas
-              </span>
-
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">
-                ⏱️ {form.hours || "0h"}
-              </span>
-
-              <span
-                className={`rounded-full border px-3 py-1 ${
-                  emblemCreated
-                    ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-200"
-                    : "border-yellow-400/25 bg-yellow-500/10 text-yellow-200"
-                }`}
-              >
-                {emblemCreated ? "✅ Emblema criado" : "⚠️ Emblema pendente"}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-3">
-            <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-center">
-              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">
-                Abrir
-              </p>
-
-              <p className="mt-1 text-2xl font-black text-white">+</p>
-            </div>
-          </div>
+          <span className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black text-white/60 transition hover:border-white/20 hover:text-white">
+            ＋ Expandir
+          </span>
         </button>
       </article>
     );
   }
+
 
   return (
     <article id={`admin-game-${game.slug}`} className="overflow-hidden rounded-[28px] border border-white/10 bg-zinc-950/80 shadow-xl">
@@ -985,7 +935,7 @@ function handleCopyAchievementNames() {
                 onClick={onToggleExpand}
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-black text-white/65 transition hover:border-white/20 hover:text-white"
               >
-                Recolher
+                − Minimizar
               </button>
 
               <button
@@ -1634,180 +1584,217 @@ function handleCopyAchievementNames() {
                     achievement,
                     index: achievements.findIndex((item) => item.id === achievement.id),
                   }))
-                  .map(({ achievement, index }) => (
-                  <article
-                    key={achievement.id}
-                    className={`rounded-2xl border p-4 transition ${
-                      achievement.isHidden
-                        ? "border-yellow-400/30 bg-yellow-500/[0.045]"
-                        : "border-white/10 bg-black/25"
-                    }`}
-                  >
-                    <div className="grid gap-4 lg:grid-cols-[90px_1fr]">
-                      <div className="h-[90px] overflow-hidden rounded-2xl border border-white/10 bg-black/40">
-                        <AchievementImagePreview achievement={achievement} />
-                      </div>
+                  .map(({ achievement, index }) => {
+                    const isAchievementMinimized =
+                      minimizedAchievements[achievement.id] ?? false;
 
-                      <div>
-                        <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/35">
-                              Conquista {index + 1}
+                    return (
+                      <article
+                        key={achievement.id}
+                        className={`rounded-2xl border p-4 transition ${
+                          achievement.isHidden
+                            ? "border-yellow-400/30 bg-yellow-500/[0.045]"
+                            : "border-white/10 bg-black/25"
+                        }`}
+                      >
+                        {isAchievementMinimized ? (
+                          <div className="flex items-center justify-between gap-4">
+                            <p className="min-w-0 truncate text-base font-black text-white">
+                              {achievement.title || "Nova conquista"}
                             </p>
 
-                            <h5 className="mt-1 text-xl font-black text-white">
-                              {achievement.title || "Nova conquista"}
-                            </h5>
-
-                            {achievement.isHidden && (
-                              <span className="mt-2 inline-flex rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-yellow-200">
-                                🙈 Oculta no site
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
                               onClick={() =>
-                                updateAchievement(index, {
-                                  isHidden: !achievement.isHidden,
-                                })
+                                setMinimizedAchievements((current) => ({
+                                  ...current,
+                                  [achievement.id]: false,
+                                }))
                               }
-                              className={`w-fit rounded-xl border px-4 py-2 text-xs font-black transition ${
-                                achievement.isHidden
-                                  ? "border-yellow-400/35 bg-yellow-500/15 text-yellow-100 hover:bg-yellow-500/25"
-                                  : "border-cyan-400/30 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-                              }`}
+                              className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black text-white/60 transition hover:border-white/20 hover:text-white"
                             >
-                              {achievement.isHidden ? "🙈 Oculta" : "👁️ Visível"}
-                            </button>
-
-                              <button
-                              type="button"
-                              onClick={() => handleRemoveAchievement(index)}
-                              className="w-fit rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black text-red-200 transition hover:bg-red-500/20"
-                            >
-                              Remover conquista
+                              ＋ Expandir
                             </button>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="grid gap-4 lg:grid-cols-[90px_1fr]">
+                            <div className="h-[90px] overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                              <AchievementImagePreview achievement={achievement} />
+                            </div>
 
-                        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                          <label className="xl:col-span-2">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                              Título
-                            </span>
+                            <div>
+                              <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/35">
+                                    Conquista {index + 1}
+                                  </p>
 
-                            <input
-                              value={achievement.title}
-                              onChange={(event) =>
-                                updateAchievement(index, {
-                                  title: event.target.value,
-                                })
-                              }
-                              className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
-                            />
-                          </label>
+                                  <h5 className="mt-1 text-xl font-black text-white">
+                                    {achievement.title || "Nova conquista"}
+                                  </h5>
 
-                          <label>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                              Rank
-                            </span>
+                                  {achievement.isHidden && (
+                                    <span className="mt-2 inline-flex rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-yellow-200">
+                                      🙈 Oculta no site
+                                    </span>
+                                  )}
+                                </div>
 
-                            <select
-                              value={achievement.difficulty}
-                              onChange={(event) => {
-                                const rank = event.target
-                                  .value as AchievementRank;
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setMinimizedAchievements((current) => ({
+                                        ...current,
+                                        [achievement.id]: true,
+                                      }))
+                                    }
+                                    className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black text-white/60 transition hover:border-white/20 hover:text-white"
+                                  >
+                                    − Minimizar
+                                  </button>
 
-                                updateAchievement(index, {
-                                  difficulty: rank,
-                                  trophy: rankToTrophy(rank),
-                                });
-                              }}
-                              className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
-                            >
-                              {rankOptions.map((rank) => (
-                                <option key={rank} value={rank}>
-                                  {rankToTrophy(rank)} {rank}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateAchievement(index, {
+                                        isHidden: !achievement.isHidden,
+                                      })
+                                    }
+                                    className={`w-fit rounded-xl border px-4 py-2 text-xs font-black transition ${
+                                      achievement.isHidden
+                                        ? "border-yellow-400/35 bg-yellow-500/15 text-yellow-100 hover:bg-yellow-500/25"
+                                        : "border-cyan-400/30 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                    }`}
+                                  >
+                                    {achievement.isHidden ? "🙈 Oculta" : "👁️ Visível"}
+                                  </button>
 
-                          <label>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                              Status
-                            </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveAchievement(index)}
+                                    className="w-fit rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black text-red-200 transition hover:bg-red-500/20"
+                                  >
+                                    Remover conquista
+                                  </button>
+                                </div>
+                              </div>
 
-                            <select
-                              value={achievement.status}
-                              onChange={(event) =>
-                                updateAchievement(index, {
-                                  status: event.target
-                                    .value as AchievementStatus,
-                                })
-                              }
-                              className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
-                            >
-                              {achievementStatusOptions.map((status) => (
-                                <option key={status.value} value={status.value}>
-                                  {status.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
+                              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <label className="xl:col-span-2">
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                                    Título
+                                  </span>
 
-                          <label className="md:col-span-2 xl:col-span-4">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                              Descrição
-                            </span>
+                                  <input
+                                    value={achievement.title}
+                                    onChange={(event) =>
+                                      updateAchievement(index, {
+                                        title: event.target.value,
+                                      })
+                                    }
+                                    className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                                  />
+                                </label>
 
-                            <input
-                              value={achievement.description}
-                              onChange={(event) =>
-                                updateAchievement(index, {
-                                  description: event.target.value,
-                                })
-                              }
-                              className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
-                            />
-                          </label>
+                                <label>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                                    Rank
+                                  </span>
 
-                          <label className="md:col-span-2 xl:col-span-4">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                              Imagem da conquista
-                            </span>
+                                  <select
+                                    value={achievement.difficulty}
+                                    onChange={(event) => {
+                                      const rank = event.target.value as AchievementRank;
 
-                            <input
-                              value={achievement.image}
-                              onChange={(event) =>
-                                updateAchievement(index, {
-                                  image: event.target.value,
-                                })
-                              }
-                              placeholder={`/images/games/${game.slug}/achievements/conquista.png`}
-                              className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
-                            />
-                          </label>
-                        </div>
+                                      updateAchievement(index, {
+                                        difficulty: rank,
+                                        trophy: rankToTrophy(rank),
+                                      });
+                                    }}
+                                    className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                                  >
+                                    {rankOptions.map((rank) => (
+                                      <option key={rank} value={rank}>
+                                        {rankToTrophy(rank)} {rank}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
 
-                        <div className="mt-4 flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleUseAchievementImage(index, achievement)
-                            }
-                            className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-xs font-black text-cyan-200 transition hover:bg-cyan-500/20"
-                          >
-                            Usar caminho automático da imagem
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                ))
+                                <label>
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                                    Status
+                                  </span>
+
+                                  <select
+                                    value={achievement.status}
+                                    onChange={(event) =>
+                                      updateAchievement(index, {
+                                        status: event.target.value as AchievementStatus,
+                                      })
+                                    }
+                                    className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                                  >
+                                    {achievementStatusOptions.map((status) => (
+                                      <option key={status.value} value={status.value}>
+                                        {status.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+
+                                <label className="md:col-span-2 xl:col-span-4">
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                                    Descrição
+                                  </span>
+
+                                  <input
+                                    value={achievement.description}
+                                    onChange={(event) =>
+                                      updateAchievement(index, {
+                                        description: event.target.value,
+                                      })
+                                    }
+                                    className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                                  />
+                                </label>
+
+                                <label className="md:col-span-2 xl:col-span-4">
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                                    Imagem da conquista
+                                  </span>
+
+                                  <input
+                                    value={achievement.image}
+                                    onChange={(event) =>
+                                      updateAchievement(index, {
+                                        image: event.target.value,
+                                      })
+                                    }
+                                    placeholder={`/images/games/${game.slug}/achievements/conquista.png`}
+                                    className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                                  />
+                                </label>
+                              </div>
+
+                              <div className="mt-4 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleUseAchievementImage(index, achievement)
+                                  }
+                                  className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-xs font-black text-cyan-200 transition hover:bg-cyan-500/20"
+                                >
+                                  Usar caminho automático da imagem
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })
               ) : (
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-6 text-sm text-white/45">
                   {achievements.length === 0 ? (
