@@ -2137,72 +2137,88 @@ export default function AdminJogosPage() {
           </div>
         </header>
 
-        <section className="mt-8 rounded-[28px] border border-cyan-400/15 bg-cyan-500/[0.035] p-6 shadow-xl">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
-                Ajuda rápida
-              </p>
+        <details className="mt-8 rounded-[28px] border border-cyan-400/15 bg-cyan-500/[0.035] shadow-xl group">
+          <summary className="cursor-pointer list-none p-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
+                  Ajuda rápida
+                </p>
 
-              <h2 className="mt-2 text-3xl font-black text-white">
-                Frases prontas para Git Commit
-              </h2>
+                <h2 className="mt-2 text-3xl font-black text-white">
+                  Frases prontas para Git Commit
+                </h2>
 
-              <p className="mt-2 max-w-[850px] text-sm leading-relaxed text-white/50">
-                Clique em uma opção para copiar o comando completo. Depois de
-                rodar <span className="font-black text-white">npm run build</span>{" "}
-                e <span className="font-black text-white">git add .</span>,
-                cole o comando no terminal e finalize com{" "}
-                <span className="font-black text-white">git push</span>.
-              </p>
-            </div>
+                <p className="mt-2 text-sm leading-relaxed text-white/40">
+                  Clique para expandir e visualizar os comandos de Git.
+                </p>
+              </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[420px]">
-              Fluxo seguro: npm run build → git status → git add . → escolher
-              uma frase abaixo → colar no terminal → git push.
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {commitMessageOptions.map((message) => (
-              <button
-                key={message}
-                type="button"
-                onClick={() => handleCopyCommitCommand(message)}
-                className="rounded-2xl border border-cyan-400/20 bg-cyan-500/[0.06] px-4 py-3 text-left text-xs font-black uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-500/[0.12]"
-              >
-                {message}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-8 rounded-[28px] border border-red-500/20 bg-red-500/5 p-6 shadow-xl">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-red-300">
-              Novo jogo
-            </p>
-
-            <h2 className="mt-2 text-3xl font-black text-white">
-              + Adicionar jogo
-            </h2>
-
-            <p className="mt-2 text-xs leading-relaxed text-white/45">
-              Estrutura recomendada:{" "}
-              <span className="font-black text-red-200">
-                public/images/games/{generatedSlug || "nome-do-jogo"}/banner.jpg
-              </span>{" "}
-              ,{" "}
-              <span className="font-black text-red-200">
-                public/images/games/{generatedSlug || "nome-do-jogo"}/cover.jpg
-              </span>{" "}
-              e{" "}
-              <span className="font-black text-red-200">
-                public/images/games/{generatedSlug || "nome-do-jogo"}/emblem.png
+              <span className="inline-flex w-fit items-center rounded-xl border border-cyan-400/20 bg-cyan-500/[0.06] px-4 py-2 text-xs font-black text-cyan-200 transition group-open:border-cyan-300/40 group-open:bg-cyan-500/[0.12]">
+                <span className="group-open:hidden">＋ Expandir</span>
+                <span className="hidden group-open:inline">− Minimizar</span>
               </span>
-              .
-            </p>
+            </div>
+          </summary>
 
+          <div className="border-t border-cyan-400/10 px-6 pb-6 pt-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div>
+                <p className="text-sm leading-relaxed text-white/50">
+                  Clique em uma opção para copiar o comando completo. Depois de
+                  rodar <span className="font-black text-white">npm run build</span>{" "}
+                  e <span className="font-black text-white">git add .</span>,
+                  cole o comando no terminal e finalize com{" "}
+                  <span className="font-black text-white">git push</span>.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[420px]">
+                Fluxo seguro: npm run build → git status → git add . → escolher
+                uma frase abaixo → colar no terminal → git push.
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {commitMessageOptions.map((message) => (
+                <button
+                  key={message}
+                  type="button"
+                  onClick={() => handleCopyCommitCommand(message)}
+                  className="rounded-2xl border border-cyan-400/20 bg-cyan-500/[0.06] px-4 py-3 text-left text-xs font-black uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-500/[0.12]"
+                >
+                  {message}
+                </button>
+              ))}
+            </div>
+          </div>
+        </details>
+
+        <details className="mt-8 rounded-[28px] border border-red-500/20 bg-red-500/5 shadow-xl group">
+          <summary className="cursor-pointer list-none p-6 [&::-webkit-details-marker]:hidden">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-red-300">
+                  Novo jogo
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black text-white">
+                  + Adicionar jogo
+                </h2>
+
+                <p className="mt-2 text-xs leading-relaxed text-white/40">
+                  Clique para expandir o formulário de cadastro de um novo jogo.
+                </p>
+              </div>
+
+              <span className="inline-flex w-fit items-center rounded-xl border border-red-400/25 bg-red-500/[0.08] px-4 py-2 text-xs font-black text-red-100 transition group-open:border-red-400/40 group-open:bg-red-500/[0.14]">
+                <span className="group-open:hidden">＋ Expandir</span>
+                <span className="hidden group-open:inline">− Minimizar</span>
+              </span>
+            </div>
+          </summary>
+
+          <div className="border-t border-red-500/10 p-6">
             <div className="mt-5 rounded-[22px] border border-red-400/20 bg-black/25 p-4">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-200/80">
                 Checklist para cadastrar jogo novo
@@ -2566,7 +2582,7 @@ export default function AdminJogosPage() {
               + Adicionar jogo
             </button>
           </div>
-        </section>
+        </details>
 
         {hiddenBaseGames.length > 0 && (
           <section className="mt-8 rounded-[28px] border border-white/10 bg-zinc-950/80 p-6 shadow-xl">
@@ -2776,13 +2792,16 @@ export default function AdminJogosPage() {
                   onRemove={removeGame}
                   isExpanded={expandedGameSlug === game.slug}
                   onToggleExpand={() => handleOpenGame(game.slug)}
+                  
                 />
               ))
+              
             ) : (
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-sm text-white/45">
                 Nenhum jogo encontrado nesta categoria ou busca.
               </div>
             )}
+         
           </div>
         </section>
       </section>
