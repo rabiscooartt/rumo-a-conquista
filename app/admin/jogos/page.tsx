@@ -628,6 +628,30 @@ function GameEditorCard({
   );
 }
 
+function handleCopyAchievementNames() {
+  const names = achievements
+    .map((achievement) => achievement.title.trim())
+    .filter(Boolean)
+    .join("\n");
+
+  if (!names) {
+    alert("Nenhuma conquista cadastrada para copiar.");
+    return;
+  }
+
+  navigator.clipboard
+    .writeText(names)
+    .then(() => {
+      alert(`${achievements.filter((achievement) => achievement.title.trim()).length} nomes de conquistas copiados.`);
+    })
+    .catch(() => {
+      window.prompt(
+        "Não consegui copiar automaticamente. Copie os nomes abaixo:",
+        names
+      );
+    });
+}
+
   function normalizeAchievementsForSave(
     nextAchievements: EditableAchievement[]
   ): FlexibleAchievementInput[] {
@@ -1531,6 +1555,14 @@ function GameEditorCard({
                       className="whitespace-nowrap rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-500/20"
                     >
                       📋 Importar lista
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyAchievementNames}
+                      className="whitespace-nowrap rounded-xl border border-violet-400/30 bg-violet-500/10 px-5 py-3 text-sm font-black text-violet-200 transition hover:bg-violet-500/20"
+                    >
+                      📋 Copiar nomes
                     </button>
                   </>
                 )}
