@@ -812,6 +812,20 @@ function handleCopyAchievementNames() {
     );
   }
 
+  function handleToggleExophase(index: number) {
+    const nextAchievements = achievements.map((achievement, itemIndex) =>
+      itemIndex === index
+        ? {
+            ...achievement,
+            isExophase: !achievement.isExophase,
+          }
+        : achievement
+    );
+
+    setAchievements(nextAchievements);
+    onSave(game.slug, buildGameUpdate(nextAchievements));
+  }
+
   function handleUseAchievementImage(
     index: number,
     achievement: EditableAchievement
@@ -1721,11 +1735,7 @@ function handleCopyAchievementNames() {
 
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      updateAchievement(index, {
-                                        isExophase: !achievement.isExophase,
-                                      })
-                                    }
+                                    onClick={() => handleToggleExophase(index)}
                                     className={`w-fit rounded-xl border px-4 py-2 text-xs font-black transition ${
                                       achievement.isExophase
                                         ? "border-violet-400/40 bg-violet-500/15 text-violet-100 hover:bg-violet-500/25"
@@ -2015,6 +2025,7 @@ export default function AdminJogosPage() {
         earnedDate: achievement.earnedDate ?? "",
         image: achievement.image ?? "",
         isCustom: achievement.isCustom ?? true,
+        isExophase: achievement.isExophase ?? false,
       }))
     ).catch(
       (error) => {
