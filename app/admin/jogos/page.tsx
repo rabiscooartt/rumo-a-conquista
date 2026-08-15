@@ -489,6 +489,7 @@ function GameEditorCard({
   const [achievementSearch, setAchievementSearch] = useState("");
   const [achievementFilter, setAchievementFilter] =
     useState<AchievementFilter>("all");
+  const [exophaseOnly, setExophaseOnly] = useState(false);
 
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch);
@@ -498,6 +499,11 @@ function GameEditorCard({
         !search || normalizeText(achievement.title).includes(search);
 
       if (!matchesSearch) return false;
+
+      // Exophase funciona como um filtro adicional, sem substituir
+      // o filtro de status. Assim é possível combinar, por exemplo,
+      // Exophase + Bloqueadas ou Exophase + Todas.
+      if (exophaseOnly && !achievement.isExophase) return false;
 
       switch (achievementFilter) {
         case "active":
@@ -511,7 +517,7 @@ function GameEditorCard({
           return true;
       }
     });
-  }, [achievementFilter, achievementSearch, achievements]);
+  }, [achievementFilter, achievementSearch, achievements, exophaseOnly]);
 
   const achievementFilterOptions: {
     label: string;
@@ -586,6 +592,7 @@ function GameEditorCard({
     );
     setAchievementSearch("");
     setAchievementFilter("all");
+    setExophaseOnly(false);
     setReview(normalizeReview(game.review));
   }, [game]);
 
@@ -1585,6 +1592,19 @@ function handleCopyAchievementNames() {
                       </button>
                     );
                   })}
+
+                  <button
+                    type="button"
+                    onClick={() => setExophaseOnly((current) => !current)}
+                    aria-pressed={exophaseOnly}
+                    className={`rounded-xl border px-4 py-2.5 text-xs font-black transition ${
+                      exophaseOnly
+                        ? "border-violet-400/40 bg-violet-500/15 text-violet-100"
+                        : "border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20 hover:text-white"
+                    }`}
+                  >
+                    ◉ Exophase
+                  </button>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/35">
