@@ -410,10 +410,6 @@ export default function GameAchievementsPanel(
 
   const onStatesChange = props.onStatesChange;
 
-  const statesStorageKey = `rumo-a-conquista-achievements-${gameSlug}`;
-  const customStorageKey = `rumo-a-conquista-custom-achievements-${gameSlug}`;
-  const hiddenStorageKey = `rumo-a-conquista-hidden-achievements-${gameSlug}`;
-
   const [manualStates, setManualStates] = useState<
     Record<string, ManualAchievementState>
   >({});
@@ -470,65 +466,28 @@ export default function GameAchievementsPanel(
   useEffect(() => {
     const defaultStates = createDefaultStates(baseAchievements);
 
-    if (achievementsSource === "supabase") {
-      const timeout = window.setTimeout(() => {
-        setCustomAchievements([]);
-        setHiddenAchievementTitles([]);
-        setManualStates(defaultStates);
-      }, 0);
+    // O Supabase é a fonte oficial dos dados globais.
+    // Não usamos localStorage para estado de conquistas.
+    const persistedCustomAchievements = baseAchievements.filter(
+      (achievement) => achievement.isCustom === true
+    ) as CustomAchievement[];
 
-      return () => window.clearTimeout(timeout);
-    }
+    const persistedHiddenTitles = baseAchievements
+      .filter((achievement) => achievement.isHidden === true || achievement.hidden === true)
+      .map((achievement) => achievement.title);
 
-    const savedStates = localStorage.getItem(statesStorageKey);
-    const savedCustomAchievements = localStorage.getItem(customStorageKey);
-    const savedHiddenAchievements = localStorage.getItem(hiddenStorageKey);
+    const timeout = window.setTimeout(() => {
+      setCustomAchievements(
+        achievementsSource === "supabase"
+          ? persistedCustomAchievements
+          : []
+      );
+      setHiddenAchievementTitles(persistedHiddenTitles);
+      setManualStates(defaultStates);
+    }, 0);
 
-    let parsedStates: Record<string, ManualAchievementState> = {};
-    let parsedCustomAchievements: CustomAchievement[] = [];
-    let parsedHiddenAchievements: string[] = [];
-
-    if (savedStates) {
-      try {
-        parsedStates = JSON.parse(savedStates);
-      } catch {
-        parsedStates = {};
-      }
-    }
-
-    if (savedCustomAchievements) {
-      try {
-        parsedCustomAchievements = JSON.parse(savedCustomAchievements);
-      } catch {
-        parsedCustomAchievements = [];
-      }
-    }
-
-    if (savedHiddenAchievements) {
-      try {
-        parsedHiddenAchievements = JSON.parse(savedHiddenAchievements);
-      } catch {
-        parsedHiddenAchievements = [];
-      }
-    }
-
-    const customDefaultStates = createDefaultStates(parsedCustomAchievements);
-
-    setCustomAchievements(parsedCustomAchievements);
-    setHiddenAchievementTitles(parsedHiddenAchievements);
-
-    setManualStates({
-      ...defaultStates,
-      ...customDefaultStates,
-      ...parsedStates,
-    });
-  }, [
-    achievementsSource,
-    baseAchievements,
-    customStorageKey,
-    hiddenStorageKey,
-    statesStorageKey,
-  ]);
+    return () => window.clearTimeout(timeout);
+  }, [achievementsSource, baseAchievements]);
 
   useEffect(() => {
     onStatesChange?.(manualStates);
@@ -710,17 +669,7 @@ export default function GameAchievementsPanel(
     }));
   }
 
-  function saveChanges(showAlert = true) {
-    localStorage.setItem(statesStorageKey, JSON.stringify(manualStates));
-    localStorage.setItem(customStorageKey, JSON.stringify(customAchievements));
-    localStorage.setItem(
-      hiddenStorageKey,
-      JSON.stringify(hiddenAchievementTitles)
-    );
-
-    onStatesChange?.(manualStates);
-    window.dispatchEvent(new Event(ACHIEVEMENTS_UPDATED_EVENT));
-
+  async function saveChanges(showAlert = true) {
     const snapshot = [...baseAchievements, ...customAchievements].map(
       (achievement) => {
         const state = manualStates[achievement.title];
@@ -740,18 +689,37 @@ export default function GameAchievementsPanel(
       }
     );
 
-    void saveToSupabase(snapshot).catch((error) => {
-      // O localStorage já foi atualizado acima e é o fallback desta etapa.
-      console.error("Erro salvando conquistas no Supabase:", error);
-    });
+    try {
+      // O Supabase é a fonte oficial. Só consideramos salvo depois que
+      // a API confirmar a gravação no banco.
+      await saveToSupabase(snapshot);
 
-    if (showAlert) {
-      alert("Conquistas salvas com sucesso!");
+      onStatesChange?.(manualStates);
+      window.dispatchEvent(new Event(ACHIEVEMENTS_UPDATED_EVENT));
+
+      if (showAlert) {
+        alert("Conquistas salvas com sucesso!");
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Erro salvando conquistas no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar as conquistas no Supabase."
+      );
+      return false;
     }
   }
 
-  function confirmAchievement(achievementTitle: string) {
-    saveChanges(false);
+  async function confirmAchievement(achievementTitle: string) {
+    const saved = await saveChanges(false);
+
+    if (!saved) {
+      return;
+    }
+
     setSavedAchievementTitle(achievementTitle);
 
     window.setTimeout(() => {
