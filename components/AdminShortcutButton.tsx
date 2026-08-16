@@ -59,9 +59,9 @@ export default function AdminShortcutButton() {
       </div>
 
       <div className="grid gap-2">
-
         <Link
           href="/admin/jornada"
+          prefetch={false}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between rounded-2xl border border-purple-400/30 bg-purple-500/15 px-4 py-3 text-sm font-black text-purple-100 transition hover:-translate-y-0.5 hover:bg-purple-500/25"
@@ -72,6 +72,7 @@ export default function AdminShortcutButton() {
 
         <Link
           href="/admin/backlog"
+          prefetch={false}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between rounded-2xl border border-cyan-400/30 bg-cyan-500/15 px-4 py-3 text-sm font-black text-cyan-100 transition hover:-translate-y-0.5 hover:bg-cyan-500/25"
@@ -82,6 +83,7 @@ export default function AdminShortcutButton() {
 
         <Link
           href="/admin/jogos"
+          prefetch={false}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between rounded-2xl border border-red-500/30 bg-red-500/15 px-4 py-3 text-sm font-black text-red-100 transition hover:-translate-y-0.5 hover:bg-red-500/25"
@@ -89,7 +91,6 @@ export default function AdminShortcutButton() {
           <span>🎮 Jogos</span>
           <span>↗</span>
         </Link>
-
       </div>
     </div>
   );
