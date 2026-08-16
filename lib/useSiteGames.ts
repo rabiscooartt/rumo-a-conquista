@@ -703,58 +703,6 @@ function readDeletedGames() {
   }
 }
 
-const BASE_GAMES_SYNC_KEY = "rumo-a-conquista-base-games-sync-v1";
-const BASE_GAMES_SYNC_INTERVAL = 5 * 60 * 1000;
-
-async function syncBaseGamesToSupabase() {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    const saved = sessionStorage.getItem(BASE_GAMES_SYNC_KEY);
-    const lastSync = Number(saved || 0);
-
-    if (
-      Number.isFinite(lastSync) &&
-      lastSync > 0 &&
-      Date.now() - lastSync < BASE_GAMES_SYNC_INTERVAL
-    ) {
-      return;
-    }
-
-    const response = await fetch("/api/youtube/channel/games/sync", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-
-      console.warn(
-        "[Games] Não foi possível sincronizar jogos base:",
-        payload?.error || response.statusText
-      );
-
-      return;
-    }
-
-    sessionStorage.setItem(BASE_GAMES_SYNC_KEY, String(Date.now()));
-
-    const payload = await response.json().catch(() => null);
-
-    console.info(
-      "[Games] Sincronização automática concluída:",
-      payload?.inserted ?? 0,
-      "jogo(s) novo(s)."
-    );
-  } catch (error) {
-    console.warn("[Games] Falha na sincronização automática:", error);
-  }
-}
-
 async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
   const { data, error } = await supabase
     .from("games")
@@ -878,8 +826,6 @@ export function useSiteGames() {
     setCustomGames(localCustomGames);
     setHiddenGameSlugs(localHiddenGames);
     setDeletedGameSlugs(localDeletedGames);
-
-    await syncBaseGamesToSupabase();
 
     const supabaseGames = await loadGamesFromSupabase();
 
