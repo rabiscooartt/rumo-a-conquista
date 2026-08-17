@@ -751,6 +751,8 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
       finalBadge: normalizeFinalBadge(game.final_badge),
       emblem: game.emblem ?? undefined,
       trophies: game.trophies ?? undefined,
+      isHidden: game.is_hidden === true,
+      isDeleted: game.is_deleted,
       createdAt: game.created_at,
       updatedAt: game.updated_at,
     });
@@ -760,6 +762,68 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
 
   return games;
 }
+async function requestGameApi<T>(
+  method: "POST" | "PUT" | "DELETE",
+  body: unknown
+): Promise<T> {
+  const response = await fetch("/api/admin/games", {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error || "Não foi possível salvar o jogo."
+    );
+  }
+
+  return payload as T;
+}
+
+async function saveGameToSupabase(
+  game: SiteGame,
+  options?: { isHidden?: boolean; isDeleted?: boolean }
+) {
+  return requestGameApi<{
+    ok: boolean;
+    game: DatabaseGame;
+  }>("POST", {
+    slug: game.slug,
+    title: game.title,
+    subtitle: game.subtitle,
+    status: game.status,
+    progress: game.progress,
+    hours: game.hours,
+    currentObjective: game.currentObjective,
+    objective: game.objective,
+    image: game.image,
+    cardImage: game.cardImage,
+    finalBadge: game.finalBadge,
+    emblem: game.emblem,
+    trophies: game.trophies,
+    isHidden: options?.isHidden === true,
+    isDeleted: options?.isDeleted === true,
+  });
+}
+
+async function changeGameVisibility(
+  slug: string,
+  action: "hide" | "delete" | "restore"
+) {
+  return requestGameApi<{
+    ok: boolean;
+    game: DatabaseGame;
+  }>("DELETE", {
+    slug,
+    action,
+  });
+}
+
 function removeGameRelatedLocalStorage(slug: string) {
   if (typeof window === "undefined") {
     return;
@@ -828,6 +892,23 @@ export function useSiteGames() {
     setDeletedGameSlugs(localDeletedGames);
 
     const supabaseGames = await loadGamesFromSupabase();
+
+    const globalHiddenGames = Object.values(supabaseGames)
+      .filter((game) => game.isHidden === true)
+      .map((game) => game.slug);
+
+    const nextHiddenGames = Array.from(
+      new Set([...localHiddenGames, ...globalHiddenGames])
+    );
+
+    if (nextHiddenGames.length !== localHiddenGames.length ||
+        nextHiddenGames.some((slug, index) => slug !== localHiddenGames[index])) {
+      localStorage.setItem(
+        HIDDEN_GAMES_KEY,
+        JSON.stringify(nextHiddenGames)
+      );
+      setHiddenGameSlugs(nextHiddenGames);
+    }
 
     setCustomGames((current) => ({
       ...current,
@@ -956,7 +1037,7 @@ const hiddenGamesList = useMemo(() => {
       .filter((game): game is SiteGame => Boolean(game));
   }, [baseGamesMap, hiddenGameSlugs, deletedGameSlugs]);
 
-  function addGame(input: GameFormInput) {
+  async function addGame(input: GameFormInput) {
     const slug = slugify(input.slug || input.title);
 
     if (!slug) {
@@ -989,18 +1070,43 @@ const hiddenGamesList = useMemo(() => {
       updatedAt: now,
     });
 
+    try {
+      await saveGameToSupabase(normalizedGame);
+    } catch (error) {
+      console.error("[Games] Erro salvando jogo no Supabase:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar o jogo."
+      );
+
+      return false;
+    }
+
     const nextCustomGames = {
       ...customGames,
       [slug]: normalizedGame,
     };
 
-    const nextHiddenGameSlugs = hiddenGameSlugs.filter((item) => item !== slug);
+    const nextHiddenGameSlugs = hiddenGameSlugs.filter(
+      (item) => item !== slug
+    );
+
     const nextDeletedGameSlugs = deletedGameSlugs.filter(
       (item) => item !== slug
     );
 
-    localStorage.setItem(CUSTOM_GAMES_KEY, JSON.stringify(nextCustomGames));
-    localStorage.setItem(HIDDEN_GAMES_KEY, JSON.stringify(nextHiddenGameSlugs));
+    localStorage.setItem(
+      CUSTOM_GAMES_KEY,
+      JSON.stringify(nextCustomGames)
+    );
+
+    localStorage.setItem(
+      HIDDEN_GAMES_KEY,
+      JSON.stringify(nextHiddenGameSlugs)
+    );
+
     localStorage.setItem(
       DELETED_GAMES_KEY,
       JSON.stringify(nextDeletedGameSlugs)
@@ -1016,7 +1122,10 @@ const hiddenGamesList = useMemo(() => {
     return true;
   }
 
-  function updateGame(slug: string, update: Partial<SiteGame>) {
+  async function updateGame(
+    slug: string,
+    update: Partial<SiteGame>
+  ) {
     const currentGame =
       gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
 
@@ -1025,7 +1134,10 @@ const hiddenGamesList = useMemo(() => {
     }
 
     if (Array.isArray(update.achievementsList)) {
-      writeAchievementStatesFromAchievements(slug, update.achievementsList);
+      writeAchievementStatesFromAchievements(
+        slug,
+        update.achievementsList
+      );
     }
 
     const nextGame = normalizeGame(slug, {
@@ -1035,44 +1147,103 @@ const hiddenGamesList = useMemo(() => {
       updatedAt: new Date().toISOString(),
     });
 
+    try {
+      await saveGameToSupabase(nextGame, {
+        isHidden: hiddenGameSlugs.includes(slug),
+        isDeleted: false,
+      });
+    } catch (error) {
+      console.error("[Games] Erro atualizando jogo no Supabase:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o jogo."
+      );
+
+      return;
+    }
+
     const nextCustomGames = {
       ...customGames,
       [slug]: nextGame,
     };
 
-    localStorage.setItem(CUSTOM_GAMES_KEY, JSON.stringify(nextCustomGames));
+    localStorage.setItem(
+      CUSTOM_GAMES_KEY,
+      JSON.stringify(nextCustomGames)
+    );
+
     setCustomGames(nextCustomGames);
 
     syncAchievementStatesToLocalStorage(nextGame);
     emitUpdate();
   }
 
-  function removeGame(slug: string) {
-    const isBaseGame = Boolean(baseGamesMap[slug]);
-    const isCustomGame = Boolean(customGames[slug]);
+  async function removeGame(slug: string) {
+    const currentGame =
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
 
-    if (isBaseGame) {
-      const nextHiddenGameSlugs = Array.from(
-        new Set([...hiddenGameSlugs, slug])
-      );
-
-      persistHiddenGames(nextHiddenGameSlugs);
+    if (!currentGame) {
       return;
     }
 
-    if (isCustomGame) {
-      const nextCustomGames = { ...customGames };
-      delete nextCustomGames[slug];
+    try {
+      await saveGameToSupabase(currentGame);
+      await changeGameVisibility(slug, "hide");
+    } catch (error) {
+      console.error("[Games] Erro ocultando jogo no Supabase:", error);
 
-      persistCustomGames(nextCustomGames);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível ocultar o jogo."
+      );
+
+      return;
     }
+
+    const nextHiddenGameSlugs = Array.from(
+      new Set([...hiddenGameSlugs, slug])
+    );
+
+    localStorage.setItem(
+      HIDDEN_GAMES_KEY,
+      JSON.stringify(nextHiddenGameSlugs)
+    );
+
+    setHiddenGameSlugs(nextHiddenGameSlugs);
+    emitUpdate();
   }
 
-  function deleteGamePermanently(slug: string) {
+  async function deleteGamePermanently(slug: string) {
+    const currentGame =
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+    try {
+      if (currentGame) {
+        await saveGameToSupabase(currentGame);
+      }
+
+      await changeGameVisibility(slug, "delete");
+    } catch (error) {
+      console.error("[Games] Erro excluindo jogo no Supabase:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível excluir o jogo."
+      );
+
+      return;
+    }
+
     const nextCustomGames = { ...customGames };
     delete nextCustomGames[slug];
 
-    const nextHiddenGameSlugs = hiddenGameSlugs.filter((item) => item !== slug);
+    const nextHiddenGameSlugs = hiddenGameSlugs.filter(
+      (item) => item !== slug
+    );
 
     const nextDeletedGameSlugs = Array.from(
       new Set([...deletedGameSlugs, slug])
@@ -1080,8 +1251,16 @@ const hiddenGamesList = useMemo(() => {
 
     removeGameRelatedLocalStorage(slug);
 
-    localStorage.setItem(CUSTOM_GAMES_KEY, JSON.stringify(nextCustomGames));
-    localStorage.setItem(HIDDEN_GAMES_KEY, JSON.stringify(nextHiddenGameSlugs));
+    localStorage.setItem(
+      CUSTOM_GAMES_KEY,
+      JSON.stringify(nextCustomGames)
+    );
+
+    localStorage.setItem(
+      HIDDEN_GAMES_KEY,
+      JSON.stringify(nextHiddenGameSlugs)
+    );
+
     localStorage.setItem(
       DELETED_GAMES_KEY,
       JSON.stringify(nextDeletedGameSlugs)
@@ -1094,13 +1273,41 @@ const hiddenGamesList = useMemo(() => {
     emitUpdate();
   }
 
-  function restoreGame(slug: string) {
-    const nextHiddenGameSlugs = hiddenGameSlugs.filter((item) => item !== slug);
+  async function restoreGame(slug: string) {
+    try {
+      const currentGame =
+        gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+      if (currentGame) {
+        await saveGameToSupabase(currentGame);
+      }
+
+      await changeGameVisibility(slug, "restore");
+    } catch (error) {
+      console.error("[Games] Erro restaurando jogo no Supabase:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível restaurar o jogo."
+      );
+
+      return;
+    }
+
+    const nextHiddenGameSlugs = hiddenGameSlugs.filter(
+      (item) => item !== slug
+    );
+
     const nextDeletedGameSlugs = deletedGameSlugs.filter(
       (item) => item !== slug
     );
 
-    localStorage.setItem(HIDDEN_GAMES_KEY, JSON.stringify(nextHiddenGameSlugs));
+    localStorage.setItem(
+      HIDDEN_GAMES_KEY,
+      JSON.stringify(nextHiddenGameSlugs)
+    );
+
     localStorage.setItem(
       DELETED_GAMES_KEY,
       JSON.stringify(nextDeletedGameSlugs)
@@ -1112,8 +1319,43 @@ const hiddenGamesList = useMemo(() => {
     emitUpdate();
   }
 
-  function restoreAllGames() {
-    persistHiddenGames([]);
+  async function restoreAllGames() {
+    const slugsToRestore = Array.from(
+      new Set([...hiddenGameSlugs, ...deletedGameSlugs])
+    );
+
+    try {
+      await Promise.all(
+        slugsToRestore.map(async (slug) => {
+          const currentGame =
+            gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+          if (currentGame) {
+            await saveGameToSupabase(currentGame);
+          }
+
+          await changeGameVisibility(slug, "restore");
+        })
+      );
+    } catch (error) {
+      console.error("[Games] Erro restaurando jogos no Supabase:", error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível restaurar os jogos."
+      );
+
+      return;
+    }
+
+    localStorage.setItem(HIDDEN_GAMES_KEY, JSON.stringify([]));
+    localStorage.setItem(DELETED_GAMES_KEY, JSON.stringify([]));
+
+    setHiddenGameSlugs([]);
+    setDeletedGameSlugs([]);
+
+    emitUpdate();
   }
 
   function isCustomGame(slug: string) {
