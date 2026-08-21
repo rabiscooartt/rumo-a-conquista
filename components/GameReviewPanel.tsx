@@ -34,8 +34,6 @@ type ReviewForm = {
   negativos: string;
 };
 
-const REVIEW_UPDATED_EVENT = "rumo-a-conquista-review-updated";
-const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
 
 function readText(value: unknown, fallback = "") {
   if (typeof value === "string") return value;
@@ -72,32 +70,6 @@ function listToText(value: unknown) {
   }
 
   return "";
-}
-
-function readLocalReview(slug: string): ReviewInput | null {
-  if (typeof window === "undefined") return null;
-
-  const savedReview = localStorage.getItem(`rumo-a-conquista-review-${slug}`);
-
-  if (!savedReview) return null;
-
-  try {
-    return JSON.parse(savedReview) as ReviewInput;
-  } catch {
-    return null;
-  }
-}
-
-function saveLocalReview(slug: string, review: ReviewInput) {
-  if (typeof window === "undefined") return;
-
-  localStorage.setItem(
-    `rumo-a-conquista-review-${slug}`,
-    JSON.stringify(review)
-  );
-
-  window.dispatchEvent(new Event(REVIEW_UPDATED_EVENT));
-  window.dispatchEvent(new Event(ACHIEVEMENTS_UPDATED_EVENT));
 }
 
 function normalizeReview(review?: ReviewInput): Required<ReviewInput> {
@@ -267,18 +239,16 @@ function ReviewList({
 }
 
 export default function GameReviewPanel({
-  slug,
   review,
   isUnlocked,
   achievementsCompleted,
   achievementsTotal,
 }: GameReviewPanelProps) {
-  const [localReview, setLocalReview] = useState<ReviewInput | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const mergedReview = useMemo(() => {
-    return normalizeReview(localReview || review);
-  }, [localReview, review]);
+    return normalizeReview(review);
+  }, [review]);
 
   const [form, setForm] = useState<ReviewForm>(() =>
     getInitialForm(mergedReview)
@@ -298,10 +268,6 @@ export default function GameReviewPanel({
   const negatives = textToList(
     mergedReview.negativos ?? mergedReview.pontosFracos
   );
-
-  useEffect(() => {
-    setLocalReview(readLocalReview(slug));
-  }, [slug]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -325,10 +291,8 @@ export default function GameReviewPanel({
       pontosFracos: textToList(form.negativos),
     };
 
-    setLocalReview(nextReview);
-    saveLocalReview(slug, nextReview);
-
-    alert("Review salva com sucesso.");
+    void nextReview;
+    alert("Edite e salve a review pelo painel Admin para publicÃ¡-la no Supabase.");
   }
 
   if (!unlocked && !isEditing) {

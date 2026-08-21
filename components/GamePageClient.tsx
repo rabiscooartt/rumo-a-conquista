@@ -483,20 +483,6 @@ function GameEmblemBlock({ emblem }: { emblem: GameEmblemData }) {
   );
 }
 
-function readLocalJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-
-  const savedData = localStorage.getItem(key);
-
-  if (!savedData) return fallback;
-
-  try {
-    return JSON.parse(savedData) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 function ScorePill({ score }: { score: string }) {
   return (
     <div className="mt-2 flex items-end gap-1">
@@ -528,53 +514,24 @@ export default function GamePageClient({ slug, game }: Props) {
     [game.review]
   );
 
-  const achievementsStorageKey = `rumo-a-conquista-achievements-${slug}`;
-  const reviewStorageKey = `rumo-a-conquista-review-${slug}`;
-
   const [manualStates, setManualStates] =
     useState<Record<string, ManualAchievementState>>(defaultStates);
 
   const [manualReview, setManualReview] =
     useState<ManualReviewState>(defaultReview);
 
-  const [refreshKey, setRefreshKey] = useState(0);
+  useEffect(() => {
+    setManualStates(defaultStates);
+  }, [defaultStates]);
 
   useEffect(() => {
-    const savedData = readLocalJson<
-      Record<string, ManualAchievementState> | null
-    >(achievementsStorageKey, null);
-
-    if (!savedData) {
-      setManualStates(defaultStates);
-      return;
-    }
-
-    setManualStates({
-      ...defaultStates,
-      ...savedData,
-    });
-  }, [defaultStates, achievementsStorageKey, refreshKey]);
-
-  useEffect(() => {
-    const savedData = readLocalJson<ManualReviewState | null>(
-      reviewStorageKey,
-      null
-    );
-
-    if (!savedData) {
-      setManualReview(defaultReview);
-      return;
-    }
-
-    setManualReview({
-      ...defaultReview,
-      ...savedData,
-    });
-  }, [defaultReview, reviewStorageKey, refreshKey]);
+    setManualReview(defaultReview);
+  }, [defaultReview]);
 
   useEffect(() => {
     function refreshData() {
-      setRefreshKey((current) => current + 1);
+      setManualStates(defaultStates);
+      setManualReview(defaultReview);
     }
 
     window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshData);
@@ -590,7 +547,7 @@ export default function GamePageClient({ slug, game }: Props) {
       window.removeEventListener("storage", refreshData);
       window.removeEventListener("focus", refreshData);
     };
-  }, []);
+  }, [defaultReview, defaultStates]);
 
   function scrollToReview() {
     const reviewSection =
@@ -628,7 +585,7 @@ export default function GamePageClient({ slug, game }: Props) {
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [refreshKey]);
+  }, []);
 
   const enhancedAchievements: EnhancedAchievement[] = achievements.map(
     (achievement) => {

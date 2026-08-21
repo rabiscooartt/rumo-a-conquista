@@ -162,15 +162,43 @@ function buildAchievementDefinition(
 function buildAchievementProgress(
   achievement: IncomingAchievement,
   index: number,
-  idByLegacyId: Map<string, string>
+  idByLegacyId: Map<string, string>,
+  existingProgressByAchievementId: Map<string, DatabaseAchievementProgressRow>
 ) {
+  const achievementId = idByLegacyId.get(legacyIdFor(achievement, index)) ?? "";
+
+  if (!achievementId) {
+    return {
+      achievement_id: "",
+      owner_key: OWNER_KEY,
+      status: "locked",
+      earned_at: null,
+      rank_override: null,
+      image_override: null,
+    };
+  }
+
+  const existing = existingProgressByAchievementId.get(achievementId);
+  const hasStatus = typeof achievement.status === "string";
+  const hasEarnedDate = typeof achievement.earnedDate === "string";
+  const hasRank = typeof achievement.rank === "string" || typeof achievement.difficulty === "string";
+  const hasImage = typeof achievement.image === "string";
+
   return {
-    achievement_id: idByLegacyId.get(legacyIdFor(achievement, index)) ?? "",
+    achievement_id: achievementId,
     owner_key: OWNER_KEY,
-    status: normalizeStatus(achievement.status),
-    earned_at: normalizeText(achievement.earnedDate) || null,
-    rank_override: normalizeRank(achievement.rank || achievement.difficulty),
-    image_override: normalizeText(achievement.image) || null,
+    status: hasStatus
+      ? normalizeStatus(achievement.status)
+      : existing?.status ?? "locked",
+    earned_at: hasEarnedDate
+      ? normalizeText(achievement.earnedDate) || null
+      : existing?.earned_at ?? null,
+    rank_override: hasRank
+      ? normalizeRank(achievement.rank || achievement.difficulty)
+      : existing?.rank_override ?? null,
+    image_override: hasImage
+      ? normalizeText(achievement.image) || null
+      : existing?.image_override ?? null,
   };
 }
 
@@ -179,6 +207,8 @@ async function syncAchievements(
   gameSlug: string,
   achievements: IncomingAchievement[] | undefined
 ) {
+  // A missing achievementsList means "não alterar conquistas".
+  // Isso evita que uma alteração simples no jogo apague ou resete o progresso.
   if (!Array.isArray(achievements)) {
     return { saved: [], progress: [] };
   }
@@ -207,8 +237,32 @@ async function syncAchievements(
     savedRows.map((achievement) => [achievement.legacy_id, achievement.id])
   );
 
+  // Lê o progresso existente antes do upsert para que campos omitidos no payload
+  // nunca sejam transformados em "locked" ou sobrescritos por valores artificiais.
+  const { data: existingProgress, error: existingProgressError } = await client
+    .from("achievement_progress")
+    .select(
+      "achievement_id, owner_key, status, earned_at, rank_override, image_override"
+    )
+    .eq("owner_key", OWNER_KEY)
+    .in("achievement_id", savedRows.map((achievement) => achievement.id));
+
+  if (existingProgressError) throw existingProgressError;
+
+  const existingProgressByAchievementId = new Map(
+    ((existingProgress ?? []) as DatabaseAchievementProgressRow[]).map((item) => [
+      item.achievement_id,
+      item,
+    ])
+  );
+
   const progress = achievements.map((achievement, index) =>
-    buildAchievementProgress(achievement, index, idByLegacyId)
+    buildAchievementProgress(
+      achievement,
+      index,
+      idByLegacyId,
+      existingProgressByAchievementId
+    )
   );
 
   if (progress.some((item) => !item.achievement_id)) {
@@ -355,7 +409,7 @@ async function fetchEnrichedGame(
 /**
  * GET
  *
- * Retorna todos os jogos não excluídos junto com suas conquistas e o progresso
+ * Retorna todos os jogos nÃ£o excluÃ­dos junto com suas conquistas e o progresso
  * salvo no Supabase.
  */
 export async function GET() {
@@ -495,7 +549,7 @@ export async function GET() {
         error:
           error instanceof Error
             ? error.message
-            : "Não foi possível carregar os jogos.",
+            : "NÃ£o foi possÃ­vel carregar os jogos.",
       },
       { status: 500 }
     );
@@ -506,7 +560,7 @@ export async function GET() {
  * POST
  *
  * Cria/atualiza o jogo e, quando achievementsList estiver presente,
- * sincroniza também as definições e o progresso das conquistas.
+ * sincroniza tambÃ©m as definiÃ§Ãµes e o progresso das conquistas.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -515,7 +569,7 @@ export async function POST(request: NextRequest) {
 
     if (!slug) {
       return NextResponse.json(
-        { error: "O slug do jogo é obrigatório." },
+        { error: "O slug do jogo Ã© obrigatÃ³rio." },
         { status: 400 }
       );
     }
@@ -545,7 +599,7 @@ export async function POST(request: NextRequest) {
         error:
           error instanceof Error
             ? error.message
-            : "Não foi possível salvar o jogo.",
+            : "NÃ£o foi possÃ­vel salvar o jogo.",
       },
       { status: 500 }
     );
@@ -556,7 +610,7 @@ export async function POST(request: NextRequest) {
  * PUT
  *
  * Atualiza o jogo e, quando achievementsList estiver presente,
- * sincroniza também as definições e o progresso das conquistas.
+ * sincroniza tambÃ©m as definiÃ§Ãµes e o progresso das conquistas.
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -565,7 +619,7 @@ export async function PUT(request: NextRequest) {
 
     if (!slug) {
       return NextResponse.json(
-        { error: "O slug do jogo é obrigatório." },
+        { error: "O slug do jogo Ã© obrigatÃ³rio." },
         { status: 400 }
       );
     }
@@ -597,7 +651,7 @@ export async function PUT(request: NextRequest) {
         error:
           error instanceof Error
             ? error.message
-            : "Não foi possível atualizar o jogo.",
+            : "NÃ£o foi possÃ­vel atualizar o jogo.",
       },
       { status: 500 }
     );
@@ -607,12 +661,12 @@ export async function PUT(request: NextRequest) {
 /**
  * DELETE
  *
- * Não apaga fisicamente o jogo.
+ * NÃ£o apaga fisicamente o jogo.
  *
  * action:
- * - hide     → oculta
- * - delete   → marca como excluído
- * - restore  → restaura
+ * - hide     â†’ oculta
+ * - delete   â†’ marca como excluÃ­do
+ * - restore  â†’ restaura
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -625,7 +679,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!slug) {
       return NextResponse.json(
-        { error: "O slug do jogo é obrigatório." },
+        { error: "O slug do jogo Ã© obrigatÃ³rio." },
         { status: 400 }
       );
     }
@@ -687,9 +741,10 @@ export async function DELETE(request: NextRequest) {
         error:
           error instanceof Error
             ? error.message
-            : "Não foi possível alterar o jogo.",
+            : "NÃ£o foi possÃ­vel alterar o jogo.",
       },
       { status: 500 }
     );
   }
 }
+

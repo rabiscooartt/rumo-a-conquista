@@ -10,7 +10,6 @@ import {
   slugify,
   useSiteGames,
 } from "@/lib/useSiteGames";
-import { saveAchievementsForGame } from "@/lib/achievements/repository";
 
 type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
@@ -70,8 +69,6 @@ const emptyReviewForm: EditableReview = {
   pontosNegativos: "",
 };
 
-const REVIEW_UPDATED_EVENT = "rumo-a-conquista-review-updated";
-
 const emptyGameForm: GameFormInput = {
   slug: "",
   title: "",
@@ -114,24 +111,6 @@ const reviewStatusOptions: {
 ];
 
 const rankOptions: AchievementRank[] = ["Bronze", "Prata", "Ouro", "Diamante"];
-
-const commitMessageOptions = [
-  "Atualiza dados dos jogos",
-  "Adiciona novo jogo",
-  "Atualiza imagens dos jogos",
-  "Atualiza emblemas dos jogos",
-  "Adiciona data dos emblemas",
-  "Melhora painel admin",
-  "Corrige login do admin",
-  "Atualiza pagina de emblemas",
-  "Corrige exibicao dos jogos",
-  "Atualiza reviews dos jogos",
-  "Atualiza conquistas dos jogos",
-  "Oculta jogos incompletos",
-  "Atualiza proximas maestrias",
-  "Melhora organizacao do site",
-  "Corrige ajustes gerais",
-];
 
 function rankToTrophy(rank: AchievementRank) {
   if (rank === "Diamante") return "💎";
@@ -373,7 +352,7 @@ function normalizeAchievements(
       difficulty: rank,
       status: normalizeAchievementStatus(readText(achievement.status, "locked")),
       image: readText(achievement.image, ""),
-      isCustom: Boolean(achievement.isCustom ?? true),
+      isCustom: Boolean(achievement.isCustom ?? false),
       isHidden: readBoolean(
         achievementRecord.isHidden ?? achievementRecord.hidden,
         false
@@ -460,8 +439,8 @@ function GameEditorCard({
   onToggleExpand,
 }: {
   game: SiteGame;
-  onSave: (slug: string, update: Partial<SiteGame>) => void;
-  onRemove: (slug: string) => void;
+  onSave: (slug: string, update: Partial<SiteGame>) => Promise<void>;
+  onRemove: (slug: string) => Promise<void>;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }) {
@@ -688,7 +667,7 @@ function handleCopyAchievementNames() {
         rank,
         status: achievement.status,
         image: achievement.image.trim(),
-        isCustom: true,
+        isCustom: Boolean(achievement.isCustom),
         isHidden: Boolean(achievement.isHidden),
         isExophase: Boolean(achievement.isExophase),
       };
@@ -717,70 +696,7 @@ function handleCopyAchievementNames() {
     };
   }
 
-  function persistReviewToLocalStorage() {
-    if (typeof window === "undefined") return;
-
-    localStorage.setItem(
-      `rumo-a-conquista-review-${game.slug}`,
-      JSON.stringify(createReviewPayload(review))
-    );
-
-    window.dispatchEvent(new Event(REVIEW_UPDATED_EVENT));
-  }
-
-  function removeAchievementFromLocalStorage(title: string) {
-    if (typeof window === "undefined") return;
-
-    const statesKey = `rumo-a-conquista-achievements-${game.slug}`;
-    const customKey = `rumo-a-conquista-custom-achievements-${game.slug}`;
-    const hiddenKey = `rumo-a-conquista-hidden-achievements-${game.slug}`;
-
-    try {
-      const savedStates = localStorage.getItem(statesKey);
-
-      if (savedStates) {
-        const parsedStates = JSON.parse(savedStates) as Record<string, unknown>;
-        delete parsedStates[title];
-        localStorage.setItem(statesKey, JSON.stringify(parsedStates));
-      }
-    } catch {
-      // Ignora dados antigos quebrados no localStorage.
-    }
-
-    try {
-      const savedCustom = localStorage.getItem(customKey);
-
-      if (savedCustom) {
-        const parsedCustom = JSON.parse(savedCustom) as FlexibleAchievementInput[];
-
-        const nextCustom = parsedCustom.filter(
-          (achievement) => readText(achievement.title, "") !== title
-        );
-
-        localStorage.setItem(customKey, JSON.stringify(nextCustom));
-      }
-    } catch {
-      // Ignora dados antigos quebrados no localStorage.
-    }
-
-    try {
-      const savedHidden = localStorage.getItem(hiddenKey);
-
-      if (savedHidden) {
-        const parsedHidden = JSON.parse(savedHidden) as string[];
-        const nextHidden = parsedHidden.filter((item) => item !== title);
-
-        localStorage.setItem(hiddenKey, JSON.stringify(nextHidden));
-      }
-    } catch {
-      // Ignora dados antigos quebrados no localStorage.
-    }
-
-    window.dispatchEvent(new Event("rumo-a-conquista-achievements-updated"));
-    window.dispatchEvent(new Event("rumo-a-conquista-games-updated"));
-  }
-
-  function handleRemoveAchievement(index: number) {
+  async function handleRemoveAchievement(index: number) {
     const achievementToRemove = achievements[index];
 
     if (!achievementToRemove) return;
@@ -796,11 +712,13 @@ function handleCopyAchievementNames() {
     );
 
     setAchievements(nextAchievements);
-    removeAchievementFromLocalStorage(achievementToRemove.title);
-    persistReviewToLocalStorage();
-    onSave(game.slug, buildGameUpdate(nextAchievements));
-
-    alert("Conquista removida com sucesso.");
+    try {
+      await onSave(game.slug, buildGameUpdate(nextAchievements));
+      alert("Conquista removida com sucesso.");
+    } catch (error) {
+      setAchievements(achievements);
+      alert(error instanceof Error ? error.message : "NÃ£o foi possÃ­vel remover a conquista.");
+    }
   }
 
   function updateAchievement(
@@ -847,39 +765,12 @@ function handleCopyAchievementNames() {
     });
   }
 
-  function handleSaveGame() {
-    persistReviewToLocalStorage();
-    onSave(game.slug, buildGameUpdate(achievements));
-
-    alert("Jogo salvo com sucesso.");
-  }
-
-  function createGameExportCode() {
-    const update = buildGameUpdate(achievements);
-
-    const exportedGame = {
-      ...game,
-      ...update,
-      slug: game.slug,
-      updatedAt: new Date().toISOString(),
-    };
-
-    return `"${game.slug}": ${JSON.stringify(exportedGame, null, 2)},`;
-  }
-
-  async function handleExportGame() {
-    const exportCode = createGameExportCode();
-
+  async function handleSaveGame() {
     try {
-      await navigator.clipboard.writeText(exportCode);
-      alert(
-        "Código oficial do jogo copiado. Use isso quando quiser transformar as alterações do Admin em dados permanentes do site. Cole/substitua este bloco dentro de data/games.ts, rode npm run build e depois faça git add, commit e push."
-      );
-    } catch {
-      window.prompt(
-        "Não consegui copiar automaticamente. Copie este bloco e cole/substitua no data/games.ts quando quiser publicar essa alteração oficialmente:",
-        exportCode
-      );
+      await onSave(game.slug, buildGameUpdate(achievements));
+      alert("Jogo salvo com sucesso.");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "NÃ£o foi possÃ­vel salvar o jogo.");
     }
   }
 
@@ -978,49 +869,11 @@ function handleCopyAchievementNames() {
 
               <button
                 type="button"
-                onClick={handleExportGame}
-                className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-4 py-3 text-sm font-black text-yellow-100 transition hover:bg-yellow-500/20"
-              >
-                Copiar para data/games.ts
-              </button>
-
-              <button
-                type="button"
                 onClick={handleRemoveGame}
                 className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20"
               >
                 Ocultar/remover
               </button>
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-[22px] border border-yellow-400/20 bg-yellow-500/[0.055] p-4">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-yellow-200/80">
-                  Quando usar “Copiar para data/games.ts”?
-                </p>
-
-                <p className="mt-2 text-sm font-bold leading-relaxed text-white/55">
-                  Use esse botão apenas quando terminar uma alteração no Admin e quiser
-                  transformar ela em dado oficial do projeto, para aparecer para todo
-                  mundo no site online.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[520px]">
-                <p>
-                  <span className="font-black text-yellow-100">Fluxo:</span>{" "}
-                  Salvar jogo → Copiar para data/games.ts → substituir o bloco
-                  desse jogo em <span className="font-black text-white">data/games.ts</span>{" "}
-                  → npm run build → git add . → commit → push.
-                </p>
-
-                <p className="mt-2">
-                  Se for só testar visualmente no seu navegador, não precisa copiar
-                  para o arquivo oficial.
-                </p>
-              </div>
             </div>
           </div>
 
@@ -2020,39 +1873,8 @@ export default function AdminJogosPage() {
 
   const displayedGames = normalizedSearchQuery ? searchResults : filteredGames;
 
-  function handleSaveGame(slug: string, update: Partial<SiteGame>) {
-    updateGame(slug, update);
-
-    if (!Array.isArray(update.achievementsList)) {
-      return;
-    }
-
-    void saveAchievementsForGame(
-      slug,
-      update.achievementsList.map((achievement) => ({
-        id:
-          achievement.id ??
-          `achievement-${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2)}`,
-        title: achievement.title?.trim() || "Nova conquista",
-        description: achievement.description ?? "",
-        trophy: achievement.trophy ?? achievement.icon ?? "🥉",
-        icon: achievement.icon ?? achievement.trophy ?? "🏆",
-        difficulty: achievement.difficulty ?? "Bronze",
-        rank: achievement.rank ?? achievement.difficulty ?? "Bronze",
-        status: achievement.status ?? "locked",
-        earnedDate: achievement.earnedDate ?? "",
-        image: achievement.image ?? "",
-        isCustom: achievement.isCustom ?? true,
-        isExophase: achievement.isExophase ?? false,
-      }))
-    ).catch(
-      (error) => {
-        // A gravação local feita por useSiteGames continua como fallback.
-        console.error("Erro salvando conquistas no Supabase:", error);
-      }
-    );
+  async function handleSaveGame(slug: string, update: Partial<SiteGame>) {
+    await updateGame(slug, update);
   }
 
   function handleOpenGame(slug: string) {
@@ -2083,7 +1905,7 @@ export default function AdminJogosPage() {
     }));
   }
 
-  function handleAddGame() {
+  async function handleAddGame() {
     const slug = generatedSlug;
 
     if (!slug) {
@@ -2091,7 +1913,7 @@ export default function AdminJogosPage() {
       return;
     }
 
-    const success = addGame({
+    await addGame({
       ...form,
       slug,
       image: form.image || `/images/games/${slug}/banner.jpg`,
@@ -2099,22 +1921,9 @@ export default function AdminJogosPage() {
       emblemImage: form.emblemImage || `/images/games/${slug}/emblem.png`,
     });
 
-    if (!success) return;
-
     setExpandedGameSlug(slug);
     setSearchQuery("");
     setForm(emptyGameForm);
-  }
-
-  async function handleCopyCommitCommand(message: string) {
-    const command = `git commit -m "${message}"`;
-
-    try {
-      await navigator.clipboard.writeText(command);
-      alert(`Comando copiado:\n\n${command}`);
-    } catch {
-      window.prompt("Copie este comando:", command);
-    }
   }
 
   return (
@@ -2168,63 +1977,6 @@ export default function AdminJogosPage() {
           </div>
         </header>
 
-        <details className="mt-8 rounded-[28px] border border-cyan-400/15 bg-cyan-500/[0.035] shadow-xl group">
-          <summary className="cursor-pointer list-none p-6 [&::-webkit-details-marker]:hidden">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
-                  Ajuda rápida
-                </p>
-
-                <h2 className="mt-2 text-3xl font-black text-white">
-                  Frases prontas para Git Commit
-                </h2>
-
-                <p className="mt-2 text-sm leading-relaxed text-white/40">
-                  Clique para expandir e visualizar os comandos de Git.
-                </p>
-              </div>
-
-              <span className="inline-flex w-fit items-center rounded-xl border border-cyan-400/20 bg-cyan-500/[0.06] px-4 py-2 text-xs font-black text-cyan-200 transition group-open:border-cyan-300/40 group-open:bg-cyan-500/[0.12]">
-                <span className="group-open:hidden">＋ Expandir</span>
-                <span className="hidden group-open:inline">− Minimizar</span>
-              </span>
-            </div>
-          </summary>
-
-          <div className="border-t border-cyan-400/10 px-6 pb-6 pt-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div>
-                <p className="text-sm leading-relaxed text-white/50">
-                  Clique em uma opção para copiar o comando completo. Depois de
-                  rodar <span className="font-black text-white">npm run build</span>{" "}
-                  e <span className="font-black text-white">git add .</span>,
-                  cole o comando no terminal e finalize com{" "}
-                  <span className="font-black text-white">git push</span>.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-xs font-bold leading-relaxed text-white/45 xl:max-w-[420px]">
-                Fluxo seguro: npm run build → git status → git add . → escolher
-                uma frase abaixo → colar no terminal → git push.
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              {commitMessageOptions.map((message) => (
-                <button
-                  key={message}
-                  type="button"
-                  onClick={() => handleCopyCommitCommand(message)}
-                  className="rounded-2xl border border-cyan-400/20 bg-cyan-500/[0.06] px-4 py-3 text-left text-xs font-black uppercase tracking-[0.12em] text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-500/[0.12]"
-                >
-                  {message}
-                </button>
-              ))}
-            </div>
-          </div>
-        </details>
-
         <details className="mt-8 rounded-[28px] border border-red-500/20 bg-red-500/5 shadow-xl group">
           <summary className="cursor-pointer list-none p-6 [&::-webkit-details-marker]:hidden">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -2276,9 +2028,9 @@ export default function AdminJogosPage() {
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                  <p className="font-black text-white">4. Oficialize depois</p>
+                  <p className="font-black text-white">4. Salve no Supabase</p>
                   <p className="mt-1">
-                    Adicionar jogo → abrir o jogo → Copiar para data/games.ts.
+                    Adicione o jogo e salve. A API mantém os dados online automaticamente.
                   </p>
                 </div>
               </div>

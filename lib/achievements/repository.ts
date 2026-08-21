@@ -137,7 +137,7 @@ export async function loadAchievementsForGame(
     );
   }
 
-  if (error || !data || data.length === 0) {
+  if (error) {
     console.warn("Usando FALLBACK");
     console.groupEnd();
 
@@ -154,7 +154,7 @@ export async function loadAchievementsForGame(
 
   return {
     source: "supabase",
-    achievements: (data as DatabaseAchievement[]).map((achievement) => {
+    achievements: ((data ?? []) as DatabaseAchievement[]).map((achievement) => {
       const progress = achievement.achievement_progress?.[0];
       const rank = progress?.rank_override ?? achievement.rank;
 
