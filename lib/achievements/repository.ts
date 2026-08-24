@@ -16,16 +16,12 @@ type DatabaseAchievement = {
   trophy: string;
   rank: AchievementRank;
   image: string;
-
-  // Novos campos
   source: "manual" | "playstation" | "steam" | "xbox" | null;
   external_id: string | null;
   official_image: string | null;
-
   sort_order: number;
   is_custom: boolean;
   is_hidden: boolean;
-
   achievement_progress?: Array<{
     status: AchievementStatus;
     earned_at: string | null;
@@ -44,6 +40,15 @@ function statusFrom(value?: string): AchievementStatus {
   return value === "completed" || value === "progress" ? value : "locked";
 }
 
+function normalizeTitle(value?: string) {
+  return (value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
 function localJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
 
@@ -59,9 +64,10 @@ export function getLocalAchievementFallback(
   gameSlug: string,
   baseAchievements: SiteAchievement[]
 ): SiteAchievement[] {
-  const states = localJson<
-    Record<string, { rank?: string; status?: string; date?: string; image?: string }>
-  >(`rumo-a-conquista-achievements-${gameSlug}`, {});
+  const states = localJson<Record<string, { rank?: string; status?: string; date?: string; image?: string }>>(
+    `rumo-a-conquista-achievements-${gameSlug}`,
+    {}
+  );
   const custom = localJson<SiteAchievement[]>(
     `rumo-a-conquista-custom-achievements-${gameSlug}`,
     []
@@ -71,7 +77,13 @@ export function getLocalAchievementFallback(
     []
   );
 
-  return [...baseAchievements, ...custom].map((achievement) => {
+  const seenTitles = new Set<string>();
+  return [...baseAchievements, ...custom].filter((achievement) => {
+    const key = normalizeTitle(achievement.title);
+    if (!key || seenTitles.has(key)) return false;
+    seenTitles.add(key);
+    return true;
+  }).map((achievement) => {
     const state = states[achievement.title];
     const rank = rankFrom(state?.rank ?? achievement.rank ?? achievement.difficulty);
 
@@ -97,8 +109,7 @@ export async function loadAchievementsForGame(
 
   const { data, error } = await supabase
     .from("achievements")
-    .select(
-      `
+    .select(`
       id,
       legacy_id,
       title,
@@ -118,8 +129,7 @@ export async function loadAchievementsForGame(
         rank_override,
         image_override
       )
-      `
-    )
+    `)
     .eq("game_slug", gameSlug)
     .order("sort_order", { ascending: true });
 
@@ -127,22 +137,11 @@ export async function loadAchievementsForGame(
   console.log("Supabase Error:", error);
   console.log("Achievements encontrados:", data?.length ?? 0);
 
-  if (data && data.length > 0) {
-    console.table(
-      data.map((item) => ({
-        id: item.id,
-        legacy_id: item.legacy_id,
-        title: item.title,
-      }))
-    );
-  }
-
   if (error) {
     console.warn("Usando FALLBACK");
     console.groupEnd();
 
     const fallback = getLocalAchievementFallback(gameSlug, baseAchievements);
-
     return {
       achievements: fallback,
       source: fallback.length > 0 ? "localStorage" : "base",
@@ -152,9 +151,17 @@ export async function loadAchievementsForGame(
   console.info("Usando SUPABASE");
   console.groupEnd();
 
+  const seenTitles = new Set<string>();
+  const uniqueRows = ((data ?? []) as DatabaseAchievement[]).filter((achievement) => {
+    const key = normalizeTitle(achievement.title);
+    if (!key || seenTitles.has(key)) return false;
+    seenTitles.add(key);
+    return true;
+  });
+
   return {
     source: "supabase",
-    achievements: ((data ?? []) as DatabaseAchievement[]).map((achievement) => {
+    achievements: uniqueRows.map((achievement) => {
       const progress = achievement.achievement_progress?.[0];
       const rank = progress?.rank_override ?? achievement.rank;
 
@@ -169,40 +176,28 @@ export async function loadAchievementsForGame(
         status: progress?.status ?? "locked",
         earnedDate: progress?.earned_at ?? "",
         image: progress?.image_override || achievement.image,
-
         source: achievement.source ?? "manual",
         externalId: achievement.external_id ?? undefined,
         officialImage: achievement.official_image ?? undefined,
-
         isCustom: achievement.is_custom,
         isHidden: achievement.is_hidden,
       };
     }),
   };
 }
+
 export async function saveAchievementsForGame(
   gameSlug: string,
   achievements: SiteAchievement[]
 ) {
   const response = await fetch("/admin/api/achievements", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      gameSlug,
-      achievements,
-      ownerKey: OWNER_KEY,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ gameSlug, achievements, ownerKey: OWNER_KEY }),
   });
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-
-    throw new Error(
-      body?.error ?? "Não foi possível salvar as conquistas."
-    );
+    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? "Não foi possível salvar as conquistas.");
   }
 }

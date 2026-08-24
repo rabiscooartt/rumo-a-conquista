@@ -146,6 +146,14 @@ function slugify(text: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function getAchievementKey(achievement: AchievementInput) {
+  return achievement.id?.trim() || `title:${normalizeText(achievement.title)}`;
+}
+
+function getAchievementTitleKey(title?: string) {
+  return normalizeText(title).replace(/\s+/g, " ").trim();
+}
+
 function getDefaultRank(achievement: AchievementInput): Rank {
   const difficulty = normalizeText(achievement.difficulty);
 
@@ -418,9 +426,7 @@ export default function GameAchievementsPanel(
     CustomAchievement[]
   >([]);
 
-  const [hiddenAchievementTitles, setHiddenAchievementTitles] = useState<
-    string[]
-  >([]);
+  const [hiddenAchievementIds, setHiddenAchievementIds] = useState<string[]>([]);
 
   const [sortMode, setSortMode] = useState<SortMode>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -437,7 +443,7 @@ export default function GameAchievementsPanel(
 
   const visibleBaseAchievements = useMemo(() => {
     return baseAchievements.filter((achievement) => {
-      if (hiddenAchievementTitles.includes(achievement.title)) {
+      if (hiddenAchievementIds.includes(getAchievementKey(achievement))) {
         return false;
       }
 
@@ -447,7 +453,7 @@ export default function GameAchievementsPanel(
 
       return true;
     });
-  }, [baseAchievements, hiddenAchievementTitles, isEditMode]);
+  }, [baseAchievements, hiddenAchievementIds, isEditMode]);
 
   const visibleCustomAchievements = useMemo(() => {
     if (isEditMode) {
@@ -460,7 +466,27 @@ export default function GameAchievementsPanel(
   }, [customAchievements, isEditMode]);
 
   const allAchievements = useMemo(() => {
-    return [...visibleBaseAchievements, ...visibleCustomAchievements];
+    const seenTitles = new Set<string>();
+    const uniqueAchievements: AchievementInput[] = [];
+
+    for (const achievement of [
+      ...visibleBaseAchievements,
+      ...visibleCustomAchievements,
+    ]) {
+      const titleKey = getAchievementTitleKey(achievement.title);
+
+      if (titleKey && seenTitles.has(titleKey)) {
+        continue;
+      }
+
+      if (titleKey) {
+        seenTitles.add(titleKey);
+      }
+
+      uniqueAchievements.push(achievement);
+    }
+
+    return uniqueAchievements;
   }, [visibleBaseAchievements, visibleCustomAchievements]);
 
   useEffect(() => {
@@ -472,9 +498,9 @@ export default function GameAchievementsPanel(
       (achievement) => achievement.isCustom === true
     ) as CustomAchievement[];
 
-    const persistedHiddenTitles = baseAchievements
+    const persistedHiddenIds = baseAchievements
       .filter((achievement) => achievement.isHidden === true || achievement.hidden === true)
-      .map((achievement) => achievement.title);
+      .map((achievement) => getAchievementKey(achievement));
 
     const timeout = window.setTimeout(() => {
       setCustomAchievements(
@@ -482,7 +508,7 @@ export default function GameAchievementsPanel(
           ? persistedCustomAchievements
           : []
       );
-      setHiddenAchievementTitles(persistedHiddenTitles);
+      setHiddenAchievementIds(persistedHiddenIds);
       setManualStates(defaultStates);
     }, 0);
 
@@ -505,11 +531,26 @@ export default function GameAchievementsPanel(
         image: "",
       };
 
+      const nextStatus = update.status ?? currentState.status;
+      let nextDate = update.date ?? currentState.date;
+
+      // Ao desbloquear uma conquista, registra automaticamente a data atual.
+      if (nextStatus === "completed" && currentState.status !== "completed") {
+        nextDate = new Date().toISOString().slice(0, 10);
+      }
+
+      // Se deixar de estar desbloqueada, remove a data.
+      if (nextStatus !== "completed") {
+        nextDate = "";
+      }
+
       return {
         ...current,
         [achievementTitle]: {
           ...currentState,
           ...update,
+          status: nextStatus,
+          date: nextDate,
         },
       };
     });
@@ -533,6 +574,17 @@ export default function GameAchievementsPanel(
       const nextTitle = field === "title" ? value : achievement.title;
 
       if (field === "title" && nextTitle.trim().length > 0) {
+        const duplicateExists = [...baseAchievements, ...currentAchievements].some(
+          (item) =>
+            item.id !== achievementId &&
+            getAchievementTitleKey(item.title) === getAchievementTitleKey(nextTitle)
+        );
+
+        if (duplicateExists) {
+          alert("Já existe uma conquista com esse nome neste jogo.");
+          return currentAchievements;
+        }
+
         setManualStates((currentStates) => {
           const oldState = currentStates[oldTitle];
 
@@ -616,7 +668,7 @@ export default function GameAchievementsPanel(
     });
   }
 
-  function removeAchievement(achievement: AchievementInput) {
+  async function removeAchievement(achievement: AchievementInput) {
     const isCustom = achievement.isCustom === true;
 
     const confirmed = window.confirm(
@@ -629,25 +681,45 @@ export default function GameAchievementsPanel(
       return;
     }
 
-    if (isCustom) {
-      setCustomAchievements((current) =>
-        current.filter((item) => item.id !== achievement.id)
-      );
-    } else {
-      setHiddenAchievementTitles((current) => {
-        if (current.includes(achievement.title)) {
-          return current;
-        }
+    const nextCustomAchievements = isCustom
+      ? customAchievements.filter((item) => item.id !== achievement.id)
+      : customAchievements;
 
-        return [...current, achievement.title];
-      });
+    const nextHiddenAchievementIds = isCustom
+      ? hiddenAchievementIds
+      : (() => {
+          const achievementKey = getAchievementKey(achievement);
+          return hiddenAchievementIds.includes(achievementKey)
+            ? hiddenAchievementIds
+            : [...hiddenAchievementIds, achievementKey];
+        })();
+
+    const nextManualStates = { ...manualStates };
+
+    const otherSameTitleExists = [...baseAchievements, ...customAchievements].some(
+      (item) =>
+        item.id !== achievement.id &&
+        normalizeText(item.title) === normalizeText(achievement.title)
+    );
+
+    if (!otherSameTitleExists) {
+      delete nextManualStates[achievement.title];
     }
 
-    setManualStates((current) => {
-      const nextStates = { ...current };
-      delete nextStates[achievement.title];
-      return nextStates;
-    });
+    const snapshot = buildSnapshot(
+      nextCustomAchievements,
+      nextHiddenAchievementIds,
+      nextManualStates
+    );
+
+    const saved = await persistChanges(snapshot, nextManualStates, true);
+
+    if (!saved) {
+      return;
+    }
+
+    setCustomAchievements(nextCustomAchievements);
+    setHiddenAchievementIds(nextHiddenAchievementIds);
   }
 
   function restoreRemovedAchievements() {
@@ -661,7 +733,7 @@ export default function GameAchievementsPanel(
 
     const defaultStates = createDefaultStates(baseAchievements);
 
-    setHiddenAchievementTitles([]);
+    setHiddenAchievementIds([]);
 
     setManualStates((current) => ({
       ...defaultStates,
@@ -669,32 +741,67 @@ export default function GameAchievementsPanel(
     }));
   }
 
-  async function saveChanges(showAlert = true) {
-    const snapshot = [...baseAchievements, ...customAchievements].map(
-      (achievement) => {
-        const state = manualStates[achievement.title];
-        const rank = state?.rank ?? getDefaultRank(achievement);
+  function buildSnapshot(
+    nextCustomAchievements: CustomAchievement[] = customAchievements,
+    nextHiddenAchievementIds: string[] = hiddenAchievementIds,
+    nextManualStates: Record<string, ManualAchievementState> = manualStates
+  ) {
+    const visibleAndHiddenBase = baseAchievements;
+    const combined = [...visibleAndHiddenBase, ...nextCustomAchievements];
 
-        return {
-          ...achievement,
-          rank,
-          difficulty: rank,
-          status: state?.status ?? normalizeStatus(achievement.status),
-          earnedDate: state?.date ?? achievement.earnedDate ?? "",
-          image: state?.image ?? achievement.image ?? "",
-          isHidden:
-            hiddenAchievementTitles.includes(achievement.title) ||
-            achievement.isHidden === true,
-        } as SiteAchievement;
+    const uniqueByTitle = new Set<string>();
+    const uniqueAchievements: AchievementInput[] = [];
+
+    for (const achievement of combined) {
+      const titleKey = getAchievementTitleKey(achievement.title);
+
+      if (!titleKey) {
+        continue;
       }
-    );
 
+      if (uniqueByTitle.has(titleKey)) {
+        continue;
+      }
+
+      uniqueByTitle.add(titleKey);
+      uniqueAchievements.push(achievement);
+    }
+
+    return uniqueAchievements.map((achievement) => {
+      const state = nextManualStates[achievement.title];
+      const rank = state?.rank ?? getDefaultRank(achievement);
+      const status = state?.status ?? normalizeStatus(achievement.status);
+      const earnedDate =
+        status === "completed"
+          ? state?.date ||
+            toInputDate(achievement.earnedDate) ||
+            new Date().toISOString().slice(0, 10)
+          : "";
+
+      return {
+        ...achievement,
+        rank,
+        difficulty: rank,
+        status,
+        earnedDate,
+        image: state?.image ?? achievement.image ?? "",
+        isHidden:
+          nextHiddenAchievementIds.includes(getAchievementKey(achievement)) ||
+          achievement.isHidden === true,
+      } as SiteAchievement;
+    });
+  }
+
+  async function persistChanges(
+    snapshot: SiteAchievement[],
+    nextManualStates: Record<string, ManualAchievementState>,
+    showAlert: boolean
+  ) {
     try {
-      // O Supabase é a fonte oficial. Só consideramos salvo depois que
-      // a API confirmar a gravação no banco.
       await saveToSupabase(snapshot);
 
-      onStatesChange?.(manualStates);
+      setManualStates(nextManualStates);
+      onStatesChange?.(nextManualStates);
       window.dispatchEvent(new Event(ACHIEVEMENTS_UPDATED_EVENT));
 
       if (showAlert) {
@@ -711,6 +818,17 @@ export default function GameAchievementsPanel(
       );
       return false;
     }
+  }
+
+  async function saveChanges(showAlert = true) {
+    const nextManualStates = { ...manualStates };
+    const snapshot = buildSnapshot(
+      customAchievements,
+      hiddenAchievementIds,
+      nextManualStates
+    );
+
+    return persistChanges(snapshot, nextManualStates, showAlert);
   }
 
   async function confirmAchievement(achievementTitle: string) {
@@ -789,7 +907,7 @@ export default function GameAchievementsPanel(
             </h2>
 
             <p className="mt-2 text-sm text-white/45">
-              {completedCount}/{allAchievements.length} conquistas desbloqueadas
+              {completedCount}/{allAchievements.length} conquistas únicas desbloqueadas
             </p>
           </div>
 
@@ -1004,13 +1122,13 @@ export default function GameAchievementsPanel(
           </div>
 
           <div className="mt-5 flex flex-wrap justify-end gap-3">
-            {hiddenAchievementTitles.length > 0 && (
+            {hiddenAchievementIds.length > 0 && (
               <button
                 type="button"
                 onClick={restoreRemovedAchievements}
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-black text-white/60 transition hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-cyan-200"
               >
-                Restaurar removidas ({hiddenAchievementTitles.length})
+                Restaurar removidas ({hiddenAchievementIds.length})
               </button>
             )}
 
@@ -1209,7 +1327,7 @@ export default function GameAchievementsPanel(
 
                           <button
                             type="button"
-                            onClick={() => removeAchievement(achievement)}
+                            onClick={() => void removeAchievement(achievement)}
                             className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-black text-white/45 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-200"
                           >
                             Remover

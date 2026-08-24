@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 
@@ -194,6 +194,119 @@ function getRankIcon(rank?: string) {
   if (rank === "Ouro") return "🥇";
   if (rank === "Prata") return "🥈";
   return "🥉";
+}
+
+type HeroTheme = {
+  accent: string;
+  accentRgb: string;
+  accentSoft: string;
+  accentStrong: string;
+  glow: string;
+};
+
+const DEFAULT_HERO_THEME: HeroTheme = {
+  accent: "#ef4444",
+  accentRgb: "239,68,68",
+  accentSoft: "rgba(239,68,68,0.16)",
+  accentStrong: "rgba(239,68,68,0.34)",
+  glow: "rgba(239,68,68,0.24)",
+};
+
+const HERO_THEMES: Record<string, HeroTheme> = {
+  "monster-hunter-world-iceborne": {
+    accent: "#38bdf8",
+    accentRgb: "56,189,248",
+    accentSoft: "rgba(56,189,248,0.16)",
+    accentStrong: "rgba(56,189,248,0.34)",
+    glow: "rgba(56,189,248,0.24)",
+  },
+  "hollow-knight": {
+    accent: "#818cf8",
+    accentRgb: "129,140,248",
+    accentSoft: "rgba(129,140,248,0.16)",
+    accentStrong: "rgba(129,140,248,0.34)",
+    glow: "rgba(129,140,248,0.24)",
+  },
+  hades: {
+    accent: "#f97316",
+    accentRgb: "249,115,22",
+    accentSoft: "rgba(249,115,22,0.16)",
+    accentStrong: "rgba(249,115,22,0.34)",
+    glow: "rgba(249,115,22,0.24)",
+  },
+  "black-myth-wukong": {
+    accent: "#f59e0b",
+    accentRgb: "245,158,11",
+    accentSoft: "rgba(245,158,11,0.16)",
+    accentStrong: "rgba(245,158,11,0.34)",
+    glow: "rgba(245,158,11,0.24)",
+  },
+  "alan-wake-2": {
+    accent: "#ef4444",
+    accentRgb: "239,68,68",
+    accentSoft: "rgba(239,68,68,0.16)",
+    accentStrong: "rgba(239,68,68,0.34)",
+    glow: "rgba(239,68,68,0.24)",
+  },
+  "mouse-p-i-for-hire": {
+    accent: "#eab308",
+    accentRgb: "234,179,8",
+    accentSoft: "rgba(234,179,8,0.16)",
+    accentStrong: "rgba(234,179,8,0.34)",
+    glow: "rgba(234,179,8,0.24)",
+  },
+  "hogwarts-legacy": {
+    accent: "#a855f7",
+    accentRgb: "168,85,247",
+    accentSoft: "rgba(168,85,247,0.16)",
+    accentStrong: "rgba(168,85,247,0.34)",
+    glow: "rgba(168,85,247,0.24)",
+  },
+  "the-division": {
+    accent: "#f97316",
+    accentRgb: "249,115,22",
+    accentSoft: "rgba(249,115,22,0.16)",
+    accentStrong: "rgba(249,115,22,0.34)",
+    glow: "rgba(249,115,22,0.24)",
+  },
+  crisol: {
+    accent: "#f43f5e",
+    accentRgb: "244,63,94",
+    accentSoft: "rgba(244,63,94,0.16)",
+    accentStrong: "rgba(244,63,94,0.34)",
+    glow: "rgba(244,63,94,0.24)",
+  },
+  "mortal-shell-2": {
+    accent: "#94a3b8",
+    accentRgb: "148,163,184",
+    accentSoft: "rgba(148,163,184,0.16)",
+    accentStrong: "rgba(148,163,184,0.34)",
+    glow: "rgba(148,163,184,0.24)",
+  },
+};
+
+function getHeroTheme(game: HeroGame): HeroTheme {
+  const slug = normalizeText(game.slug);
+  const title = normalizeText(game.title);
+
+  if (HERO_THEMES[slug]) return HERO_THEMES[slug];
+
+  const matchedKey = Object.keys(HERO_THEMES).find((key) => {
+    const normalizedKey = normalizeText(key);
+    return slug.includes(normalizedKey) || title.includes(normalizedKey);
+  });
+
+  return matchedKey ? HERO_THEMES[matchedKey] : DEFAULT_HERO_THEME;
+}
+
+function getHeroThemeStyle(theme: HeroTheme): CSSProperties {
+  return {
+    "--hero-accent": theme.accent,
+    "--hero-accent-rgb": theme.accentRgb,
+    "--hero-accent-soft": theme.accentSoft,
+    "--hero-accent-strong": theme.accentStrong,
+    "--hero-glow": theme.glow,
+  } as CSSProperties;
 }
 
 function isCompletedGame(game: HeroGame) {
@@ -531,12 +644,17 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
   const objective = getObjective(heroGame, completed, finalBadge);
   const reviewScore = getReviewScore(heroGame);
   const hasReviewScore = completed && reviewScore.trim() !== "";
+  const heroTheme = getHeroTheme(heroGame);
+  const heroThemeStyle = getHeroThemeStyle(heroTheme);
 
   const pageHref = `/games/${heroGame.slug}`;
   const reviewHref = `/games/${heroGame.slug}?review=1#review-section`;
 
   return (
-    <section className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
+    <section
+      style={heroThemeStyle}
+      className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl"
+    >
       <div className="relative min-h-[420px] overflow-hidden">
         <GameHeroImage src={image} title={heroGame.title} />
 
@@ -544,8 +662,18 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
         {hasReviewScore && (
-          <div className="pointer-events-auto absolute right-8 top-8 z-20 hidden rounded-[24px] border border-red-500/30 bg-red-500/15 p-5 shadow-[0_0_35px_rgba(239,68,68,0.18)] backdrop-blur-md lg:block">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-200">
+          <div
+            className="pointer-events-auto absolute right-8 top-8 z-20 hidden rounded-[24px] border p-5 backdrop-blur-md lg:block"
+            style={{
+              borderColor: "var(--hero-accent-strong)",
+              backgroundColor: "var(--hero-accent-soft)",
+              boxShadow: "0 0 35px var(--hero-glow)",
+            }}
+          >
+            <p
+              className="text-[10px] font-black uppercase tracking-[0.28em]"
+              style={{ color: "var(--hero-accent)" }}
+            >
               Nota
             </p>
 
@@ -575,11 +703,12 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
         <div className="relative z-10 flex min-h-[420px] items-center p-10">
           <div className="max-w-[780px]">
             <span
-              className={`rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide ${
-                completed
-                  ? "border-emerald-400/30 bg-emerald-500/20 text-emerald-200"
-                  : "border-red-500/30 bg-red-500/20 text-red-300"
-              }`}
+              className="rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide"
+              style={{
+                borderColor: "var(--hero-accent-strong)",
+                backgroundColor: "var(--hero-accent-soft)",
+                color: "var(--hero-accent)",
+              }}
             >
               {completed ? "Última maestria" : "Jogando agora"}
             </span>
@@ -588,7 +717,10 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
               {heroGame.title}
             </h1>
 
-            <p className="mt-3 text-3xl text-blue-300">
+            <p
+              className="mt-3 text-3xl"
+              style={{ color: "var(--hero-accent)" }}
+            >
               {heroGame.subtitle || "Jornada em andamento"}
             </p>
 
@@ -600,9 +732,8 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                 </div>
 
                 <span
-                  className={`font-black ${
-                    completed ? "text-emerald-300" : "text-red-400"
-                  }`}
+                  className="font-black"
+                  style={{ color: "var(--hero-accent)" }}
                 >
                   {progress}%
                 </span>
@@ -610,29 +741,30 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
 
               <div className="h-3 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className={`h-full rounded-full ${
-                    completed
-                      ? "bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.75)]"
-                      : "bg-red-500 shadow-[0_0_18px_rgba(239,68,68,0.75)]"
-                  }`}
-                  style={{ width: `${progress}%` }}
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${progress}%`,
+                    backgroundColor: "var(--hero-accent)",
+                    boxShadow: "0 0 18px var(--hero-glow)",
+                  }}
                 />
               </div>
             </div>
 
             <div
-              className={`mt-6 inline-flex items-center gap-4 rounded-2xl border px-5 py-4 shadow-[0_0_24px_rgba(239,68,68,0.12)] ${
-                completed
-                  ? "border-emerald-400/30 bg-emerald-500/10"
-                  : "border-red-500/30 bg-red-500/10"
-              }`}
+              className="mt-6 inline-flex items-center gap-4 rounded-2xl border px-5 py-4"
+              style={{
+                borderColor: "var(--hero-accent-strong)",
+                backgroundColor: "var(--hero-accent-soft)",
+                boxShadow: "0 0 24px var(--hero-glow)",
+              }}
             >
               <div
-                className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border text-xl ${
-                  completed
-                    ? "border-emerald-400/30 bg-black/35"
-                    : "border-red-500/30 bg-red-500/15"
-                }`}
+                className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border text-xl"
+                style={{
+                  borderColor: "var(--hero-accent-strong)",
+                  backgroundColor: "rgba(0,0,0,0.35)",
+                }}
               >
                 {completed ? (
                   <FinalBadgeVisual
@@ -647,9 +779,8 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
 
               <div>
                 <p
-                  className={`text-[10px] font-black uppercase tracking-[0.25em] ${
-                    completed ? "text-emerald-300" : "text-red-300"
-                  }`}
+                  className="text-[10px] font-black uppercase tracking-[0.25em]"
+                  style={{ color: "var(--hero-accent)" }}
                 >
                   {completed ? "Maestria final" : "Objetivo atual"}
                 </p>
@@ -663,7 +794,11 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 href={pageHref}
-                className="rounded-xl border border-red-500/35 bg-red-500/15 px-6 py-3 text-sm font-black text-red-100 transition hover:bg-red-500/25"
+                className="rounded-xl border px-6 py-3 text-sm font-black text-white transition hover:brightness-110"
+                style={{
+                  borderColor: "var(--hero-accent-strong)",
+                  backgroundColor: "var(--hero-accent-soft)",
+                }}
               >
                 Abrir jornada →
               </Link>

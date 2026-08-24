@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -62,8 +62,8 @@ type HistoryEntry = {
 
 const filters: { label: string; value: FilterType }[] = [
   { label: "Tudo", value: "all" },
-  { label: "TrofÃ©us", value: "trophies" },
-  { label: "InsÃ­gnias", value: "badges" },
+  { label: "TrofÃƒÂ©us", value: "trophies" },
+  { label: "InsÃƒÂ­gnias", value: "badges" },
 ];
 
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
@@ -194,7 +194,7 @@ function getAchievementTitle(achievement: AchievementLike, index: number) {
 }
 
 function getAchievementDescription(achievement: AchievementLike) {
-  return readText(achievement.description, "DescriÃ§Ã£o ainda nÃ£o definida.");
+  return readText(achievement.description, "DescriÃƒÂ§ÃƒÂ£o ainda nÃƒÂ£o definida.");
 }
 
 function normalizeRank(
@@ -207,7 +207,7 @@ function normalizeRank(
   if (
     rank === "diamante" ||
     rank === "extrema" ||
-    trophyText.includes("ðŸ’Ž")
+    trophyText.includes("Ã°Å¸â€™Å½")
   ) {
     return "Diamante";
   }
@@ -215,13 +215,13 @@ function normalizeRank(
   if (
     rank === "ouro" ||
     rank === "dificil" ||
-    trophyText.includes("ðŸ¥‡") ||
-    trophyText.includes("ðŸ†")
+    trophyText.includes("Ã°Å¸Â¥â€¡") ||
+    trophyText.includes("Ã°Å¸Ââ€ ")
   ) {
     return "Ouro";
   }
 
-  if (rank === "prata" || rank === "media" || trophyText.includes("ðŸ¥ˆ")) {
+  if (rank === "prata" || rank === "media" || trophyText.includes("Ã°Å¸Â¥Ë†")) {
     return "Prata";
   }
 
@@ -230,18 +230,18 @@ function normalizeRank(
 
 function getRankIcon(rank: HistoryEntry["rank"]) {
   if (rank === "Diamante") {
-    return "ðŸ’Ž";
+    return "Ã°Å¸â€™Å½";
   }
 
   if (rank === "Ouro") {
-    return "ðŸ¥‡";
+    return "Ã°Å¸Â¥â€¡";
   }
 
   if (rank === "Prata") {
-    return "ðŸ¥ˆ";
+    return "Ã°Å¸Â¥Ë†";
   }
 
-  return "ðŸ¥‰";
+  return "Ã°Å¸Â¥â€°";
 }
 
 function getRankStyle(rank: HistoryEntry["rank"]) {
@@ -280,14 +280,14 @@ function getFinalBadge(game: HistoryGame) {
   if (game.finalBadge) {
     return {
       title: readText(game.finalBadge.title, "Maestria Final"),
-      icon: readText(game.finalBadge.icon, "ðŸ’Ž"),
+      icon: readText(game.finalBadge.icon, "Ã°Å¸â€™Å½"),
       image: readText(game.finalBadge.image, ""),
     };
   }
 
   return {
     title: "Maestria Final",
-    icon: "ðŸ’Ž",
+    icon: "Ã°Å¸â€™Å½",
     image: "",
   };
 }
@@ -346,9 +346,9 @@ function getAchievementUnlockOrder({
   gameIndex: number;
   gamesCount: number;
 }) {
-  // O Supabase é a fonte oficial da data de desbloqueio.
+  // O Supabase Ã© a fonte oficial da data de desbloqueio.
   // Priorizamos earnedDate/earned_at antes de qualquer estado legado
-  // do navegador para que o Histórico siga a ordem real de desbloqueio.
+  // do navegador para que o HistÃ³rico siga a ordem real de desbloqueio.
   const remoteUnlockedDate =
     readText(achievement.earnedDate, "") ||
     readText(achievement.earned_at, "") ||
@@ -358,13 +358,13 @@ function getAchievementUnlockOrder({
   const remoteDateTime = getDateTimeValue(remoteUnlockedDate);
 
   if (remoteDateTime > 0) {
-    // Mantém o timestamp como fator principal. O pequeno desempate evita
-    // colisões quando duas conquistas têm exatamente o mesmo timestamp.
+    // MantÃ©m o timestamp como fator principal. O pequeno desempate evita
+    // colisÃµes quando duas conquistas tÃªm exatamente o mesmo timestamp.
     const sameTimestampOrder = Math.max(0, 1000 - achievementIndex);
     return remoteDateTime * 10 + sameTimestampOrder;
   }
 
-  // Compatibilidade apenas para registros antigos que ainda não possuem
+  // Compatibilidade apenas para registros antigos que ainda nÃ£o possuem
   // earned_at/earnedDate no Supabase.
   const legacyUnlockedDate =
     readText(manualState?.completedAt, "") ||
@@ -532,7 +532,7 @@ function buildHistoryEntries(gamesList: HistoryGame[]) {
         orderKey: makeHistoryOrderKey(gameSlug, "badge", finalBadge.title),
         type: "badge",
         title: finalBadge.title,
-        description: "InsÃ­gnia final conquistada nesta jornada.",
+        description: "InsÃƒÂ­gnia final conquistada nesta jornada.",
         gameTitle,
         gameSubtitle: readText(game.subtitle, ""),
         gameSlug,
@@ -672,7 +672,7 @@ export default function HistoricoPage() {
             href="/"
             className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
           >
-            â† Voltar para Home
+            Ã¢â€ Â Voltar para Home
           </Link>
 
           <div className="flex flex-wrap gap-3">
@@ -704,11 +704,11 @@ export default function HistoricoPage() {
             <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-                  HistÃ³rico
+                  HistÃƒÂ³rico
                 </p>
 
                 <h1 className="mt-3 text-5xl font-black text-white">
-                  TrofÃ©us Recentes
+                  TrofÃƒÂ©us Recentes
                 </h1>
 
                 <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
@@ -719,21 +719,21 @@ export default function HistoricoPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <SummaryCard
-                  icon="ðŸ†"
+                  icon="Ã°Å¸Ââ€ "
                   label="Conquistas"
                   value={isLoaded ? trophyCount : "..."}
                   accent="red"
                 />
 
                 <SummaryCard
-                  icon="ðŸ’Ž"
+                  icon="Ã°Å¸â€™Å½"
                   label="Maestrias"
                   value={isLoaded ? completedGames : "..."}
                   accent="cyan"
                 />
 
                 <SummaryCard
-                  icon="ðŸŒŸ"
+                  icon="Ã°Å¸Å’Å¸"
                   label="Emblemas"
                   value={isLoaded ? completedSagas : "..."}
                   accent="purple"
@@ -745,7 +745,7 @@ export default function HistoricoPage() {
 
         <section className="mt-8 overflow-hidden rounded-[24px] border border-white/10 bg-zinc-950/80 shadow-xl">
           <div className="hidden grid-cols-[70px_1fr_130px_90px] border-b border-white/10 bg-black/40 px-5 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-white/35 md:grid">
-            <p>Ãcone</p>
+            <p>ÃƒÂcone</p>
             <p>Conquista</p>
             <p className="text-right">Tipo</p>
             <p className="text-right">Rank</p>
@@ -753,7 +753,7 @@ export default function HistoricoPage() {
 
           {!isLoaded ? (
             <div className="p-8 text-sm text-white/45">
-              Carregando histÃ³rico...
+              Carregando histÃƒÂ³rico...
             </div>
           ) : filteredEntries.length === 0 ? (
             <div className="p-8 text-sm text-white/45">
@@ -794,7 +794,7 @@ export default function HistoricoPage() {
                         {entry.gameSubtitle && (
                           <span className="font-medium text-white/35">
                             {" "}
-                            â€¢ {entry.gameSubtitle}
+                            Ã¢â‚¬Â¢ {entry.gameSubtitle}
                           </span>
                         )}
                       </p>
@@ -802,7 +802,7 @@ export default function HistoricoPage() {
 
                     <div className="md:text-right">
                       <span className="rounded-md bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/80">
-                        {entry.type === "badge" ? "InsÃ­gnia" : "TrofÃ©u"}
+                        {entry.type === "badge" ? "InsÃƒÂ­gnia" : "TrofÃƒÂ©u"}
                       </span>
                     </div>
 
@@ -821,3 +821,4 @@ export default function HistoricoPage() {
     </main>
   );
 }
+
