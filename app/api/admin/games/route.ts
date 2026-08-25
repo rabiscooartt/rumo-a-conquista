@@ -12,37 +12,59 @@ type IncomingAchievement = {
   status?: string;
   earnedDate?: string;
   image?: string;
+  source?: "manual" | "playstation" | "steam" | "xbox";
+  externalId?: string;
+  officialImage?: string;
   isCustom?: boolean;
   isHidden?: boolean;
   hidden?: boolean;
-  source?: string;
-  externalId?: string;
-  officialImage?: string;
-};
-
-type GamePayload = {
-  slug?: string;
-  title?: string;
-  subtitle?: string;
-  status?: string;
-  progress?: number;
-  hours?: string | number;
-  currentObjective?: string;
-  objective?: string;
-  image?: string;
-  cardImage?: string;
-  finalBadge?: unknown;
-  emblem?: unknown;
-  trophies?: unknown;
-  review?: unknown;
-  achievementsList?: IncomingAchievement[];
-  isHidden?: boolean;
-  isDeleted?: boolean;
 };
 
 const OWNER_KEY = "default";
 const VALID_RANKS = new Set(["Bronze", "Prata", "Ouro", "Diamante"]);
 const VALID_STATUSES = new Set(["locked", "progress", "completed"]);
+
+function normalizeText(value: unknown, fallback = "") {
+  if (typeof value !== "string" && typeof value !== "number") return fallback;
+
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function normalizeTitle(value?: string) {
+  return normalizeText(value)
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeSlug(value?: string) {
+  return value?.trim() || "";
+}
+
+function normalizeNumber(value: unknown, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeRank(value?: string) {
+  return value && VALID_RANKS.has(value) ? value : "Bronze";
+}
+
+function normalizeStatus(value?: string) {
+  return value && VALID_STATUSES.has(value) ? value : "locked";
+}
+
+function legacyIdFor(achievement: IncomingAchievement, index: number) {
+  return (
+    achievement.id?.trim() ||
+    `legacy-${index}-${achievement.title?.trim() || "sem-titulo"}`
+  );
+}
 
 type DatabaseAchievementRow = {
   id: string;
@@ -70,46 +92,38 @@ type DatabaseAchievementProgressRow = {
   image_override: string | null;
 };
 
-function normalizeSlug(value?: string) {
-  return value?.trim() || "";
-}
-
-function normalizeNumber(value: unknown, fallback = 0) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : fallback;
-}
-
-function normalizeText(value: unknown, fallback = "") {
-  if (typeof value === "string") return value.trim();
-  if (typeof value === "number") return String(value);
-  return fallback;
-}
-
-function normalizeRank(value?: string) {
-  return value && VALID_RANKS.has(value) ? value : "Bronze";
-}
-
-function normalizeStatus(value?: string) {
-  return value && VALID_STATUSES.has(value) ? value : "locked";
-}
-
-function legacyIdFor(achievement: IncomingAchievement, index: number) {
-  return (
-    achievement.id?.trim() ||
-    `legacy-${index}-${achievement.title?.trim() || "sem-titulo"}`
-  );
-}
+type GamePayload = {
+  slug?: string;
+  title?: string;
+  subtitle?: string;
+  status?: string;
+  progress?: number;
+  hours?: string | number;
+  currentObjective?: string;
+  objective?: string;
+  image?: string;
+  cardImage?: string;
+  finalBadge?: unknown;
+  emblem?: unknown;
+  trophies?: unknown;
+  review?: unknown;
+  achievementsList?: IncomingAchievement[];
+  isHidden?: boolean;
+  isDeleted?: boolean;
+};
 
 function buildGameData(game: GamePayload) {
   const slug = normalizeSlug(game.slug);
-  const now = new Date().toISOString();
 
   return {
     slug,
     title: normalizeText(game.title, "Jogo sem nome"),
     subtitle: normalizeText(game.subtitle),
     status: normalizeText(game.status, "progress"),
-    progress: Math.min(100, Math.max(0, Math.round(normalizeNumber(game.progress, 0)))),
+    progress: Math.min(
+      100,
+      Math.max(0, Math.round(normalizeNumber(game.progress, 0)))
+    ),
     hours:
       typeof game.hours === "number"
         ? String(game.hours)
@@ -125,7 +139,7 @@ function buildGameData(game: GamePayload) {
     review: game.review ?? null,
     is_hidden: game.isHidden === true,
     is_deleted: game.isDeleted === true,
-    updated_at: now,
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -135,11 +149,9 @@ function buildAchievementDefinition(
   gameSlug: string
 ) {
   const legacyId = legacyIdFor(achievement, index);
-  const title = normalizeText(achievement.title, `Conquista ${index + 1}`);
-  const rank = normalizeRank(achievement.rank || achievement.difficulty);
-  const trophy = normalizeText(
-    achievement.trophy ?? achievement.icon,
-    ""
+  const title = normalizeText(
+    achievement.title,
+    `Conquista ${index + 1}`
   );
 
   return {
@@ -147,15 +159,16 @@ function buildAchievementDefinition(
     legacy_id: legacyId,
     title,
     description: normalizeText(achievement.description),
-    trophy,
-    rank,
+    trophy: normalizeText(achievement.trophy ?? achievement.icon, ""),
+    rank: normalizeRank(achievement.rank || achievement.difficulty),
     image: normalizeText(achievement.image),
     source: normalizeText(achievement.source, "manual"),
     external_id: normalizeText(achievement.externalId) || null,
     official_image: normalizeText(achievement.officialImage) || null,
     sort_order: index,
     is_custom: achievement.isCustom === true,
-    is_hidden: achievement.isHidden === true || achievement.hidden === true,
+    is_hidden:
+      achievement.isHidden === true || achievement.hidden === true,
   };
 }
 
@@ -165,11 +178,14 @@ function buildAchievementProgress(
   idByLegacyId: Map<string, string>
 ) {
   return {
-    achievement_id: idByLegacyId.get(legacyIdFor(achievement, index)) ?? "",
+    achievement_id:
+      idByLegacyId.get(legacyIdFor(achievement, index)) ?? "",
     owner_key: OWNER_KEY,
     status: normalizeStatus(achievement.status),
     earned_at: normalizeText(achievement.earnedDate) || null,
-    rank_override: normalizeRank(achievement.rank || achievement.difficulty),
+    rank_override: normalizeRank(
+      achievement.rank || achievement.difficulty
+    ),
     image_override: normalizeText(achievement.image) || null,
   };
 }
@@ -179,45 +195,177 @@ async function syncAchievements(
   gameSlug: string,
   achievements: IncomingAchievement[] | undefined
 ) {
+  // No editor envia a lista completa. Uma chamada com lista vazia significa
+  // que o jogo ficou sem conquistas e, portanto, os registros antigos devem sair.
   if (!Array.isArray(achievements)) {
     return { saved: [], progress: [] };
   }
 
-  if (achievements.length === 0) {
-    return { saved: [], progress: [] };
+  // Regra: um jogo pode ter somente uma conquista por nome normalizado.
+  const uniqueIncoming: IncomingAchievement[] = [];
+  const seenTitles = new Set<string>();
+
+  for (const achievement of achievements) {
+    const title = String(
+      achievement.title?.trim() || "Conquista"
+    ).trim();
+    const titleKey = normalizeTitle(title);
+
+    if (!titleKey || seenTitles.has(titleKey)) {
+      continue;
+    }
+
+    seenTitles.add(titleKey);
+    uniqueIncoming.push({
+      ...achievement,
+      title,
+    });
   }
 
-  const definitions = achievements.map((achievement, index) =>
+  // Primeiro buscamos os registros atuais para saber exatamente o que precisa
+  // ser mantido, atualizado ou excluído.
+  const { data: existingData, error: existingError } = await client
+    .from("achievements")
+    .select(
+      "id, game_slug, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, source, external_id, official_image"
+    )
+    .eq("game_slug", gameSlug)
+    .order("sort_order", { ascending: true });
+
+  if (existingError) throw existingError;
+
+  const existingRows = (existingData ?? []) as DatabaseAchievementRow[];
+
+  // Para cada nome, escolhemos o registro que o payload atual realmente
+  // representa. Isso evita manter uma duplicata antiga só porque ela aparece
+  // primeiro no banco.
+  const existingByTitle = new Map<
+    string,
+    DatabaseAchievementRow[]
+  >();
+
+  for (const row of existingRows) {
+    const key = normalizeTitle(row.title);
+    if (!key) continue;
+
+    const bucket = existingByTitle.get(key) ?? [];
+    bucket.push(row);
+    existingByTitle.set(key, bucket);
+  }
+
+  const incomingLegacyByTitle = new Map<string, string>();
+
+  uniqueIncoming.forEach((achievement, index) => {
+    incomingLegacyByTitle.set(
+      normalizeTitle(achievement.title),
+      legacyIdFor(achievement, index)
+    );
+  });
+
+  const idsToDelete = new Set<string>();
+
+  // Remove duplicatas físicas existentes. Mantemos a linha que corresponde ao
+  // id/legacy_id enviado pelo editor; se não houver correspondência, mantemos
+  // a primeira linha.
+  for (const [titleKey, rows] of existingByTitle) {
+    if (rows.length <= 1) continue;
+
+    const desiredLegacyId = incomingLegacyByTitle.get(titleKey);
+    const keeper =
+      rows.find(
+        (row) =>
+          desiredLegacyId !== undefined &&
+          row.legacy_id === desiredLegacyId
+      ) ?? rows[0];
+
+    for (const row of rows) {
+      if (row.id !== keeper.id) {
+        idsToDelete.add(row.id);
+      }
+    }
+  }
+
+  // Qualquer registro que não esteja mais presente no payload completo do
+  // editor foi removido da lista atual. Para o editor de jogos isso vale para
+  // conquistas customizadas e oficiais: se o usuário removeu, sai do banco.
+  const incomingKeys = new Set(
+    uniqueIncoming.map((achievement, index) =>
+      legacyIdFor(achievement, index)
+    )
+  );
+
+  for (const row of existingRows) {
+    if (!incomingKeys.has(row.legacy_id)) {
+      idsToDelete.add(row.id);
+    }
+  }
+
+  if (idsToDelete.size > 0) {
+    const ids = [...idsToDelete];
+
+    const { error: progressDeleteError } = await client
+      .from("achievement_progress")
+      .delete()
+      .in("achievement_id", ids);
+
+    if (progressDeleteError) throw progressDeleteError;
+
+    const { error: achievementsDeleteError } = await client
+      .from("achievements")
+      .delete()
+      .in("id", ids);
+
+    if (achievementsDeleteError) throw achievementsDeleteError;
+  }
+
+  // Agora salvamos somente o conjunto único e atualizado.
+  const definitions = uniqueIncoming.map((achievement, index) =>
     buildAchievementDefinition(achievement, index, gameSlug)
   );
 
+  if (definitions.length === 0) {
+    return { saved: [], progress: [] };
+  }
+
   const { data: saved, error: definitionsError } = await client
     .from("achievements")
-    .upsert(definitions, { onConflict: "game_slug,legacy_id" })
+    .upsert(definitions, {
+      onConflict: "game_slug,legacy_id",
+    })
     .select(
       "id, game_slug, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, source, external_id, official_image"
     );
 
   if (definitionsError || !saved) {
-    throw definitionsError || new Error("Não foi possível salvar as conquistas.");
+    throw (
+      definitionsError ||
+      new Error("Não foi possível salvar as definições.")
+    );
   }
 
   const savedRows = saved as DatabaseAchievementRow[];
   const idByLegacyId = new Map(
-    savedRows.map((achievement) => [achievement.legacy_id, achievement.id])
+    savedRows.map((achievement) => [
+      achievement.legacy_id,
+      achievement.id,
+    ])
   );
 
-  const progress = achievements.map((achievement, index) =>
+  const progress = uniqueIncoming.map((achievement, index) =>
     buildAchievementProgress(achievement, index, idByLegacyId)
   );
 
   if (progress.some((item) => !item.achievement_id)) {
-    throw new Error("Não foi possível vincular o progresso às conquistas.");
+    throw new Error(
+      "Não foi possível vincular o progresso às conquistas."
+    );
   }
 
   const { data: savedProgress, error: progressError } = await client
     .from("achievement_progress")
-    .upsert(progress, { onConflict: "owner_key,achievement_id" })
+    .upsert(progress, {
+      onConflict: "owner_key,achievement_id",
+    })
     .select(
       "achievement_id, owner_key, status, earned_at, rank_override, image_override"
     );
@@ -226,7 +374,8 @@ async function syncAchievements(
 
   return {
     saved: savedRows,
-    progress: (savedProgress ?? []) as DatabaseAchievementProgressRow[],
+    progress:
+      (savedProgress ?? []) as DatabaseAchievementProgressRow[],
   };
 }
 
@@ -244,12 +393,14 @@ function normalizeAchievementFromDatabase(
     difficulty: progress?.rank_override ?? achievement.rank,
     status: progress?.status ?? "locked",
     earnedDate: progress?.earned_at ?? "",
-    image: progress?.image_override || achievement.image || "",
+    image:
+      progress?.image_override || achievement.image || "",
     isCustom: achievement.is_custom,
     isHidden: achievement.is_hidden,
     source: achievement.source ?? "manual",
     externalId: achievement.external_id ?? undefined,
-    officialImage: achievement.official_image ?? undefined,
+    officialImage:
+      achievement.official_image ?? undefined,
   };
 }
 
@@ -286,34 +437,38 @@ async function fetchEnrichedGame(
 
   if (gameError) throw gameError;
 
-  const { data: achievements, error: achievementsError } = await client
-    .from("achievements")
-    .select(
-      `
-      id,
-      game_slug,
-      legacy_id,
-      title,
-      description,
-      trophy,
-      rank,
-      image,
-      sort_order,
-      is_custom,
-      is_hidden,
-      source,
-      external_id,
-      official_image
-      `
-    )
-    .eq("game_slug", slug)
-    .eq("is_hidden", false)
-    .order("sort_order", { ascending: true });
+  const { data: achievements, error: achievementsError } =
+    await client
+      .from("achievements")
+      .select(
+        `
+        id,
+        game_slug,
+        legacy_id,
+        title,
+        description,
+        trophy,
+        rank,
+        image,
+        sort_order,
+        is_custom,
+        is_hidden,
+        source,
+        external_id,
+        official_image
+        `
+      )
+      .eq("game_slug", slug)
+      .eq("is_hidden", false)
+      .order("sort_order", { ascending: true });
 
   if (achievementsError) throw achievementsError;
 
-  const achievementRows = (achievements ?? []) as DatabaseAchievementRow[];
-  const achievementIds = achievementRows.map((achievement) => achievement.id);
+  const achievementRows =
+    (achievements ?? []) as DatabaseAchievementRow[];
+  const achievementIds = achievementRows.map(
+    (achievement) => achievement.id
+  );
 
   let progressRows: DatabaseAchievementProgressRow[] = [];
 
@@ -322,23 +477,27 @@ async function fetchEnrichedGame(
       .from("achievement_progress")
       .select(
         `
-        achievement_id,
-        owner_key,
-        status,
-        earned_at,
-        rank_override,
-        image_override
-        `
+          achievement_id,
+          owner_key,
+          status,
+          earned_at,
+          rank_override,
+          image_override
+          `
       )
       .eq("owner_key", OWNER_KEY)
       .in("achievement_id", achievementIds);
 
     if (progressError) throw progressError;
-    progressRows = (progress ?? []) as DatabaseAchievementProgressRow[];
+    progressRows =
+      (progress ?? []) as DatabaseAchievementProgressRow[];
   }
 
   const progressByAchievementId = new Map(
-    progressRows.map((progress) => [progress.achievement_id, progress])
+    progressRows.map((progress) => [
+      progress.achievement_id,
+      progress,
+    ])
   );
 
   return {
@@ -392,65 +551,79 @@ export async function GET() {
     if (gamesError) throw gamesError;
 
     const gameRows = games ?? [];
-    const gameSlugs = gameRows.map((game) => game.slug).filter(Boolean);
+    const gameSlugs = gameRows
+      .map((game) => game.slug)
+      .filter(Boolean);
 
     if (gameSlugs.length === 0) {
-      return NextResponse.json({ ok: true, games: [] });
+      return NextResponse.json({
+        ok: true,
+        games: [],
+      });
     }
 
-    const { data: achievements, error: achievementsError } = await client
-      .from("achievements")
-      .select(
-        `
-        id,
-        game_slug,
-        legacy_id,
-        title,
-        description,
-        trophy,
-        rank,
-        image,
-        sort_order,
-        is_custom,
-        is_hidden,
-        source,
-        external_id,
-        official_image
-        `
-      )
-      .in("game_slug", gameSlugs)
-      .eq("is_hidden", false)
-      .order("sort_order", { ascending: true });
+    const { data: achievements, error: achievementsError } =
+      await client
+        .from("achievements")
+        .select(
+          `
+          id,
+          game_slug,
+          legacy_id,
+          title,
+          description,
+          trophy,
+          rank,
+          image,
+          sort_order,
+          is_custom,
+          is_hidden,
+          source,
+          external_id,
+          official_image
+          `
+        )
+        .in("game_slug", gameSlugs)
+        .eq("is_hidden", false)
+        .order("sort_order", { ascending: true });
 
     if (achievementsError) throw achievementsError;
 
-    const achievementRows = (achievements ?? []) as DatabaseAchievementRow[];
-    const achievementIds = achievementRows.map((achievement) => achievement.id);
+    const achievementRows =
+      (achievements ?? []) as DatabaseAchievementRow[];
+    const achievementIds = achievementRows.map(
+      (achievement) => achievement.id
+    );
 
     let progressRows: DatabaseAchievementProgressRow[] = [];
 
     if (achievementIds.length > 0) {
-      const { data: progress, error: progressError } = await client
-        .from("achievement_progress")
-        .select(
-          `
-          achievement_id,
-          owner_key,
-          status,
-          earned_at,
-          rank_override,
-          image_override
-          `
-        )
-        .eq("owner_key", OWNER_KEY)
-        .in("achievement_id", achievementIds);
+      const { data: progress, error: progressError } =
+        await client
+          .from("achievement_progress")
+          .select(
+            `
+            achievement_id,
+            owner_key,
+            status,
+            earned_at,
+            rank_override,
+            image_override
+            `
+          )
+          .eq("owner_key", OWNER_KEY)
+          .in("achievement_id", achievementIds);
 
       if (progressError) throw progressError;
-      progressRows = (progress ?? []) as DatabaseAchievementProgressRow[];
+      progressRows =
+        (progress ?? []) as DatabaseAchievementProgressRow[];
     }
 
     const progressByAchievementId = new Map(
-      progressRows.map((progress) => [progress.achievement_id, progress])
+      progressRows.map((progress) => [
+        progress.achievement_id,
+        progress,
+      ])
     );
 
     const achievementsByGameSlug = new Map<
@@ -459,19 +632,26 @@ export async function GET() {
     >();
 
     for (const achievement of achievementRows) {
-      const current = achievementsByGameSlug.get(achievement.game_slug) ?? [];
+      const current =
+        achievementsByGameSlug.get(achievement.game_slug) ?? [];
+
       current.push(
         normalizeAchievementFromDatabase(
           achievement,
           progressByAchievementId.get(achievement.id)
         )
       );
-      achievementsByGameSlug.set(achievement.game_slug, current);
+
+      achievementsByGameSlug.set(
+        achievement.game_slug,
+        current
+      );
     }
 
     const enrichedGames = gameRows.map((game) => ({
       ...game,
-      achievementsList: achievementsByGameSlug.get(game.slug) ?? [],
+      achievementsList:
+        achievementsByGameSlug.get(game.slug) ?? [],
     }));
 
     console.info(
@@ -531,7 +711,10 @@ export async function POST(request: NextRequest) {
 
     await syncAchievements(client, slug, body.achievementsList);
 
-    const enrichedGame = await fetchEnrichedGame(client, slug);
+    const enrichedGame = await fetchEnrichedGame(
+      client,
+      slug
+    );
 
     return NextResponse.json({
       ok: true,
@@ -572,6 +755,7 @@ export async function PUT(request: NextRequest) {
 
     const client = createAdminSupabaseClient();
     const updateData = buildGameData(body);
+
     delete (updateData as Partial<typeof updateData>).slug;
 
     const { error: gameError } = await client
@@ -581,9 +765,16 @@ export async function PUT(request: NextRequest) {
 
     if (gameError) throw gameError;
 
-    await syncAchievements(client, slug, body.achievementsList);
+    await syncAchievements(
+      client,
+      slug,
+      body.achievementsList
+    );
 
-    const enrichedGame = await fetchEnrichedGame(client, slug);
+    const enrichedGame = await fetchEnrichedGame(
+      client,
+      slug
+    );
 
     return NextResponse.json({
       ok: true,
@@ -673,7 +864,10 @@ export async function DELETE(request: NextRequest) {
 
     if (gameError) throw gameError;
 
-    const enrichedGame = await fetchEnrichedGame(client, slug);
+    const enrichedGame = await fetchEnrichedGame(
+      client,
+      slug
+    );
 
     return NextResponse.json({
       ok: true,
