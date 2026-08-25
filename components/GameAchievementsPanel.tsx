@@ -69,6 +69,8 @@ const SORT_OPTIONS: { label: string; value: SortMode }[] = [
 
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
 
+const achievementSearchCache = new Map<string, string>();
+
 const rankDifficulty: Record<Rank, string> = {
   Bronze: "Simples",
   Prata: "Média",
@@ -431,7 +433,9 @@ export default function GameAchievementsPanel(
   const [sortMode, setSortMode] = useState<SortMode>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [savedAchievementTitle, setSavedAchievementTitle] = useState("");
-  const [achievementSearch, setAchievementSearch] = useState("");
+  const [achievementSearch, setAchievementSearch] = useState(() =>
+    achievementSearchCache.get(gameSlug) ?? ""
+  );
 
   const [newAchievement, setNewAchievement] = useState({
     title: "",
@@ -518,6 +522,15 @@ export default function GameAchievementsPanel(
   useEffect(() => {
     onStatesChange?.(manualStates);
   }, [manualStates, onStatesChange]);
+
+  useEffect(() => {
+    setAchievementSearch(achievementSearchCache.get(gameSlug) ?? "");
+  }, [gameSlug]);
+
+  function handleAchievementSearchChange(value: string) {
+    achievementSearchCache.set(gameSlug, value);
+    setAchievementSearch(value);
+  }
 
   function updateAchievementState(
     achievementTitle: string,
@@ -958,7 +971,7 @@ export default function GameAchievementsPanel(
                   <input
                     type="search"
                     value={achievementSearch}
-                    onChange={(event) => setAchievementSearch(event.target.value)}
+                    onChange={(event) => handleAchievementSearchChange(event.target.value)}
                     placeholder="Digite o nome da conquista..."
                     aria-label="Buscar conquista pelo nome"
                     className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 pr-24 text-sm font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20"
@@ -967,7 +980,7 @@ export default function GameAchievementsPanel(
                   {achievementSearch && (
                     <button
                       type="button"
-                      onClick={() => setAchievementSearch("")}
+                      onClick={() => handleAchievementSearchChange("")}
                       className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white/50 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200"
                     >
                       Limpar
