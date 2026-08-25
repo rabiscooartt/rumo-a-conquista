@@ -42,6 +42,12 @@ function normalizeTitle(value?: string) {
     .trim();
 }
 
+function capitalizeFirstLetter(value?: string, fallback = "") {
+  const text = (value ?? "").trim();
+  if (!text) return fallback;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function normalizeSlug(value?: string) {
   return value?.trim() || "";
 }
@@ -149,7 +155,7 @@ function buildAchievementDefinition(
   gameSlug: string
 ) {
   const legacyId = legacyIdFor(achievement, index);
-  const title = normalizeText(
+  const title = capitalizeFirstLetter(
     achievement.title,
     `Conquista ${index + 1}`
   );
@@ -385,7 +391,7 @@ function normalizeAchievementFromDatabase(
 ) {
   return {
     id: achievement.legacy_id || achievement.id,
-    title: achievement.title,
+    title: capitalizeFirstLetter(achievement.title, "Conquista"),
     description: achievement.description,
     trophy: achievement.trophy,
     icon: achievement.trophy,
