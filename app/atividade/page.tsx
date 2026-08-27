@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import {
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import Navbar from "@/components/Navbar";
-import { useMemo, useState, type ReactNode } from "react";
 import { useSiteGames } from "@/lib/useSiteGames";
-import { type JourneyEntry, useJourneyEntries } from "@/lib/useJourneyEntries";
+import {
+  type JourneyEntry,
+  useJourneyEntries,
+} from "@/lib/useJourneyEntries";
 
 type ActivityTab = "jogos" | "conquistas" | "reviews";
 
@@ -30,118 +37,16 @@ type AchievementLike = {
   earnedAt?: string;
   completedAt?: string;
   status?: string;
-  rank?: string;
-  difficulty?: string;
 };
 
-
-function IconCalendar({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M7.5 3.5V7M16.5 3.5V7M3.5 9.5H20.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconClock({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M12 7.5V12L15.5 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconTrend({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path d="M4 16L9 11L13 15L20 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M15.5 7H20V11.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path d="M7.5 8.5H16.5C19 8.5 20.5 10.5 20.8 13.2L21.4 17.3C21.7 19.5 18.9 20.3 17.5 18.7L15.3 16.2H8.7L6.5 18.7C5.1 20.3 2.3 19.5 2.6 17.3L3.2 13.2C3.5 10.5 5 8.5 7.5 8.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      <path d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconTrophy({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path d="M8 4H16V9.5C16 12.4 14.4 14.5 12 14.5C9.6 14.5 8 12.4 8 9.5V4Z" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 6H5.5C4.7 6 4 6.7 4 7.5V8.5C4 10.7 5.8 12.5 8 12.5M16 6H18.5C19.3 6 20 6.7 20 7.5V8.5C20 10.7 18.2 12.5 16 12.5M12 14.5V18.5M8.5 20H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconTarget({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function IconFlame({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path d="M13.5 4.5C13.9 7.3 11.8 8.3 10.7 10.1C9.6 11.9 10.1 14 12 14C13.8 14 15 12.8 14.7 11.1C17.3 13 18.5 15 18.5 17C18.5 20.1 15.9 22 12.2 22C8.2 22 5.5 19.7 5.5 16C5.5 12.8 7.6 10.5 9.8 8.2C10.6 7.3 11.1 6.1 11.2 4C12.1 4.1 12.9 4.3 13.5 4.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconMedal({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <circle cx="12" cy="14" r="5.5" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8.5 8.5L6.5 3.5L10 5L12 2.5L14 5L17.5 3.5L15.5 8.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M9.8 14L11.2 15.4L14.2 12.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconSearch({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M15.5 15.5L20 20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconNote({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <rect x="5" y="3.5" width="14" height="17" rx="2" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8.5 8H15.5M8.5 11.5H15.5M8.5 15H12.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function formatPlayedTime(minutes = 0) {
-  const safeMinutes = Math.max(0, Math.round(Number(minutes) || 0));
-  const hours = Math.floor(safeMinutes / 60);
-  const mins = safeMinutes % 60;
+  const safe = Math.max(0, Math.round(Number(minutes) || 0));
+  const hours = Math.floor(safe / 60);
+  const mins = safe % 60;
 
   if (hours <= 0) return `${mins}min`;
   if (mins <= 0) return `${hours}h`;
   return `${hours}h ${mins}min`;
-}
-
-function normalizeGameTitle(title?: string) {
-  if (!title) return "Sem jogo";
-
-  return title
-    .replace(/^Rumo\s*[àáa]\s*Conquista\s*:\s*/i, "")
-    .trim();
 }
 
 function normalizeKey(value?: string) {
@@ -153,13 +58,21 @@ function normalizeKey(value?: string) {
     .replace(/\s+/g, " ");
 }
 
-function getDateKey(date?: string) {
-  if (!date) return "";
+function normalizeGameTitle(title?: string) {
+  if (!title) return "Sem jogo";
 
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "";
+  return title
+    .replace(/^Rumo\s*[àáa]\s*Conquista\s*:\s*/i, "")
+    .trim();
+}
 
-  return parsed.toISOString().slice(0, 10);
+function getDateKey(value?: string) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toISOString().slice(0, 10);
 }
 
 function getMonthLabel(date: string) {
@@ -180,35 +93,6 @@ function getMonthShort(date: string) {
     .toLocaleDateString("pt-BR", { month: "short" })
     .replace(".", "")
     .toUpperCase();
-}
-
-function getWeekdayShort(date: string) {
-  const parsed = new Date(`${date}T12:00:00`);
-  if (Number.isNaN(parsed.getTime())) return "";
-
-  return parsed.toLocaleDateString("pt-BR", {
-    weekday: "long",
-  });
-}
-
-function getGamePlatform(game?: GameLike) {
-  if (!game) return "";
-
-  if (game.platform) return game.platform;
-  if (game.console) return game.console;
-
-  if (Array.isArray(game.platforms) && game.platforms.length > 0) {
-    return game.platforms.join(" • ");
-  }
-
-  return "";
-}
-
-function getGameCover(game?: GameLike, slug?: string) {
-  if (game?.cardImage) return game.cardImage;
-  if (game?.image) return game.image;
-  if (slug) return `/images/games/${slug}/cover.jpg`;
-  return "";
 }
 
 function isCompletedAchievement(achievement: AchievementLike) {
@@ -235,22 +119,28 @@ function getAchievementImage(achievement: AchievementLike) {
   return String(achievement.image || "").trim();
 }
 
-function getInitials(value: string) {
-  const words = value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+function getGameCover(game?: GameLike, slug?: string) {
+  return (
+    game?.cardImage ||
+    game?.image ||
+    (slug ? `/images/games/${slug}/cover.jpg` : "")
+  );
+}
 
-  if (words.length === 0) return "RC";
+function getGamePlatform(game?: GameLike) {
+  if (!game) return "";
+  if (game.platform) return game.platform;
+  if (game.console) return game.console;
 
-  return words
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() || "")
-    .join("");
+  if (Array.isArray(game.platforms)) {
+    return game.platforms.join(" • ");
+  }
+
+  return "";
 }
 
 function calculateStreak(entries: JourneyEntry[]) {
-  const uniqueDates = Array.from(
+  const dates = Array.from(
     new Set(
       entries
         .map((entry) => getDateKey(entry.date))
@@ -258,65 +148,239 @@ function calculateStreak(entries: JourneyEntry[]) {
     )
   ).sort((a, b) => b.localeCompare(a));
 
-  if (uniqueDates.length === 0) return 0;
+  if (!dates.length) return 0;
 
   let streak = 1;
 
-  for (let index = 0; index < uniqueDates.length - 1; index += 1) {
-    const current = new Date(`${uniqueDates[index]}T12:00:00`);
-    const previous = new Date(`${uniqueDates[index + 1]}T12:00:00`);
+  for (let index = 0; index < dates.length - 1; index += 1) {
+    const current = new Date(`${dates[index]}T12:00:00`);
+    const previous = new Date(`${dates[index + 1]}T12:00:00`);
 
-    const difference =
-      Math.round(
-        (current.getTime() - previous.getTime()) /
-          (1000 * 60 * 60 * 24)
-      );
+    const diff = Math.round(
+      (current.getTime() - previous.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
 
-    if (difference !== 1) break;
-
+    if (diff !== 1) break;
     streak += 1;
   }
 
   return streak;
 }
 
-function Metric({
-  label,
-  value,
-  icon,
-  accent = "red",
+/* ---------- ÍCONES ---------- */
+
+function SvgIcon({
+  children,
+  className = "h-4 w-4",
 }: {
-  label: string;
-  value: string | number;
-  icon: ReactNode;
-  accent?: "red" | "blue" | "violet" | "green";
+  children: ReactNode;
+  className?: string;
 }) {
-  const accentClasses = {
-    red: "border-red-500/25 bg-red-500/10 text-red-300",
-    blue: "border-sky-500/20 bg-sky-500/10 text-sky-300",
-    violet: "border-violet-500/20 bg-violet-500/10 text-violet-300",
-    green: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
-  } as const;
-
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
-      <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm ${accentClasses[accent]}`}
-      >
-        {icon}
-      </div>
-
-      <div className="min-w-0">
-        <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/35">
-          {label}
-        </p>
-        <p className="mt-0.5 truncate text-sm font-black text-white">
-          {value}
-        </p>
-      </div>
-    </div>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
   );
 }
+
+function IconHome(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M3.5 10.5L12 3.5L20.5 10.5V20H14.8V14H9.2V20H3.5V10.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconGamepad(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconClock(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M12 7.5V12L15.5 14"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconCalendar(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect
+        x="3.5"
+        y="5"
+        width="17"
+        height="15.5"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M7.5 3.5V7M16.5 3.5V7M3.5 9.5H20.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconTrophy(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M8 4H16V9.5C16 12.4 14.4 14.5 12 14.5C9.6 14.5 8 12.4 8 9.5V4Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M8 6H5.5C4.7 6 4 6.7 4 7.5V8.5C4 10.7 5.8 12.5 8 12.5M16 6H18.5C19.3 6 20 6.7 20 7.5V8.5C20 10.7 18.2 12.5 16 12.5M12 14.5V18.5M8.5 20H15.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconTrend(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M4 16L9 11L13 15L20 7"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15.5 7H20V11.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconTarget(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="4.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" />
+    </SvgIcon>
+  );
+}
+
+function IconFlame(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M13.5 4.5C13.9 7.3 11.8 8.3 10.7 10.1C9.6 11.9 10.1 14 12 14C13.8 14 15 12.8 14.7 11.1C17.3 13 18.5 15 18.5 17C18.5 20.1 15.9 22 12.2 22C8.2 22 5.5 19.7 5.5 16C5.5 12.8 7.6 10.5 9.8 8.2C10.6 7.3 11.1 6.1 11.2 4C12.1 4.1 12.9 4.3 13.5 4.5Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconSearch(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle
+        cx="10.5"
+        cy="10.5"
+        r="6.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M15.5 15.5L20 20"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconFile(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect
+        x="5"
+        y="3.5"
+        width="14"
+        height="17"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M8.5 8H15.5M8.5 11.5H15.5M8.5 15H12.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </SvgIcon>
+  );
+}
+
+/* ---------- MAPA ---------- */
 
 function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   const activityByDay = useMemo(() => {
@@ -328,176 +392,231 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
       map.set(
         key,
-        (map.get(key) || 0) + Number(entry.playedMinutes || 0)
+        (map.get(key) || 0) +
+          Number(entry.playedMinutes || 0)
       );
     }
 
     return map;
   }, [entries]);
 
-  const calendar = useMemo(() => {
-    const today = new Date();
-    const first = new Date(today);
-    first.setDate(today.getDate() - 89);
-
-    // Começa na segunda-feira para manter Seg → Dom.
-    const start = new Date(first);
-    const mondayOffset = (start.getDay() + 6) % 7;
-    start.setDate(start.getDate() - mondayOffset);
-
+  const calendarDays = useMemo(() => {
     const result: string[] = [];
-    const cursor = new Date(start);
+    const today = new Date();
 
-    // 13 semanas = 91 posições, cobrindo os 90 dias e completando
-    // somente a última posição do calendário.
-    for (let index = 0; index < 91; index += 1) {
-      result.push(cursor.toISOString().slice(0, 10));
-      cursor.setDate(cursor.getDate() + 1);
+    for (let index = 89; index >= 0; index -= 1) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - index);
+      result.push(date.toISOString().slice(0, 10));
     }
 
     return result;
   }, []);
 
-  const weeks = 13;
-  const weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-
-  const monthLabels = useMemo(() => {
-    const labels = Array.from({ length: weeks }, () => "");
-
-    calendar.forEach((day, index) => {
-      const date = new Date(`${day}T12:00:00`);
-
-      if (date.getDay() !== 1) return;
-
-      const week = Math.floor(index / 7);
-
-      if (week >= 0 && week < weeks) {
-        labels[week] = date
-          .toLocaleDateString("pt-BR", {
-            month: "short",
-          })
-          .replace(".", "")
-          .toUpperCase();
-      }
-    });
-
-    return labels;
-  }, [calendar]);
+  const weekdays = [
+    "Seg",
+    "Ter",
+    "Qua",
+    "Qui",
+    "Sex",
+    "Sáb",
+    "Dom",
+  ];
 
   const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-white/[0.025]";
-    if (minutes < 60) return "bg-red-500/25";
-    if (minutes < 180) return "bg-red-500/45";
-    if (minutes < 300) return "bg-red-500/70";
+    if (minutes <= 0) return "bg-[#17191f]";
+    if (minutes < 60) return "bg-red-950/80";
+    if (minutes < 180) return "bg-red-800/80";
+    if (minutes < 300) return "bg-red-600/90";
     return "bg-red-500";
   };
 
-  return (
-    <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4 md:p-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-[8px] font-black uppercase tracking-[0.25em] text-red-400">
-            Últimos 90 dias
-          </p>
+  const monthMarkers = useMemo(() => {
+    const seen = new Set<number>();
 
-          <div className="mt-1 flex items-center gap-2">
-            <h2 className="text-[17px] font-black text-white">
+    return calendarDays
+      .map((day, index) => {
+        const date = new Date(`${day}T12:00:00`);
+        const month = date.getMonth();
+
+        if (seen.has(month)) return null;
+
+        seen.add(month);
+
+        return {
+          label: date
+            .toLocaleDateString("pt-BR", {
+              month: "short",
+            })
+            .replace(".", "")
+            .toUpperCase(),
+          index,
+        };
+      })
+      .filter(Boolean) as Array<{
+      label: string;
+      index: number;
+    }>;
+  }, [calendarDays]);
+
+  return (
+    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[15px] font-black uppercase tracking-[0.02em] text-white md:text-[17px]">
               Mapa de atividade
             </h2>
 
-            <span
-              title="Cada quadrado representa um dia"
-              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-[9px] font-black text-white/35"
-            >
+            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/35">
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[9px] text-white/30">
-            Cada quadrado representa um dia. Quanto mais jogou, mais intenso fica.
+          <p className="mt-1 text-[9px] font-medium text-white/40 md:text-[10px]">
+            Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
           </p>
         </div>
 
         <button
           type="button"
-          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[8px] font-black text-white/35"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
         >
           Últimos 90 dias⌄
         </button>
       </div>
 
-      <div className="mt-5 w-full overflow-x-auto">
-        <div
-          className="w-full min-w-[680px]"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `42px repeat(${weeks}, minmax(0, 1fr))`,
-            columnGap: "5px",
-          }}
-        >
+      <div className="mt-4 overflow-x-auto">
+        <div className="min-w-[820px]">
           {/* MESES */}
-          <div />
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
+              columnGap: "2px",
+            }}
+          >
+            <div />
 
-          {monthLabels.map((month, index) => (
-            <div
-              key={`${month}-${index}`}
-              className="h-4 text-[8px] font-black tracking-[0.12em] text-white/30"
-            >
-              {month}
-            </div>
-          ))}
+            {calendarDays.map((day, index) => {
+              const marker = monthMarkers.find(
+                (item) => item.index === index
+              );
 
-          {/* DIAS DA SEMANA + CÉLULAS */}
-          {weekdays.map((weekday, rowIndex) => (
-            <div
-              key={weekday}
-              className="contents"
-            >
-              <div
-                className="flex h-[16px] items-center justify-end pr-2 text-[9px] font-bold leading-none text-white/45"
-              >
-                {weekday}
+              return (
+                <div
+                  key={`month-${day}`}
+                  className="h-4 overflow-hidden text-[7px] font-black tracking-[0.13em] text-white/30"
+                >
+                  {marker?.label || ""}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 90 COLUNAS / 7 DIAS */}
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
+              columnGap: "2px",
+              rowGap: "3px",
+            }}
+          >
+            {weekdays.map((weekday, rowIndex) => (
+              <div key={weekday} className="contents">
+                <div className="flex h-[12px] items-center justify-end pr-2 text-[8px] font-bold text-white/38 md:text-[9px]">
+                  {weekday}
+                </div>
+
+                {calendarDays.map((day) => {
+                  const date = new Date(`${day}T12:00:00`);
+                  const weekdayIndex =
+                    (date.getDay() + 6) % 7;
+
+                  const isThisRow =
+                    weekdayIndex === rowIndex;
+
+                  const minutes = isThisRow
+                    ? activityByDay.get(day) || 0
+                    : 0;
+
+                  return (
+                    <div
+                      key={`${day}-${weekday}`}
+                      title={
+                        isThisRow
+                          ? `${day} • ${formatPlayedTime(minutes)}`
+                          : undefined
+                      }
+                      className={`h-[12px] w-full rounded-[2px] ${getIntensity(
+                        minutes
+                      )}`}
+                    />
+                  );
+                })}
               </div>
-
-              {Array.from({ length: weeks }).map((_, weekIndex) => {
-                const day = calendar[weekIndex * 7 + rowIndex];
-                const minutes = day
-                  ? activityByDay.get(day) || 0
-                  : 0;
-
-                return (
-                  <div
-                    key={`${weekday}-${weekIndex}-${day || "empty"}`}
-                    title={
-                      day
-                        ? `${day} • ${formatPlayedTime(minutes)}`
-                        : "Sem data"
-                    }
-                    className={`h-[16px] w-full rounded-[3px] ${getIntensity(
-                      minutes
-                    )} transition-transform duration-150 hover:scale-[1.04]`}
-                  />
-                );
-              })}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-end gap-2 text-[8px] font-bold text-white/30">
-        <span>Menos</span>
-
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-white/[0.025]" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/25" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/45" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/70" />
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
+        <span>Menos tempo</span>
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950/80" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800/80" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600/90" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
-
-        <span>Mais</span>
+        <span>Mais tempo</span>
       </div>
     </section>
   );
 }
+
+/* ---------- ESTATÍSTICA ---------- */
+
+function Metric({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  tone: "red" | "blue" | "violet" | "green";
+}) {
+  const styles = {
+    red: "border-red-500/20 bg-red-500/10 text-red-400",
+    blue: "border-sky-500/20 bg-sky-500/10 text-sky-400",
+    violet: "border-violet-500/20 bg-violet-500/10 text-violet-400",
+    green:
+      "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+  } as const;
+
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${styles[tone]}`}
+      >
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[7px] font-black uppercase tracking-[0.15em] text-white/30">
+          {label}
+        </p>
+
+        <p className="mt-0.5 truncate text-[13px] font-black text-white">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- ATIVIDADE ---------- */
 
 function ActivityRow({
   entry,
@@ -508,66 +627,82 @@ function ActivityRow({
   game?: GameLike;
   achievements: AchievementLike[];
 }) {
+  const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
   const platform = getGamePlatform(game);
-  const day = new Date(`${entry.date}T12:00:00`).getDate();
-  const month = getMonthShort(entry.date);
 
   return (
-    <article className="group grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.08] px-3 py-3.5 last:border-b-0 md:grid-cols-[54px_minmax(0,1fr)_minmax(185px,1fr)_105px] md:gap-4 md:px-4">
+    <article className="grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3 md:grid-cols-[56px_minmax(0,1fr)_230px_90px] md:px-4">
       <div>
-        <p className="text-[24px] font-black leading-none tracking-tight text-white">
-          {day}
+        <p className="text-[23px] font-black leading-none text-white">
+          {date.getDate()}
         </p>
         <p className="mt-1 text-[9px] font-black uppercase tracking-[0.12em] text-red-400">
-          {month}
+          {getMonthShort(entry.date)}
         </p>
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[56px] w-[43px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
+        <div className="h-[58px] w-[45px] shrink-0 overflow-hidden rounded-[6px] border border-white/10 bg-black">
           {cover ? (
             <img
               src={cover}
               alt={normalizeGameTitle(entry.gameTitle)}
-              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+              className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-[8px] font-black text-white/20">
-              {getInitials(entry.gameTitle)}
+            <div className="flex h-full items-center justify-center text-[8px] font-black text-white/25">
+              RC
             </div>
           )}
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[13px] font-black leading-tight text-white md:text-[15px]">
+          <h3 className="truncate text-[13px] font-black text-white md:text-[14px]">
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <p className="mt-1 truncate text-[10px] font-medium text-white/40 md:text-[11px]">
-            {entry.weekDay || getWeekdayShort(entry.date)}
-            {platform ? ` • ${platform}` : ""}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-white/40">
+            <span className="font-medium">
+              {entry.weekDay ||
+                date.toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                })}
+            </span>
+
+            {platform && (
+              <>
+                <span className="text-white/15">•</span>
+                <span>{platform}</span>
+              </>
+            )}
+          </div>
+
+          <div className="mt-1 flex items-center gap-1.5 text-[8px] font-bold text-white/35">
+            <IconClock className="h-3 w-3 text-red-400" />
+            {formatPlayedTime(entry.playedMinutes)}
+          </div>
         </div>
       </div>
 
       <div className="hidden min-w-0 md:block">
-        {achievements.length > 0 ? (
+        {achievements.length > 0 && (
           <>
-            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.14em] text-white/30">
+            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
               Conquistas desbloqueadas
             </p>
 
             <div className="flex items-center gap-2">
               {achievements.slice(0, 5).map((achievement, index) => {
                 const image = getAchievementImage(achievement);
-                const title = achievement.title || `Conquista ${index + 1}`;
+                const title =
+                  achievement.title || `Conquista ${index + 1}`;
 
                 return (
                   <div
                     key={`${entry.id}-${title}-${index}`}
                     title={title}
-                    className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/15 bg-black/70"
+                    className="h-9 w-9 overflow-hidden rounded-full border border-white/15 bg-black"
                   >
                     {image ? (
                       <img
@@ -576,8 +711,8 @@ function ActivityRow({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs">
-                        🏆
+                      <div className="flex h-full items-center justify-center text-white/50">
+                        <IconTrophy className="h-4 w-4" />
                       </div>
                     )}
                   </div>
@@ -585,18 +720,14 @@ function ActivityRow({
               })}
             </div>
           </>
-        ) : (
-          <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/15">
-            —
-          </span>
         )}
       </div>
 
       <div className="text-right">
-        <p className="text-[14px] font-black leading-none text-white md:text-[16px]">
+        <p className="text-[15px] font-black text-white">
           {formatPlayedTime(entry.playedMinutes)}
         </p>
-        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.13em] text-white/25">
+        <p className="mt-1 text-[7px] font-black uppercase tracking-[0.12em] text-white/25">
           Tempo jogado
         </p>
       </div>
@@ -608,7 +739,8 @@ export default function AtividadePage() {
   const { entries, isLoaded } = useJourneyEntries();
   const { gamesList } = useSiteGames();
 
-  const [activeTab, setActiveTab] = useState<ActivityTab>("jogos");
+  const [activeTab, setActiveTab] =
+    useState<ActivityTab>("jogos");
   const [search, setSearch] = useState("");
 
   const games = useMemo(
@@ -625,16 +757,6 @@ export default function AtividadePage() {
       ),
     [entries]
   );
-
-  const filteredEntries = useMemo(() => {
-    const query = normalizeKey(search);
-
-    if (!query) return sourceEntries;
-
-    return sourceEntries.filter((entry) =>
-      normalizeKey(normalizeGameTitle(entry.gameTitle)).includes(query)
-    );
-  }, [search, sourceEntries]);
 
   const totalMinutes = useMemo(
     () =>
@@ -660,14 +782,18 @@ export default function AtividadePage() {
     () =>
       new Set(
         sourceEntries.map((entry) =>
-          normalizeKey(normalizeGameTitle(entry.gameTitle))
+          normalizeKey(
+            normalizeGameTitle(entry.gameTitle)
+          )
         )
       ).size,
     [sourceEntries]
   );
 
   const averageMinutes =
-    uniqueDays > 0 ? Math.round(totalMinutes / uniqueDays) : 0;
+    uniqueDays > 0
+      ? Math.round(totalMinutes / uniqueDays)
+      : 0;
 
   const currentStreak = useMemo(
     () => calculateStreak(sourceEntries),
@@ -686,7 +812,9 @@ export default function AtividadePage() {
       for (const item of game.achievementsList || []) {
         const achievement = item as AchievementLike;
 
-        if (!isCompletedAchievement(achievement)) continue;
+        if (!isCompletedAchievement(achievement)) {
+          continue;
+        }
 
         result.push({
           ...achievement,
@@ -696,16 +824,24 @@ export default function AtividadePage() {
       }
     }
 
-    return result.sort((a, b) => {
-      const dateA = getAchievementDate(a);
-      const dateB = getAchievementDate(b);
-
-      return (
-        new Date(dateB).getTime() -
-        new Date(dateA).getTime()
-      );
-    });
+    return result.sort(
+      (a, b) =>
+        new Date(getAchievementDate(b)).getTime() -
+        new Date(getAchievementDate(a)).getTime()
+    );
   }, [games]);
+
+  const filteredEntries = useMemo(() => {
+    const query = normalizeKey(search);
+
+    if (!query) return sourceEntries;
+
+    return sourceEntries.filter((entry) =>
+      normalizeKey(
+        normalizeGameTitle(entry.gameTitle)
+      ).includes(query)
+    );
+  }, [search, sourceEntries]);
 
   const groupedEntries = useMemo(() => {
     const groups: Record<string, JourneyEntry[]> = {};
@@ -721,7 +857,7 @@ export default function AtividadePage() {
     return groups;
   }, [filteredEntries]);
 
-  const gameTimeDistribution = useMemo(() => {
+  const gameDistribution = useMemo(() => {
     const map = new Map<string, number>();
 
     for (const entry of sourceEntries) {
@@ -729,12 +865,12 @@ export default function AtividadePage() {
 
       map.set(
         title,
-        (map.get(title) || 0) + Number(entry.playedMinutes || 0)
+        (map.get(title) || 0) +
+          Number(entry.playedMinutes || 0)
       );
     }
 
-    const rows = Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
+    return Array.from(map.entries())
       .map(([title, minutes]) => ({
         title,
         minutes,
@@ -742,179 +878,189 @@ export default function AtividadePage() {
           totalMinutes > 0
             ? (minutes / totalMinutes) * 100
             : 0,
-      }));
-
-    return rows;
+      }))
+      .sort((a, b) => b.minutes - a.minutes);
   }, [sourceEntries, totalMinutes]);
-
-  const heroGame = useMemo(() => {
-    const current = games.find(
-      (game) =>
-        normalizeKey(game.slug) ===
-        normalizeKey(sourceEntries[0]?.gameSlug)
-    );
-
-    return current || games[0];
-  }, [games, sourceEntries]);
-
-  const heroImage = getGameCover(heroGame);
-
-  const recentAchievementDateKeys = useMemo(
-    () =>
-      new Set(
-        allCompletedAchievements
-          .map((achievement) =>
-            getDateKey(getAchievementDate(achievement))
-          )
-          .filter(Boolean)
-      ),
-    [allCompletedAchievements]
-  );
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 lg:grid-cols-[190px_minmax(0,1fr)]">
         {/* SIDEBAR */}
-        <aside className="hidden min-h-[calc(100vh-64px)] border-r border-white/[0.08] px-5 py-6 lg:block">
-          <div className="sticky top-24">
-            <p className="border-l-2 border-red-500 pl-3 text-[13px] font-black text-white">
-              Rumo à Conquista
-            </p>
+        <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-5 py-6 lg:block">
+          <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
+            <div>
+              <div className="border-l-2 border-red-500 pl-3">
+                <p className="text-[12px] font-black text-white">
+                  Rumo à Conquista
+                </p>
+              </div>
 
-            <nav className="mt-7 space-y-1">
-              {[
-                ["Início", "/"],
-                ["Jogos", "/jogos"],
-                ["Jornada", "/jornada"],
-                ["Conteúdo", "/conteudo"],
-                ["Atividade", "/atividade"],
-                ["Próximas Maestrias", "/proximas-maestrias"],
-                ["Emblemas", "/emblemas"],
-              ].map(([label, href]) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition ${
-                    href === "/atividade"
-                      ? "bg-red-500/10 text-red-300"
-                      : "text-white/50 hover:bg-white/[0.03] hover:text-white"
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
+              <nav className="mt-7 space-y-1">
+                {[
+                  ["Início", "/", <IconHome />],
+                  ["Jogos", "/jogos", <IconGamepad />],
+                  ["Sagas", "/sagas", <IconTarget />],
+                  ["Backlog", "/backlog", <IconFile />],
+                  ["Conteúdo", "/conteudo", <IconFile />],
+                  ["Atividade", "/atividade", <IconTrend />],
+                ].map(([label, href, icon]) => (
+                  <Link
+                    key={String(href)}
+                    href={String(href)}
+                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[11px] font-bold transition ${
                       href === "/atividade"
-                        ? "bg-red-400"
-                        : "bg-white/20"
+                        ? "bg-red-500/10 text-red-300"
+                        : "text-white/50 hover:bg-white/[0.03] hover:text-white"
                     }`}
-                  />
-                  {label}
-                </Link>
-              ))}
-            </nav>
+                  >
+                    <span>{icon}</span>
+                    {label}
+                  </Link>
+                ))}
+              </nav>
 
-            <div className="mt-10 border-t border-white/[0.08] pt-5">
-              <p className="text-[8px] font-black uppercase tracking-[0.22em] text-white/25">
-                Seu espaço
-              </p>
+              <div className="mt-8 border-t border-white/[0.08] pt-6">
+                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                  Seu espaço
+                </p>
 
-              <p className="mt-3 text-xs font-medium leading-relaxed text-white/35">
-                Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
-              </p>
+                <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/35">
+                  Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-auto space-y-2 pt-8">
+              <Link
+                href="/configuracoes"
+                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45"
+              >
+                <IconTarget className="h-4 w-4" />
+                Configurações
+              </Link>
+
+              <button
+                type="button"
+                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45"
+              >
+                <span className="text-sm">↪</span>
+                Sair
+              </button>
+
+              <button
+                type="button"
+                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[10px] font-black text-white transition hover:bg-red-500"
+              >
+                Entrar
+              </button>
             </div>
           </div>
         </aside>
 
-        <div className="min-w-0 px-4 py-6 md:px-6 lg:px-8">
+        {/* MAIN */}
+        <div className="min-w-0 px-4 py-5 md:px-6 lg:px-5">
           {/* HERO */}
-          <header className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[#090a0d] shadow-2xl">
-            {heroImage && (
-              <img
-                src={heroImage}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover opacity-35"
-              />
-            )}
+          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
 
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(239,68,68,0.24),transparent_38%),linear-gradient(90deg,rgba(5,6,8,0.97)_0%,rgba(5,6,8,0.82)_48%,rgba(5,6,8,0.68)_100%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_45%,rgba(0,0,0,0.35))]" />
+            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
+              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
+            </div>
 
-            <div className="relative grid min-h-[270px] gap-8 p-6 md:p-8 xl:grid-cols-[1fr_auto] xl:items-end">
-              <div className="max-w-[680px]">
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
+
+            <div className="relative flex min-h-[225px] flex-col justify-end p-6 md:p-7">
+              <div className="max-w-[650px]">
                 <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
 
-                <h1 className="mt-2 text-4xl font-black tracking-tight text-white md:text-5xl">
+                <h1 className="mt-1 text-[42px] font-black leading-none tracking-tight text-white md:text-[50px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[620px] text-sm leading-relaxed text-white/55 md:text-[15px]">
+                <p className="mt-3 max-w-[560px] text-[12px] font-medium leading-relaxed text-white/55 md:text-[13px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
-                <div className="mt-6 flex flex-wrap items-center gap-5 border-t border-white/10 pt-4">
+                <div className="mt-5 flex flex-wrap items-center gap-5 border-t border-white/10 pt-4">
                   <Metric
+                    icon={
+                      <IconCalendar className="h-4 w-4" />
+                    }
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
-                    icon={<IconCalendar className="h-4 w-4" />}
+                    tone="red"
                   />
 
                   <div className="hidden h-8 w-px bg-white/10 sm:block" />
 
                   <Metric
+                    icon={
+                      <IconClock className="h-4 w-4" />
+                    }
                     label="Tempo jogado"
-                    value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
-                    icon={<IconClock className="h-4 w-4" />}
-                    accent="blue"
+                    value={
+                      isLoaded
+                        ? formatPlayedTime(totalMinutes)
+                        : "..."
+                    }
+                    tone="blue"
                   />
 
                   <div className="hidden h-8 w-px bg-white/10 sm:block" />
 
                   <Metric
-                    label="Média diária"
-                    value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
-                    icon={<IconTrend className="h-4 w-4" />}
-                    accent="violet"
+                    icon={
+                      <IconTrend className="h-4 w-4" />
+                    }
+                    label="Média por dia"
+                    value={
+                      isLoaded
+                        ? formatPlayedTime(averageMinutes)
+                        : "..."
+                    }
+                    tone="violet"
                   />
 
                   <div className="hidden h-8 w-px bg-white/10 sm:block" />
 
                   <Metric
-                    label="Jogos diferentes"
+                    icon={
+                      <IconGamepad className="h-4 w-4" />
+                    }
+                    label="Jogos"
                     value={isLoaded ? differentGames : "..."}
-                    icon={<IconGamepad className="h-4 w-4" />}
-                    accent="green"
+                    tone="green"
                   />
                 </div>
               </div>
 
-              <div className="hidden xl:block">
-                <div className="rounded-2xl border border-red-500/20 bg-black/35 px-5 py-4 backdrop-blur-sm">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-red-300">
-                    Sequência atual
-                  </p>
-                  <div className="mt-2 flex items-end gap-2">
-                    <span className="text-4xl font-black text-white">
-                      {currentStreak}
-                    </span>
-                    <span className="pb-1 text-xs font-bold text-white/45">
-                      dias
-                    </span>
-                  </div>
+              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
+                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
+                  Sequência atual
+                </p>
+
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="text-3xl font-black text-white">
+                    {currentStreak}
+                  </span>
+                  <span className="pb-1 text-[10px] font-bold text-white/40">
+                    dias
+                  </span>
                 </div>
               </div>
             </div>
           </header>
 
-          {/* BODY */}
-          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            {/* CONTENT */}
             <div className="min-w-0">
               <ActivityMap entries={sourceEntries} />
 
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#08090c]/90">
+              <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
                     {(
@@ -927,117 +1073,130 @@ export default function AtividadePage() {
                       <button
                         key={value}
                         type="button"
-                        onClick={() => setActiveTab(value)}
-                        className={`rounded-t-xl px-4 py-2.5 text-[11px] font-black transition ${
+                        onClick={() =>
+                          setActiveTab(value)
+                        }
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-2.5 text-[10px] font-black transition ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
-                            : "text-white/45 hover:text-white"
+                            : "text-white/40 hover:text-white"
                         }`}
                       >
-                        <span className="mr-1.5 inline-flex align-middle text-current">
-                          {value === "jogos" ? (
-                            <IconGamepad className="h-3.5 w-3.5" />
-                          ) : value === "conquistas" ? (
-                            <IconTrophy className="h-3.5 w-3.5" />
-                          ) : (
-                            <IconNote className="h-3.5 w-3.5" />
-                          )}
-                        </span>
+                        {value === "jogos" ? (
+                          <IconGamepad className="h-3.5 w-3.5" />
+                        ) : value === "conquistas" ? (
+                          <IconTrophy className="h-3.5 w-3.5" />
+                        ) : (
+                          <IconFile className="h-3.5 w-3.5" />
+                        )}
                         {label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 p-3 md:flex-row md:items-center">
+                <div className="flex flex-col gap-2.5 p-3 md:flex-row">
                   <div className="relative min-w-0 flex-1">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/25">
-                      <IconSearch className="h-4 w-4" />
-                    </span>
+                    <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+
                     <input
                       value={search}
-                      onChange={(event) => setSearch(event.target.value)}
+                      onChange={(event) =>
+                        setSearch(event.target.value)
+                      }
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-10 pr-4 text-xs font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[10px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
 
                   <button
                     type="button"
-                    className="shrink-0 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[10px] font-black text-white/50 transition hover:text-white"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[9px] font-black text-white/45"
                   >
-                    <span className="inline-flex items-center gap-1.5"><IconCalendar className="h-3.5 w-3.5" /> Todos os Meses ▾</span>
+                    <IconCalendar className="h-3.5 w-3.5" />
+                    Todos os Meses ▾
                   </button>
 
                   <button
                     type="button"
-                    className="shrink-0 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[10px] font-black text-white/50 transition hover:text-white"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[9px] font-black text-white/45"
                   >
-                    <span className="inline-flex items-center gap-1.5"><IconGamepad className="h-3.5 w-3.5" /> Todas as Plataformas ▾</span>
+                    <IconGamepad className="h-3.5 w-3.5" />
+                    Todas as Plataformas ▾
                   </button>
                 </div>
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
+                    <p className="mb-2 px-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/40">
+                      Atividades recentes
+                    </p>
+
                     {Object.entries(groupedEntries).map(
                       ([month, monthEntries]) => (
-                        <section key={month} className="mt-4 first:mt-1">
-                          <div className="mb-2 flex items-center justify-between">
-                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white/80">
+                        <section
+                          key={month}
+                          className="mt-4"
+                        >
+                          <div className="mb-2 flex items-center justify-between px-1">
+                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/75">
                               {month}
                             </h2>
-                            <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-white/20">
+
+                            <span className="text-[7px] font-black uppercase tracking-[0.14em] text-white/20">
                               {monthEntries.length} registros
                             </span>
                           </div>
 
                           <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
                             {monthEntries.map((entry) => {
-                              const normalizedTitle = normalizeKey(
-                                normalizeGameTitle(entry.gameTitle)
+                              const titleKey = normalizeKey(
+                                normalizeGameTitle(
+                                  entry.gameTitle
+                                )
                               );
 
                               const game = games.find(
                                 (item) =>
                                   normalizeKey(item.slug) ===
-                                    normalizeKey(entry.gameSlug) ||
+                                    normalizeKey(
+                                      entry.gameSlug
+                                    ) ||
                                   normalizeKey(
-                                    normalizeGameTitle(item.title)
-                                  ) === normalizedTitle
+                                    normalizeGameTitle(
+                                      item.title
+                                    )
+                                  ) === titleKey
                               );
 
-                              const dayKey = getDateKey(entry.date);
+                              const dayKey = getDateKey(
+                                entry.date
+                              );
 
-                              const dayAchievements =
+                              const achievements =
                                 (game?.achievementsList || [])
                                   .map(
                                     (item) =>
                                       item as AchievementLike
                                   )
-                                  .filter((achievement) => {
-                                    if (
-                                      !isCompletedAchievement(
+                                  .filter(
+                                    (achievement) =>
+                                      isCompletedAchievement(
                                         achievement
-                                      )
-                                    ) {
-                                      return false;
-                                    }
-
-                                    return (
+                                      ) &&
                                       getDateKey(
                                         getAchievementDate(
                                           achievement
                                         )
                                       ) === dayKey
-                                    );
-                                  });
+                                  );
 
                               return (
                                 <ActivityRow
                                   key={entry.id}
                                   entry={entry}
                                   game={game}
-                                  achievements={dayAchievements}
+                                  achievements={achievements}
                                 />
                               );
                             })}
@@ -1047,10 +1206,8 @@ export default function AtividadePage() {
                     )}
 
                     {filteredEntries.length === 0 && (
-                      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-8 text-center">
-                        <p className="text-sm font-black text-white/45">
-                          Nenhuma atividade encontrada.
-                        </p>
+                      <div className="rounded-xl border border-white/10 p-10 text-center text-[11px] font-bold text-white/35">
+                        Nenhuma atividade encontrada.
                       </div>
                     )}
                   </div>
@@ -1061,7 +1218,9 @@ export default function AtividadePage() {
                     <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
                       {allCompletedAchievements
                         .filter((achievement) => {
-                          const query = normalizeKey(search);
+                          const query =
+                            normalizeKey(search);
+
                           if (!query) return true;
 
                           return (
@@ -1073,80 +1232,66 @@ export default function AtividadePage() {
                             ).includes(query)
                           );
                         })
-                        .slice(0, 30)
-                        .map((achievement, index) => {
-                          const game = games.find(
-                            (item) =>
-                              normalizeKey(item.slug) ===
-                              normalizeKey(
-                                achievement.gameSlug
-                              )
-                          );
-
-                          return (
-                            <article
-                              key={`${achievement.title}-${index}`}
-                              className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-3 last:border-b-0"
-                            >
-                              <div className="h-10 w-10 overflow-hidden rounded-lg border border-white/10 bg-black">
-                                {getAchievementImage(
-                                  achievement
-                                ) ? (
-                                  <img
-                                    src={getAchievementImage(
-                                      achievement
-                                    )}
-                                    alt={achievement.title || "Conquista"}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-full items-center justify-center">
-                                    🏆
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[12px] font-black text-white">
-                                  {achievement.title ||
-                                    "Conquista"}
-                                </p>
-                                <p className="mt-1 truncate text-[9px] text-white/35">
-                                  {achievement.gameTitle}
-                                  {game
-                                    ? ` • ${getGamePlatform(game)}`
-                                    : ""}
-                                </p>
-                              </div>
-
-                              <span className="text-[9px] font-bold text-white/35">
-                                {getDateKey(
-                                  getAchievementDate(
+                        .slice(0, 40)
+                        .map((achievement, index) => (
+                          <article
+                            key={`${achievement.title}-${index}`}
+                            className="flex items-center gap-3 border-b border-white/[0.07] px-4 py-3 last:border-b-0"
+                          >
+                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
+                              {getAchievementImage(
+                                achievement
+                              ) ? (
+                                <img
+                                  src={getAchievementImage(
                                     achievement
-                                  )
-                                )}
-                              </span>
-                            </article>
-                          );
-                        })}
+                                  )}
+                                  alt={
+                                    achievement.title ||
+                                    "Conquista"
+                                  }
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-white/40">
+                                  <IconTrophy className="h-4 w-4" />
+                                </div>
+                              )}
+                            </div>
 
-                      {allCompletedAchievements.length === 0 && (
-                        <div className="p-8 text-center text-sm font-bold text-white/35">
-                          Nenhuma conquista concluída encontrada.
-                        </div>
-                      )}
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[11px] font-black text-white">
+                                {achievement.title ||
+                                  "Conquista"}
+                              </p>
+
+                              <p className="mt-1 truncate text-[8px] text-white/35">
+                                {achievement.gameTitle}
+                              </p>
+                            </div>
+
+                            <span className="text-[8px] font-bold text-white/25">
+                              {getDateKey(
+                                getAchievementDate(
+                                  achievement
+                                )
+                              )}
+                            </span>
+                          </article>
+                        ))}
                     </div>
                   </div>
                 )}
 
                 {activeTab === "reviews" && (
                   <div className="p-3">
-                    <div className="rounded-xl border border-white/[0.08] bg-black/20 p-8 text-center">
-                      <p className="text-sm font-black text-white/50">
-                        As reviews aparecerão aqui.
+                    <div className="rounded-xl border border-white/[0.08] p-10 text-center">
+                      <IconFile className="mx-auto h-6 w-6 text-white/25" />
+                      <p className="mt-3 text-[11px] font-black text-white/50">
+                        Reviews
                       </p>
-                      <p className="mt-2 text-[10px] text-white/25">
-                        Esta área visual já está preparada para receber os dados de reviews do site.
+                      <p className="mt-1 text-[9px] text-white/25">
+                        Área preparada para os dados de reviews.
                       </p>
                     </div>
                   </div>
@@ -1154,33 +1299,63 @@ export default function AtividadePage() {
               </section>
             </div>
 
-            {/* RIGHT SIDEBAR */}
-            <aside className="space-y-5">
-              <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4">
+            {/* RIGHT */}
+            <aside className="space-y-4">
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-black text-white">
+                  <h2 className="text-[13px] font-black uppercase text-white/85">
                     Resumo da atividade
                   </h2>
-                  <span className="text-red-400">◉</span>
+
+                  <IconFlame className="h-4 w-4 text-red-500" />
                 </div>
 
-                <div className="mt-4 space-y-3">
-                  {([
-                    [<IconFlame className="h-4 w-4" />, "Sequência atual", `${currentStreak} dias`, "red"],
-                    [<IconCalendar className="h-4 w-4" />, "Dias jogados", `${uniqueDays}`, "violet"],
-                    [<IconClock className="h-4 w-4" />, "Horas jogadas", formatPlayedTime(totalMinutes), "blue"],
-                    [<IconTrophy className="h-4 w-4" />, "Conquistas desbloqueadas", `${allCompletedAchievements.length}`, "red"],
-                    [<IconTrend className="h-4 w-4" />, "Média diária", formatPlayedTime(averageMinutes), "green"],
-                    [<IconTarget className="h-4 w-4" />, "Jogos diferentes", `${differentGames}`, "violet"],
-                  ] as [ReactNode, string, string, "red" | "blue" | "violet" | "green"][]).map(
-                    ([icon, label, value, tone]) => (
+                <div className="mt-3 space-y-3">
+                  {[
+                    [
+                      <IconFlame className="h-4 w-4" />,
+                      "Sequência atual",
+                      `${currentStreak} dias`,
+                      "red",
+                    ],
+                    [
+                      <IconCalendar className="h-4 w-4" />,
+                      "Dias jogados",
+                      `${uniqueDays}`,
+                      "violet",
+                    ],
+                    [
+                      <IconClock className="h-4 w-4" />,
+                      "Horas jogadas",
+                      formatPlayedTime(totalMinutes),
+                      "blue",
+                    ],
+                    [
+                      <IconTrophy className="h-4 w-4" />,
+                      "Conquistas desbloqueadas",
+                      `${allCompletedAchievements.length}`,
+                      "red",
+                    ],
+                    [
+                      <IconTrend className="h-4 w-4" />,
+                      "Média diária",
+                      formatPlayedTime(averageMinutes),
+                      "green",
+                    ],
+                    [
+                      <IconTarget className="h-4 w-4" />,
+                      "Jogos diferentes",
+                      `${differentGames}`,
+                      "violet",
+                    ],
+                  ].map(([icon, label, value, tone]) => (
                     <div
-                      key={label}
+                      key={String(label)}
                       className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs ${
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
                             tone === "violet"
                               ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
                               : tone === "blue"
@@ -1193,12 +1368,12 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[10px] font-medium text-white/45">
+                        <span className="truncate text-[9px] font-medium text-white/45">
                           {label}
                         </span>
                       </div>
 
-                      <strong className="shrink-0 text-[12px] font-black text-white">
+                      <strong className="shrink-0 text-[11px] font-black text-white">
                         {value}
                       </strong>
                     </div>
@@ -1206,9 +1381,9 @@ export default function AtividadePage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4">
-                <h2 className="text-sm font-black text-white">
-                  Distribuição de tempo
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
+                <h2 className="text-[13px] font-black uppercase text-white/85">
+                  Distribuição de tempo por jogo
                 </h2>
 
                 <div className="mt-4 flex items-center gap-4">
@@ -1216,114 +1391,119 @@ export default function AtividadePage() {
                     className="relative h-32 w-32 shrink-0 rounded-full"
                     style={{
                       background:
-                        gameTimeDistribution.length > 0
+                        gameDistribution.length > 0
                           ? (() => {
-                              let start = 0;
-                              const colors = [
-                                "#ef4444",
-                                "#f87171",
-                                "#fb7185",
-                                "#94a3b8",
-                                "#64748b",
+                              const palette = [
+                                "#ef2432",
+                                "#a92b83",
+                                "#5e70e8",
+                                "#7f42a8",
+                                "#8b5cf6",
                               ];
 
-                              const stops = gameTimeDistribution
+                              let start = 0;
+
+                              return `conic-gradient(${gameDistribution
                                 .slice(0, 5)
                                 .map((item, index) => {
                                   const end =
                                     start + item.percent;
-                                  const stop = `${colors[index % colors.length]} ${start}% ${end}%`;
+                                  const result = `${
+                                    palette[
+                                      index %
+                                        palette.length
+                                    ]
+                                  } ${start}% ${end}%`;
                                   start = end;
-                                  return stop;
-                                });
-
-                              return `conic-gradient(${stops.join(", ")})`;
+                                  return result;
+                                })
+                                .join(", ")})`;
                             })()
-                          : "conic-gradient(#27272a 0 100%)",
+                          : "conic-gradient(#24262d 0 100%)",
                     }}
                   >
-                    <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#08090c] text-center">
-                      <span className="text-2xl font-black text-white">
+                    <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
+                      <span className="text-[23px] font-black">
                         {Math.round(totalMinutes / 60)}h
                       </span>
-                      <span className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
+                      <span className="text-[7px] font-black uppercase tracking-[0.16em] text-white/25">
                         total
                       </span>
                     </div>
                   </div>
 
-                  <div className="min-w-0 flex-1 space-y-2">
-                    {gameTimeDistribution
+                  <div className="min-w-0 flex-1 space-y-2.5">
+                    {gameDistribution
                       .slice(0, 5)
-                      .map((item, index) => {
-                        const colors = [
-                          "bg-red-500",
-                          "bg-red-400",
-                          "bg-rose-400",
-                          "bg-slate-400",
-                          "bg-slate-500",
-                        ];
+                      .map((item, index) => (
+                        <div key={item.title}>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`h-2 w-2 shrink-0 rounded-full ${
+                                [
+                                  "bg-red-500",
+                                  "bg-pink-500",
+                                  "bg-indigo-400",
+                                  "bg-violet-500",
+                                  "bg-purple-500",
+                                ][index] ||
+                                "bg-white/30"
+                              }`}
+                            />
 
-                        return (
-                          <div key={item.title}>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`h-2 w-2 shrink-0 rounded-full ${colors[index]}`}
-                              />
-                              <p className="truncate text-[9px] font-bold text-white/55">
-                                {item.title}
-                              </p>
-                            </div>
-
-                            <p className="ml-4 mt-0.5 text-[8px] font-medium text-white/25">
-                              {formatPlayedTime(item.minutes)} •{" "}
-                              {Math.round(item.percent)}%
+                            <p className="truncate text-[8px] font-bold text-white/55">
+                              {item.title}
                             </p>
                           </div>
-                        );
-                      })}
 
-                    {gameTimeDistribution.length === 0 && (
-                      <p className="text-[9px] text-white/30">
-                        Ainda não há tempo registrado.
-                      </p>
-                    )}
+                          <p className="ml-4 mt-0.5 text-[7px] text-white/25">
+                            {formatPlayedTime(item.minutes)} (
+                            {Math.round(item.percent)}
+                            %)
+                          </p>
+                        </div>
+                      ))}
                   </div>
+                </div>
+
+                <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
+                  <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-[8px] leading-relaxed text-white/30">
+                    Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
+                  </p>
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4">
-                <h2 className="text-sm font-black text-white">
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
+                <h2 className="text-[13px] font-black uppercase text-white/85">
                   Atividade recente
                 </h2>
 
                 <div className="mt-3 space-y-2">
                   {sourceEntries.slice(0, 5).map((entry) => (
                     <div
-                      key={`recent-${entry.id}`}
-                      className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-2.5"
+                      key={entry.id}
+                      className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
                     >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-[10px] text-red-300">
-                        {recentAchievementDateKeys.has(
-                          getDateKey(entry.date)
-                        ) ? (
-                          <IconTrophy className="h-4 w-4" />
-                        ) : (
-                          <IconGamepad className="h-4 w-4" />
-                        )}
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-300">
+                        <IconGamepad className="h-3.5 w-3.5" />
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10px] font-black text-white/65">
-                          {normalizeGameTitle(entry.gameTitle)}
+                        <p className="truncate text-[8px] font-black text-white/60">
+                          {normalizeGameTitle(
+                            entry.gameTitle
+                          )}
                         </p>
-                        <p className="mt-0.5 text-[8px] text-white/25">
+                        <p className="mt-0.5 text-[7px] text-white/25">
                           {getDateKey(entry.date)}
                         </p>
                       </div>
 
-                      <span className="text-[9px] font-black text-white/45">
-                        {formatPlayedTime(entry.playedMinutes)}
+                      <span className="text-[7px] font-black text-white/35">
+                        {formatPlayedTime(
+                          entry.playedMinutes
+                        )}
                       </span>
                     </div>
                   ))}
