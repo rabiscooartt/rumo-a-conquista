@@ -464,30 +464,30 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-[15px] font-black uppercase tracking-[0.02em] text-white md:text-[17px]">
+            <h2 className="text-[18px] font-black uppercase tracking-[0.02em] text-white md:text-[20px]">
               Mapa de atividade
             </h2>
 
-            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/35">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[10px] font-black text-white/35">
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[9px] font-medium text-white/40 md:text-[10px]">
+          <p className="mt-1 text-[10px] font-medium text-white/40 md:text-[10px]">
             Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
           </p>
         </div>
 
         <button
           type="button"
-          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[10px] font-black text-white/45"
         >
           Últimos 90 dias⌄
         </button>
       </div>
 
       <div className="mt-4 overflow-x-auto">
-        <div className="min-w-[820px]">
+        <div className="min-w-[860px]">
           {/* MESES */}
           <div
             className="grid"
@@ -525,7 +525,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           >
             {weekdays.map((weekday, rowIndex) => (
               <div key={weekday} className="contents">
-                <div className="flex h-[12px] items-center justify-end pr-2 text-[8px] font-bold text-white/38 md:text-[9px]">
+                <div className="flex h-[12px] items-center justify-end pr-2 text-[9px] font-bold text-white/45 md:text-[10px]">
                   {weekday}
                 </div>
 
@@ -549,7 +549,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                           ? `${day} • ${formatPlayedTime(minutes)}`
                           : undefined
                       }
-                      className={`h-[12px] w-full rounded-[2px] ${getIntensity(
+                      className={`h-[13px] w-full rounded-[3px] ${getIntensity(
                         minutes
                       )}`}
                     />
@@ -598,17 +598,17 @@ function Metric({
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${styles[tone]}`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${styles[tone]}`}
       >
         {icon}
       </div>
 
       <div className="min-w-0">
-        <p className="text-[7px] font-black uppercase tracking-[0.15em] text-white/30">
+        <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/35">
           {label}
         </p>
 
-        <p className="mt-0.5 truncate text-[13px] font-black text-white">
+        <p className="mt-0.5 truncate text-[17px] font-black text-white">
           {value}
         </p>
       </div>
@@ -632,7 +632,7 @@ function ActivityRow({
   const platform = getGamePlatform(game);
 
   return (
-    <article className="grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3 md:grid-cols-[56px_minmax(0,1fr)_230px_90px] md:px-4">
+    <article className="grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-4 py-4 md:grid-cols-[62px_minmax(0,1fr)_250px_105px] md:px-5">
       <div>
         <p className="text-[23px] font-black leading-none text-white">
           {date.getDate()}
@@ -643,7 +643,7 @@ function ActivityRow({
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[58px] w-[45px] shrink-0 overflow-hidden rounded-[6px] border border-white/10 bg-black">
+        <div className="h-[66px] w-[52px] shrink-0 overflow-hidden rounded-[6px] border border-white/10 bg-black">
           {cover ? (
             <img
               src={cover}
@@ -658,7 +658,7 @@ function ActivityRow({
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[13px] font-black text-white md:text-[14px]">
+          <h3 className="truncate text-[17px] font-black text-white md:text-[14px]">
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
@@ -688,7 +688,7 @@ function ActivityRow({
       <div className="hidden min-w-0 md:block">
         {achievements.length > 0 && (
           <>
-            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
+            <p className="mb-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/30">
               Conquistas desbloqueadas
             </p>
 
@@ -702,7 +702,7 @@ function ActivityRow({
                   <div
                     key={`${entry.id}-${title}-${index}`}
                     title={title}
-                    className="h-9 w-9 overflow-hidden rounded-full border border-white/15 bg-black"
+                    className="h-10 w-10 overflow-hidden rounded-full border border-white/15 bg-black"
                   >
                     {image ? (
                       <img
@@ -724,10 +724,10 @@ function ActivityRow({
       </div>
 
       <div className="text-right">
-        <p className="text-[15px] font-black text-white">
+        <p className="text-[17px] font-black text-white">
           {formatPlayedTime(entry.playedMinutes)}
         </p>
-        <p className="mt-1 text-[7px] font-black uppercase tracking-[0.12em] text-white/25">
+        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
           Tempo jogado
         </p>
       </div>
@@ -886,13 +886,13 @@ export default function AtividadePage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 lg:grid-cols-[190px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1640px] grid-cols-1 lg:grid-cols-[215px_minmax(0,1fr)]">
         {/* SIDEBAR */}
-        <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-5 py-6 lg:block">
+        <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
               <div className="border-l-2 border-red-500 pl-3">
-                <p className="text-[12px] font-black text-white">
+                <p className="text-[17px] font-black text-white">
                   Rumo à Conquista
                 </p>
               </div>
@@ -926,7 +926,7 @@ export default function AtividadePage() {
                   Seu espaço
                 </p>
 
-                <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/35">
+                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
                   Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
                 </p>
               </div>
@@ -935,7 +935,7 @@ export default function AtividadePage() {
             <div className="mt-auto space-y-2 pt-8">
               <Link
                 href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45"
+                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
               >
                 <IconTarget className="h-4 w-4" />
                 Configurações
@@ -943,7 +943,7 @@ export default function AtividadePage() {
 
               <button
                 type="button"
-                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45"
+                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
               >
                 <span className="text-sm">↪</span>
                 Sair
@@ -960,7 +960,7 @@ export default function AtividadePage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-4 py-5 md:px-6 lg:px-5">
+        <div className="min-w-0 px-5 py-6 md:px-7 lg:px-6">
           {/* HERO */}
           <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
@@ -971,17 +971,17 @@ export default function AtividadePage() {
 
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
 
-            <div className="relative flex min-h-[225px] flex-col justify-end p-6 md:p-7">
+            <div className="relative flex min-h-[245px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
                 <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
 
-                <h1 className="mt-1 text-[42px] font-black leading-none tracking-tight text-white md:text-[50px]">
+                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[12px] font-medium leading-relaxed text-white/55 md:text-[13px]">
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
@@ -1111,7 +1111,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[9px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
                   >
                     <IconCalendar className="h-3.5 w-3.5" />
                     Todos os Meses ▾
@@ -1119,7 +1119,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[9px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
                   >
                     <IconGamepad className="h-3.5 w-3.5" />
                     Todas as Plataformas ▾
@@ -1143,7 +1143,7 @@ export default function AtividadePage() {
                               {month}
                             </h2>
 
-                            <span className="text-[7px] font-black uppercase tracking-[0.14em] text-white/20">
+                            <span className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1303,7 +1303,7 @@ export default function AtividadePage() {
             <aside className="space-y-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[13px] font-black uppercase text-white/85">
+                  <h2 className="text-[14px] font-black uppercase text-white/90">
                     Resumo da atividade
                   </h2>
 
@@ -1368,7 +1368,7 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[9px] font-medium text-white/45">
+                        <span className="truncate text-[10px] font-medium text-white/45">
                           {label}
                         </span>
                       </div>
@@ -1382,7 +1382,7 @@ export default function AtividadePage() {
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
-                <h2 className="text-[13px] font-black uppercase text-white/85">
+                <h2 className="text-[14px] font-black uppercase text-white/90">
                   Distribuição de tempo por jogo
                 </h2>
 
@@ -1475,7 +1475,7 @@ export default function AtividadePage() {
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
-                <h2 className="text-[13px] font-black uppercase text-white/85">
+                <h2 className="text-[14px] font-black uppercase text-white/90">
                   Atividade recente
                 </h2>
 
