@@ -347,21 +347,14 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     const result: string[] = [];
     const cursor = new Date(start);
 
-    for (let index = 0; index < 91; index += 1) {
+    // Completa a última semana para preservar Seg -> Dom.
+    while (result.length < 91) {
       result.push(cursor.toISOString().slice(0, 10));
       cursor.setDate(cursor.getDate() + 1);
     }
 
     return result;
   }, []);
-
-  const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-white/[0.025]";
-    if (minutes < 60) return "bg-red-500/25";
-    if (minutes < 180) return "bg-red-500/45";
-    if (minutes < 300) return "bg-red-500/70";
-    return "bg-red-500";
-  };
 
   const weeks = 13;
 
@@ -370,9 +363,8 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
     calendar.forEach((day, index) => {
       const date = new Date(`${day}T12:00:00`);
-      const isMonday = date.getDay() === 1;
 
-      if (!isMonday) return;
+      if (date.getDay() !== 1) return;
 
       const week = Math.floor(index / 7);
 
@@ -389,36 +381,57 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
   const weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
+  const getIntensity = (minutes: number) => {
+    if (minutes <= 0) return "bg-white/[0.025]";
+
+    if (minutes < 60) return "bg-red-500/25";
+
+    if (minutes < 180) return "bg-red-500/45";
+
+    if (minutes < 300) return "bg-red-500/70";
+
+    return "bg-red-500";
+  };
+
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4 md:p-5">
-      <div className="flex items-center justify-between gap-4">
+    <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 px-5 py-4 md:px-6 md:py-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[8px] font-black uppercase tracking-[0.25em] text-red-400">
+          <p className="text-[8px] font-black uppercase tracking-[0.24em] text-red-400">
             Últimos 90 dias
           </p>
 
-          <h2 className="mt-1 text-[17px] font-black text-white">
-            Mapa de atividade
-          </h2>
+          <div className="mt-1 flex items-center gap-2">
+            <h2 className="text-[17px] font-black text-white">
+              Mapa de atividade
+            </h2>
+
+            <span
+              title="Cada quadrado representa um dia"
+              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-[9px] font-black text-white/35"
+            >
+              i
+            </span>
+          </div>
 
           <p className="mt-1 text-[9px] text-white/30">
             Cada quadrado representa um dia. Quanto mais jogou, mais intenso fica.
           </p>
         </div>
 
-        <span className="hidden rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/35 sm:block">
+        <div className="hidden rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[8px] font-black tracking-[0.12em] text-white/25 sm:block">
           90 DIAS
-        </span>
+        </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto pb-1">
-        <div className="mx-auto w-fit">
+      <div className="mt-5 overflow-x-auto pb-1">
+        <div className="mx-auto min-w-[560px] max-w-[700px]">
           {/* MESES */}
           <div
-            className="mb-2 grid"
+            className="grid"
             style={{
-              gridTemplateColumns: `36px repeat(${weeks}, 14px)`,
-              columnGap: "4px",
+              gridTemplateColumns: `38px repeat(${weeks}, minmax(0, 1fr))`,
+              columnGap: "5px",
             }}
           >
             <div />
@@ -426,25 +439,25 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
             {monthLabels.map((month, index) => (
               <div
                 key={`${month}-${index}`}
-                className="h-3 text-[7px] font-black tracking-[0.12em] text-white/28"
+                className="h-4 text-[7px] font-black tracking-[0.14em] text-white/28"
               >
                 {month}
               </div>
             ))}
           </div>
 
-          {/* DIAS + QUADRADOS */}
-          <div className="grid grid-rows-7 gap-[4px]">
+          {/* DIAS DA SEMANA + MAPA */}
+          <div className="mt-1 space-y-[4px]">
             {weekdays.map((weekday, rowIndex) => (
               <div
                 key={weekday}
                 className="grid items-center"
                 style={{
-                  gridTemplateColumns: `36px repeat(${weeks}, 14px)`,
-                  columnGap: "4px",
+                  gridTemplateColumns: `38px repeat(${weeks}, minmax(0, 1fr))`,
+                  columnGap: "5px",
                 }}
               >
-                <div className="pr-1 text-right text-[9px] font-bold text-white/40">
+                <div className="pr-1 text-right text-[9px] font-semibold leading-none text-white/38">
                   {weekday}
                 </div>
 
@@ -455,7 +468,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                     return (
                       <div
                         key={`empty-${weekIndex}-${rowIndex}`}
-                        className="h-[13px] w-[13px]"
+                        className="h-[18px] w-[18px]"
                       />
                     );
                   }
@@ -466,9 +479,9 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                     <div
                       key={day}
                       title={`${day} • ${formatPlayedTime(minutes)}`}
-                      className={`h-[13px] w-[13px] rounded-[3px] ${getIntensity(
+                      className={`h-[18px] w-[18px] justify-self-start rounded-[3px] ${getIntensity(
                         minutes
-                      )} transition-transform duration-150 hover:scale-125`}
+                      )} transition-transform duration-150 hover:scale-110`}
                     />
                   );
                 })}
@@ -478,7 +491,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1.5 text-[8px] font-bold text-white/30">
+      <div className="mt-4 flex items-center justify-center gap-2 text-[8px] font-bold text-white/30">
         <span>Menos</span>
         <span className="h-2.5 w-2.5 rounded-[2px] bg-white/[0.025]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/25" />
