@@ -340,6 +340,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     const first = new Date(today);
     first.setDate(today.getDate() - 89);
 
+    // Começa na segunda-feira para manter Seg → Dom.
     const start = new Date(first);
     const mondayOffset = (start.getDay() + 6) % 7;
     start.setDate(start.getDate() - mondayOffset);
@@ -347,8 +348,9 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     const result: string[] = [];
     const cursor = new Date(start);
 
-    // Completa a última semana para preservar Seg -> Dom.
-    while (result.length < 91) {
+    // 13 semanas = 91 posições, cobrindo os 90 dias e completando
+    // somente a última posição do calendário.
+    for (let index = 0; index < 91; index += 1) {
       result.push(cursor.toISOString().slice(0, 10));
       cursor.setDate(cursor.getDate() + 1);
     }
@@ -357,6 +359,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   }, []);
 
   const weeks = 13;
+  const weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
   const monthLabels = useMemo(() => {
     const labels = Array.from({ length: weeks }, () => "");
@@ -370,7 +373,9 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
       if (week >= 0 && week < weeks) {
         labels[week] = date
-          .toLocaleDateString("pt-BR", { month: "short" })
+          .toLocaleDateString("pt-BR", {
+            month: "short",
+          })
           .replace(".", "")
           .toUpperCase();
       }
@@ -379,25 +384,19 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return labels;
   }, [calendar]);
 
-  const weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-
   const getIntensity = (minutes: number) => {
     if (minutes <= 0) return "bg-white/[0.025]";
-
     if (minutes < 60) return "bg-red-500/25";
-
     if (minutes < 180) return "bg-red-500/45";
-
     if (minutes < 300) return "bg-red-500/70";
-
     return "bg-red-500";
   };
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 px-5 py-4 md:px-6 md:py-5">
-      <div className="flex items-start justify-between gap-4">
+    <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4 md:p-5">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-[8px] font-black uppercase tracking-[0.24em] text-red-400">
+          <p className="text-[8px] font-black uppercase tracking-[0.25em] text-red-400">
             Últimos 90 dias
           </p>
 
@@ -419,85 +418,81 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           </p>
         </div>
 
-        <div className="hidden rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[8px] font-black tracking-[0.12em] text-white/25 sm:block">
-          90 DIAS
-        </div>
+        <button
+          type="button"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[8px] font-black text-white/35"
+        >
+          Últimos 90 dias⌄
+        </button>
       </div>
 
-      <div className="mt-5 overflow-x-auto pb-1">
-        <div className="mx-auto min-w-[560px] max-w-[700px]">
+      <div className="mt-5 w-full overflow-x-auto">
+        <div
+          className="w-full min-w-[680px]"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `42px repeat(${weeks}, minmax(0, 1fr))`,
+            columnGap: "5px",
+          }}
+        >
           {/* MESES */}
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: `38px repeat(${weeks}, minmax(0, 1fr))`,
-              columnGap: "5px",
-            }}
-          >
-            <div />
+          <div />
 
-            {monthLabels.map((month, index) => (
+          {monthLabels.map((month, index) => (
+            <div
+              key={`${month}-${index}`}
+              className="h-4 text-[8px] font-black tracking-[0.12em] text-white/30"
+            >
+              {month}
+            </div>
+          ))}
+
+          {/* DIAS DA SEMANA + CÉLULAS */}
+          {weekdays.map((weekday, rowIndex) => (
+            <div
+              key={weekday}
+              className="contents"
+            >
               <div
-                key={`${month}-${index}`}
-                className="h-4 text-[7px] font-black tracking-[0.14em] text-white/28"
+                className="flex h-[16px] items-center justify-end pr-2 text-[9px] font-bold leading-none text-white/45"
               >
-                {month}
+                {weekday}
               </div>
-            ))}
-          </div>
 
-          {/* DIAS DA SEMANA + MAPA */}
-          <div className="mt-1 space-y-[4px]">
-            {weekdays.map((weekday, rowIndex) => (
-              <div
-                key={weekday}
-                className="grid items-center"
-                style={{
-                  gridTemplateColumns: `38px repeat(${weeks}, minmax(0, 1fr))`,
-                  columnGap: "5px",
-                }}
-              >
-                <div className="pr-1 text-right text-[9px] font-semibold leading-none text-white/38">
-                  {weekday}
-                </div>
+              {Array.from({ length: weeks }).map((_, weekIndex) => {
+                const day = calendar[weekIndex * 7 + rowIndex];
+                const minutes = day
+                  ? activityByDay.get(day) || 0
+                  : 0;
 
-                {Array.from({ length: weeks }).map((_, weekIndex) => {
-                  const day = calendar[weekIndex * 7 + rowIndex];
-
-                  if (!day) {
-                    return (
-                      <div
-                        key={`empty-${weekIndex}-${rowIndex}`}
-                        className="h-[18px] w-[18px]"
-                      />
-                    );
-                  }
-
-                  const minutes = activityByDay.get(day) || 0;
-
-                  return (
-                    <div
-                      key={day}
-                      title={`${day} • ${formatPlayedTime(minutes)}`}
-                      className={`h-[18px] w-[18px] justify-self-start rounded-[3px] ${getIntensity(
-                        minutes
-                      )} transition-transform duration-150 hover:scale-110`}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+                return (
+                  <div
+                    key={`${weekday}-${weekIndex}-${day || "empty"}`}
+                    title={
+                      day
+                        ? `${day} • ${formatPlayedTime(minutes)}`
+                        : "Sem data"
+                    }
+                    className={`h-[16px] w-full rounded-[3px] ${getIntensity(
+                      minutes
+                    )} transition-transform duration-150 hover:scale-[1.04]`}
+                  />
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2 text-[8px] font-bold text-white/30">
+      <div className="mt-4 flex items-center justify-end gap-2 text-[8px] font-bold text-white/30">
         <span>Menos</span>
+
         <span className="h-2.5 w-2.5 rounded-[2px] bg-white/[0.025]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/25" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/45" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500/70" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
+
         <span>Mais</span>
       </div>
     </section>
