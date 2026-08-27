@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useSiteGames } from "@/lib/useSiteGames";
 import { type JourneyEntry, useJourneyEntries } from "@/lib/useJourneyEntries";
 
@@ -33,6 +33,98 @@ type AchievementLike = {
   rank?: string;
   difficulty?: string;
 };
+
+
+function IconCalendar({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7.5 3.5V7M16.5 3.5V7M3.5 9.5H20.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconClock({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 7.5V12L15.5 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconTrend({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M4 16L9 11L13 15L20 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.5 7H20V11.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M7.5 8.5H16.5C19 8.5 20.5 10.5 20.8 13.2L21.4 17.3C21.7 19.5 18.9 20.3 17.5 18.7L15.3 16.2H8.7L6.5 18.7C5.1 20.3 2.3 19.5 2.6 17.3L3.2 13.2C3.5 10.5 5 8.5 7.5 8.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconTrophy({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M8 4H16V9.5C16 12.4 14.4 14.5 12 14.5C9.6 14.5 8 12.4 8 9.5V4Z" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 6H5.5C4.7 6 4 6.7 4 7.5V8.5C4 10.7 5.8 12.5 8 12.5M16 6H18.5C19.3 6 20 6.7 20 7.5V8.5C20 10.7 18.2 12.5 16 12.5M12 14.5V18.5M8.5 20H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconTarget({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IconFlame({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d="M13.5 4.5C13.9 7.3 11.8 8.3 10.7 10.1C9.6 11.9 10.1 14 12 14C13.8 14 15 12.8 14.7 11.1C17.3 13 18.5 15 18.5 17C18.5 20.1 15.9 22 12.2 22C8.2 22 5.5 19.7 5.5 16C5.5 12.8 7.6 10.5 9.8 8.2C10.6 7.3 11.1 6.1 11.2 4C12.1 4.1 12.9 4.3 13.5 4.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconMedal({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="12" cy="14" r="5.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.5 8.5L6.5 3.5L10 5L12 2.5L14 5L17.5 3.5L15.5 8.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M9.8 14L11.2 15.4L14.2 12.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconSearch({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M15.5 15.5L20 20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconNote({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <rect x="5" y="3.5" width="14" height="17" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.5 8H15.5M8.5 11.5H15.5M8.5 15H12.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function formatPlayedTime(minutes = 0) {
   const safeMinutes = Math.max(0, Math.round(Number(minutes) || 0));
@@ -196,7 +288,7 @@ function Metric({
 }: {
   label: string;
   value: string | number;
-  icon: string;
+  icon: ReactNode;
   accent?: "red" | "blue" | "violet" | "green";
 }) {
   const accentClasses = {
@@ -248,52 +340,33 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     const first = new Date(today);
     first.setDate(today.getDate() - 89);
 
-    // Align the first cell to Monday and the last cell to Sunday.
     const start = new Date(first);
     const mondayOffset = (start.getDay() + 6) % 7;
     start.setDate(start.getDate() - mondayOffset);
 
-    const end = new Date(today);
-    const sundayOffset = (7 - end.getDay()) % 7;
-    end.setDate(end.getDate() + sundayOffset);
-
-    const cells: string[] = [];
+    const result: string[] = [];
     const cursor = new Date(start);
 
-    while (cursor <= end) {
-      cells.push(cursor.toISOString().slice(0, 10));
+    for (let index = 0; index < 91; index += 1) {
+      result.push(cursor.toISOString().slice(0, 10));
       cursor.setDate(cursor.getDate() + 1);
     }
 
-    return cells;
+    return result;
   }, []);
-
-  const weeks = Math.ceil(calendar.length / 7);
-
-  const rows = [
-    "Seg",
-    "Ter",
-    "Qua",
-    "Qui",
-    "Sex",
-    "Sáb",
-    "Dom",
-  ];
 
   const getIntensity = (minutes: number) => {
     if (minutes <= 0) return "bg-white/[0.025]";
-
     if (minutes < 60) return "bg-red-500/25";
-
     if (minutes < 180) return "bg-red-500/45";
-
     if (minutes < 300) return "bg-red-500/70";
-
     return "bg-red-500";
   };
 
-  const monthMarkers = useMemo(() => {
-    const markers: { label: string; column: number }[] = [];
+  const weeks = 13;
+
+  const monthLabels = useMemo(() => {
+    const labels = Array.from({ length: weeks }, () => "");
 
     calendar.forEach((day, index) => {
       const date = new Date(`${day}T12:00:00`);
@@ -301,26 +374,20 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
       if (!isMonday) return;
 
-      const label = date
-        .toLocaleDateString("pt-BR", {
-          month: "short",
-        })
-        .replace(".", "")
-        .toUpperCase();
+      const week = Math.floor(index / 7);
 
-      if (
-        !markers.length ||
-        markers[markers.length - 1].label !== label
-      ) {
-        markers.push({
-          label,
-          column: Math.floor(index / 7) + 1,
-        });
+      if (week >= 0 && week < weeks) {
+        labels[week] = date
+          .toLocaleDateString("pt-BR", { month: "short" })
+          .replace(".", "")
+          .toUpperCase();
       }
     });
 
-    return markers;
+    return labels;
   }, [calendar]);
+
+  const weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
   return (
     <section className="rounded-2xl border border-white/10 bg-[#08090c]/90 p-4 md:p-5">
@@ -329,84 +396,85 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           <p className="text-[8px] font-black uppercase tracking-[0.25em] text-red-400">
             Últimos 90 dias
           </p>
-          <h2 className="mt-1 text-lg font-black text-white">
+
+          <h2 className="mt-1 text-[17px] font-black text-white">
             Mapa de atividade
           </h2>
+
+          <p className="mt-1 text-[9px] text-white/30">
+            Cada quadrado representa um dia. Quanto mais jogou, mais intenso fica.
+          </p>
         </div>
 
-        <span className="hidden text-[9px] font-medium text-white/30 md:block">
-          Cada quadrado representa um dia
+        <span className="hidden rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/35 sm:block">
+          90 DIAS
         </span>
       </div>
 
       <div className="mt-4 overflow-x-auto pb-1">
-        <div
-          className="min-w-[620px]"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `42px repeat(${weeks}, minmax(12px, 1fr))`,
-            gridTemplateRows: "16px repeat(7, 13px)",
-            columnGap: "3px",
-            rowGap: "4px",
-          }}
-        >
-          <div />
+        <div className="mx-auto w-fit">
+          {/* MESES */}
+          <div
+            className="mb-2 grid"
+            style={{
+              gridTemplateColumns: `36px repeat(${weeks}, 14px)`,
+              columnGap: "4px",
+            }}
+          >
+            <div />
 
-          {monthMarkers.map((marker) => (
-            <div
-              key={`${marker.label}-${marker.column}`}
-              className="text-[7px] font-black tracking-[0.14em] text-white/30"
-              style={{
-                gridColumnStart: marker.column + 1,
-                gridRowStart: 1,
-              }}
-            >
-              {marker.label}
-            </div>
-          ))}
-
-          {rows.map((row) => (
-            <div
-              key={row}
-              className="flex items-center justify-end pr-1 text-[9px] font-bold text-white/40"
-            >
-              {row}
-            </div>
-          ))}
-
-          {Array.from({ length: weeks * 7 }).map((_, index) => {
-            const day = calendar[index];
-            const week = Math.floor(index / 7);
-            const dayIndex = index % 7;
-
-            if (!day) {
-              return (
-                <div
-                  key={`empty-${index}`}
-                  style={{
-                    gridColumnStart: week + 2,
-                    gridRowStart: dayIndex + 2,
-                  }}
-                />
-              );
-            }
-
-            const minutes = activityByDay.get(day) || 0;
-
-            return (
+            {monthLabels.map((month, index) => (
               <div
-                key={day}
-                title={`${day} • ${formatPlayedTime(minutes)}`}
-                className={`h-[13px] w-full rounded-[3px] ${getIntensity(
-                  minutes
-                )} transition duration-150 hover:scale-110`}
+                key={`${month}-${index}`}
+                className="h-3 text-[7px] font-black tracking-[0.12em] text-white/28"
+              >
+                {month}
+              </div>
+            ))}
+          </div>
+
+          {/* DIAS + QUADRADOS */}
+          <div className="grid grid-rows-7 gap-[4px]">
+            {weekdays.map((weekday, rowIndex) => (
+              <div
+                key={weekday}
+                className="grid items-center"
                 style={{
-                  gridColumnStart: week + 2,
-                  gridRowStart: dayIndex + 2,
+                  gridTemplateColumns: `36px repeat(${weeks}, 14px)`,
+                  columnGap: "4px",
                 }}
-              />
-            );
-          })}
+              >
+                <div className="pr-1 text-right text-[9px] font-bold text-white/40">
+                  {weekday}
+                </div>
+
+                {Array.from({ length: weeks }).map((_, weekIndex) => {
+                  const day = calendar[weekIndex * 7 + rowIndex];
+
+                  if (!day) {
+                    return (
+                      <div
+                        key={`empty-${weekIndex}-${rowIndex}`}
+                        className="h-[13px] w-[13px]"
+                      />
+                    );
+                  }
+
+                  const minutes = activityByDay.get(day) || 0;
+
+                  return (
+                    <div
+                      key={day}
+                      title={`${day} • ${formatPlayedTime(minutes)}`}
+                      className={`h-[13px] w-[13px] rounded-[3px] ${getIntensity(
+                        minutes
+                      )} transition-transform duration-150 hover:scale-125`}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -783,7 +851,7 @@ export default function AtividadePage() {
                   <Metric
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
-                    icon="▣"
+                    icon={<IconCalendar className="h-4 w-4" />}
                   />
 
                   <div className="hidden h-8 w-px bg-white/10 sm:block" />
@@ -791,7 +859,7 @@ export default function AtividadePage() {
                   <Metric
                     label="Tempo jogado"
                     value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
-                    icon="◷"
+                    icon={<IconClock className="h-4 w-4" />}
                     accent="blue"
                   />
 
@@ -800,7 +868,7 @@ export default function AtividadePage() {
                   <Metric
                     label="Média diária"
                     value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
-                    icon="↗"
+                    icon={<IconTrend className="h-4 w-4" />}
                     accent="violet"
                   />
 
@@ -809,7 +877,7 @@ export default function AtividadePage() {
                   <Metric
                     label="Jogos diferentes"
                     value={isLoaded ? differentGames : "..."}
-                    icon="◆"
+                    icon={<IconGamepad className="h-4 w-4" />}
                     accent="green"
                   />
                 </div>
@@ -843,9 +911,9 @@ export default function AtividadePage() {
                   <div className="flex items-center gap-1">
                     {(
                       [
-                        ["jogos", "🎮 Jogos"],
-                        ["conquistas", "🏆 Conquistas"],
-                        ["reviews", "📝 Reviews"],
+                        ["jogos", "Jogos"],
+                        ["conquistas", "Conquistas"],
+                        ["reviews", "Reviews"],
                       ] as [ActivityTab, string][]
                     ).map(([value, label]) => (
                       <button
@@ -858,6 +926,15 @@ export default function AtividadePage() {
                             : "text-white/45 hover:text-white"
                         }`}
                       >
+                        <span className="mr-1.5 inline-flex align-middle text-current">
+                          {value === "jogos" ? (
+                            <IconGamepad className="h-3.5 w-3.5" />
+                          ) : value === "conquistas" ? (
+                            <IconTrophy className="h-3.5 w-3.5" />
+                          ) : (
+                            <IconNote className="h-3.5 w-3.5" />
+                          )}
+                        </span>
                         {label}
                       </button>
                     ))}
@@ -866,8 +943,8 @@ export default function AtividadePage() {
 
                 <div className="flex flex-col gap-3 p-3 md:flex-row md:items-center">
                   <div className="relative min-w-0 flex-1">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xs text-white/25">
-                      🔍
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/25">
+                      <IconSearch className="h-4 w-4" />
                     </span>
                     <input
                       value={search}
@@ -881,14 +958,14 @@ export default function AtividadePage() {
                     type="button"
                     className="shrink-0 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[10px] font-black text-white/50 transition hover:text-white"
                   >
-                    Todos os Meses ▾
+                    <span className="inline-flex items-center gap-1.5"><IconCalendar className="h-3.5 w-3.5" /> Todos os Meses ▾</span>
                   </button>
 
                   <button
                     type="button"
                     className="shrink-0 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-[10px] font-black text-white/50 transition hover:text-white"
                   >
-                    Todas as Plataformas ▾
+                    <span className="inline-flex items-center gap-1.5"><IconGamepad className="h-3.5 w-3.5" /> Todas as Plataformas ▾</span>
                   </button>
                 </div>
 
@@ -1080,14 +1157,15 @@ export default function AtividadePage() {
                 </div>
 
                 <div className="mt-4 space-y-3">
-                  {[
-                    ["🔥", "Sequência atual", `${currentStreak} dias`, "red"],
-                    ["▣", "Dias jogados", `${uniqueDays}`, "violet"],
-                    ["◷", "Horas jogadas", formatPlayedTime(totalMinutes), "blue"],
-                    ["🏆", "Conquistas desbloqueadas", `${allCompletedAchievements.length}`, "red"],
-                    ["↗", "Média diária", formatPlayedTime(averageMinutes), "green"],
-                    ["◆", "Jogos diferentes", `${differentGames}`, "violet"],
-                  ].map(([icon, label, value, tone]) => (
+                  {([
+                    [<IconFlame className="h-4 w-4" />, "Sequência atual", `${currentStreak} dias`, "red"],
+                    [<IconCalendar className="h-4 w-4" />, "Dias jogados", `${uniqueDays}`, "violet"],
+                    [<IconClock className="h-4 w-4" />, "Horas jogadas", formatPlayedTime(totalMinutes), "blue"],
+                    [<IconTrophy className="h-4 w-4" />, "Conquistas desbloqueadas", `${allCompletedAchievements.length}`, "red"],
+                    [<IconTrend className="h-4 w-4" />, "Média diária", formatPlayedTime(averageMinutes), "green"],
+                    [<IconTarget className="h-4 w-4" />, "Jogos diferentes", `${differentGames}`, "violet"],
+                  ] as [ReactNode, string, string, "red" | "blue" | "violet" | "green"][]).map(
+                    ([icon, label, value, tone]) => (
                     <div
                       key={label}
                       className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0"
@@ -1220,9 +1298,11 @@ export default function AtividadePage() {
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-[10px] text-red-300">
                         {recentAchievementDateKeys.has(
                           getDateKey(entry.date)
-                        )
-                          ? "🏆"
-                          : "🎮"}
+                        ) ? (
+                          <IconTrophy className="h-4 w-4" />
+                        ) : (
+                          <IconGamepad className="h-4 w-4" />
+                        )}
                       </div>
 
                       <div className="min-w-0 flex-1">
