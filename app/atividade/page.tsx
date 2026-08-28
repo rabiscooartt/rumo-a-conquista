@@ -400,19 +400,28 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  const calendarDays = useMemo(() => {
-    const result: string[] = [];
+  const calendar = useMemo(() => {
     const today = new Date();
+    const first = new Date(today);
+    first.setDate(today.getDate() - 89);
 
-    for (let index = 89; index >= 0; index -= 1) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - index);
-      result.push(date.toISOString().slice(0, 10));
+    const start = new Date(first);
+    start.setDate(
+      start.getDate() - ((start.getDay() + 6) % 7)
+    );
+
+    const result: string[] = [];
+    const cursor = new Date(start);
+
+    while (result.length < 91) {
+      result.push(cursor.toISOString().slice(0, 10));
+      cursor.setDate(cursor.getDate() + 1);
     }
 
     return result;
   }, []);
 
+  const weeks = 13;
   const weekdays = [
     "Seg",
     "Ter",
@@ -425,156 +434,134 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
   const getIntensity = (minutes: number) => {
     if (minutes <= 0) return "bg-[#17191f]";
-    if (minutes < 60) return "bg-red-950/80";
-    if (minutes < 180) return "bg-red-800/80";
-    if (minutes < 300) return "bg-red-600/90";
+    if (minutes < 60) return "bg-red-950";
+    if (minutes < 180) return "bg-red-800";
+    if (minutes < 300) return "bg-red-600";
     return "bg-red-500";
   };
 
-  const monthMarkers = useMemo(() => {
-    const seen = new Set<number>();
+  const monthLabels = useMemo(() => {
+    return Array.from({ length: weeks }, (_, weekIndex) => {
+      const day = calendar[weekIndex * 7];
 
-    return calendarDays
-      .map((day, index) => {
-        const date = new Date(`${day}T12:00:00`);
-        const month = date.getMonth();
+      if (!day) return "";
 
-        if (seen.has(month)) return null;
-
-        seen.add(month);
-
-        return {
-          label: date
-            .toLocaleDateString("pt-BR", {
-              month: "short",
-            })
-            .replace(".", "")
-            .toUpperCase(),
-          index,
-        };
-      })
-      .filter(Boolean) as Array<{
-      label: string;
-      index: number;
-    }>;
-  }, [calendarDays]);
+      return new Date(`${day}T12:00:00`)
+        .toLocaleDateString("pt-BR", {
+          month: "short",
+        })
+        .replace(".", "")
+        .toUpperCase();
+    });
+  }, [calendar]);
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-[18px] font-black uppercase tracking-[0.02em] text-white md:text-[20px]">
+            <h2 className="text-[17px] font-black tracking-tight text-white">
               Mapa de atividade
             </h2>
 
-            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[10px] font-black text-white/35">
+            <span
+              title="Cada quadrado representa um dia"
+              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/35"
+            >
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[10px] font-medium text-white/40 md:text-[10px]">
-            Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
+          <p className="mt-1 text-[9px] font-medium leading-relaxed text-white/35">
+            90 dias de atividade
           </p>
         </div>
 
         <button
           type="button"
-          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[10px] font-black text-white/45"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5 text-[8px] font-black text-white/35"
         >
-          Últimos 90 dias⌄
+          90 DIAS
         </button>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <div className="min-w-[860px]">
-          {/* MESES */}
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
-              columnGap: "2px",
-            }}
-          >
-            <div />
+      <div className="mt-4 overflow-hidden">
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: `36px repeat(${weeks}, minmax(0, 1fr))`,
+            columnGap: "3px",
+          }}
+        >
+          <div />
 
-            {calendarDays.map((day, index) => {
-              const marker = monthMarkers.find(
-                (item) => item.index === index
-              );
+          {monthLabels.map((month, index) => (
+            <div
+              key={`${month}-${index}`}
+              className="h-3 overflow-visible whitespace-nowrap text-[7px] font-black tracking-[0.1em] text-white/25"
+            >
+              {month}
+            </div>
+          ))}
 
-              return (
-                <div
-                  key={`month-${day}`}
-                  className="h-4 overflow-hidden text-[7px] font-black tracking-[0.13em] text-white/30"
-                >
-                  {marker?.label || ""}
-                </div>
-              );
-            })}
-          </div>
+          {weekdays.map((weekday, rowIndex) => (
+            <div key={weekday} className="contents">
+              <div className="flex h-[14px] items-center justify-end pr-1 text-[8px] font-bold text-white/40">
+                {weekday}
+              </div>
 
-          {/* 90 COLUNAS / 7 DIAS */}
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
-              columnGap: "2px",
-              rowGap: "3px",
-            }}
-          >
-            {weekdays.map((weekday, rowIndex) => (
-              <div key={weekday} className="contents">
-                <div className="flex h-[12px] items-center justify-end pr-2 text-[9px] font-bold text-white/45 md:text-[10px]">
-                  {weekday}
-                </div>
+              {Array.from({ length: weeks }).map((_, weekIndex) => {
+                const day = calendar[weekIndex * 7 + rowIndex];
 
-                {calendarDays.map((day) => {
-                  const date = new Date(`${day}T12:00:00`);
-                  const weekdayIndex =
-                    (date.getDay() + 6) % 7;
+                if (!day) {
+                  return (
+                    <div
+                      key={`${weekday}-empty-${weekIndex}`}
+                      className="h-[14px] w-full"
+                    />
+                  );
+                }
 
-                  const isThisRow =
-                    weekdayIndex === rowIndex;
+                const date = new Date(`${day}T12:00:00`);
+                const actualRow =
+                  (date.getDay() + 6) % 7;
 
-                  const minutes = isThisRow
+                const minutes =
+                  actualRow === rowIndex
                     ? activityByDay.get(day) || 0
                     : 0;
 
-                  return (
-                    <div
-                      key={`${day}-${weekday}`}
-                      title={
-                        isThisRow
-                          ? `${day} • ${formatPlayedTime(minutes)}`
-                          : undefined
-                      }
-                      className={`h-[13px] w-full rounded-[3px] ${getIntensity(
-                        minutes
-                      )}`}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+                return (
+                  <div
+                    key={`${weekday}-${day}`}
+                    title={
+                      actualRow === rowIndex
+                        ? `${day} • ${formatPlayedTime(minutes)}`
+                        : undefined
+                    }
+                    className={`h-[14px] w-full rounded-[2px] ${getIntensity(
+                      minutes
+                    )}`}
+                  />
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
       <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
-        <span>Menos tempo</span>
+        <span>Menos</span>
         <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950/80" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800/80" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600/90" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
-        <span>Mais tempo</span>
+        <span>Mais</span>
       </div>
     </section>
   );
 }
-
-/* ---------- ESTATÍSTICA ---------- */
 
 function Metric({
   icon,
@@ -630,7 +617,7 @@ function ActivityRow({
   const platform = getGamePlatform(game);
 
   return (
-    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[58px_minmax(0,1fr)_110px] md:px-4">
+    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
       <div>
         <p className="text-[25px] font-black leading-none text-white md:text-[27px]">
           {date.getDate()}
@@ -642,7 +629,7 @@ function ActivityRow({
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[66px] w-[52px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
+        <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
           {cover ? (
             <img
               src={cover}
@@ -1012,12 +999,10 @@ export default function AtividadePage() {
             </div>
           </header>
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">
             {/* CONTENT */}
             <div className="min-w-0">
-              <ActivityMap entries={sourceEntries} />
-
-              <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
                     {(
