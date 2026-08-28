@@ -999,6 +999,12 @@ export default function AtividadePage() {
             </div>
           </header>
 
+          {/* MAPA DE ATIVIDADE — ACIMA DO LAYOUT PRINCIPAL */}
+          <div className="mt-4">
+            <ActivityMap entries={sourceEntries} />
+          </div>
+
+          {/* LAYOUT PRINCIPAL */}
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">
             {/* CONTENT */}
             <div className="min-w-0">
