@@ -521,7 +521,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </button>
       </div>
 
-      <div className="mt-5 w-full">
+      <div className="mt-4 w-full">
         <div className="w-full">
           {/* MESES:
               o primeiro mês parcial fica sem rótulo;
@@ -869,7 +869,7 @@ export default function AtividadePage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1510px] grid-cols-1 lg:grid-cols-[190px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[185px_minmax(0,1fr)]">
         {/* SIDEBAR */}
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
@@ -944,6 +944,8 @@ export default function AtividadePage() {
 
         {/* MAIN */}
         <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
+            <div className="min-w-0">
           {/* HERO */}
           <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
@@ -954,7 +956,7 @@ export default function AtividadePage() {
 
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
 
-            <div className="relative flex min-h-[245px] flex-col justify-end p-7 md:p-8">
+            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
                 <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
@@ -1043,10 +1045,8 @@ export default function AtividadePage() {
             <ActivityMap entries={sourceEntries} />
           </div>
 
-          {/* LAYOUT PRINCIPAL */}
-          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-            {/* CONTENT */}
-            <div className="min-w-0">
+              {/* ATIVIDADES */}
+              <div className="mt-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
@@ -1262,9 +1262,11 @@ export default function AtividadePage() {
                 )}
               </section>
             </div>
+              </div>
+            </div>
 
             {/* RIGHT */}
-            <aside className="space-y-4">
+            <aside className="space-y-3 xl:sticky xl:top-20">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[14px] font-black uppercase text-white/90">
