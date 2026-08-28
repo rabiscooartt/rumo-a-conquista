@@ -431,29 +431,6 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const calendarWeeks = useMemo(() => {
-    const weeks: string[][] = [];
-    let currentWeek: string[] = [];
-
-    for (const day of days) {
-      const date = new Date(`${day}T12:00:00`);
-      const weekdayIndex = (date.getDay() + 6) % 7;
-
-      currentWeek[weekdayIndex] = day;
-
-      if (weekdayIndex === 6) {
-        weeks.push(currentWeek);
-        currentWeek = [];
-      }
-    }
-
-    if (currentWeek.length > 0) {
-      weeks.push(currentWeek);
-    }
-
-    return weeks;
-  }, [days]);
-
   const monthGroups = useMemo(() => {
     const groups: Array<{
       label: string;
@@ -484,17 +461,13 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return groups;
   }, [days]);
 
-  /*
-   * Pequeno respiro visual entre meses:
-   * os quadrados continuam com o mesmo tamanho, mas cada troca de mês
-   * recebe uma separação horizontal sutil.
-   */
   const monthEndKeys = useMemo(() => {
     const result = new Set<string>();
 
     monthGroups.forEach((group, index) => {
       if (index < monthGroups.length - 1) {
-        const lastDay = group.days[group.days.length - 1];
+        const lastDay =
+          group.days[group.days.length - 1];
 
         if (lastDay) result.add(lastDay);
       }
@@ -534,37 +507,46 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       </div>
 
       <div className="mt-5 w-full overflow-x-auto pb-1">
-        <div className="min-w-[820px]">
-          {/* MESES */}
-          <div className="mb-1 flex items-center pl-[42px]">
-            {monthGroups.map((group, index) => (
-              <div
-                key={`${group.label}-${index}`}
-                className={`text-[8px] font-black tracking-[0.12em] text-white/30 ${
-                  index > 0 ? "ml-1" : ""
-                }`}
-                style={{
-                  width: `${group.days.length * 12}px`,
-                }}
-              >
-                {group.label}
-              </div>
-            ))}
+        <div className="min-w-[860px]">
+          {/* CABEÇALHO DOS MESES.
+              Cada grupo tem exatamente a mesma largura da faixa de dias,
+              incluindo o pequeno respiro extra na troca de mês. */}
+          <div className="mb-1 flex items-end pl-[42px]">
+            {monthGroups.map((group, groupIndex) => {
+              const isLast =
+                groupIndex === monthGroups.length - 1;
+
+              const groupWidth =
+                group.days.length * 15 +
+                (isLast ? 0 : 5);
+
+              return (
+                <div
+                  key={`${group.label}-${groupIndex}`}
+                  className="shrink-0 whitespace-nowrap text-[9px] font-black tracking-[0.10em] text-white/30"
+                  style={{
+                    width: `${groupWidth}px`,
+                  }}
+                >
+                  {group.label}
+                </div>
+              );
+            })}
           </div>
 
-          {/* DIAS + QUADRADOS */}
+          {/* MAPA */}
           <div className="space-y-[3px]">
             {weekdays.map((weekday, rowIndex) => (
               <div
                 key={weekday}
                 className="flex items-center"
               >
-                <div className="w-[42px] shrink-0 pr-2 text-right text-[9px] font-bold leading-none text-white/45">
+                <div className="w-[42px] shrink-0 pr-2 text-right text-[9px] font-bold leading-none text-white/50">
                   {weekday}
                 </div>
 
                 <div className="flex min-w-0 flex-1 items-center">
-                  {days.map((day, index) => {
+                  {days.map((day) => {
                     const date = new Date(`${day}T12:00:00`);
                     const actualRow =
                       (date.getDay() + 6) % 7;
@@ -574,7 +556,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         ? activityByDay.get(day) || 0
                         : 0;
 
-                    const addMonthGap =
+                    const isMonthEnd =
                       monthEndKeys.has(day);
 
                     return (
@@ -585,11 +567,11 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                             ? `${day} • ${formatPlayedTime(minutes)}`
                             : undefined
                         }
-                        className={`h-[12px] w-[12px] shrink-0 rounded-[2px] ${getIntensity(
+                        className={`h-[13px] w-[13px] shrink-0 rounded-[2px] ${getIntensity(
                           minutes
                         )} ${
-                          addMonthGap
-                            ? "mr-[5px]"
+                          isMonthEnd
+                            ? "mr-[7px]"
                             : "mr-[2px]"
                         }`}
                       />
