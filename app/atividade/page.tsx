@@ -400,7 +400,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  const days = useMemo(() => {
+  const calendarDays = useMemo(() => {
     const result: string[] = [];
     const today = new Date();
 
@@ -424,117 +424,132 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   ];
 
   const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-[#181a20]";
-    if (minutes < 60) return "bg-red-950";
-    if (minutes < 180) return "bg-red-800";
-    if (minutes < 300) return "bg-red-600";
+    if (minutes <= 0) return "bg-[#17191f]";
+    if (minutes < 60) return "bg-red-950/80";
+    if (minutes < 180) return "bg-red-800/80";
+    if (minutes < 300) return "bg-red-600/90";
     return "bg-red-500";
   };
 
   const monthMarkers = useMemo(() => {
-    const markers = new Map<number, string>();
-    let previousMonth = "";
+    const seen = new Set<number>();
 
-    days.forEach((day, index) => {
-      const date = new Date(`${day}T12:00:00`);
-      const label = date
-        .toLocaleDateString("pt-BR", { month: "short" })
-        .replace(".", "")
-        .toUpperCase();
+    return calendarDays
+      .map((day, index) => {
+        const date = new Date(`${day}T12:00:00`);
+        const month = date.getMonth();
 
-      if (label !== previousMonth) {
-        markers.set(index, label);
-        previousMonth = label;
-      }
-    });
+        if (seen.has(month)) return null;
 
-    return markers;
-  }, [days]);
+        seen.add(month);
+
+        return {
+          label: date
+            .toLocaleDateString("pt-BR", {
+              month: "short",
+            })
+            .replace(".", "")
+            .toUpperCase(),
+          index,
+        };
+      })
+      .filter(Boolean) as Array<{
+      label: string;
+      index: number;
+    }>;
+  }, [calendarDays]);
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-[18px] font-black tracking-tight text-white md:text-[19px]">
+            <h2 className="text-[18px] font-black uppercase tracking-[0.02em] text-white md:text-[20px]">
               Mapa de atividade
             </h2>
 
-            <span
-              title="Cada quadrado representa um dia"
-              className="flex h-[17px] w-[17px] items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/40"
-            >
+            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[10px] font-black text-white/35">
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[10px] font-medium text-white/40">
+          <p className="mt-1 text-[10px] font-medium text-white/40 md:text-[10px]">
             Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
           </p>
         </div>
 
         <button
           type="button"
-          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[10px] font-black text-white/45"
         >
           Últimos 90 dias⌄
         </button>
       </div>
 
-      <div className="mt-5 w-full overflow-x-auto pb-1">
-        <div className="min-w-[760px]">
+      <div className="mt-4 overflow-x-auto">
+        <div className="min-w-[860px]">
+          {/* MESES */}
           <div
-            className="grid items-end"
+            className="grid"
             style={{
-              gridTemplateColumns: `42px repeat(${days.length}, 11px)`,
-              justifyContent: "space-between",
+              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
+              columnGap: "2px",
             }}
           >
             <div />
 
-            {days.map((day) => (
-              <div
-                key={`month-${day}`}
-                className="h-3 whitespace-nowrap text-[7px] font-black tracking-[0.12em] text-white/30"
-              >
-                {monthMarkers.get(days.indexOf(day)) || ""}
-              </div>
-            ))}
+            {calendarDays.map((day, index) => {
+              const marker = monthMarkers.find(
+                (item) => item.index === index
+              );
+
+              return (
+                <div
+                  key={`month-${day}`}
+                  className="h-4 overflow-hidden text-[7px] font-black tracking-[0.13em] text-white/30"
+                >
+                  {marker?.label || ""}
+                </div>
+              );
+            })}
           </div>
 
-          <div className="mt-1 space-y-[3px]">
+          {/* 90 COLUNAS / 7 DIAS */}
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
+              columnGap: "2px",
+              rowGap: "3px",
+            }}
+          >
             {weekdays.map((weekday, rowIndex) => (
-              <div
-                key={weekday}
-                className="grid items-center"
-                style={{
-                  gridTemplateColumns: `42px repeat(${days.length}, 11px)`,
-                  justifyContent: "space-between",
-                }}
-              >
-                <div className="flex h-[11px] items-center justify-end pr-2 text-[9px] font-bold leading-none text-white/45">
+              <div key={weekday} className="contents">
+                <div className="flex h-[12px] items-center justify-end pr-2 text-[9px] font-bold text-white/45 md:text-[10px]">
                   {weekday}
                 </div>
 
-                {days.map((day) => {
-                  const actualWeekday =
-                    (new Date(`${day}T12:00:00`).getDay() + 6) %
-                    7;
+                {calendarDays.map((day) => {
+                  const date = new Date(`${day}T12:00:00`);
+                  const weekdayIndex =
+                    (date.getDay() + 6) % 7;
 
-                  const minutes =
-                    actualWeekday === rowIndex
-                      ? activityByDay.get(day) || 0
-                      : 0;
+                  const isThisRow =
+                    weekdayIndex === rowIndex;
+
+                  const minutes = isThisRow
+                    ? activityByDay.get(day) || 0
+                    : 0;
 
                   return (
                     <div
                       key={`${day}-${weekday}`}
                       title={
-                        actualWeekday === rowIndex
+                        isThisRow
                           ? `${day} • ${formatPlayedTime(minutes)}`
                           : undefined
                       }
-                      className={`h-[11px] w-[11px] rounded-[2px] ${getIntensity(
+                      className={`h-[13px] w-full rounded-[3px] ${getIntensity(
                         minutes
                       )}`}
                     />
@@ -546,18 +561,20 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-bold text-white/35">
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
         <span>Menos tempo</span>
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#181a20]" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950/80" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800/80" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600/90" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
         <span>Mais tempo</span>
       </div>
     </section>
   );
 }
+
+/* ---------- ESTATÍSTICA ---------- */
 
 function Metric({
   icon,
@@ -604,29 +621,28 @@ function Metric({
 function ActivityRow({
   entry,
   game,
-  achievements,
 }: {
   entry: JourneyEntry;
   game?: GameLike;
-  achievements: AchievementLike[];
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
   const platform = getGamePlatform(game);
 
   return (
-    <article className="grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-4 py-4 md:grid-cols-[62px_minmax(0,1fr)_250px_105px] md:px-5">
+    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[58px_minmax(0,1fr)_110px] md:px-4">
       <div>
-        <p className="text-[23px] font-black leading-none text-white">
+        <p className="text-[25px] font-black leading-none text-white md:text-[27px]">
           {date.getDate()}
         </p>
+
         <p className="mt-1 text-[9px] font-black uppercase tracking-[0.12em] text-red-400">
           {getMonthShort(entry.date)}
         </p>
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[66px] w-[52px] shrink-0 overflow-hidden rounded-[6px] border border-white/10 bg-black">
+        <div className="h-[66px] w-[52px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
           {cover ? (
             <img
               src={cover}
@@ -641,12 +657,12 @@ function ActivityRow({
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[17px] font-black text-white md:text-[14px]">
+          <h3 className="truncate text-[15px] font-black text-white md:text-[16px]">
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-white/40">
-            <span className="font-medium">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-medium text-white/45 md:text-[11px]">
+            <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
                   weekday: "long",
@@ -660,56 +676,14 @@ function ActivityRow({
               </>
             )}
           </div>
-
-          <div className="mt-1 flex items-center gap-1.5 text-[8px] font-bold text-white/35">
-            <IconClock className="h-3 w-3 text-red-400" />
-            {formatPlayedTime(entry.playedMinutes)}
-          </div>
         </div>
       </div>
 
-      <div className="hidden min-w-0 md:block">
-        {achievements.length > 0 && (
-          <>
-            <p className="mb-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/30">
-              Conquistas desbloqueadas
-            </p>
-
-            <div className="flex items-center gap-2">
-              {achievements.slice(0, 5).map((achievement, index) => {
-                const image = getAchievementImage(achievement);
-                const title =
-                  achievement.title || `Conquista ${index + 1}`;
-
-                return (
-                  <div
-                    key={`${entry.id}-${title}-${index}`}
-                    title={title}
-                    className="h-10 w-10 overflow-hidden rounded-full border border-white/15 bg-black"
-                  >
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-white/50">
-                        <IconTrophy className="h-4 w-4" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-
       <div className="text-right">
-        <p className="text-[17px] font-black text-white">
+        <p className="text-[16px] font-black leading-none text-white md:text-[17px]">
           {formatPlayedTime(entry.playedMinutes)}
         </p>
+
         <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
           Tempo jogado
         </p>
@@ -1059,7 +1033,7 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-2.5 text-[10px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[11px] font-black transition ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"
@@ -1111,7 +1085,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/40">
+                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/55">
                       Atividades recentes
                     </p>
 
@@ -1152,34 +1126,11 @@ export default function AtividadePage() {
                                   ) === titleKey
                               );
 
-                              const dayKey = getDateKey(
-                                entry.date
-                              );
-
-                              const achievements =
-                                (game?.achievementsList || [])
-                                  .map(
-                                    (item) =>
-                                      item as AchievementLike
-                                  )
-                                  .filter(
-                                    (achievement) =>
-                                      isCompletedAchievement(
-                                        achievement
-                                      ) &&
-                                      getDateKey(
-                                        getAchievementDate(
-                                          achievement
-                                        )
-                                      ) === dayKey
-                                  );
-
                               return (
                                 <ActivityRow
                                   key={entry.id}
                                   entry={entry}
                                   game={game}
-                                  achievements={achievements}
                                 />
                               );
                             })}
@@ -1221,7 +1172,7 @@ export default function AtividadePage() {
                             key={`${achievement.title}-${index}`}
                             className="flex items-center gap-3 border-b border-white/[0.07] px-4 py-3 last:border-b-0"
                           >
-                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
+                            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
                               {getAchievementImage(
                                 achievement
                               ) ? (
@@ -1243,12 +1194,12 @@ export default function AtividadePage() {
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-[11px] font-black text-white">
+                              <p className="truncate text-[13px] font-black text-white">
                                 {achievement.title ||
                                   "Conquista"}
                               </p>
 
-                              <p className="mt-1 truncate text-[8px] text-white/35">
+                              <p className="mt-1 truncate text-[10px] text-white/40">
                                 {achievement.gameTitle}
                               </p>
                             </div>
