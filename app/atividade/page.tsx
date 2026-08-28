@@ -400,28 +400,19 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  const calendar = useMemo(() => {
-    const today = new Date();
-    const first = new Date(today);
-    first.setDate(today.getDate() - 89);
-
-    const start = new Date(first);
-    start.setDate(
-      start.getDate() - ((start.getDay() + 6) % 7)
-    );
-
+  const days = useMemo(() => {
     const result: string[] = [];
-    const cursor = new Date(start);
+    const today = new Date();
 
-    while (result.length < 91) {
-      result.push(cursor.toISOString().slice(0, 10));
-      cursor.setDate(cursor.getDate() + 1);
+    for (let index = 89; index >= 0; index -= 1) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - index);
+      result.push(date.toISOString().slice(0, 10));
     }
 
     return result;
   }, []);
 
-  const weeks = 13;
   const weekdays = [
     "Seg",
     "Ter",
@@ -433,131 +424,151 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   ];
 
   const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-[#17191f]";
+    if (minutes <= 0) return "bg-[#181a20]";
     if (minutes < 60) return "bg-red-950";
     if (minutes < 180) return "bg-red-800";
     if (minutes < 300) return "bg-red-600";
     return "bg-red-500";
   };
 
-  const monthLabels = useMemo(() => {
-    return Array.from({ length: weeks }, (_, weekIndex) => {
-      const day = calendar[weekIndex * 7];
+  const monthMarkers = useMemo(() => {
+    const markers: Array<{
+      index: number;
+      label: string;
+    }> = [];
 
-      if (!day) return "";
+    let previousMonth = -1;
 
-      return new Date(`${day}T12:00:00`)
-        .toLocaleDateString("pt-BR", {
-          month: "short",
-        })
-        .replace(".", "")
-        .toUpperCase();
+    days.forEach((day, index) => {
+      const date = new Date(`${day}T12:00:00`);
+      const month = date.getMonth();
+
+      if (month !== previousMonth) {
+        markers.push({
+          index,
+          label: date
+            .toLocaleDateString("pt-BR", {
+              month: "short",
+            })
+            .replace(".", "")
+            .toUpperCase(),
+        });
+
+        previousMonth = month;
+      }
     });
-  }, [calendar]);
+
+    return markers;
+  }, [days]);
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-[17px] font-black tracking-tight text-white">
+            <h2 className="text-[18px] font-black tracking-tight text-white">
               Mapa de atividade
             </h2>
 
             <span
               title="Cada quadrado representa um dia"
-              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/35"
+              className="flex h-[17px] w-[17px] items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/40"
             >
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[9px] font-medium leading-relaxed text-white/35">
-            90 dias de atividade
+          <p className="mt-1 text-[10px] font-medium text-white/40">
+            Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
           </p>
         </div>
 
         <button
           type="button"
-          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5 text-[8px] font-black text-white/35"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
         >
-          90 DIAS
+          Últimos 90 dias⌄
         </button>
       </div>
 
-      <div className="mt-4 overflow-hidden">
-        <div
-          className="grid"
-          style={{
-            gridTemplateColumns: `36px repeat(${weeks}, minmax(0, 1fr))`,
-            columnGap: "3px",
-          }}
-        >
-          <div />
+      <div className="mt-5 w-full overflow-x-auto pb-1">
+        <div className="min-w-[860px]">
+          {/* MESES: posicionados sobre o início real de cada mês */}
+          <div
+            className="relative h-4"
+            style={{
+              marginLeft: "42px",
+              marginRight: "2px",
+            }}
+          >
+            {monthMarkers.map((marker) => (
+              <span
+                key={`${marker.label}-${marker.index}`}
+                className="absolute top-0 text-[8px] font-black tracking-[0.10em] text-white/30"
+                style={{
+                  left: `calc(${marker.index} * (100% / ${days.length}))`,
+                }}
+              >
+                {marker.label}
+              </span>
+            ))}
+          </div>
 
-          {monthLabels.map((month, index) => (
-            <div
-              key={`${month}-${index}`}
-              className="h-3 overflow-visible whitespace-nowrap text-[7px] font-black tracking-[0.1em] text-white/25"
-            >
-              {month}
-            </div>
-          ))}
+          {/* SEG → DOM + 90 DIAS */}
+          <div className="space-y-[3px]">
+            {weekdays.map((weekday, rowIndex) => (
+              <div
+                key={weekday}
+                className="grid items-center"
+                style={{
+                  gridTemplateColumns: `42px repeat(${days.length}, minmax(7px, 1fr))`,
+                  columnGap: "2px",
+                }}
+              >
+                <div className="flex h-[12px] items-center justify-end pr-2 text-[9px] font-bold leading-none text-white/45">
+                  {weekday}
+                </div>
 
-          {weekdays.map((weekday, rowIndex) => (
-            <div key={weekday} className="contents">
-              <div className="flex h-[14px] items-center justify-end pr-1 text-[8px] font-bold text-white/40">
-                {weekday}
-              </div>
+                {days.map((day) => {
+                  const date = new Date(`${day}T12:00:00`);
+                  const actualRow =
+                    (date.getDay() + 6) % 7;
 
-              {Array.from({ length: weeks }).map((_, weekIndex) => {
-                const day = calendar[weekIndex * 7 + rowIndex];
+                  const minutes =
+                    actualRow === rowIndex
+                      ? activityByDay.get(day) || 0
+                      : 0;
 
-                if (!day) {
                   return (
                     <div
-                      key={`${weekday}-empty-${weekIndex}`}
-                      className="h-[14px] w-full"
+                      key={`${day}-${weekday}`}
+                      title={
+                        actualRow === rowIndex
+                          ? `${day} • ${formatPlayedTime(minutes)}`
+                          : undefined
+                      }
+                      className={`h-[12px] w-full rounded-[2px] ${getIntensity(
+                        minutes
+                      )}`}
                     />
                   );
-                }
-
-                const date = new Date(`${day}T12:00:00`);
-                const actualRow =
-                  (date.getDay() + 6) % 7;
-
-                const minutes =
-                  actualRow === rowIndex
-                    ? activityByDay.get(day) || 0
-                    : 0;
-
-                return (
-                  <div
-                    key={`${weekday}-${day}`}
-                    title={
-                      actualRow === rowIndex
-                        ? `${day} • ${formatPlayedTime(minutes)}`
-                        : undefined
-                    }
-                    className={`h-[14px] w-full rounded-[2px] ${getIntensity(
-                      minutes
-                    )}`}
-                  />
-                );
-              })}
-            </div>
-          ))}
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
-        <span>Menos</span>
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
+      <div className="mt-3 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
+        <span>Menos tempo</span>
+
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#181a20]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
-        <span>Mais</span>
+
+        <span>Mais tempo</span>
       </div>
     </section>
   );
