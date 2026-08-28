@@ -431,35 +431,77 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const monthMarkers = useMemo(() => {
-    const markers: Array<{
-      index: number;
+  const calendarWeeks = useMemo(() => {
+    const weeks: string[][] = [];
+    let currentWeek: string[] = [];
+
+    for (const day of days) {
+      const date = new Date(`${day}T12:00:00`);
+      const weekdayIndex = (date.getDay() + 6) % 7;
+
+      currentWeek[weekdayIndex] = day;
+
+      if (weekdayIndex === 6) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    }
+
+    if (currentWeek.length > 0) {
+      weeks.push(currentWeek);
+    }
+
+    return weeks;
+  }, [days]);
+
+  const monthGroups = useMemo(() => {
+    const groups: Array<{
       label: string;
+      days: string[];
     }> = [];
 
-    let previousMonth = -1;
-
-    days.forEach((day, index) => {
+    for (const day of days) {
       const date = new Date(`${day}T12:00:00`);
-      const month = date.getMonth();
+      const label = date
+        .toLocaleDateString("pt-BR", {
+          month: "short",
+        })
+        .replace(".", "")
+        .toUpperCase();
 
-      if (month !== previousMonth) {
-        markers.push({
-          index,
-          label: date
-            .toLocaleDateString("pt-BR", {
-              month: "short",
-            })
-            .replace(".", "")
-            .toUpperCase(),
+      const current = groups[groups.length - 1];
+
+      if (!current || current.label !== label) {
+        groups.push({
+          label,
+          days: [day],
         });
+      } else {
+        current.days.push(day);
+      }
+    }
 
-        previousMonth = month;
+    return groups;
+  }, [days]);
+
+  /*
+   * Pequeno respiro visual entre meses:
+   * os quadrados continuam com o mesmo tamanho, mas cada troca de mês
+   * recebe uma separação horizontal sutil.
+   */
+  const monthEndKeys = useMemo(() => {
+    const result = new Set<string>();
+
+    monthGroups.forEach((group, index) => {
+      if (index < monthGroups.length - 1) {
+        const lastDay = group.days[group.days.length - 1];
+
+        if (lastDay) result.add(lastDay);
       }
     });
 
-    return markers;
-  }, [days]);
+    return result;
+  }, [monthGroups]);
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
@@ -492,67 +534,68 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       </div>
 
       <div className="mt-5 w-full overflow-x-auto pb-1">
-        <div className="min-w-[860px]">
-          {/* MESES: posicionados sobre o início real de cada mês */}
-          <div
-            className="relative h-4"
-            style={{
-              marginLeft: "42px",
-              marginRight: "2px",
-            }}
-          >
-            {monthMarkers.map((marker) => (
-              <span
-                key={`${marker.label}-${marker.index}`}
-                className="absolute top-0 text-[8px] font-black tracking-[0.10em] text-white/30"
+        <div className="min-w-[820px]">
+          {/* MESES */}
+          <div className="mb-1 flex items-center pl-[42px]">
+            {monthGroups.map((group, index) => (
+              <div
+                key={`${group.label}-${index}`}
+                className={`text-[8px] font-black tracking-[0.12em] text-white/30 ${
+                  index > 0 ? "ml-1" : ""
+                }`}
                 style={{
-                  left: `calc(${marker.index} * (100% / ${days.length}))`,
+                  width: `${group.days.length * 12}px`,
                 }}
               >
-                {marker.label}
-              </span>
+                {group.label}
+              </div>
             ))}
           </div>
 
-          {/* SEG → DOM + 90 DIAS */}
+          {/* DIAS + QUADRADOS */}
           <div className="space-y-[3px]">
             {weekdays.map((weekday, rowIndex) => (
               <div
                 key={weekday}
-                className="grid items-center"
-                style={{
-                  gridTemplateColumns: `42px repeat(${days.length}, minmax(7px, 1fr))`,
-                  columnGap: "2px",
-                }}
+                className="flex items-center"
               >
-                <div className="flex h-[12px] items-center justify-end pr-2 text-[9px] font-bold leading-none text-white/45">
+                <div className="w-[42px] shrink-0 pr-2 text-right text-[9px] font-bold leading-none text-white/45">
                   {weekday}
                 </div>
 
-                {days.map((day) => {
-                  const date = new Date(`${day}T12:00:00`);
-                  const actualRow =
-                    (date.getDay() + 6) % 7;
+                <div className="flex min-w-0 flex-1 items-center">
+                  {days.map((day, index) => {
+                    const date = new Date(`${day}T12:00:00`);
+                    const actualRow =
+                      (date.getDay() + 6) % 7;
 
-                  const minutes =
-                    actualRow === rowIndex
-                      ? activityByDay.get(day) || 0
-                      : 0;
+                    const minutes =
+                      actualRow === rowIndex
+                        ? activityByDay.get(day) || 0
+                        : 0;
 
-                  return (
-                    <div
-                      key={`${day}-${weekday}`}
-                      title={
-                        actualRow === rowIndex
-                          ? `${day} • ${formatPlayedTime(minutes)}`
-                          : undefined
-                      }
-                      className={`h-[12px] w-full rounded-[2px] ${getIntensity(
-                        minutes
-                      )}`}
-                    />
-                  );
-                })}
+                    const addMonthGap =
+                      monthEndKeys.has(day);
+
+                    return (
+                      <div
+                        key={`${day}-${weekday}`}
+                        title={
+                          actualRow === rowIndex
+                            ? `${day} • ${formatPlayedTime(minutes)}`
+                            : undefined
+                        }
+                        className={`h-[12px] w-[12px] shrink-0 rounded-[2px] ${getIntensity(
+                          minutes
+                        )} ${
+                          addMonthGap
+                            ? "mr-[5px]"
+                            : "mr-[2px]"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
