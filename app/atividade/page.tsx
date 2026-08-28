@@ -424,7 +424,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   ];
 
   const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-[#181a20]";
+    if (minutes <= 0) return "bg-[#17191f]";
     if (minutes < 60) return "bg-red-950";
     if (minutes < 180) return "bg-red-800";
     if (minutes < 300) return "bg-red-600";
@@ -461,23 +461,31 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return groups;
   }, [days]);
 
-  // O calendário pode atravessar 4 meses em 90 dias.
-  // A referência visual trabalha com no máximo 3 rótulos de mês:
-  // mostramos sempre os três meses mais recentes e deixamos o
-  // primeiro mês parcial sem rótulo.
-  const visibleMonthLabels = useMemo(() => {
-    const lastThree = monthGroups.slice(-3);
-    const visible = new Map<string, string>();
+  const visibleMonthGroups = useMemo(
+    () => monthGroups.slice(-3),
+    [monthGroups]
+  );
 
-    lastThree.forEach((group) => {
-      for (const day of group.days) {
-        visible.set(day, group.label);
-      }
+  const monthEndKeys = useMemo(() => {
+    const keys = new Set<string>();
+
+    visibleMonthGroups.forEach((group, index) => {
+      if (index >= visibleMonthGroups.length - 1) return;
+
+      const lastDay =
+        group.days[group.days.length - 1];
+
+      if (lastDay) keys.add(lastDay);
     });
 
-    return visible;
-  }, [monthGroups]);
+    return keys;
+  }, [visibleMonthGroups]);
 
+  /*
+   * Linguagem do mapa baseada no YourGamerProfile:
+   * quadrados pequenos, 7 linhas, leitura horizontal,
+   * sem células esticadas e com respiro sutil entre meses.
+   */
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
       <div className="flex items-start justify-between gap-4">
@@ -489,7 +497,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
             <span
               title="Cada quadrado representa um dia"
-              className="flex h-[17px] w-[17px] items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/40"
+              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/40"
             >
               i
             </span>
@@ -509,75 +517,83 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       </div>
 
       <div className="mt-5 w-full">
-        {/* O mapa usa toda a largura disponível, sem rolagem horizontal. */}
         <div className="w-full">
-          {/* MESES — apenas os 3 mais recentes */}
-          <div
-            className="mb-1 grid pl-[42px]"
-            style={{
-              gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))`,
-              columnGap: "2px",
-            }}
-          >
-            {days.map((day) => (
-              <div
-                key={`month-${day}`}
-                className="h-3 whitespace-nowrap text-[8px] font-black tracking-[0.10em] text-white/30"
-              >
-                {visibleMonthLabels.get(day) || ""}
-              </div>
-            ))}
+          {/* MESES */}
+          <div className="mb-1 flex items-end pl-[42px]">
+            {visibleMonthGroups.map((group, index) => {
+              const isLast =
+                index === visibleMonthGroups.length - 1;
+
+              return (
+                <div
+                  key={`${group.label}-${index}`}
+                  className={`shrink-0 whitespace-nowrap text-[9px] font-black tracking-[0.10em] text-white/30 ${
+                    index > 0 ? "ml-[6px]" : ""
+                  }`}
+                  style={{
+                    width: `${
+                      group.days.length * 15 +
+                      (isLast ? 0 : 6)
+                    }px`,
+                  }}
+                >
+                  {group.label}
+                </div>
+              );
+            })}
           </div>
 
-          {/* DIAS + QUADRADOS */}
+          {/* MAPA */}
           <div className="space-y-[3px]">
             {weekdays.map((weekday, rowIndex) => (
               <div
                 key={weekday}
-                className="grid items-center"
-                style={{
-                  gridTemplateColumns: `42px repeat(${days.length}, minmax(0, 1fr))`,
-                  columnGap: "2px",
-                }}
+                className="flex items-center"
               >
-                <div className="flex h-[13px] items-center justify-end pr-2 text-[9px] font-bold leading-none text-white/50">
+                <div className="w-[42px] shrink-0 pr-2 text-right text-[9px] font-semibold leading-none text-white/50">
                   {weekday}
                 </div>
 
-                {days.map((day) => {
-                  const date = new Date(`${day}T12:00:00`);
-                  const actualRow =
-                    (date.getDay() + 6) % 7;
+                <div className="flex min-w-0 flex-1 items-center">
+                  {days.map((day) => {
+                    const date = new Date(`${day}T12:00:00`);
+                    const actualRow =
+                      (date.getDay() + 6) % 7;
 
-                  const minutes =
-                    actualRow === rowIndex
-                      ? activityByDay.get(day) || 0
-                      : 0;
+                    const minutes =
+                      actualRow === rowIndex
+                        ? activityByDay.get(day) || 0
+                        : 0;
 
-                  return (
-                    <div
-                      key={`${day}-${weekday}`}
-                      title={
-                        actualRow === rowIndex
-                          ? `${day} • ${formatPlayedTime(minutes)}`
-                          : undefined
-                      }
-                      className={`h-[13px] w-full rounded-[2px] ${getIntensity(
-                        minutes
-                      )}`}
-                    />
-                  );
-                })}
+                    return (
+                      <div
+                        key={`${day}-${weekday}`}
+                        title={
+                          actualRow === rowIndex
+                            ? `${day} • ${formatPlayedTime(minutes)}`
+                            : undefined
+                        }
+                        className={`h-[13px] w-[13px] shrink-0 rounded-[2px] ${getIntensity(
+                          minutes
+                        )} ${
+                          monthEndKeys.has(day)
+                            ? "mr-[6px]"
+                            : "mr-[2px]"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
         <span>Menos tempo</span>
 
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#181a20]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
