@@ -424,7 +424,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   ];
 
   const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-[#17191f]";
+    if (minutes <= 0) return "bg-[#181a20]";
     if (minutes < 60) return "bg-red-950";
     if (minutes < 180) return "bg-red-800";
     if (minutes < 300) return "bg-red-600";
@@ -435,6 +435,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     const groups: Array<{
       label: string;
       days: string[];
+      isPartial: boolean;
     }> = [];
 
     for (const day of days) {
@@ -452,17 +453,26 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         groups.push({
           label,
           days: [day],
+          isPartial: false,
         });
       } else {
         current.days.push(day);
       }
     }
 
+    // Em 60 dias o primeiro mês é apenas um recorte parcial.
+    if (groups.length > 0) {
+      groups[0].isPartial = true;
+    }
+
     return groups;
   }, [days]);
 
   const visibleMonthGroups = useMemo(
-    () => monthGroups.slice(-3),
+    () =>
+      monthGroups
+        .filter((group) => !group.isPartial)
+        .slice(-2),
     [monthGroups]
   );
 
@@ -481,13 +491,8 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return keys;
   }, [visibleMonthGroups]);
 
-  /*
-   * Linguagem do mapa baseada no YourGamerProfile:
-   * quadrados pequenos, 7 linhas, leitura horizontal,
-   * sem células esticadas e com respiro sutil entre meses.
-   */
   return (
-    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
+    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -497,7 +502,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
             <span
               title="Cada quadrado representa um dia"
-              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/40"
+              className="flex h-[17px] w-[17px] items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/40"
             >
               i
             </span>
@@ -518,32 +523,24 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
       <div className="mt-5 w-full">
         <div className="w-full">
-          {/* MESES */}
+          {/* MESES:
+              o primeiro mês parcial fica sem rótulo;
+              os meses válidos ficam destacados acima do seu trecho. */}
           <div className="mb-1 flex items-end pl-[42px]">
-            {visibleMonthGroups.map((group, index) => {
-              const isLast =
-                index === visibleMonthGroups.length - 1;
-
-              return (
-                <div
-                  key={`${group.label}-${index}`}
-                  className={`shrink-0 whitespace-nowrap text-[9px] font-black tracking-[0.10em] text-white/30 ${
-                    index > 0 ? "ml-[6px]" : ""
-                  }`}
-                  style={{
-                    width: `${
-                      group.days.length * 15 +
-                      (isLast ? 0 : 6)
-                    }px`,
-                  }}
-                >
-                  {group.label}
-                </div>
-              );
-            })}
+            {visibleMonthGroups.map((group, index) => (
+              <div
+                key={`${group.label}-${index}`}
+                className="shrink-0 whitespace-nowrap text-[9px] font-black tracking-[0.10em] text-white/30"
+                style={{
+                  width: `${group.days.length * 15 + (index === 0 ? 7 : 0)}px`,
+                  marginLeft: index > 0 ? "7px" : "0px",
+                }}
+              >
+                {group.label}
+              </div>
+            ))}
           </div>
 
-          {/* MAPA */}
           <div className="space-y-[3px]">
             {weekdays.map((weekday, rowIndex) => (
               <div
@@ -573,11 +570,11 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                             ? `${day} • ${formatPlayedTime(minutes)}`
                             : undefined
                         }
-                        className={`h-[13px] w-[13px] shrink-0 rounded-[2px] ${getIntensity(
+                        className={`h-[14px] w-[14px] shrink-0 rounded-[2px] ${getIntensity(
                           minutes
                         )} ${
                           monthEndKeys.has(day)
-                            ? "mr-[6px]"
+                            ? "mr-[7px]"
                             : "mr-[2px]"
                         }`}
                       />
@@ -593,7 +590,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
         <span>Menos tempo</span>
 
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#181a20]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
@@ -872,7 +869,7 @@ export default function AtividadePage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1640px] grid-cols-1 lg:grid-cols-[215px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1510px] grid-cols-1 lg:grid-cols-[190px_minmax(0,1fr)]">
         {/* SIDEBAR */}
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
@@ -946,7 +943,7 @@ export default function AtividadePage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-5 py-6 md:px-7 lg:px-6">
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
           {/* HERO */}
           <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
@@ -1047,7 +1044,7 @@ export default function AtividadePage() {
           </div>
 
           {/* LAYOUT PRINCIPAL */}
-          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_390px]">
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
             {/* CONTENT */}
             <div className="min-w-0">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
