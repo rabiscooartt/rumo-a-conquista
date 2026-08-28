@@ -404,7 +404,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     const result: string[] = [];
     const today = new Date();
 
-    for (let index = 89; index >= 0; index -= 1) {
+    for (let index = 59; index >= 0; index -= 1) {
       const date = new Date(today);
       date.setDate(today.getDate() - index);
       result.push(date.toISOString().slice(0, 10));
@@ -512,7 +512,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           type="button"
           className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
         >
-          Últimos 90 dias⌄
+          Últimos 60 dias⌄
         </button>
       </div>
 
