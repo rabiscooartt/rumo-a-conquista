@@ -400,24 +400,12 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  /*
-   * 60 DIAS REAIS.
-   *
-   * O calendário usa semanas reais (Seg → Dom).
-   * Temos 60 dias de atividade + somente os espaços necessários
-   * para alinhar o primeiro/último dia às semanas.
-   *
-   * Portanto:
-   * - cada dia = 1 quadrado;
-   * - total = exatamente 60 quadrados de dados;
-   * - nenhum quadrado é duplicado;
-   * - nenhum quadrado é esticado.
-   */
+  // Mantemos os últimos 90 dias reais.
   const days = useMemo(() => {
     const result: string[] = [];
     const today = new Date();
 
-    for (let index = 59; index >= 0; index -= 1) {
+    for (let index = 89; index >= 0; index -= 1) {
       const date = new Date(today);
       date.setHours(12, 0, 0, 0);
       date.setDate(today.getDate() - index);
@@ -448,89 +436,107 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const firstDate = useMemo(
-    () => new Date(`${days[0]}T12:00:00`),
-    [days]
-  );
-
-  const firstMondayOffset =
-    (firstDate.getDay() + 6) % 7;
-
+  /*
+   * Calendário real:
+   * 1 quadrado = 1 dia.
+   *
+   * Usamos semanas como colunas e Seg → Dom como linhas.
+   * O período de 90 dias ocupa no máximo 13 semanas.
+   *
+   * IMPORTANTE PARA O VISUAL:
+   * - quadrado FIXO de 15 x 15 px;
+   * - espaço vertical das linhas permanece igual;
+   * - GAP MAIOR SOMENTE quando muda o mês.
+   */
   const calendarSlots = useMemo(() => {
+    const first = new Date(
+      `${days[0]}T12:00:00`
+    );
+
+    const mondayOffset =
+      (first.getDay() + 6) % 7;
+
     const slots: Array<string | null> =
-      Array(firstMondayOffset).fill(null);
+      Array(mondayOffset).fill(null);
 
     slots.push(...days);
 
-    while (slots.length % 7 !== 0) {
+    while (slots.length < 91) {
       slots.push(null);
     }
 
-    return slots;
-  }, [days, firstMondayOffset]);
+    return slots.slice(0, 91);
+  }, [days]);
 
-  const weeks = Math.ceil(calendarSlots.length / 7);
+  const weeks = 13;
 
   const monthByWeek = useMemo(() => {
-    const map = new Map<number, string>();
+    const result = new Map<number, string>();
+    let previousMonth = -1;
 
     for (let week = 0; week < weeks; week += 1) {
-      const weekStart =
-        calendarSlots[week * 7];
-
-      const firstRealDay =
-        calendarSlots
-          .slice(week * 7, week * 7 + 7)
-          .find(Boolean);
-
-      const day =
-        weekStart || firstRealDay;
-
-      if (!day) continue;
-
-      const date = new Date(`${day}T12:00:00`);
-
-      map.set(
-        week,
-        date
-          .toLocaleDateString("pt-BR", {
-            month: "short",
-          })
-          .replace(".", "")
-          .toUpperCase()
+      const weekDays = calendarSlots.slice(
+        week * 7,
+        week * 7 + 7
       );
-    }
 
-    return map;
-  }, [calendarSlots, weeks]);
+      const firstRealDay = weekDays.find(Boolean);
 
-  const monthBoundaryWeeks = useMemo(() => {
-    const boundaries = new Set<number>();
+      if (!firstRealDay) continue;
 
-    for (let week = 1; week < weeks; week += 1) {
-      const previousDay =
-        calendarSlots[week * 7 - 1];
+      const date = new Date(
+        `${firstRealDay}T12:00:00`
+      );
 
-      const currentDay =
-        calendarSlots[week * 7];
+      const month = date.getMonth();
 
-      if (!previousDay || !currentDay) continue;
+      if (month !== previousMonth) {
+        result.set(
+          week,
+          date
+            .toLocaleDateString("pt-BR", {
+              month: "short",
+            })
+            .replace(".", "")
+            .toUpperCase()
+        );
 
-      const previousMonth = new Date(
-        `${previousDay}T12:00:00`
-      ).getMonth();
-
-      const currentMonth = new Date(
-        `${currentDay}T12:00:00`
-      ).getMonth();
-
-      if (previousMonth !== currentMonth) {
-        boundaries.add(week);
+        previousMonth = month;
       }
     }
 
-    return boundaries;
-  }, [calendarSlots, weeks]);
+    return result;
+  }, [calendarSlots]);
+
+  const monthBoundaryWeeks = useMemo(() => {
+    const result = new Set<number>();
+
+    for (let week = 1; week < weeks; week += 1) {
+      const previousWeekDay =
+        calendarSlots[week * 7 - 1];
+
+      const currentWeekDay =
+        calendarSlots[week * 7];
+
+      if (!previousWeekDay || !currentWeekDay) {
+        continue;
+      }
+
+      const previousMonth = new Date(
+        `${previousWeekDay}T12:00:00`
+      ).getMonth();
+
+      const currentMonth = new Date(
+        `${currentWeekDay}T12:00:00`
+      ).getMonth();
+
+      if (previousMonth !== currentMonth) {
+        result.add(week);
+      }
+    }
+
+    return result;
+  }, [calendarSlots]);
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
@@ -558,93 +564,119 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           type="button"
           className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
         >
-          Últimos 60 dias⌄
+          Últimos 90 dias⌄
         </button>
       </div>
 
-      <div className="mt-5 w-full overflow-hidden">
-        <div
-          className="grid w-fit max-w-full"
-          style={{
-            gridTemplateColumns: `42px repeat(${weeks}, 14px)`,
-            columnGap: "3px",
-            rowGap: "3px",
-          }}
-        >
+      <div className="mt-5 overflow-hidden">
+        <div className="mx-auto w-fit max-w-full">
           {/* MESES */}
-          <div />
+          <div className="flex">
+            <div className="w-[42px] shrink-0" />
 
-          {Array.from({ length: weeks }).map(
-            (_, weekIndex) => (
-              <div
-                key={`month-${weekIndex}`}
-                className={`h-4 whitespace-nowrap text-[9px] font-black tracking-[0.10em] text-white/35 ${
-                  monthBoundaryWeeks.has(weekIndex)
-                    ? "ml-[6px]"
-                    : ""
-                }`}
-              >
-                {monthByWeek.get(weekIndex) || ""}
-              </div>
-            )
-          )}
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns:
+                  `repeat(${weeks}, 15px)`,
+                columnGap: "4px",
+              }}
+            >
+              {Array.from({
+                length: weeks,
+              }).map((_, weekIndex) => (
+                <div
+                  key={`month-${weekIndex}`}
+                  className={`h-4 whitespace-nowrap text-[9px] font-black tracking-[0.12em] text-white/35 ${
+                    monthBoundaryWeeks.has(weekIndex)
+                      ? "ml-[8px]"
+                      : ""
+                  }`}
+                >
+                  {monthByWeek.get(weekIndex) || ""}
+                </div>
+              ))}
+            </div>
+          </div>
 
-          {/* DIAS */}
-          {weekdays.map(
-            (weekday, rowIndex) => (
-              <div key={weekday} className="contents">
-                <div className="flex h-[14px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55">
+          {/* MAPA */}
+          <div className="flex">
+            <div className="w-[42px] shrink-0 space-y-[3px]">
+              {weekdays.map((weekday) => (
+                <div
+                  key={weekday}
+                  className="flex h-[15px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55"
+                >
                   {weekday}
                 </div>
+              ))}
+            </div>
 
-                {Array.from({
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns:
+                  `repeat(${weeks}, 15px)`,
+                gridTemplateRows:
+                  "repeat(7, 15px)",
+                columnGap: "4px",
+                rowGap: "3px",
+              }}
+            >
+              {Array.from({
+                length: 7,
+              }).flatMap((_, rowIndex) =>
+                Array.from({
                   length: weeks,
-                }).map((_, weekIndex) => {
-                  const day =
-                    calendarSlots[
-                      weekIndex * 7 +
-                        rowIndex
-                    ];
+                }).map(
+                  (_, weekIndex) => {
+                    const day =
+                      calendarSlots[
+                        weekIndex * 7 +
+                          rowIndex
+                      ];
 
-                  if (!day) {
+                    const addMonthGap =
+                      monthBoundaryWeeks.has(
+                        weekIndex
+                      );
+
+                    if (!day) {
+                      return (
+                        <div
+                          key={`empty-${rowIndex}-${weekIndex}`}
+                          className={`h-[15px] w-[15px] ${
+                            addMonthGap
+                              ? "ml-[8px]"
+                              : ""
+                          }`}
+                        />
+                      );
+                    }
+
+                    const minutes =
+                      activityByDay.get(day) || 0;
+
                     return (
                       <div
-                        key={`empty-${weekday}-${weekIndex}`}
-                        className={`h-[14px] w-[14px] ${
-                          monthBoundaryWeeks.has(
-                            weekIndex
-                          )
-                            ? "ml-[6px]"
+                        key={day}
+                        title={`${day} • ${formatPlayedTime(
+                          minutes
+                        )}`}
+                        className={`h-[15px] w-[15px] rounded-[3px] ${getIntensity(
+                          minutes
+                        )} ${
+                          addMonthGap
+                            ? "ml-[8px]"
                             : ""
                         }`}
                       />
                     );
                   }
-
-                  const minutes =
-                    activityByDay.get(day) || 0;
-
-                  return (
-                    <div
-                      key={`${weekday}-${day}`}
-                      title={`${day} • ${formatPlayedTime(
-                        minutes
-                      )}`}
-                      className={`h-[14px] w-[14px] shrink-0 rounded-[2px] ${getIntensity(
-                        minutes
-                      )} ${
-                        monthBoundaryWeeks.has(
-                          weekIndex
-                        )
-                          ? "ml-[6px]"
-                          : ""
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-            )
-          )}
+                )
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
