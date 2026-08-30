@@ -499,8 +499,8 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           className="grid w-full"
           style={{
             gridTemplateColumns: `42px repeat(${days.length}, minmax(0, 1fr))`,
-            columnGap: "2px",
-            rowGap: "3px",
+            columnGap: "3px",
+            rowGap: "4px",
           }}
         >
           {/* Cabeçalho dos meses alinhado às mesmas colunas do mapa. */}
@@ -523,7 +523,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
           {weekdays.map((weekday, rowIndex) => (
             <div key={weekday} className="contents">
-              <div className="flex h-[13px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/50">
+              <div className="flex h-[13px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55">
                 {weekday}
               </div>
 
@@ -545,7 +545,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         ? `${day} • ${formatPlayedTime(minutes)}`
                         : undefined
                     }
-                    className={`aspect-square w-full min-w-0 rounded-[2px] ${getIntensity(
+                    className={`aspect-square w-full min-w-0 rounded-[3px] ${getIntensity(
                       minutes
                     )}`}
                   />
