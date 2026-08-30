@@ -431,13 +431,13 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const monthGroups = useMemo(() => {
-    const groups: Array<{
+  const monthMarkers = useMemo(() => {
+    const markers: Array<{
       label: string;
-      startIndex: number;
+      index: number;
     }> = [];
 
-    let previousLabel = "";
+    let previousMonth = "";
 
     days.forEach((day, index) => {
       const date = new Date(`${day}T12:00:00`);
@@ -448,20 +448,30 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         .replace(".", "")
         .toUpperCase();
 
-      if (label !== previousLabel) {
-        groups.push({
+      if (label !== previousMonth) {
+        markers.push({
           label,
-          startIndex: index,
+          index,
         });
 
-        previousLabel = label;
+        previousMonth = label;
       }
     });
 
-    // O período de 60 dias pode começar no fim de um mês.
-    // Para evitar um rótulo parcial e manter a leitura limpa,
-    // mostramos apenas os dois meses completos/úteis do período.
-    return groups.slice(-2);
+    // O primeiro mês é um recorte parcial do período de 60 dias.
+    // Para manter a leitura limpa, ele fica sem rótulo.
+    return markers
+      .filter((marker) => marker.index > 0)
+      .slice(-2);
+  }, [days]);
+
+  const augustStartIndex = useMemo(() => {
+    const index = days.findIndex((day) => {
+      const date = new Date(`${day}T12:00:00`);
+      return date.getMonth() === 7;
+    });
+
+    return index;
   }, [days]);
 
   return (
@@ -494,40 +504,43 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </button>
       </div>
 
-      <div className="mt-5 w-full overflow-hidden">
+      <div className="mt-5 w-full">
+        {/* Cabeçalho dos meses — somente JUL e AGO. */}
+        <div className="relative mb-1 ml-[42px] h-4">
+          {monthMarkers.map((marker) => (
+            <span
+              key={`${marker.label}-${marker.index}`}
+              className="absolute top-0 text-[9px] font-black tracking-[0.12em] text-white/35"
+              style={{
+                left: `calc(${marker.index} * (100% / ${days.length}))`,
+                transform:
+                  marker.index === augustStartIndex
+                    ? "translateX(6px)"
+                    : "none",
+              }}
+            >
+              {marker.label}
+            </span>
+          ))}
+        </div>
+
+        {/* MAPA — apenas o pequeno espaçamento entre JUL e AGO.
+            O espaçamento vertical das linhas permanece idêntico. */}
         <div
-          className="grid w-full"
+          className="grid"
           style={{
             gridTemplateColumns: `42px repeat(${days.length}, minmax(0, 1fr))`,
-            columnGap: "3px",
-            rowGap: "4px",
+            columnGap: "1px",
+            rowGap: "3px",
           }}
         >
-          {/* Cabeçalho dos meses alinhado às mesmas colunas do mapa. */}
-          <div />
-
-          {days.map((day, index) => {
-            const month = monthGroups.find(
-              (group) => group.startIndex === index
-            );
-
-            return (
-              <div
-                key={`month-${day}`}
-                className="h-3 overflow-visible whitespace-nowrap text-[8px] font-black tracking-[0.10em] text-white/30"
-              >
-                {month?.label || ""}
-              </div>
-            );
-          })}
-
           {weekdays.map((weekday, rowIndex) => (
             <div key={weekday} className="contents">
-              <div className="flex h-[13px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55">
+              <div className="flex h-[14px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55">
                 {weekday}
               </div>
 
-              {days.map((day) => {
+              {days.map((day, dayIndex) => {
                 const date = new Date(`${day}T12:00:00`);
                 const actualRow =
                   (date.getDay() + 6) % 7;
@@ -537,18 +550,29 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                     ? activityByDay.get(day) || 0
                     : 0;
 
+                const isFirstAugust =
+                  dayIndex === augustStartIndex;
+
                 return (
                   <div
                     key={`${day}-${weekday}`}
-                    title={
-                      actualRow === rowIndex
-                        ? `${day} • ${formatPlayedTime(minutes)}`
-                        : undefined
-                    }
-                    className={`aspect-square w-full min-w-0 rounded-[3px] ${getIntensity(
-                      minutes
-                    )}`}
-                  />
+                    className="flex h-[14px] w-full items-center justify-start"
+                  >
+                    <div
+                      title={
+                        actualRow === rowIndex
+                          ? `${day} • ${formatPlayedTime(minutes)}`
+                          : undefined
+                      }
+                      className={`h-[12px] w-[12px] shrink-0 rounded-[2px] ${getIntensity(
+                        minutes
+                      )} ${
+                        isFirstAugust
+                          ? "ml-[6px]"
+                          : ""
+                      }`}
+                    />
+                  </div>
                 );
               })}
             </div>
