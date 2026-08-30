@@ -400,22 +400,65 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  // Mantemos os últimos 90 dias reais.
-  const days = useMemo(() => {
-    const result: string[] = [];
-    const today = new Date();
+  /*
+   * MAPA VISUAL DEFINITIVO:
+   * 60 quadrados reais = 30 dias de JULHO + 30 dias de AGOSTO.
+   *
+   * Cada quadrado aparece uma única vez.
+   * Os espaços transparentes dentro da grade existem apenas para que
+   * o quadrado ocupe a posição correta em Seg → Dom.
+   */
+  const months = useMemo(() => {
+    const createMonth = (
+      year: number,
+      month: number,
+      count: number,
+      label: string
+    ) => {
+      const days: string[] = [];
 
-    for (let index = 89; index >= 0; index -= 1) {
-      const date = new Date(today);
-      date.setHours(12, 0, 0, 0);
-      date.setDate(today.getDate() - index);
+      for (let day = 1; day <= count; day += 1) {
+        const date = new Date(
+          year,
+          month,
+          day,
+          12,
+          0,
+          0,
+          0
+        );
 
-      result.push(
-        date.toISOString().slice(0, 10)
+        days.push(
+          date.toISOString().slice(0, 10)
+        );
+      }
+
+      const firstDate = new Date(
+        `${days[0]}T12:00:00`
       );
-    }
 
-    return result;
+      const mondayOffset =
+        (firstDate.getDay() + 6) % 7;
+
+      const slots: Array<string | null> =
+        Array(mondayOffset).fill(null);
+
+      slots.push(...days);
+
+      while (slots.length < 35) {
+        slots.push(null);
+      }
+
+      return {
+        label,
+        slots: slots.slice(0, 35),
+      };
+    };
+
+    return [
+      createMonth(2026, 6, 30, "JUL"),
+      createMonth(2026, 7, 30, "AGO"),
+    ];
   }, []);
 
   const weekdays = [
@@ -436,108 +479,6 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  /*
-   * Calendário real:
-   * 1 quadrado = 1 dia.
-   *
-   * Usamos semanas como colunas e Seg → Dom como linhas.
-   * O período de 90 dias ocupa no máximo 13 semanas.
-   *
-   * IMPORTANTE PARA O VISUAL:
-   * - quadrado FIXO de 15 x 15 px;
-   * - espaço vertical das linhas permanece igual;
-   * - GAP MAIOR SOMENTE quando muda o mês.
-   */
-  const calendarSlots = useMemo(() => {
-    const first = new Date(
-      `${days[0]}T12:00:00`
-    );
-
-    const mondayOffset =
-      (first.getDay() + 6) % 7;
-
-    const slots: Array<string | null> =
-      Array(mondayOffset).fill(null);
-
-    slots.push(...days);
-
-    while (slots.length < 91) {
-      slots.push(null);
-    }
-
-    return slots.slice(0, 91);
-  }, [days]);
-
-  const weeks = 13;
-
-  const monthByWeek = useMemo(() => {
-    const result = new Map<number, string>();
-    let previousMonth = -1;
-
-    for (let week = 0; week < weeks; week += 1) {
-      const weekDays = calendarSlots.slice(
-        week * 7,
-        week * 7 + 7
-      );
-
-      const firstRealDay = weekDays.find(Boolean);
-
-      if (!firstRealDay) continue;
-
-      const date = new Date(
-        `${firstRealDay}T12:00:00`
-      );
-
-      const month = date.getMonth();
-
-      if (month !== previousMonth) {
-        result.set(
-          week,
-          date
-            .toLocaleDateString("pt-BR", {
-              month: "short",
-            })
-            .replace(".", "")
-            .toUpperCase()
-        );
-
-        previousMonth = month;
-      }
-    }
-
-    return result;
-  }, [calendarSlots]);
-
-  const monthBoundaryWeeks = useMemo(() => {
-    const result = new Set<number>();
-
-    for (let week = 1; week < weeks; week += 1) {
-      const previousWeekDay =
-        calendarSlots[week * 7 - 1];
-
-      const currentWeekDay =
-        calendarSlots[week * 7];
-
-      if (!previousWeekDay || !currentWeekDay) {
-        continue;
-      }
-
-      const previousMonth = new Date(
-        `${previousWeekDay}T12:00:00`
-      ).getMonth();
-
-      const currentMonth = new Date(
-        `${currentWeekDay}T12:00:00`
-      ).getMonth();
-
-      if (previousMonth !== currentMonth) {
-        result.add(week);
-      }
-    }
-
-    return result;
-  }, [calendarSlots]);
-
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
       <div className="flex items-start justify-between gap-4">
@@ -548,7 +489,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
             </h2>
 
             <span
-              title="Cada quadrado representa um dia"
+              title="60 dias: 30 de julho + 30 de agosto"
               className="flex h-[17px] w-[17px] items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/40"
             >
               i
@@ -564,92 +505,56 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           type="button"
           className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
         >
-          Últimos 90 dias⌄
+          Últimos 60 dias⌄
         </button>
       </div>
 
       <div className="mt-5 overflow-hidden">
         <div className="mx-auto w-fit max-w-full">
           {/* MESES */}
-          <div className="flex">
-            <div className="w-[42px] shrink-0" />
-
-            <div
-              className="grid"
-              style={{
-                gridTemplateColumns:
-                  `repeat(${weeks}, 15px)`,
-                columnGap: "4px",
-              }}
-            >
-              {Array.from({
-                length: weeks,
-              }).map((_, weekIndex) => (
-                <div
-                  key={`month-${weekIndex}`}
-                  className={`h-4 whitespace-nowrap text-[9px] font-black tracking-[0.12em] text-white/35 ${
-                    monthBoundaryWeeks.has(weekIndex)
-                      ? "ml-[8px]"
-                      : ""
-                  }`}
-                >
-                  {monthByWeek.get(weekIndex) || ""}
-                </div>
-              ))}
-            </div>
+          <div className="mb-2 flex pl-[42px]">
+            {months.map((month, index) => (
+              <div
+                key={month.label}
+                className={`w-[125px] shrink-0 text-[9px] font-black tracking-[0.12em] text-white/35 ${
+                  index > 0 ? "ml-[14px]" : ""
+                }`}
+              >
+                {month.label}
+              </div>
+            ))}
           </div>
 
-          {/* MAPA */}
+          {/* MAPA:
+              exatamente 7 linhas de semana e 5 semanas por mês.
+              Os quadrados são SEMPRE 17x17.
+              O único espaço maior é entre JUL e AGO. */}
           <div className="flex">
-            <div className="w-[42px] shrink-0 space-y-[3px]">
+            <div className="w-[42px] shrink-0 space-y-[4px]">
               {weekdays.map((weekday) => (
                 <div
                   key={weekday}
-                  className="flex h-[15px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55"
+                  className="flex h-[17px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55"
                 >
                   {weekday}
                 </div>
               ))}
             </div>
 
-            <div
-              className="grid"
-              style={{
-                gridTemplateColumns:
-                  `repeat(${weeks}, 15px)`,
-                gridTemplateRows:
-                  "repeat(7, 15px)",
-                columnGap: "4px",
-                rowGap: "3px",
-              }}
-            >
-              {Array.from({
-                length: 7,
-              }).flatMap((_, rowIndex) =>
-                Array.from({
-                  length: weeks,
-                }).map(
-                  (_, weekIndex) => {
-                    const day =
-                      calendarSlots[
-                        weekIndex * 7 +
-                          rowIndex
-                      ];
-
-                    const addMonthGap =
-                      monthBoundaryWeeks.has(
-                        weekIndex
-                      );
-
+            <div className="flex items-start">
+              {months.map((month, monthIndex) => (
+                <div
+                  key={month.label}
+                  className={`grid h-fit w-[125px] shrink-0 grid-cols-5 grid-rows-7 gap-[4px] ${
+                    monthIndex > 0 ? "ml-[14px]" : ""
+                  }`}
+                >
+                  {month.slots.map((day, slotIndex) => {
                     if (!day) {
                       return (
                         <div
-                          key={`empty-${rowIndex}-${weekIndex}`}
-                          className={`h-[15px] w-[15px] ${
-                            addMonthGap
-                              ? "ml-[8px]"
-                              : ""
-                          }`}
+                          key={`${month.label}-empty-${slotIndex}`}
+                          className="h-[17px] w-[17px]"
                         />
                       );
                     }
@@ -663,18 +568,14 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         title={`${day} • ${formatPlayedTime(
                           minutes
                         )}`}
-                        className={`h-[15px] w-[15px] rounded-[3px] ${getIntensity(
+                        className={`h-[17px] w-[17px] rounded-[3px] ${getIntensity(
                           minutes
-                        )} ${
-                          addMonthGap
-                            ? "ml-[8px]"
-                            : ""
-                        }`}
+                        )}`}
                       />
                     );
-                  }
-                )
-              )}
+                  })}
+                </div>
+              ))}
             </div>
           </div>
         </div>
