@@ -400,7 +400,14 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  // Regra visual fechada: 60 dias reais = 30 JUL + 30 AGO.
+  /*
+   * Regra definitiva:
+   * 60 quadrados reais = 30 JUL + 30 AGO.
+   *
+   * Os dias são distribuídos em duas grades de calendário.
+   * As células vazias existem somente para o alinhamento da semana;
+   * elas não representam dias adicionais.
+   */
   const months = useMemo(() => {
     const buildMonth = (
       year: number,
@@ -425,12 +432,12 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         );
       }
 
-      const first = new Date(
+      const firstDate = new Date(
         `${days[0]}T12:00:00`
       );
 
       const mondayOffset =
-        (first.getDay() + 6) % 7;
+        (firstDate.getDay() + 6) % 7;
 
       const slots: Array<string | null> =
         Array(mondayOffset).fill(null);
@@ -493,62 +500,71 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           </p>
         </div>
 
-        <span className="rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-[7px] font-black text-white/35">
+        <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-[7px] font-black text-white/35">
           JUL + AGO
         </span>
       </div>
 
       <div className="mt-4">
+        {/* Cabeçalho dos dois meses. */}
         <div className="grid grid-cols-[31px_minmax(0,1fr)]">
-          {/* Dias da semana ficam fixos à esquerda. */}
-          <div className="pt-5">
-            <div className="space-y-[3px]">
-              {weekdays.map((weekday) => (
-                <div
-                  key={weekday}
-                  className="flex h-[11px] items-center justify-end pr-2 text-[7px] font-bold leading-none text-white/45"
-                >
-                  {weekday}
-                </div>
-              ))}
-            </div>
+          <div />
+
+          <div className="grid grid-cols-2 gap-[12px]">
+            {months.map((month) => (
+              <div
+                key={month.label}
+                className="text-[8px] font-black tracking-[0.12em] text-white/35"
+              >
+                {month.label}
+              </div>
+            ))}
           </div>
 
-          {/* Dois meses lado a lado: 30 quadrados reais por mês. */}
-          <div className="grid grid-cols-2 gap-[10px]">
+          {/* Dias da semana — exatamente a mesma altura das linhas do calendário. */}
+          <div className="mt-1 space-y-[3px]">
+            {weekdays.map((weekday) => (
+              <div
+                key={weekday}
+                className="flex h-[15px] items-center justify-end pr-2 text-[8px] font-bold leading-none text-white/45"
+              >
+                {weekday}
+              </div>
+            ))}
+          </div>
+
+          {/* Duas grades alinhadas: 30 quadrados em JUL + 30 em AGO. */}
+          <div className="mt-1 grid grid-cols-2 gap-[12px]">
             {months.map((month) => (
-              <div key={month.label} className="min-w-0">
-                <div className="mb-2 text-[8px] font-black tracking-[0.12em] text-white/35">
-                  {month.label}
-                </div>
-
-                <div className="grid grid-cols-5 grid-rows-7 gap-[2px]">
-                  {month.slots.map((day, index) => {
-                    if (!day) {
-                      return (
-                        <div
-                          key={`${month.label}-empty-${index}`}
-                          className="aspect-square w-full"
-                        />
-                      );
-                    }
-
-                    const minutes =
-                      activityByDay.get(day) || 0;
-
+              <div
+                key={`${month.label}-calendar`}
+                className="grid w-fit grid-cols-5 grid-rows-7 gap-[3px]"
+              >
+                {month.slots.map((day, index) => {
+                  if (!day) {
                     return (
                       <div
-                        key={day}
-                        title={`${day} • ${formatPlayedTime(
-                          minutes
-                        )}`}
-                        className={`aspect-square w-full rounded-[2px] ${getIntensity(
-                          minutes
-                        )}`}
+                        key={`${month.label}-empty-${index}`}
+                        className="h-[15px] w-[15px]"
                       />
                     );
-                  })}
-                </div>
+                  }
+
+                  const minutes =
+                    activityByDay.get(day) || 0;
+
+                  return (
+                    <div
+                      key={day}
+                      title={`${day} • ${formatPlayedTime(
+                        minutes
+                      )}`}
+                      className={`h-[15px] w-[15px] rounded-[3px] ${getIntensity(
+                        minutes
+                      )}`}
+                    />
+                  );
+                })}
               </div>
             ))}
           </div>
