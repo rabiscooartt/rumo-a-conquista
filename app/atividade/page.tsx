@@ -400,12 +400,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  /*
-   * Dois meses automáticos:
-   * mês anterior + mês atual.
-   * Cada dia real = 1 quadrado.
-   * O calendário muda sozinho conforme o número real de dias do mês.
-   */
+  // Dois meses automáticos: anterior + atual.
   const months = useMemo(() => {
     const today = new Date();
 
@@ -486,13 +481,13 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       };
     };
 
-    const currentMonth = new Date(
+    const current = new Date(
       today.getFullYear(),
       today.getMonth(),
       1
     );
 
-    const previousMonth = new Date(
+    const previous = new Date(
       today.getFullYear(),
       today.getMonth() - 1,
       1
@@ -500,12 +495,12 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
     return [
       buildMonth(
-        previousMonth.getFullYear(),
-        previousMonth.getMonth()
+        previous.getFullYear(),
+        previous.getMonth()
       ),
       buildMonth(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth()
+        current.getFullYear(),
+        current.getMonth()
       ),
     ];
   }, []);
@@ -529,19 +524,18 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   };
 
   const cellSize = 13;
-  const cellGap = 2;
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-center justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <h2 className="truncate text-[15px] font-black tracking-[0.01em] text-white/95">
+            <h2 className="truncate text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
               Mapa de atividade
             </h2>
 
             <span
-              title="Calendário automático: 1 quadrado representa 1 dia"
+              title="Calendário automático"
               className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/50"
             >
               i
@@ -558,21 +552,35 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </span>
       </div>
 
-      <div className="mt-4 flex justify-center">
-        <div className="grid grid-cols-2 gap-[12px]">
-          {months.map((month) => (
-            <div
-              key={`${month.year}-${month.month}`}
-              className="min-w-0"
-            >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[9px] font-black tracking-[0.12em] text-white/50">
-                  {month.label}
-                </span>
+      <div className="mt-4 grid grid-cols-2 gap-[12px]">
+        {months.map((month) => (
+          <div
+            key={`${month.year}-${month.month}`}
+            className="min-w-0"
+          >
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="text-[9px] font-black tracking-[0.12em] text-white/55">
+                {month.label}
+              </span>
 
-                <span className="text-[7px] font-bold text-white/30">
-                  {month.days.length}
-                </span>
+              <span className="text-[7px] font-bold text-white/35">
+                {month.days.length} dias
+              </span>
+            </div>
+
+            <div className="grid grid-cols-[22px_minmax(0,1fr)]">
+              <div className="space-y-[2px]">
+                {weekdays.map((weekday) => (
+                  <div
+                    key={`${month.label}-${weekday}`}
+                    className="flex items-center justify-end pr-1.5 text-[7px] font-bold leading-none text-white/50"
+                    style={{
+                      height: `${cellSize}px`,
+                    }}
+                  >
+                    {weekday.charAt(0)}
+                  </div>
+                ))}
               </div>
 
               <div
@@ -580,8 +588,8 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                 style={{
                   gridTemplateColumns: `repeat(${month.weeks}, ${cellSize}px)`,
                   gridTemplateRows: `repeat(7, ${cellSize}px)`,
-                  columnGap: `${cellGap}px`,
-                  rowGap: `${cellGap}px`,
+                  columnGap: "2px",
+                  rowGap: "2px",
                 }}
               >
                 {Array.from({ length: 7 }).flatMap(
@@ -622,19 +630,17 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                 )}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/35">
         <span>Menos</span>
-
         <span className="h-2.5 w-2.5 rounded-[2px] bg-[#171a21]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
-
         <span>Mais</span>
       </div>
     </section>
@@ -697,11 +703,11 @@ function ActivityRow({
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
       <div>
-        <p className="text-[27px] font-black leading-none tracking-tight text-white md:text-[29px]">
+        <p className="text-[28px] font-black leading-none tracking-tight text-white md:text-[30px]">
           {date.getDate()}
         </p>
 
-        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.10em] text-red-400">
+        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.08em] text-red-400">
           {getMonthShort(entry.date)}
         </p>
       </div>
@@ -726,7 +732,7 @@ function ActivityRow({
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-white/55 md:text-[12px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/60 md:text-[13px]">
             <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
@@ -948,7 +954,7 @@ export default function AtividadePage() {
                   Seu espaço
                 </p>
 
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
+                <p className="mt-3 text-[12px] font-medium leading-relaxed text-white/50">
                   Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
                 </p>
               </div>
@@ -998,7 +1004,7 @@ export default function AtividadePage() {
 
             <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-red-400">
                   Sua trajetória
                 </p>
 
@@ -1006,7 +1012,7 @@ export default function AtividadePage() {
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
+                <p className="mt-3 max-w-[560px] text-[15px] font-medium leading-relaxed text-white/60 md:text-[16px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
@@ -1306,10 +1312,11 @@ export default function AtividadePage() {
                 <div className="flex items-center justify-between">
                   <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
                     <span className="h-4 w-0.5 rounded-full bg-red-500" />
+                    <span className="h-4 w-0.5 rounded-full bg-red-500" />
                     Resumo da atividade
                   </h2>
 
-                  <IconFlame className="h-4 w-4 text-red-500" />
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10"><IconFlame className="h-4 w-4 text-red-400" /></span>
                 </div>
 
                 <div className="mt-3 space-y-3">
@@ -1385,6 +1392,7 @@ export default function AtividadePage() {
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
                   <span className="h-4 w-0.5 rounded-full bg-red-500" />
                   Distribuição de tempo por jogo
                 </h2>
@@ -1479,6 +1487,7 @@ export default function AtividadePage() {
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
                   <span className="h-4 w-0.5 rounded-full bg-red-500" />
                   Atividade recente
                 </h2>
