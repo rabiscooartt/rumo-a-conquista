@@ -544,7 +544,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
             <span
               title="Dois meses automáticos do calendário"
-              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-[8px] font-black text-white/35"
+              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-[9px] font-black text-white/35"
             >
               i
             </span>
@@ -677,17 +677,17 @@ function Metric({
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${styles[tone]}`}
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${styles[tone]}`}
       >
         {icon}
       </div>
 
       <div className="min-w-0">
-        <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/35">
+        <p className="text-[9px] font-black uppercase tracking-[0.13em] text-white/45">
           {label}
         </p>
 
-        <p className="mt-0.5 truncate text-[17px] font-black text-white">
+        <p className="mt-0.5 truncate text-[18px] font-black text-white">
           {value}
         </p>
       </div>
@@ -740,7 +740,7 @@ function ActivityRow({
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-medium text-white/45 md:text-[11px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-white/55 md:text-[12px]">
             <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
@@ -763,7 +763,7 @@ function ActivityRow({
           {formatPlayedTime(entry.playedMinutes)}
         </p>
 
-        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
+        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.10em] text-white/35">
           Tempo jogado
         </p>
       </div>
@@ -945,7 +945,7 @@ export default function AtividadePage() {
                   <Link
                     key={String(href)}
                     href={String(href)}
-                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[11px] font-bold transition ${
+                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[12px] font-bold transition ${
                       href === "/atividade"
                         ? "bg-red-500/10 text-red-300"
                         : "text-white/50 hover:bg-white/[0.03] hover:text-white"
@@ -958,11 +958,11 @@ export default function AtividadePage() {
               </nav>
 
               <div className="mt-8 border-t border-white/[0.08] pt-6">
-                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">
                   Seu espaço
                 </p>
 
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
+                <p className="mt-3 text-[12px] font-medium leading-relaxed text-white/48">
                   Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
                 </p>
               </div>
@@ -971,7 +971,7 @@ export default function AtividadePage() {
             <div className="mt-auto space-y-2 pt-8">
               <Link
                 href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
+                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
               >
                 <IconTarget className="h-4 w-4" />
                 Configurações
@@ -979,7 +979,7 @@ export default function AtividadePage() {
 
               <button
                 type="button"
-                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
+                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
               >
                 <span className="text-sm">↪</span>
                 Sair
@@ -1012,7 +1012,7 @@ export default function AtividadePage() {
 
             <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-red-400">
                   Sua trajetória
                 </p>
 
@@ -1078,7 +1078,7 @@ export default function AtividadePage() {
               </div>
 
               <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
-                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
+                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-red-300">
                   Sequência atual
                 </p>
 
@@ -1111,7 +1111,7 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[11px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"
@@ -1140,13 +1140,13 @@ export default function AtividadePage() {
                         setSearch(event.target.value)
                       }
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[10px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3.5 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[12px] font-black text-white/50"
                   >
                     <IconCalendar className="h-3.5 w-3.5" />
                     Todos os Meses ▾
@@ -1154,7 +1154,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[12px] font-black text-white/50"
                   >
                     <IconGamepad className="h-3.5 w-3.5" />
                     Todas as Plataformas ▾
@@ -1163,7 +1163,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/55">
+                    <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.14em] text-white/65">
                       Atividades recentes
                     </p>
 
@@ -1174,11 +1174,11 @@ export default function AtividadePage() {
                           className="mt-4"
                         >
                           <div className="mb-2 flex items-center justify-between px-1">
-                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/75">
+                            <h2 className="text-[12px] font-black uppercase tracking-[0.10em] text-white/80">
                               {month}
                             </h2>
 
-                            <span className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
+                            <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/35">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1299,7 +1299,7 @@ export default function AtividadePage() {
                   <div className="p-3">
                     <div className="rounded-xl border border-white/[0.08] p-10 text-center">
                       <IconFile className="mx-auto h-6 w-6 text-white/25" />
-                      <p className="mt-3 text-[11px] font-black text-white/50">
+                      <p className="mt-3 text-[12px] font-black text-white/50">
                         Reviews
                       </p>
                       <p className="mt-1 text-[9px] text-white/25">
@@ -1318,7 +1318,8 @@ export default function AtividadePage() {
               <ActivityMap entries={sourceEntries} />
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[14px] font-black uppercase text-white/90">
+                  <h2 className="flex items-center gap-2 text-[15px] font-black tracking-[0.02em] text-white/95">
+                    <span className="h-4 w-0.5 rounded-full bg-red-500" />
                     Resumo da atividade
                   </h2>
 
@@ -1383,12 +1384,12 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[10px] font-medium text-white/45">
+                        <span className="truncate text-[11px] font-medium text-white/55">
                           {label}
                         </span>
                       </div>
 
-                      <strong className="shrink-0 text-[11px] font-black text-white">
+                      <strong className="shrink-0 text-[12px] font-black text-white">
                         {value}
                       </strong>
                     </div>
@@ -1397,7 +1398,8 @@ export default function AtividadePage() {
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="text-[14px] font-black uppercase text-white/90">
+                <h2 className="flex items-center gap-2 text-[15px] font-black tracking-[0.02em] text-white/95">
+                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
                   Distribuição de tempo por jogo
                 </h2>
 
@@ -1466,12 +1468,12 @@ export default function AtividadePage() {
                               }`}
                             />
 
-                            <p className="truncate text-[8px] font-bold text-white/55">
+                            <p className="truncate text-[9px] font-bold text-white/65">
                               {item.title}
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[7px] text-white/25">
+                          <p className="ml-4 mt-0.5 text-[8px] text-white/35">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
@@ -1490,7 +1492,8 @@ export default function AtividadePage() {
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="text-[14px] font-black uppercase text-white/90">
+                <h2 className="flex items-center gap-2 text-[15px] font-black tracking-[0.02em] text-white/95">
+                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
                   Atividade recente
                 </h2>
 
@@ -1498,7 +1501,7 @@ export default function AtividadePage() {
                   {sourceEntries.slice(0, 5).map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
+                      className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
                     >
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-300">
                         <IconGamepad className="h-3.5 w-3.5" />
