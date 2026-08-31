@@ -401,38 +401,23 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   }, [entries]);
 
   /*
-   * MAPA AUTOMÁTICO POR CALENDÁRIO
+   * MAPA VISUAL DEFINITIVO:
+   * 60 quadrados reais = 30 dias de JULHO + 30 dias de AGOSTO.
    *
-   * Exibe sempre os DOIS MESES mais recentes do calendário:
-   * - mês anterior
-   * - mês atual
-   *
-   * O número real de dias é calculado automaticamente.
-   * Portanto, meses com 31 têm 31 quadrados, fevereiro tem 28/29 etc.
-   *
-   * 1 quadrado = 1 dia.
-   * Não existem quadrados duplicados para completar linhas.
+   * Cada quadrado aparece uma única vez.
+   * Os espaços transparentes dentro da grade existem apenas para que
+   * o quadrado ocupe a posição correta em Seg → Dom.
    */
   const months = useMemo(() => {
-    const today = new Date();
-
-    const buildMonth = (
+    const createMonth = (
       year: number,
-      month: number
+      month: number,
+      count: number,
+      label: string
     ) => {
-      const lastDay = new Date(
-        year,
-        month + 1,
-        0
-      ).getDate();
-
       const days: string[] = [];
 
-      for (
-        let day = 1;
-        day <= lastDay;
-        day += 1
-      ) {
+      for (let day = 1; day <= count; day += 1) {
         const date = new Date(
           year,
           month,
@@ -460,64 +445,19 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
       slots.push(...days);
 
-      /*
-       * Preenche apenas posições de calendário,
-       * nunca cria dias extras.
-       */
-      const weeks = Math.ceil(
-        slots.length / 7
-      );
-
-      while (slots.length < weeks * 7) {
+      while (slots.length < 35) {
         slots.push(null);
       }
 
-      const label = new Date(
-        year,
-        month,
-        1,
-        12,
-        0,
-        0,
-        0
-      )
-        .toLocaleDateString("pt-BR", {
-          month: "short",
-        })
-        .replace(".", "")
-        .toUpperCase();
-
       return {
-        year,
-        month,
         label,
-        days,
-        slots,
-        weeks,
+        slots: slots.slice(0, 35),
       };
     };
 
-    const currentMonth = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      1
-    );
-
-    const previousMonth = new Date(
-      today.getFullYear(),
-      today.getMonth() - 1,
-      1
-    );
-
     return [
-      buildMonth(
-        previousMonth.getFullYear(),
-        previousMonth.getMonth()
-      ),
-      buildMonth(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth()
-      ),
+      createMonth(2026, 6, 30, "JUL"),
+      createMonth(2026, 7, 30, "AGO"),
     ];
   }, []);
 
@@ -540,121 +480,117 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   };
 
   return (
-    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-      <div className="flex items-center justify-between gap-2.5">
+    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-[13px] font-black uppercase tracking-wide text-white/90">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[18px] font-black tracking-tight text-white">
               Mapa de atividade
             </h2>
 
             <span
-              title="Mapa automático por mês"
-              className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-[8px] font-black text-white/35"
+              title="60 dias: 30 de julho + 30 de agosto"
+              className="flex h-[17px] w-[17px] items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/40"
             >
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[8px] font-medium text-white/30">
-            Cada quadrado representa um dia.
+          <p className="mt-1 text-[10px] font-medium text-white/40">
+            Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
           </p>
         </div>
 
-        <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.02] px-2 py-1 text-[7px] font-black text-white/35">
-          2 MESES
-        </span>
+        <button
+          type="button"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45"
+        >
+          Últimos 60 dias⌄
+        </button>
       </div>
 
-      <div className="mt-4 space-y-3">
-        {months.map((month, monthIndex) => (
-          <div key={`${month.year}-${month.month}`}>
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-[8px] font-black tracking-[0.12em] text-white/35">
+      <div className="mt-5 overflow-hidden">
+        <div className="mx-auto w-fit max-w-full">
+          {/* MESES */}
+          <div className="mb-2 flex pl-[42px]">
+            {months.map((month, index) => (
+              <div
+                key={month.label}
+                className={`w-[125px] shrink-0 text-[9px] font-black tracking-[0.12em] text-white/35 ${
+                  index > 0 ? "ml-[14px]" : ""
+                }`}
+              >
                 {month.label}
-              </span>
+              </div>
+            ))}
+          </div>
 
-              <span className="text-[6px] font-bold text-white/20">
-                {month.days.length} dias
-              </span>
+          {/* MAPA:
+              exatamente 7 linhas de semana e 5 semanas por mês.
+              Os quadrados são SEMPRE 17x17.
+              O único espaço maior é entre JUL e AGO. */}
+          <div className="flex">
+            <div className="w-[42px] shrink-0 space-y-[4px]">
+              {weekdays.map((weekday) => (
+                <div
+                  key={weekday}
+                  className="flex h-[17px] items-center justify-end pr-2 text-[9px] font-semibold leading-none text-white/55"
+                >
+                  {weekday}
+                </div>
+              ))}
             </div>
 
-            <div className="grid grid-cols-[24px_minmax(0,1fr)]">
-              <div className="space-y-[2px]">
-                {weekdays.map((weekday) => (
-                  <div
-                    key={`${month.label}-${weekday}`}
-                    className="flex h-[11px] items-center justify-end pr-1.5 text-[6px] font-bold leading-none text-white/40"
-                  >
-                    {weekday.charAt(0)}
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-start">
+              {months.map((month, monthIndex) => (
+                <div
+                  key={month.label}
+                  className={`grid h-fit w-[125px] shrink-0 grid-cols-5 grid-rows-7 gap-[4px] ${
+                    monthIndex > 0 ? "ml-[14px]" : ""
+                  }`}
+                >
+                  {month.slots.map((day, slotIndex) => {
+                    if (!day) {
+                      return (
+                        <div
+                          key={`${month.label}-empty-${slotIndex}`}
+                          className="h-[17px] w-[17px]"
+                        />
+                      );
+                    }
 
-              <div
-                className="grid"
-                style={{
-                  gridTemplateColumns: `repeat(${month.weeks}, 11px)`,
-                  gridTemplateRows: "repeat(7, 11px)",
-                  columnGap: "2px",
-                  rowGap: "2px",
-                }}
-              >
-                {Array.from({ length: 7 }).flatMap(
-                  (_, rowIndex) =>
-                    Array.from({
-                      length: month.weeks,
-                    }).map(
-                      (_, weekIndex) => {
-                        const slotIndex =
-                          weekIndex * 7 +
-                          rowIndex;
+                    const minutes =
+                      activityByDay.get(day) || 0;
 
-                        const day =
-                          month.slots[slotIndex];
-
-                        if (!day) {
-                          return (
-                            <div
-                              key={`empty-${monthIndex}-${rowIndex}-${weekIndex}`}
-                              className="h-[11px] w-[11px]"
-                            />
-                          );
-                        }
-
-                        const minutes =
-                          activityByDay.get(day) || 0;
-
-                        return (
-                          <div
-                            key={day}
-                            title={`${day} • ${formatPlayedTime(
-                              minutes
-                            )}`}
-                            className={`h-[11px] w-[11px] rounded-[2px] ${getIntensity(
-                              minutes
-                            )}`}
-                          />
-                        );
-                      }
-                    )
-                )}
-              </div>
+                    return (
+                      <div
+                        key={day}
+                        title={`${day} • ${formatPlayedTime(
+                          minutes
+                        )}`}
+                        className={`h-[17px] w-[17px] rounded-[3px] ${getIntensity(
+                          minutes
+                        )}`}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-1 text-[7px] font-bold text-white/25">
-        <span>Menos</span>
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
+        <span>Menos tempo</span>
 
-        <span className="h-2 w-2 rounded-[1px] bg-[#181a20]" />
-        <span className="h-2 w-2 rounded-[1px] bg-red-950" />
-        <span className="h-2 w-2 rounded-[1px] bg-red-800" />
-        <span className="h-2 w-2 rounded-[1px] bg-red-600" />
-        <span className="h-2 w-2 rounded-[1px] bg-red-500" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#181a20]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
 
-        <span>Mais</span>
+        <span>Mais tempo</span>
       </div>
     </section>
   );
@@ -1099,6 +1035,11 @@ export default function AtividadePage() {
             </div>
           </header>
 
+          {/* MAPA DE ATIVIDADE — ACIMA DO LAYOUT PRINCIPAL */}
+          <div className="mt-4">
+            <ActivityMap entries={sourceEntries} />
+          </div>
+
               <div className="mt-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
@@ -1320,7 +1261,6 @@ export default function AtividadePage() {
             {/* SIDEBAR DIREITA */}
 {/* RIGHT */}
             <aside className="space-y-3 xl:sticky xl:top-20">
-              <ActivityMap entries={sourceEntries} />
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[14px] font-black uppercase text-white/90">
