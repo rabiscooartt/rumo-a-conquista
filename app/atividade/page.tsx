@@ -227,29 +227,29 @@ function IconClock(props: { className?: string }) {
       <circle
         cx="12"
         cy="12"
-        r="8.75"
+        r="8.6"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.9"
       />
       <path
-        d="M12 7V12L15.5 14"
+        d="M12 7.1V12L15.35 14"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.1"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <circle
         cx="12"
         cy="12"
-        r="1.35"
+        r="1.6"
         fill="currentColor"
       />
       <path
-        d="M12 2.75V4M21.25 12H19.9M12 21.25V19.9M2.75 12H4.1"
+        d="M12 3V4.2M21 12H19.8M12 21V19.8M3 12H4.2"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.4"
         strokeLinecap="round"
-        opacity="0.55"
+        opacity="0.5"
       />
     </SvgIcon>
   );
@@ -258,24 +258,24 @@ function IconCalendar(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <rect
-        x="3.75"
+        x="4"
         y="5.5"
-        width="16.5"
-        height="14.25"
+        width="16"
+        height="14.5"
         rx="3"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.9"
       />
       <path
-        d="M7.5 3.75V7.25M16.5 3.75V7.25M4.25 9.75H19.75"
+        d="M7.5 3.8V7.1M16.5 3.8V7.1M4.5 9.5H19.5"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.9"
         strokeLinecap="round"
       />
       <path
         d="M8 13H8.01M12 13H12.01M16 13H16.01M8 16.5H8.01M12 16.5H12.01"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
     </SvgIcon>
@@ -285,28 +285,27 @@ function IconTrophy(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M8 4.25H16V9.4C16 12.5 14.4 14.75 12 14.75C9.6 14.75 8 12.5 8 9.4V4.25Z"
+        d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z"
         stroke="currentColor"
-        strokeWidth="1.85"
+        strokeWidth="1.9"
         strokeLinejoin="round"
       />
       <path
-        d="M8 6H5.8C4.85 6 4.25 6.65 4.25 7.55V8.25C4.25 10.65 5.95 12.2 8 12.45M16 6H18.2C19.15 6 19.75 6.65 19.75 7.55V8.25C19.75 10.65 18.05 12.2 16 12.45"
+        d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45"
         stroke="currentColor"
-        strokeWidth="1.85"
+        strokeWidth="1.9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M12 14.75V18.25M8.5 20H15.5"
+        d="M12 14.65V18.2M8.3 20H15.7"
         stroke="currentColor"
-        strokeWidth="1.85"
+        strokeWidth="1.9"
         strokeLinecap="round"
       />
       <path
-        d="M12 6.6L12.7 8L14.25 8.2L13.1 9.25L13.4 10.8L12 10.05L10.6 10.8L10.9 9.25L9.75 8.2L11.3 8L12 6.6Z"
+        d="M12 6.6L12.75 8.05L14.35 8.28L13.17 9.38L13.45 10.95L12 10.2L10.55 10.95L10.83 9.38L9.65 8.28L11.25 8.05L12 6.6Z"
         fill="currentColor"
-        opacity="0.9"
       />
     </SvgIcon>
   );
@@ -314,43 +313,20 @@ function IconTrophy(props: { className?: string }) {
 function IconTrend(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <rect
-        x="4"
-        y="13.5"
-        width="3.25"
-        height="6.25"
-        rx="1"
-        fill="currentColor"
-        opacity="0.5"
-      />
-      <rect
-        x="10.35"
-        y="9.5"
-        width="3.25"
-        height="10.25"
-        rx="1"
-        fill="currentColor"
-        opacity="0.72"
-      />
-      <rect
-        x="16.7"
-        y="5.5"
-        width="3.25"
-        height="14.25"
-        rx="1"
-        fill="currentColor"
-      />
+      <rect x="4" y="14" width="3" height="5.5" rx="1" fill="currentColor" opacity="0.4" />
+      <rect x="10.5" y="10" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.7" />
+      <rect x="17" y="5.5" width="3" height="14" rx="1" fill="currentColor" />
       <path
-        d="M4.75 10.5L9.25 6.75L13 9.75L19.25 4.75"
+        d="M4.5 10.8L9.2 6.9L13 9.8L19.5 4.5"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.75 4.75H19.25V8.25"
+        d="M16 4.5H19.5V8"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -360,30 +336,17 @@ function IconTrend(props: { className?: string }) {
 function IconTarget(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle
-        cx="12"
-        cy="12"
-        r="8.7"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="5"
-        stroke="currentColor"
-        strokeWidth="1.55"
-        opacity="0.8"
-      />
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="5.1" stroke="currentColor" strokeWidth="1.55" opacity="0.75" />
       <path
-        d="M12 7.25V16.75M7.25 12H16.75"
+        d="M12 7.3V16.7M7.3 12H16.7"
         stroke="currentColor"
         strokeWidth="1.45"
         strokeLinecap="round"
-        opacity="0.55"
+        opacity="0.5"
       />
       <path
-        d="M12 9.25L14.75 12L12 14.75L9.25 12L12 9.25Z"
+        d="M12 9.2L14.8 12L12 14.8L9.2 12L12 9.2Z"
         fill="currentColor"
       />
     </SvgIcon>
@@ -393,11 +356,11 @@ function IconFlame(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M13.1 3.75C14.05 6.65 12.25 8.15 11.25 9.6C10.45 10.8 10.8 12.1 12.15 12.1C13.5 12.1 14.35 11.2 14.2 9.7C17.15 11.45 18.6 14 18.6 16.45C18.6 19.75 15.8 21.65 12.25 21.65C8.25 21.65 5.4 19.25 5.4 15.95C5.4 12.45 7.8 10.1 9.65 7.9C10.6 6.75 11.15 5.35 11.1 3.2C11.85 3.25 12.55 3.4 13.1 3.75Z"
+        d="M13.2 3.5C14.05 6.25 12.4 7.95 11.3 9.45C10.45 10.6 10.8 11.95 12.15 11.95C13.45 11.95 14.25 10.95 14.15 9.55C16.95 11.3 18.55 13.7 18.55 16.35C18.55 19.65 15.75 21.7 12.25 21.7C8.25 21.7 5.45 19.25 5.45 15.95C5.45 12.65 7.55 10.35 9.45 8.05C10.45 6.85 11 5.3 10.95 3.2C11.8 3.2 12.65 3.3 13.2 3.5Z"
         fill="currentColor"
       />
       <path
-        d="M11.9 13.35C10.9 14.55 10.35 15.4 10.35 16.35C10.35 17.55 11.15 18.3 12.3 18.3C13.55 18.3 14.35 17.55 14.35 16.35C14.35 15.45 13.8 14.7 12.95 13.95"
+        d="M12.1 13.35C11.05 14.65 10.55 15.45 10.55 16.35C10.55 17.55 11.3 18.3 12.35 18.3C13.55 18.3 14.25 17.55 14.25 16.4C14.25 15.5 13.75 14.75 12.95 14.05"
         stroke="#090b0f"
         strokeWidth="1.45"
         strokeLinecap="round"
@@ -616,7 +579,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
             </span>
           </div>
 
-          <p className="mt-1 text-[9px] font-medium text-white/45">
+          <p className="mt-1 text-[10px] font-medium text-white/50">
             1 quadrado = 1 dia
           </p>
         </div>
@@ -727,16 +690,16 @@ function PremiumIconBadge({
   } as const;
 
   const sizes = {
-    sm: "h-10 w-10 rounded-[13px]",
-    md: "h-12 w-12 rounded-[14px]",
+    sm: "h-10 w-10 rounded-[12px]",
+    md: "h-12 w-12 rounded-[13px]",
   } as const;
 
   return (
     <div
       className={`relative flex shrink-0 items-center justify-center border ${sizes[size]} ${styles[tone]}`}
     >
-      <span className="absolute inset-[3px] rounded-[10px] border border-white/[0.06]" />
-      <span className="absolute inset-[6px] rounded-[8px] border border-current/10" />
+      <span className="absolute inset-[3px] rounded-[9px] border border-white/[0.07]" />
+      <span className="absolute inset-[6px] rounded-[7px] border border-current/10 opacity-80" />
       <span className="relative">
         {children}
       </span>
@@ -763,7 +726,7 @@ function Metric({
       </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="text-[10px] font-black uppercase tracking-[0.10em] text-white/55">
+        <p className="text-[10px] font-black uppercase tracking-[0.09em] text-white/60">
           {label}
         </p>
 
@@ -1259,7 +1222,7 @@ export default function AtividadePage() {
                               {month}
                             </h2>
 
-                            <span className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
+                            <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/38">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1353,7 +1316,7 @@ export default function AtividadePage() {
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-[13px] font-black text-white">
+                              <p className="truncate text-[14px] font-black text-white">
                                 {achievement.title ||
                                   "Conquista"}
                               </p>
