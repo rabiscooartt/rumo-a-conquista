@@ -579,7 +579,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
             </span>
           </div>
 
-          <p className="mt-1 text-[10px] font-medium text-white/50">
+          <p className="mt-1 text-[9px] font-medium text-white/45">
             1 quadrado = 1 dia
           </p>
         </div>
@@ -683,26 +683,24 @@ function PremiumIconBadge({
   size?: "sm" | "md";
 }) {
   const styles = {
-    red: "border-red-500/25 bg-red-500/[0.11] text-red-300 shadow-[inset_0_0_12px_rgba(239,36,50,0.10)]",
-    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300 shadow-[inset_0_0_12px_rgba(56,189,248,0.08)]",
-    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300 shadow-[inset_0_0_12px_rgba(167,139,250,0.08)]",
-    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300 shadow-[inset_0_0_12px_rgba(52,211,153,0.08)]",
+    red: "border-red-500/25 bg-red-500/[0.11] text-red-300",
+    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300",
+    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300",
+    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300",
   } as const;
 
   const sizes = {
-    sm: "h-10 w-10 rounded-[12px]",
-    md: "h-12 w-12 rounded-[13px]",
+    sm: "h-9 w-9 rounded-[11px]",
+    md: "h-11 w-11 rounded-[12px]",
   } as const;
 
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center border ${sizes[size]} ${styles[tone]}`}
+      className={`relative flex shrink-0 items-center justify-center border shadow-[inset_0_0_12px_rgba(255,255,255,0.025)] ${sizes[size]} ${styles[tone]}`}
     >
       <span className="absolute inset-[3px] rounded-[9px] border border-white/[0.07]" />
-      <span className="absolute inset-[6px] rounded-[7px] border border-current/10 opacity-80" />
-      <span className="relative">
-        {children}
-      </span>
+      <span className="absolute inset-[6px] rounded-[7px] border border-current/10" />
+      <span className="relative">{children}</span>
     </div>
   );
 }
@@ -720,17 +718,17 @@ function Metric({
   tone: "red" | "blue" | "violet" | "green";
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3">
+    <div className="flex min-w-0 items-center gap-2.5">
       <PremiumIconBadge tone={tone}>
         {icon}
       </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="text-[10px] font-black uppercase tracking-[0.09em] text-white/60">
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.10em] text-white/55">
           {label}
         </p>
 
-        <p className="mt-1 truncate text-[20px] font-black leading-none tracking-tight text-white">
+        <p className="mt-1 truncate text-[18px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
       </div>
@@ -1068,22 +1066,16 @@ export default function AtividadePage() {
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
-                <div className="mt-5 flex flex-wrap items-center gap-5 border-t border-white/10 pt-4">
+                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
                   <Metric
-                    icon={
-                      <IconCalendar className="h-4 w-4" />
-                    }
+                    icon={<IconCalendar className="h-[18px] w-[18px]" />}
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
                     tone="red"
                   />
 
-                  <div className="hidden h-8 w-px bg-white/10 sm:block" />
-
                   <Metric
-                    icon={
-                      <IconClock className="h-4 w-4" />
-                    }
+                    icon={<IconClock className="h-[18px] w-[18px]" />}
                     label="Tempo jogado"
                     value={
                       isLoaded
@@ -1093,12 +1085,8 @@ export default function AtividadePage() {
                     tone="blue"
                   />
 
-                  <div className="hidden h-8 w-px bg-white/10 sm:block" />
-
                   <Metric
-                    icon={
-                      <IconTrend className="h-4 w-4" />
-                    }
+                    icon={<IconTrend className="h-[18px] w-[18px]" />}
                     label="Média por dia"
                     value={
                       isLoaded
@@ -1108,12 +1096,8 @@ export default function AtividadePage() {
                     tone="violet"
                   />
 
-                  <div className="hidden h-8 w-px bg-white/10 sm:block" />
-
                   <Metric
-                    icon={
-                      <IconGamepad className="h-4 w-4" />
-                    }
+                    icon={<IconGamepad className="h-[18px] w-[18px]" />}
                     label="Jogos"
                     value={isLoaded ? differentGames : "..."}
                     tone="green"
@@ -1316,7 +1300,7 @@ export default function AtividadePage() {
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-[14px] font-black text-white">
+                              <p className="truncate text-[13px] font-black text-white">
                                 {achievement.title ||
                                   "Conquista"}
                               </p>
