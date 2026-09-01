@@ -195,7 +195,7 @@ function IconHome(props: { className?: string }) {
       <path
         d="M3.5 10.5L12 3.5L20.5 10.5V20H14.8V14H9.2V20H3.5V10.5Z"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.9"
         strokeLinejoin="round"
       />
     </SvgIcon>
@@ -208,13 +208,13 @@ function IconGamepad(props: { className?: string }) {
       <path
         d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth="1.8"
         strokeLinejoin="round"
       />
       <path
         d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
     </SvgIcon>
@@ -227,73 +227,128 @@ function IconClock(props: { className?: string }) {
       <circle
         cx="12"
         cy="12"
-        r="8.5"
+        r="8.75"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.8"
       />
       <path
-        d="M12 7.5V12L15.5 14"
+        d="M12 7V12L15.5 14"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
         strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="1.35"
+        fill="currentColor"
+      />
+      <path
+        d="M12 2.75V4M21.25 12H19.9M12 21.25V19.9M2.75 12H4.1"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.55"
       />
     </SvgIcon>
   );
 }
-
 function IconCalendar(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <rect
-        x="3.5"
-        y="5"
-        width="17"
-        height="15.5"
-        rx="2.5"
+        x="3.75"
+        y="5.5"
+        width="16.5"
+        height="14.25"
+        rx="3"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.8"
       />
       <path
-        d="M7.5 3.5V7M16.5 3.5V7M3.5 9.5H20.5"
+        d="M7.5 3.75V7.25M16.5 3.75V7.25M4.25 9.75H19.75"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 13H8.01M12 13H12.01M16 13H16.01M8 16.5H8.01M12 16.5H12.01"
+        stroke="currentColor"
+        strokeWidth="2.25"
         strokeLinecap="round"
       />
     </SvgIcon>
   );
 }
-
 function IconTrophy(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M8 4H16V9.5C16 12.4 14.4 14.5 12 14.5C9.6 14.5 8 12.4 8 9.5V4Z"
+        d="M8 4.25H16V9.4C16 12.5 14.4 14.75 12 14.75C9.6 14.75 8 12.5 8 9.4V4.25Z"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.85"
+        strokeLinejoin="round"
       />
       <path
-        d="M8 6H5.5C4.7 6 4 6.7 4 7.5V8.5C4 10.7 5.8 12.5 8 12.5M16 6H18.5C19.3 6 20 6.7 20 7.5V8.5C20 10.7 18.2 12.5 16 12.5M12 14.5V18.5M8.5 20H15.5"
+        d="M8 6H5.8C4.85 6 4.25 6.65 4.25 7.55V8.25C4.25 10.65 5.95 12.2 8 12.45M16 6H18.2C19.15 6 19.75 6.65 19.75 7.55V8.25C19.75 10.65 18.05 12.2 16 12.45"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.85"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      <path
+        d="M12 14.75V18.25M8.5 20H15.5"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 6.6L12.7 8L14.25 8.2L13.1 9.25L13.4 10.8L12 10.05L10.6 10.8L10.9 9.25L9.75 8.2L11.3 8L12 6.6Z"
+        fill="currentColor"
+        opacity="0.9"
       />
     </SvgIcon>
   );
 }
-
 function IconTrend(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
+      <rect
+        x="4"
+        y="13.5"
+        width="3.25"
+        height="6.25"
+        rx="1"
+        fill="currentColor"
+        opacity="0.5"
+      />
+      <rect
+        x="10.35"
+        y="9.5"
+        width="3.25"
+        height="10.25"
+        rx="1"
+        fill="currentColor"
+        opacity="0.72"
+      />
+      <rect
+        x="16.7"
+        y="5.5"
+        width="3.25"
+        height="14.25"
+        rx="1"
+        fill="currentColor"
+      />
       <path
-        d="M4 16L9 11L13 15L20 7"
+        d="M4.75 10.5L9.25 6.75L13 9.75L19.25 4.75"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.5 7H20V11.5"
+        d="M15.75 4.75H19.25V8.25"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
@@ -302,42 +357,55 @@ function IconTrend(props: { className?: string }) {
     </SvgIcon>
   );
 }
-
 function IconTarget(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <circle
         cx="12"
         cy="12"
-        r="8.5"
+        r="8.7"
         stroke="currentColor"
         strokeWidth="1.7"
       />
       <circle
         cx="12"
         cy="12"
-        r="4.5"
+        r="5"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.55"
+        opacity="0.8"
       />
-      <circle cx="12" cy="12" r="1.4" fill="currentColor" />
+      <path
+        d="M12 7.25V16.75M7.25 12H16.75"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+      <path
+        d="M12 9.25L14.75 12L12 14.75L9.25 12L12 9.25Z"
+        fill="currentColor"
+      />
     </SvgIcon>
   );
 }
-
 function IconFlame(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M13.5 4.5C13.9 7.3 11.8 8.3 10.7 10.1C9.6 11.9 10.1 14 12 14C13.8 14 15 12.8 14.7 11.1C17.3 13 18.5 15 18.5 17C18.5 20.1 15.9 22 12.2 22C8.2 22 5.5 19.7 5.5 16C5.5 12.8 7.6 10.5 9.8 8.2C10.6 7.3 11.1 6.1 11.2 4C12.1 4.1 12.9 4.3 13.5 4.5Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
+        d="M13.1 3.75C14.05 6.65 12.25 8.15 11.25 9.6C10.45 10.8 10.8 12.1 12.15 12.1C13.5 12.1 14.35 11.2 14.2 9.7C17.15 11.45 18.6 14 18.6 16.45C18.6 19.75 15.8 21.65 12.25 21.65C8.25 21.65 5.4 19.25 5.4 15.95C5.4 12.45 7.8 10.1 9.65 7.9C10.6 6.75 11.15 5.35 11.1 3.2C11.85 3.25 12.55 3.4 13.1 3.75Z"
+        fill="currentColor"
+      />
+      <path
+        d="M11.9 13.35C10.9 14.55 10.35 15.4 10.35 16.35C10.35 17.55 11.15 18.3 12.3 18.3C13.55 18.3 14.35 17.55 14.35 16.35C14.35 15.45 13.8 14.7 12.95 13.95"
+        stroke="#090b0f"
+        strokeWidth="1.45"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </SvgIcon>
   );
 }
-
 function IconSearch(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
@@ -368,12 +436,12 @@ function IconFile(props: { className?: string }) {
         height="17"
         rx="2"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.9"
       />
       <path
         d="M8.5 8H15.5M8.5 11.5H15.5M8.5 15H12.5"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.9"
         strokeLinecap="round"
       />
     </SvgIcon>
@@ -400,7 +468,12 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  // Dois meses automáticos: anterior + atual.
+  /*
+   * Dois meses automáticos:
+   * mês anterior + mês atual.
+   * Cada dia real = 1 quadrado.
+   * O calendário muda sozinho conforme o número real de dias do mês.
+   */
   const months = useMemo(() => {
     const today = new Date();
 
@@ -481,13 +554,13 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       };
     };
 
-    const current = new Date(
+    const currentMonth = new Date(
       today.getFullYear(),
       today.getMonth(),
       1
     );
 
-    const previous = new Date(
+    const previousMonth = new Date(
       today.getFullYear(),
       today.getMonth() - 1,
       1
@@ -495,12 +568,12 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
     return [
       buildMonth(
-        previous.getFullYear(),
-        previous.getMonth()
+        previousMonth.getFullYear(),
+        previousMonth.getMonth()
       ),
       buildMonth(
-        current.getFullYear(),
-        current.getMonth()
+        currentMonth.getFullYear(),
+        currentMonth.getMonth()
       ),
     ];
   }, []);
@@ -524,18 +597,19 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   };
 
   const cellSize = 13;
+  const cellGap = 2;
 
   return (
     <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-      <div className="flex items-center justify-between gap-2.5">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <h2 className="truncate text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
+            <h2 className="truncate text-[15px] font-black tracking-[0.01em] text-white/95">
               Mapa de atividade
             </h2>
 
             <span
-              title="Calendário automático"
+              title="Calendário automático: 1 quadrado representa 1 dia"
               className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/50"
             >
               i
@@ -552,35 +626,21 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-[12px]">
-        {months.map((month) => (
-          <div
-            key={`${month.year}-${month.month}`}
-            className="min-w-0"
-          >
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-[9px] font-black tracking-[0.12em] text-white/55">
-                {month.label}
-              </span>
+      <div className="mt-4 flex justify-center">
+        <div className="grid grid-cols-2 gap-[12px]">
+          {months.map((month) => (
+            <div
+              key={`${month.year}-${month.month}`}
+              className="min-w-0"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-[9px] font-black tracking-[0.12em] text-white/50">
+                  {month.label}
+                </span>
 
-              <span className="text-[7px] font-bold text-white/35">
-                {month.days.length} dias
-              </span>
-            </div>
-
-            <div className="grid grid-cols-[22px_minmax(0,1fr)]">
-              <div className="space-y-[2px]">
-                {weekdays.map((weekday) => (
-                  <div
-                    key={`${month.label}-${weekday}`}
-                    className="flex items-center justify-end pr-1.5 text-[7px] font-bold leading-none text-white/50"
-                    style={{
-                      height: `${cellSize}px`,
-                    }}
-                  >
-                    {weekday.charAt(0)}
-                  </div>
-                ))}
+                <span className="text-[7px] font-bold text-white/30">
+                  {month.days.length}
+                </span>
               </div>
 
               <div
@@ -588,8 +648,8 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                 style={{
                   gridTemplateColumns: `repeat(${month.weeks}, ${cellSize}px)`,
                   gridTemplateRows: `repeat(7, ${cellSize}px)`,
-                  columnGap: "2px",
-                  rowGap: "2px",
+                  columnGap: `${cellGap}px`,
+                  rowGap: `${cellGap}px`,
                 }}
               >
                 {Array.from({ length: 7 }).flatMap(
@@ -630,22 +690,60 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                 )}
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/35">
         <span>Menos</span>
+
         <span className="h-2.5 w-2.5 rounded-[2px] bg-[#171a21]" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
+
         <span>Mais</span>
       </div>
     </section>
   );
 }
+
+
+function PremiumIconBadge({
+  children,
+  tone,
+  size = "md",
+}: {
+  children: ReactNode;
+  tone: "red" | "blue" | "violet" | "green";
+  size?: "sm" | "md";
+}) {
+  const styles = {
+    red: "border-red-500/25 bg-red-500/[0.11] text-red-300 shadow-[inset_0_0_12px_rgba(239,36,50,0.10)]",
+    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300 shadow-[inset_0_0_12px_rgba(56,189,248,0.08)]",
+    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300 shadow-[inset_0_0_12px_rgba(167,139,250,0.08)]",
+    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300 shadow-[inset_0_0_12px_rgba(52,211,153,0.08)]",
+  } as const;
+
+  const sizes = {
+    sm: "h-10 w-10 rounded-[13px]",
+    md: "h-12 w-12 rounded-[14px]",
+  } as const;
+
+  return (
+    <div
+      className={`relative flex shrink-0 items-center justify-center border ${sizes[size]} ${styles[tone]}`}
+    >
+      <span className="absolute inset-[3px] rounded-[10px] border border-white/[0.06]" />
+      <span className="absolute inset-[6px] rounded-[8px] border border-current/10" />
+      <span className="relative">
+        {children}
+      </span>
+    </div>
+  );
+}
+
 
 function Metric({
   icon,
@@ -658,34 +756,25 @@ function Metric({
   value: string | number;
   tone: "red" | "blue" | "violet" | "green";
 }) {
-  const styles = {
-    red: "border-red-500/20 bg-red-500/10 text-red-400",
-    blue: "border-sky-500/20 bg-sky-500/10 text-sky-400",
-    violet: "border-violet-500/20 bg-violet-500/10 text-violet-400",
-    green:
-      "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-  } as const;
-
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${styles[tone]}`}
-      >
+    <div className="flex min-w-0 items-center gap-3">
+      <PremiumIconBadge tone={tone}>
         {icon}
-      </div>
+      </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/35">
+        <p className="text-[10px] font-black uppercase tracking-[0.10em] text-white/55">
           {label}
         </p>
 
-        <p className="mt-0.5 truncate text-[17px] font-black text-white">
+        <p className="mt-1 truncate text-[20px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
       </div>
     </div>
   );
 }
+
 
 /* ---------- ATIVIDADE ---------- */
 
@@ -703,11 +792,11 @@ function ActivityRow({
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
       <div>
-        <p className="text-[28px] font-black leading-none tracking-tight text-white md:text-[30px]">
+        <p className="text-[27px] font-black leading-none tracking-tight text-white md:text-[29px]">
           {date.getDate()}
         </p>
 
-        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.08em] text-red-400">
+        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.10em] text-red-400">
           {getMonthShort(entry.date)}
         </p>
       </div>
@@ -732,7 +821,7 @@ function ActivityRow({
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/60 md:text-[13px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-white/55 md:text-[12px]">
             <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
@@ -954,7 +1043,7 @@ export default function AtividadePage() {
                   Seu espaço
                 </p>
 
-                <p className="mt-3 text-[12px] font-medium leading-relaxed text-white/50">
+                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
                   Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
                 </p>
               </div>
@@ -1004,7 +1093,7 @@ export default function AtividadePage() {
 
             <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-red-400">
+                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
 
@@ -1012,7 +1101,7 @@ export default function AtividadePage() {
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[15px] font-medium leading-relaxed text-white/60 md:text-[16px]">
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
@@ -1311,12 +1400,11 @@ export default function AtividadePage() {
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
                   <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                    <span className="h-4 w-0.5 rounded-full bg-red-500" />
-                    <span className="h-4 w-0.5 rounded-full bg-red-500" />
+                    <span className="h-5 w-0.5 rounded-full bg-red-500" />
                     Resumo da atividade
                   </h2>
 
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10"><IconFlame className="h-4 w-4 text-red-400" /></span>
+                  <IconFlame className="h-4 w-4 text-red-500" />
                 </div>
 
                 <div className="mt-3 space-y-3">
@@ -1392,8 +1480,7 @@ export default function AtividadePage() {
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
-                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
                   Distribuição de tempo por jogo
                 </h2>
 
@@ -1487,8 +1574,7 @@ export default function AtividadePage() {
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
-                  <span className="h-4 w-0.5 rounded-full bg-red-500" />
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
                   Atividade recente
                 </h2>
 
