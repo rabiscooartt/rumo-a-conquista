@@ -1038,8 +1038,9 @@ export default function AtividadePage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-8">
+          <div className="mx-auto w-full max-w-[1280px]">
+            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
@@ -1556,6 +1557,7 @@ export default function AtividadePage() {
                 </div>
               </section>
             </aside>
+          </div>
           </div>
         </div>
       </div>
