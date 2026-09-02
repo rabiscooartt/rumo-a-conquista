@@ -44,9 +44,9 @@ function formatPlayedTime(minutes = 0) {
   const hours = Math.floor(safe / 60);
   const mins = safe % 60;
 
-  if (hours <= 0) return `${mins}min`;
-  if (mins <= 0) return `${hours}h`;
-  return `${hours}h ${mins}min`;
+  if (hours <= 0) return `${mins}M`;
+  if (mins <= 0) return `${hours}H`;
+  return `${hours}H ${mins}M`;
 }
 
 function normalizeKey(value?: string) {
@@ -573,18 +573,18 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
             <span
               title="Calendário automático: 1 quadrado representa 1 dia"
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/50"
+              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/60"
             >
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[9px] font-medium text-white/45">
+          <p className="mt-1 text-[10px] font-medium text-white/60">
             1 quadrado = 1 dia
           </p>
         </div>
 
-        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-[8px] font-black tracking-[0.04em] text-white/45">
+        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-[9px] font-black tracking-[0.04em] text-white/60">
           2 MESES
         </span>
       </div>
@@ -597,11 +597,11 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
               className="min-w-0"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[9px] font-black tracking-[0.12em] text-white/50">
+                <span className="text-[10px] font-black tracking-[0.12em] text-white/65">
                   {month.label}
                 </span>
 
-                <span className="text-[7px] font-bold text-white/30">
+                <span className="text-[9px] font-bold text-white/50">
                   {month.days.length}
                 </span>
               </div>
@@ -657,7 +657,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/35">
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[9px] font-bold text-white/50">
         <span>Menos</span>
 
         <span className="h-2.5 w-2.5 rounded-[2px] bg-[#171a21]" />
@@ -724,7 +724,7 @@ function Metric({
       </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[9px] font-black uppercase tracking-[0.10em] text-white/55">
+        <p className="truncate text-[10px] font-black uppercase tracking-[0.10em] text-white/70">
           {label}
         </p>
 
@@ -771,7 +771,7 @@ function ActivityRow({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-[8px] font-black text-white/25">
+            <div className="flex h-full items-center justify-center text-[9px] font-black text-white/45">
               RC
             </div>
           )}
@@ -782,7 +782,7 @@ function ActivityRow({
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-white/55 md:text-[12px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/70 md:text-[13px]">
             <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
@@ -805,7 +805,7 @@ function ActivityRow({
           {formatPlayedTime(entry.playedMinutes)}
         </p>
 
-        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
+        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/50">
           Tempo jogado
         </p>
       </div>
@@ -1000,11 +1000,11 @@ export default function AtividadePage() {
               </nav>
 
               <div className="mt-8 border-t border-white/[0.08] pt-6">
-                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-white/50">
                   Seu espaço
                 </p>
 
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
+                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/60">
                   Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
                 </p>
               </div>
@@ -1038,9 +1038,8 @@ export default function AtividadePage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-8">
-          <div className="mx-auto w-full max-w-[1280px]">
-            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
@@ -1055,7 +1054,7 @@ export default function AtividadePage() {
 
             <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
 
@@ -1063,7 +1062,7 @@ export default function AtividadePage() {
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/65 md:text-[15px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
@@ -1107,7 +1106,7 @@ export default function AtividadePage() {
               </div>
 
               <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
-                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
+                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">
                   Sequência atual
                 </p>
 
@@ -1115,8 +1114,8 @@ export default function AtividadePage() {
                   <span className="text-3xl font-black text-white">
                     {currentStreak}
                   </span>
-                  <span className="pb-1 text-[10px] font-bold text-white/40">
-                    dias
+                  <span className="pb-1 text-[11px] font-bold uppercase text-white/65">
+                    DIAS
                   </span>
                 </div>
               </div>
@@ -1169,13 +1168,13 @@ export default function AtividadePage() {
                         setSearch(event.target.value)
                       }
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[10px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/40 focus:border-red-500/35"
                     />
                   </div>
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[12px] font-black text-white/60"
                   >
                     <IconCalendar className="h-3.5 w-3.5" />
                     Todos os Meses ▾
@@ -1183,7 +1182,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[12px] font-black text-white/60"
                   >
                     <IconGamepad className="h-3.5 w-3.5" />
                     Todas as Plataformas ▾
@@ -1192,7 +1191,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/55">
+                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/70">
                       Atividades recentes
                     </p>
 
@@ -1203,11 +1202,11 @@ export default function AtividadePage() {
                           className="mt-4"
                         >
                           <div className="mb-2 flex items-center justify-between px-1">
-                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/75">
+                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/85">
                               {month}
                             </h2>
 
-                            <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/38">
+                            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/55">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1247,7 +1246,7 @@ export default function AtividadePage() {
                     )}
 
                     {filteredEntries.length === 0 && (
-                      <div className="rounded-xl border border-white/10 p-10 text-center text-[11px] font-bold text-white/35">
+                      <div className="rounded-xl border border-white/10 p-10 text-center text-[12px] font-bold text-white/55">
                         Nenhuma atividade encontrada.
                       </div>
                     )}
@@ -1311,7 +1310,7 @@ export default function AtividadePage() {
                               </p>
                             </div>
 
-                            <span className="text-[8px] font-bold text-white/25">
+                            <span className="text-[9px] font-bold text-white/50">
                               {getDateKey(
                                 getAchievementDate(
                                   achievement
@@ -1328,10 +1327,10 @@ export default function AtividadePage() {
                   <div className="p-3">
                     <div className="rounded-xl border border-white/[0.08] p-10 text-center">
                       <IconFile className="mx-auto h-6 w-6 text-white/25" />
-                      <p className="mt-3 text-[11px] font-black text-white/50">
+                      <p className="mt-3 text-[12px] font-black text-white/50">
                         Reviews
                       </p>
-                      <p className="mt-1 text-[9px] text-white/25">
+                      <p className="mt-1 text-[10px] text-white/50">
                         Área preparada para os dados de reviews.
                       </p>
                     </div>
@@ -1360,7 +1359,7 @@ export default function AtividadePage() {
                     [
                       <IconFlame className="h-4 w-4" />,
                       "Sequência atual",
-                      `${currentStreak} dias`,
+                      `${currentStreak} DIAS`,
                       "red",
                     ],
                     [
@@ -1413,12 +1412,12 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[10px] font-medium text-white/45">
+                        <span className="truncate text-[11px] font-medium text-white/65">
                           {label}
                         </span>
                       </div>
 
-                      <strong className="shrink-0 text-[11px] font-black text-white">
+                      <strong className="shrink-0 text-[12px] font-black text-white">
                         {value}
                       </strong>
                     </div>
@@ -1470,10 +1469,10 @@ export default function AtividadePage() {
                   >
                     <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
                       <span className="text-[23px] font-black">
-                        {Math.round(totalMinutes / 60)}h
+                        {Math.round(totalMinutes / 60)}H
                       </span>
-                      <span className="text-[7px] font-black uppercase tracking-[0.16em] text-white/25">
-                        total
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/50">
+                        TOTAL
                       </span>
                     </div>
                   </div>
@@ -1497,12 +1496,12 @@ export default function AtividadePage() {
                               }`}
                             />
 
-                            <p className="truncate text-[8px] font-bold text-white/55">
+                            <p className="truncate text-[10px] font-bold text-white/65">
                               {item.title}
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[7px] text-white/25">
+                          <p className="ml-4 mt-0.5 text-[9px] text-white/50">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
@@ -1514,7 +1513,7 @@ export default function AtividadePage() {
 
                 <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
                   <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-                  <p className="text-[8px] leading-relaxed text-white/30">
+                  <p className="text-[9px] leading-relaxed text-white/50">
                     Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
                   </p>
                 </div>
@@ -1537,17 +1536,17 @@ export default function AtividadePage() {
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[8px] font-black text-white/60">
+                        <p className="truncate text-[10px] font-black text-white/70">
                           {normalizeGameTitle(
                             entry.gameTitle
                           )}
                         </p>
-                        <p className="mt-0.5 text-[7px] text-white/25">
+                        <p className="mt-0.5 text-[9px] text-white/50">
                           {getDateKey(entry.date)}
                         </p>
                       </div>
 
-                      <span className="text-[7px] font-black text-white/35">
+                      <span className="text-[9px] font-black text-white/55">
                         {formatPlayedTime(
                           entry.playedMinutes
                         )}
@@ -1557,7 +1556,6 @@ export default function AtividadePage() {
                 </div>
               </section>
             </aside>
-          </div>
           </div>
         </div>
       </div>
