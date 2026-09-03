@@ -44,9 +44,9 @@ function formatPlayedTime(minutes = 0) {
   const hours = Math.floor(safe / 60);
   const mins = safe % 60;
 
-  if (hours <= 0) return `${mins}M`;
-  if (mins <= 0) return `${hours}H`;
-  return `${hours}H ${mins}M`;
+  if (hours <= 0) return `${mins}min`;
+  if (mins <= 0) return `${hours}h`;
+  return `${hours}h ${mins}min`;
 }
 
 function normalizeKey(value?: string) {
@@ -73,13 +73,6 @@ function getDateKey(value?: string) {
   if (Number.isNaN(date.getTime())) return "";
 
   return date.toISOString().slice(0, 10);
-}
-
-function formatShortDate(value?: string) {
-  const key = getDateKey(value);
-  if (!key) return "";
-  const [year, month, day] = key.split("-");
-  return `${day}/${month}/${year.slice(-2)}`;
 }
 
 function getMonthLabel(date: string) {
@@ -202,7 +195,7 @@ function IconHome(props: { className?: string }) {
       <path
         d="M3.5 10.5L12 3.5L20.5 10.5V20H14.8V14H9.2V20H3.5V10.5Z"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.7"
         strokeLinejoin="round"
       />
     </SvgIcon>
@@ -215,13 +208,13 @@ function IconGamepad(props: { className?: string }) {
       <path
         d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.6"
         strokeLinejoin="round"
       />
       <path
         d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.6"
         strokeLinecap="round"
       />
     </SvgIcon>
@@ -234,148 +227,117 @@ function IconClock(props: { className?: string }) {
       <circle
         cx="12"
         cy="12"
-        r="8.6"
+        r="8.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.7"
       />
       <path
-        d="M12 7.1V12L15.35 14"
+        d="M12 7.5V12L15.5 14"
         stroke="currentColor"
-        strokeWidth="2.1"
+        strokeWidth="1.7"
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="1.6"
-        fill="currentColor"
-      />
-      <path
-        d="M12 3V4.2M21 12H19.8M12 21V19.8M3 12H4.2"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        opacity="0.5"
       />
     </SvgIcon>
   );
 }
+
 function IconCalendar(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <rect
-        x="4"
-        y="5.5"
-        width="16"
-        height="14.5"
-        rx="3"
+        x="3.5"
+        y="5"
+        width="17"
+        height="15.5"
+        rx="2.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.7"
       />
       <path
-        d="M7.5 3.8V7.1M16.5 3.8V7.1M4.5 9.5H19.5"
+        d="M7.5 3.5V7M16.5 3.5V7M3.5 9.5H20.5"
         stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-      />
-      <path
-        d="M8 13H8.01M12 13H12.01M16 13H16.01M8 16.5H8.01M12 16.5H12.01"
-        stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="1.7"
         strokeLinecap="round"
       />
     </SvgIcon>
   );
 }
+
 function IconTrophy(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z"
+        d="M8 4H16V9.5C16 12.4 14.4 14.5 12 14.5C9.6 14.5 8 12.4 8 9.5V4Z"
         stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinejoin="round"
+        strokeWidth="1.7"
       />
       <path
-        d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45"
+        d="M8 6H5.5C4.7 6 4 6.7 4 7.5V8.5C4 10.7 5.8 12.5 8 12.5M16 6H18.5C19.3 6 20 6.7 20 7.5V8.5C20 10.7 18.2 12.5 16 12.5M12 14.5V18.5M8.5 20H15.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.7"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-      <path
-        d="M12 14.65V18.2M8.3 20H15.7"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 6.6L12.75 8.05L14.35 8.28L13.17 9.38L13.45 10.95L12 10.2L10.55 10.95L10.83 9.38L9.65 8.28L11.25 8.05L12 6.6Z"
-        fill="currentColor"
       />
     </SvgIcon>
   );
 }
+
 function IconTrend(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <rect x="4" y="14" width="3" height="5.5" rx="1" fill="currentColor" opacity="0.4" />
-      <rect x="10.5" y="10" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.7" />
-      <rect x="17" y="5.5" width="3" height="14" rx="1" fill="currentColor" />
       <path
-        d="M4.5 10.8L9.2 6.9L13 9.8L19.5 4.5"
+        d="M4 16L9 11L13 15L20 7"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M16 4.5H19.5V8"
+        d="M15.5 7H20V11.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
     </SvgIcon>
   );
 }
+
 function IconTarget(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="5.1" stroke="currentColor" strokeWidth="1.55" opacity="0.75" />
-      <path
-        d="M12 7.3V16.7M7.3 12H16.7"
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
         stroke="currentColor"
-        strokeWidth="1.45"
-        strokeLinecap="round"
-        opacity="0.5"
+        strokeWidth="1.7"
       />
-      <path
-        d="M12 9.2L14.8 12L12 14.8L9.2 12L12 9.2Z"
-        fill="currentColor"
+      <circle
+        cx="12"
+        cy="12"
+        r="4.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
       />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" />
     </SvgIcon>
   );
 }
+
 function IconFlame(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M13.2 3.5C14.05 6.25 12.4 7.95 11.3 9.45C10.45 10.6 10.8 11.95 12.15 11.95C13.45 11.95 14.25 10.95 14.15 9.55C16.95 11.3 18.55 13.7 18.55 16.35C18.55 19.65 15.75 21.7 12.25 21.7C8.25 21.7 5.45 19.25 5.45 15.95C5.45 12.65 7.55 10.35 9.45 8.05C10.45 6.85 11 5.3 10.95 3.2C11.8 3.2 12.65 3.3 13.2 3.5Z"
-        fill="currentColor"
-      />
-      <path
-        d="M12.1 13.35C11.05 14.65 10.55 15.45 10.55 16.35C10.55 17.55 11.3 18.3 12.35 18.3C13.55 18.3 14.25 17.55 14.25 16.4C14.25 15.5 13.75 14.75 12.95 14.05"
-        stroke="#090b0f"
-        strokeWidth="1.45"
-        strokeLinecap="round"
+        d="M13.5 4.5C13.9 7.3 11.8 8.3 10.7 10.1C9.6 11.9 10.1 14 12 14C13.8 14 15 12.8 14.7 11.1C17.3 13 18.5 15 18.5 17C18.5 20.1 15.9 22 12.2 22C8.2 22 5.5 19.7 5.5 16C5.5 12.8 7.6 10.5 9.8 8.2C10.6 7.3 11.1 6.1 11.2 4C12.1 4.1 12.9 4.3 13.5 4.5Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
         strokeLinejoin="round"
       />
     </SvgIcon>
   );
 }
+
 function IconSearch(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
@@ -406,12 +368,12 @@ function IconFile(props: { className?: string }) {
         height="17"
         rx="2"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.7"
       />
       <path
         d="M8.5 8H15.5M8.5 11.5H15.5M8.5 15H12.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.7"
         strokeLinecap="round"
       />
     </SvgIcon>
@@ -438,114 +400,17 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return map;
   }, [entries]);
 
-  /*
-   * Dois meses automáticos:
-   * mês anterior + mês atual.
-   * Cada dia real = 1 quadrado.
-   * O calendário muda sozinho conforme o número real de dias do mês.
-   */
-  const months = useMemo(() => {
+  const calendarDays = useMemo(() => {
+    const result: string[] = [];
     const today = new Date();
 
-    const buildMonth = (
-      year: number,
-      month: number
-    ) => {
-      const daysInMonth = new Date(
-        year,
-        month + 1,
-        0
-      ).getDate();
+    for (let index = 89; index >= 0; index -= 1) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - index);
+      result.push(date.toISOString().slice(0, 10));
+    }
 
-      const days: string[] = [];
-
-      for (
-        let day = 1;
-        day <= daysInMonth;
-        day += 1
-      ) {
-        const date = new Date(
-          year,
-          month,
-          day,
-          12,
-          0,
-          0,
-          0
-        );
-
-        days.push(
-          date.toISOString().slice(0, 10)
-        );
-      }
-
-      const firstDate = new Date(
-        `${days[0]}T12:00:00`
-      );
-
-      const mondayOffset =
-        (firstDate.getDay() + 6) % 7;
-
-      const slots: Array<string | null> =
-        Array(mondayOffset).fill(null);
-
-      slots.push(...days);
-
-      const weeks = Math.ceil(
-        slots.length / 7
-      );
-
-      while (slots.length < weeks * 7) {
-        slots.push(null);
-      }
-
-      const label = new Date(
-        year,
-        month,
-        1,
-        12,
-        0,
-        0,
-        0
-      )
-        .toLocaleDateString("pt-BR", {
-          month: "short",
-        })
-        .replace(".", "")
-        .toUpperCase();
-
-      return {
-        year,
-        month,
-        label,
-        days,
-        slots,
-        weeks,
-      };
-    };
-
-    const currentMonth = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      1
-    );
-
-    const previousMonth = new Date(
-      today.getFullYear(),
-      today.getMonth() - 1,
-      1
-    );
-
-    return [
-      buildMonth(
-        previousMonth.getFullYear(),
-        previousMonth.getMonth()
-      ),
-      buildMonth(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth()
-      ),
-    ];
+    return result;
   }, []);
 
   const weekdays = [
@@ -559,157 +424,157 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   ];
 
   const getIntensity = (minutes: number) => {
-    if (minutes <= 0) return "bg-[#171a21]";
-    if (minutes < 60) return "bg-red-950";
-    if (minutes < 180) return "bg-red-800";
-    if (minutes < 300) return "bg-red-600";
+    if (minutes <= 0) return "bg-[#17191f]";
+    if (minutes < 60) return "bg-red-950/80";
+    if (minutes < 180) return "bg-red-800/80";
+    if (minutes < 300) return "bg-red-600/90";
     return "bg-red-500";
   };
 
-  const cellSize = 13;
-  const cellGap = 2;
+  const monthMarkers = useMemo(() => {
+    const seen = new Set<number>();
+
+    return calendarDays
+      .map((day, index) => {
+        const date = new Date(`${day}T12:00:00`);
+        const month = date.getMonth();
+
+        if (seen.has(month)) return null;
+
+        seen.add(month);
+
+        return {
+          label: date
+            .toLocaleDateString("pt-BR", {
+              month: "short",
+            })
+            .replace(".", "")
+            .toUpperCase(),
+          index,
+        };
+      })
+      .filter(Boolean) as Array<{
+      label: string;
+      index: number;
+    }>;
+  }, [calendarDays]);
 
   return (
-    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h2 className="truncate text-[15px] font-black tracking-[0.01em] text-white/95">
+    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[18px] font-black uppercase tracking-[0.02em] text-white md:text-[20px]">
               Mapa de atividade
             </h2>
 
-            <span
-              title="Calendário automático: 1 quadrado representa 1 dia"
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/60"
-            >
+            <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20 text-[10px] font-black text-white/35">
               i
             </span>
           </div>
 
-          <p className="mt-1 text-[10px] font-medium text-white/60">
-            1 quadrado = 1 dia
+          <p className="mt-1 text-[10px] font-medium text-white/40 md:text-[10px]">
+            Cada quadrado representa um dia. Quanto mais escuro, mais tempo jogado.
           </p>
         </div>
 
-        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-[9px] font-black tracking-[0.04em] text-white/60">
-          2 MESES
-        </span>
+        <button
+          type="button"
+          className="shrink-0 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-[10px] font-black text-white/45"
+        >
+          Últimos 90 dias⌄
+        </button>
       </div>
 
-      <div className="mt-4 flex justify-center">
-        <div className="grid grid-cols-2 gap-[12px]">
-          {months.map((month) => (
-            <div
-              key={`${month.year}-${month.month}`}
-              className="min-w-0"
-            >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-black tracking-[0.12em] text-white/65">
-                  {month.label}
-                </span>
+      <div className="mt-4 overflow-x-auto">
+        <div className="min-w-[860px]">
+          {/* MESES */}
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
+              columnGap: "2px",
+            }}
+          >
+            <div />
 
-                <span className="text-[9px] font-bold text-white/50">
-                  {month.days.length}
-                </span>
-              </div>
+            {calendarDays.map((day, index) => {
+              const marker = monthMarkers.find(
+                (item) => item.index === index
+              );
 
-              <div
-                className="grid"
-                style={{
-                  gridTemplateColumns: `repeat(${month.weeks}, ${cellSize}px)`,
-                  gridTemplateRows: `repeat(7, ${cellSize}px)`,
-                  columnGap: `${cellGap}px`,
-                  rowGap: `${cellGap}px`,
-                }}
-              >
-                {Array.from({ length: 7 }).flatMap(
-                  (_, rowIndex) =>
-                    Array.from({
-                      length: month.weeks,
-                    }).map((_, weekIndex) => {
-                      const day =
-                        month.slots[
-                          weekIndex * 7 +
-                            rowIndex
-                        ];
+              return (
+                <div
+                  key={`month-${day}`}
+                  className="h-4 overflow-hidden text-[7px] font-black tracking-[0.13em] text-white/30"
+                >
+                  {marker?.label || ""}
+                </div>
+              );
+            })}
+          </div>
 
-                      if (!day) {
-                        return (
-                          <div
-                            key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
-                            className="h-[13px] w-[13px]"
-                          />
-                        );
+          {/* 90 COLUNAS / 7 DIAS */}
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `40px repeat(${calendarDays.length}, minmax(7px, 1fr))`,
+              columnGap: "2px",
+              rowGap: "3px",
+            }}
+          >
+            {weekdays.map((weekday, rowIndex) => (
+              <div key={weekday} className="contents">
+                <div className="flex h-[12px] items-center justify-end pr-2 text-[9px] font-bold text-white/45 md:text-[10px]">
+                  {weekday}
+                </div>
+
+                {calendarDays.map((day) => {
+                  const date = new Date(`${day}T12:00:00`);
+                  const weekdayIndex =
+                    (date.getDay() + 6) % 7;
+
+                  const isThisRow =
+                    weekdayIndex === rowIndex;
+
+                  const minutes = isThisRow
+                    ? activityByDay.get(day) || 0
+                    : 0;
+
+                  return (
+                    <div
+                      key={`${day}-${weekday}`}
+                      title={
+                        isThisRow
+                          ? `${day} • ${formatPlayedTime(minutes)}`
+                          : undefined
                       }
-
-                      const minutes =
-                        activityByDay.get(day) || 0;
-
-                      return (
-                        <div
-                          key={day}
-                          title={`${day} • ${formatPlayedTime(
-                            minutes
-                          )}`}
-                          className={`h-[13px] w-[13px] rounded-[3px] ${getIntensity(
-                            minutes
-                          )}`}
-                        />
-                      );
-                    })
-                )}
+                      className={`h-[13px] w-full rounded-[3px] ${getIntensity(
+                        minutes
+                      )}`}
+                    />
+                  );
+                })}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-1.5 text-[9px] font-bold text-white/50">
-        <span>Menos</span>
-
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#171a21]" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[8px] font-bold text-white/30">
+        <span>Menos tempo</span>
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#17191f]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950/80" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800/80" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600/90" />
         <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
-
-        <span>Mais</span>
+        <span>Mais tempo</span>
       </div>
     </section>
   );
 }
 
-
-function PremiumIconBadge({
-  children,
-  tone,
-  size = "md",
-}: {
-  children: ReactNode;
-  tone: "red" | "green";
-  size?: "sm" | "md";
-}) {
-  const styles = {
-    red: "border-red-500/25 bg-red-500/[0.11] text-red-300",
-    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300",
-  } as const;
-
-  const sizes = {
-    sm: "h-9 w-9 rounded-[11px]",
-    md: "h-11 w-11 rounded-[12px]",
-  } as const;
-
-  return (
-    <div
-      className={`relative flex shrink-0 items-center justify-center border shadow-[inset_0_0_12px_rgba(255,255,255,0.025)] ${sizes[size]} ${styles[tone]}`}
-    >
-      <span className="absolute inset-[3px] rounded-[9px] border border-white/[0.07]" />
-      <span className="absolute inset-[6px] rounded-[7px] border border-current/10" />
-      <span className="relative">{children}</span>
-    </div>
-  );
-}
-
+/* ---------- ESTATÍSTICA ---------- */
 
 function Metric({
   icon,
@@ -720,27 +585,36 @@ function Metric({
   icon: ReactNode;
   label: string;
   value: string | number;
-  tone: "red" | "green";
+  tone: "red" | "yellow" | "violet" | "green";
 }) {
+  const styles = {
+    red: "border-red-500/20 bg-red-500/10 text-red-400",
+    yellow: "border-yellow-400/20 bg-yellow-400/10 text-yellow-300",
+    violet: "border-violet-500/20 bg-violet-500/10 text-violet-400",
+    green:
+      "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+  } as const;
+
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <PremiumIconBadge tone={tone}>
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${styles[tone]}`}
+      >
         {icon}
-      </PremiumIconBadge>
+      </div>
 
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-black uppercase tracking-[0.10em] text-white/70">
+        <p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/35">
           {label}
         </p>
 
-        <p className="mt-1 truncate text-[18px] font-black leading-none tracking-tight text-white">
+        <p className="mt-0.5 truncate text-[17px] font-black text-white">
           {value}
         </p>
       </div>
     </div>
   );
 }
-
 
 /* ---------- ATIVIDADE ---------- */
 
@@ -756,19 +630,19 @@ function ActivityRow({
   const platform = getGamePlatform(game);
 
   return (
-    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.08] px-3 py-4 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
+    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[58px_minmax(0,1fr)_110px] md:px-4">
       <div>
-        <p className="text-[27px] font-black leading-none tracking-tight text-white md:text-[29px]">
+        <p className="text-[25px] font-black leading-none text-white md:text-[27px]">
           {date.getDate()}
         </p>
 
-        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.10em] text-red-400">
+        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.12em] text-red-400">
           {getMonthShort(entry.date)}
         </p>
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/[0.12] bg-black shadow-lg">
+        <div className="h-[66px] w-[52px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
           {cover ? (
             <img
               src={cover}
@@ -776,18 +650,18 @@ function ActivityRow({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-[9px] font-black text-white/45">
+            <div className="flex h-full items-center justify-center text-[8px] font-black text-white/25">
               RC
             </div>
           )}
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[16px] font-black text-white md:text-[17px]">
+          <h3 className="truncate text-[15px] font-black text-white md:text-[16px]">
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/70 md:text-[13px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-medium text-white/45 md:text-[11px]">
             <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
@@ -806,11 +680,11 @@ function ActivityRow({
       </div>
 
       <div className="text-right">
-        <p className="text-[17px] font-black leading-none text-white md:text-[18px]">
+        <p className="text-[16px] font-black leading-none text-white md:text-[17px]">
           {formatPlayedTime(entry.playedMinutes)}
         </p>
 
-        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/50">
+        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
           Tempo jogado
         </p>
       </div>
@@ -969,7 +843,7 @@ export default function AtividadePage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[185px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1640px] grid-cols-1 lg:grid-cols-[215px_minmax(0,1fr)]">
         {/* SIDEBAR */}
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
@@ -1005,11 +879,11 @@ export default function AtividadePage() {
               </nav>
 
               <div className="mt-8 border-t border-white/[0.08] pt-6">
-                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-white/50">
+                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
                   Seu espaço
                 </p>
 
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/60">
+                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
                   Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
                 </p>
               </div>
@@ -1043,10 +917,7 @@ export default function AtividadePage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-            {/* COLUNA PRINCIPAL */}
-            <div className="min-w-0">
+        <div className="min-w-0 px-5 py-6 md:px-7 lg:px-6">
           {/* HERO */}
           <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
@@ -1057,9 +928,9 @@ export default function AtividadePage() {
 
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
 
-            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
+            <div className="relative flex min-h-[245px] flex-col justify-end p-7 md:p-8">
               <div className="max-w-[650px]">
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-400">
+                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
 
@@ -1067,51 +938,65 @@ export default function AtividadePage() {
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/65 md:text-[15px]">
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
-                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
+                <div className="mt-5 flex flex-wrap items-center gap-5 border-t border-white/10 pt-4">
                   <Metric
-                    icon={<IconCalendar className="h-[18px] w-[18px]" />}
+                    icon={
+                      <IconCalendar className="h-4 w-4" />
+                    }
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
                     tone="red"
                   />
 
+                  <div className="hidden h-8 w-px bg-white/10 sm:block" />
+
                   <Metric
-                    icon={<IconClock className="h-[18px] w-[18px]" />}
+                    icon={
+                      <IconClock className="h-4 w-4" />
+                    }
                     label="Tempo jogado"
                     value={
                       isLoaded
                         ? formatPlayedTime(totalMinutes)
                         : "..."
                     }
-                    tone="red"
+                    tone="violet"
                   />
 
+                  <div className="hidden h-8 w-px bg-white/10 sm:block" />
+
                   <Metric
-                    icon={<IconTrend className="h-[18px] w-[18px]" />}
+                    icon={
+                      <IconTrend className="h-4 w-4" />
+                    }
                     label="Média por dia"
                     value={
                       isLoaded
                         ? formatPlayedTime(averageMinutes)
                         : "..."
                     }
-                    tone="red"
+                    tone="violet"
                   />
 
+                  <div className="hidden h-8 w-px bg-white/10 sm:block" />
+
                   <Metric
-                    icon={<IconGamepad className="h-[18px] w-[18px]" />}
+                    icon={
+                      <IconGamepad className="h-4 w-4" />
+                    }
                     label="Jogos"
                     value={isLoaded ? differentGames : "..."}
-                    tone="red"
+                    tone="green"
                   />
                 </div>
               </div>
 
               <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">
+                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
                   Sequência atual
                 </p>
 
@@ -1119,16 +1004,20 @@ export default function AtividadePage() {
                   <span className="text-3xl font-black text-white">
                     {currentStreak}
                   </span>
-                  <span className="pb-1 text-[11px] font-bold uppercase text-white/65">
-                    DIAS
+                  <span className="pb-1 text-[10px] font-bold text-white/40">
+                    dias
                   </span>
                 </div>
               </div>
             </div>
           </header>
 
-              <div className="mt-4">
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            {/* CONTENT */}
+            <div className="min-w-0">
+              <ActivityMap entries={sourceEntries} />
+
+              <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
                     {(
@@ -1144,7 +1033,7 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[11px] font-black transition ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"
@@ -1173,13 +1062,13 @@ export default function AtividadePage() {
                         setSearch(event.target.value)
                       }
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/40 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[10px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[12px] font-black text-white/60"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
                   >
                     <IconCalendar className="h-3.5 w-3.5" />
                     Todos os Meses ▾
@@ -1187,7 +1076,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[12px] font-black text-white/60"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
                   >
                     <IconGamepad className="h-3.5 w-3.5" />
                     Todas as Plataformas ▾
@@ -1196,7 +1085,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/75">
+                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/55">
                       Atividades recentes
                     </p>
 
@@ -1207,11 +1096,11 @@ export default function AtividadePage() {
                           className="mt-4"
                         >
                           <div className="mb-2 flex items-center justify-between px-1">
-                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white/90">
+                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/75">
                               {month}
                             </h2>
 
-                            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/60">
+                            <span className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1251,7 +1140,7 @@ export default function AtividadePage() {
                     )}
 
                     {filteredEntries.length === 0 && (
-                      <div className="rounded-xl border border-white/10 p-10 text-center text-[12px] font-bold text-white/55">
+                      <div className="rounded-xl border border-white/10 p-10 text-center text-[11px] font-bold text-white/35">
                         Nenhuma atividade encontrada.
                       </div>
                     )}
@@ -1315,7 +1204,7 @@ export default function AtividadePage() {
                               </p>
                             </div>
 
-                            <span className="text-[9px] font-bold text-white/50">
+                            <span className="text-[8px] font-bold text-white/25">
                               {getDateKey(
                                 getAchievementDate(
                                   achievement
@@ -1332,27 +1221,23 @@ export default function AtividadePage() {
                   <div className="p-3">
                     <div className="rounded-xl border border-white/[0.08] p-10 text-center">
                       <IconFile className="mx-auto h-6 w-6 text-white/25" />
-                      <p className="mt-3 text-[12px] font-black text-white/50">
+                      <p className="mt-3 text-[11px] font-black text-white/50">
                         Reviews
                       </p>
-                      <p className="mt-1 text-[10px] text-white/50">
+                      <p className="mt-1 text-[9px] text-white/25">
                         Área preparada para os dados de reviews.
                       </p>
                     </div>
                   </div>
                 )}
               </section>
-              </div>
             </div>
 
-            {/* SIDEBAR DIREITA */}
-{/* RIGHT */}
-            <aside className="space-y-3 xl:sticky xl:top-20">
-              <ActivityMap entries={sourceEntries} />
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            {/* RIGHT */}
+            <aside className="space-y-4">
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                    <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  <h2 className="text-[14px] font-black uppercase text-white/90">
                     Resumo da atividade
                   </h2>
 
@@ -1364,20 +1249,20 @@ export default function AtividadePage() {
                     [
                       <IconFlame className="h-4 w-4" />,
                       "Sequência atual",
-                      `${currentStreak} DIAS`,
+                      `${currentStreak} dias`,
                       "red",
                     ],
                     [
                       <IconCalendar className="h-4 w-4" />,
                       "Dias jogados",
                       `${uniqueDays}`,
-                      "red",
+                      "violet",
                     ],
                     [
                       <IconClock className="h-4 w-4" />,
                       "Horas jogadas",
                       formatPlayedTime(totalMinutes),
-                      "red",
+                      "violet",
                     ],
                     [
                       <IconTrophy className="h-4 w-4" />,
@@ -1387,15 +1272,15 @@ export default function AtividadePage() {
                     ],
                     [
                       <IconTrend className="h-4 w-4" />,
-                      "Média por dia",
+                      "Média diária",
                       formatPlayedTime(averageMinutes),
-                      "red",
+                      "green",
                     ],
                     [
                       <IconTarget className="h-4 w-4" />,
                       "Jogos diferentes",
                       `${differentGames}`,
-                      "red",
+                      "violet",
                     ],
                   ].map(([icon, label, value, tone]) => (
                     <div
@@ -1405,7 +1290,11 @@ export default function AtividadePage() {
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
-                            tone === "green"
+                            tone === "violet"
+                              ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
+                              : tone === "yellow"
+                              ? "border-yellow-400/20 bg-yellow-400/10 text-yellow-300"
+                              : tone === "green"
                               ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
                               : "border-red-500/20 bg-red-500/10 text-red-300"
                           }`}
@@ -1413,12 +1302,12 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[11px] font-medium text-white/65">
+                        <span className="truncate text-[10px] font-medium text-white/45">
                           {label}
                         </span>
                       </div>
 
-                      <strong className="shrink-0 text-[12px] font-black text-white">
+                      <strong className="shrink-0 text-[11px] font-black text-white">
                         {value}
                       </strong>
                     </div>
@@ -1426,9 +1315,8 @@ export default function AtividadePage() {
                 </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
+                <h2 className="text-[14px] font-black uppercase text-white/90">
                   Distribuição de tempo por jogo
                 </h2>
 
@@ -1440,11 +1328,10 @@ export default function AtividadePage() {
                         gameDistribution.length > 0
                           ? (() => {
                               const palette = [
-                                "#ef2432",
-                                "#d51f2f",
-                                "#b51f2b",
-                                "#8f1b25",
-                                "#68151d",
+                                "#ef2432", // Vermelho — identidade / destaque
+                                "#facc15", // Amarelo — avaliações / conquistas
+                                "#22c55e", // Verde — concluído / sucesso
+                                "#8b5cf6", // Roxo — estatísticas / dados
                               ];
 
                               let start = 0;
@@ -1470,9 +1357,9 @@ export default function AtividadePage() {
                   >
                     <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
                       <span className="text-[23px] font-black">
-                        {formatPlayedTime(totalMinutes)}
+                        {Math.round(totalMinutes / 60)}H
                       </span>
-                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/60">
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/50">
                         TOTAL
                       </span>
                     </div>
@@ -1488,21 +1375,19 @@ export default function AtividadePage() {
                               className={`h-2 w-2 shrink-0 rounded-full ${
                                 [
                                   "bg-red-500",
-                                  "bg-red-600",
-                                  "bg-red-700",
-                                  "bg-red-800",
-                                  "bg-red-950",
-                                ][index] ||
-                                "bg-white/30"
+                                  "bg-yellow-400",
+                                  "bg-green-500",
+                                  "bg-violet-500",
+                                ][index % 4]
                               }`}
                             />
 
-                            <p className="truncate text-[10px] font-bold text-white/65">
+                            <p className="truncate text-[8px] font-bold text-white/55">
                               {item.title}
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[9px] text-white/50">
+                          <p className="ml-4 mt-0.5 text-[7px] text-white/25">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
@@ -1514,15 +1399,14 @@ export default function AtividadePage() {
 
                 <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
                   <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-                  <p className="text-[9px] leading-relaxed text-white/50">
+                  <p className="text-[8px] leading-relaxed text-white/30">
                     Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
                   </p>
                 </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4">
+                <h2 className="text-[14px] font-black uppercase text-white/90">
                   Atividade recente
                 </h2>
 
@@ -1537,17 +1421,17 @@ export default function AtividadePage() {
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10px] font-black text-white/70">
+                        <p className="truncate text-[8px] font-black text-white/60">
                           {normalizeGameTitle(
                             entry.gameTitle
                           )}
                         </p>
-                        <p className="mt-0.5 text-[9px] text-white/50">
-                          {formatShortDate(entry.date)}
+                        <p className="mt-0.5 text-[7px] text-white/25">
+                          {getDateKey(entry.date)}
                         </p>
                       </div>
 
-                      <span className="text-[9px] font-black text-white/55">
+                      <span className="text-[7px] font-black text-white/35">
                         {formatPlayedTime(
                           entry.playedMinutes
                         )}
