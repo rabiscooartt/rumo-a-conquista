@@ -75,6 +75,13 @@ function getDateKey(value?: string) {
   return date.toISOString().slice(0, 10);
 }
 
+function formatShortDate(value?: string) {
+  const key = getDateKey(value);
+  if (!key) return "";
+  const [year, month, day] = key.split("-");
+  return `${day}/${month}/${year.slice(-2)}`;
+}
+
 function getMonthLabel(date: string) {
   const parsed = new Date(`${date}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return "";
@@ -679,13 +686,11 @@ function PremiumIconBadge({
   size = "md",
 }: {
   children: ReactNode;
-  tone: "red" | "blue" | "violet" | "green";
+  tone: "red" | "green";
   size?: "sm" | "md";
 }) {
   const styles = {
     red: "border-red-500/25 bg-red-500/[0.11] text-red-300",
-    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300",
-    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300",
     green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300",
   } as const;
 
@@ -715,7 +720,7 @@ function Metric({
   icon: ReactNode;
   label: string;
   value: string | number;
-  tone: "red" | "blue" | "violet" | "green";
+  tone: "red" | "green";
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
@@ -751,7 +756,7 @@ function ActivityRow({
   const platform = getGamePlatform(game);
 
   return (
-    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
+    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.08] px-3 py-4 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
       <div>
         <p className="text-[27px] font-black leading-none tracking-tight text-white md:text-[29px]">
           {date.getDate()}
@@ -763,7 +768,7 @@ function ActivityRow({
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
+        <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/[0.12] bg-black shadow-lg">
           {cover ? (
             <img
               src={cover}
@@ -1082,7 +1087,7 @@ export default function AtividadePage() {
                         ? formatPlayedTime(totalMinutes)
                         : "..."
                     }
-                    tone="blue"
+                    tone="red"
                   />
 
                   <Metric
@@ -1093,14 +1098,14 @@ export default function AtividadePage() {
                         ? formatPlayedTime(averageMinutes)
                         : "..."
                     }
-                    tone="violet"
+                    tone="red"
                   />
 
                   <Metric
                     icon={<IconGamepad className="h-[18px] w-[18px]" />}
                     label="Jogos"
                     value={isLoaded ? differentGames : "..."}
-                    tone="green"
+                    tone="red"
                   />
                 </div>
               </div>
@@ -1139,7 +1144,7 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[11px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"
@@ -1191,7 +1196,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/70">
+                    <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/75">
                       Atividades recentes
                     </p>
 
@@ -1202,11 +1207,11 @@ export default function AtividadePage() {
                           className="mt-4"
                         >
                           <div className="mb-2 flex items-center justify-between px-1">
-                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/85">
+                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white/90">
                               {month}
                             </h2>
 
-                            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/55">
+                            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/60">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1366,13 +1371,13 @@ export default function AtividadePage() {
                       <IconCalendar className="h-4 w-4" />,
                       "Dias jogados",
                       `${uniqueDays}`,
-                      "violet",
+                      "red",
                     ],
                     [
                       <IconClock className="h-4 w-4" />,
                       "Horas jogadas",
                       formatPlayedTime(totalMinutes),
-                      "blue",
+                      "red",
                     ],
                     [
                       <IconTrophy className="h-4 w-4" />,
@@ -1382,15 +1387,15 @@ export default function AtividadePage() {
                     ],
                     [
                       <IconTrend className="h-4 w-4" />,
-                      "Média diária",
+                      "Média por dia",
                       formatPlayedTime(averageMinutes),
-                      "green",
+                      "red",
                     ],
                     [
                       <IconTarget className="h-4 w-4" />,
                       "Jogos diferentes",
                       `${differentGames}`,
-                      "violet",
+                      "red",
                     ],
                   ].map(([icon, label, value, tone]) => (
                     <div
@@ -1400,11 +1405,7 @@ export default function AtividadePage() {
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
-                            tone === "violet"
-                              ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
-                              : tone === "blue"
-                              ? "border-sky-500/20 bg-sky-500/10 text-sky-300"
-                              : tone === "green"
+                            tone === "green"
                               ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
                               : "border-red-500/20 bg-red-500/10 text-red-300"
                           }`}
@@ -1440,10 +1441,10 @@ export default function AtividadePage() {
                           ? (() => {
                               const palette = [
                                 "#ef2432",
-                                "#a92b83",
-                                "#5e70e8",
-                                "#7f42a8",
-                                "#8b5cf6",
+                                "#d51f2f",
+                                "#b51f2b",
+                                "#8f1b25",
+                                "#68151d",
                               ];
 
                               let start = 0;
@@ -1469,9 +1470,9 @@ export default function AtividadePage() {
                   >
                     <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
                       <span className="text-[23px] font-black">
-                        {Math.round(totalMinutes / 60)}H
+                        {formatPlayedTime(totalMinutes)}
                       </span>
-                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/50">
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/60">
                         TOTAL
                       </span>
                     </div>
@@ -1487,10 +1488,10 @@ export default function AtividadePage() {
                               className={`h-2 w-2 shrink-0 rounded-full ${
                                 [
                                   "bg-red-500",
-                                  "bg-pink-500",
-                                  "bg-indigo-400",
-                                  "bg-violet-500",
-                                  "bg-purple-500",
+                                  "bg-red-600",
+                                  "bg-red-700",
+                                  "bg-red-800",
+                                  "bg-red-950",
                                 ][index] ||
                                 "bg-white/30"
                               }`}
@@ -1542,7 +1543,7 @@ export default function AtividadePage() {
                           )}
                         </p>
                         <p className="mt-0.5 text-[9px] text-white/50">
-                          {getDateKey(entry.date)}
+                          {formatShortDate(entry.date)}
                         </p>
                       </div>
 
