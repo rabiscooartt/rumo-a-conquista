@@ -1167,97 +1167,86 @@ export default function AtividadePage() {
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
-          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#07080b]">
-            {/* Lua / brilho central */}
-            <div className="absolute left-[58%] top-[-62px] h-[185px] w-[185px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,76,82,0.95)_0%,rgba(255,35,45,0.62)_36%,rgba(255,35,45,0.18)_62%,transparent_72%)] blur-[1px]" />
-            <div className="absolute left-[58%] top-[-38px] h-[135px] w-[135px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,194,194,0.22)_0%,rgba(255,45,55,0.18)_42%,transparent_72%)]" />
+          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
 
-            {/* Montanhas estilizadas */}
-            <div
-              className="absolute inset-x-0 bottom-[36px] h-[92px] opacity-90"
-              style={{
-                clipPath:
-                  "polygon(0% 86%, 7% 62%, 13% 74%, 19% 43%, 24% 66%, 31% 28%, 36% 59%, 43% 22%, 49% 56%, 56% 35%, 62% 65%, 68% 25%, 74% 55%, 80% 32%, 86% 69%, 92% 38%, 97% 66%, 100% 54%, 100% 100%, 0% 100%)",
-                background:
-                  "linear-gradient(180deg,rgba(82,6,13,0.98),rgba(20,4,8,1))",
-              }}
-            />
-            <div
-              className="absolute inset-x-0 bottom-[32px] h-[66px] opacity-95"
-              style={{
-                clipPath:
-                  "polygon(0% 82%, 9% 54%, 16% 72%, 23% 40%, 30% 70%, 38% 34%, 45% 65%, 54% 29%, 62% 63%, 71% 36%, 79% 73%, 88% 46%, 94% 69%, 100% 50%, 100% 100%, 0% 100%)",
-                background:
-                  "linear-gradient(180deg,rgba(44,5,10,1),rgba(8,8,11,1))",
-              }}
-            />
-
-            {/* Troféu central */}
-            <div className="absolute left-[58%] bottom-[47px] hidden -translate-x-1/2 items-end md:flex">
-              <div className="absolute bottom-[36px] left-1/2 h-10 w-28 -translate-x-1/2 rounded-full bg-red-500/20 blur-2xl" />
-              <IconTrophy className="relative h-[112px] w-[112px] text-[#0b0b0d] drop-shadow-[0_8px_18px_rgba(0,0,0,0.85)]" />
+            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
+              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
             </div>
 
-            {/* Vignette / leitura */}
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.74)_44%,rgba(4,5,8,0.34)_100%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(4,5,8,0.98))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
 
-            <div className="relative flex min-h-[156px] flex-col justify-end p-5 md:p-6">
-              <div className="max-w-[560px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.26em] text-red-400">
+            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
+              <div className="max-w-[650px]">
+                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
 
-                <h1 className="mt-1 text-[36px] font-black leading-none tracking-tight text-white md:text-[42px]">
+                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/60 md:text-[12px]">
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
-                <div className="mt-4 grid grid-cols-2 border-t border-white/10 pt-3 sm:grid-cols-4">
+                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
                   <Metric
-                    icon={<IconMetricDays className="h-[17px] w-[17px]" />}
+                    icon={<IconMetricDays className="h-[18px] w-[18px]" />}
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
                     tone="red"
                   />
 
                   <Metric
-                    icon={<IconMetricTime className="h-[17px] w-[17px]" />}
+                    icon={<IconMetricTime className="h-[18px] w-[18px]" />}
                     label="Tempo jogado"
                     value={
                       isLoaded
                         ? formatPlayedTime(totalMinutes)
                         : "..."
                     }
-                    tone="red"
+                    tone="blue"
                   />
 
                   <Metric
-                    icon={<IconMetricAverage className="h-[17px] w-[17px]" />}
+                    icon={<IconMetricAverage className="h-[18px] w-[18px]" />}
                     label="Média por dia"
                     value={
                       isLoaded
                         ? formatPlayedTime(averageMinutes)
                         : "..."
                     }
-                    tone="red"
+                    tone="violet"
                   />
 
                   <Metric
-                    icon={<IconMetricGames className="h-[17px] w-[17px]" />}
-                    label="Jogos registrados"
+                    icon={<IconMetricGames className="h-[18px] w-[18px]" />}
+                    label="Jogos"
                     value={isLoaded ? differentGames : "..."}
-                    tone="red"
+                    tone="green"
                   />
+                </div>
+              </div>
+
+              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
+                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
+                  Sequência atual
+                </p>
+
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="text-3xl font-black text-white">
+                    {currentStreak}
+                  </span>
+                  <span className="pb-1 text-[10px] font-bold text-white/40">
+                    dias
+                  </span>
                 </div>
               </div>
             </div>
           </header>
 
-          <div className="mt-4">
+              <div className="mt-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
