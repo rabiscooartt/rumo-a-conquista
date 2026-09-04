@@ -206,26 +206,30 @@ function IconHome(props: { className?: string }) {
 function IconMetricDays(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <rect
-        x="4"
-        y="5.5"
-        width="16"
-        height="14.5"
-        rx="2.6"
+      <path
+        d="M6 4.5H18C19.1 4.5 20 5.4 20 6.5V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6.5C4 5.4 4.9 4.5 6 4.5Z"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
       />
       <path
-        d="M7.5 3.8V7.2M16.5 3.8V7.2M4.5 9.4H19.5"
+        d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
       <path
-        d="M8 13H8.01M12 13H12.01M16 13H16.01M8 16.4H8.01M12 16.4H12.01"
+        d="M8 12.5H8.01M12 12.5H12.01M16 12.5H16.01M8 16H8.01M12 16H12.01"
         stroke="currentColor"
         strokeWidth="2.6"
         strokeLinecap="round"
+      />
+      <path
+        d="M16.8 15.4L18 16.6L20 14.4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -234,27 +238,29 @@ function IconMetricDays(props: { className?: string }) {
 function IconMetricTime(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle
-        cx="12"
-        cy="12"
-        r="8.2"
+      <path
+        d="M8 3.5H16M8 20.5H16"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
+        strokeLinecap="round"
       />
       <path
-        d="M12 7.2V12L15.3 13.9"
+        d="M8.8 3.8C8.8 7.7 11 9.2 12 10C13 10.8 15.2 12.3 15.2 20.2M15.2 3.8C15.2 7.7 13 9.2 12 10C11 10.8 8.8 12.3 8.8 20.2"
         stroke="currentColor"
-        strokeWidth="2.1"
+        strokeWidth="1.7"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
       <path
-        d="M12 3.2V4.25M20.8 12H19.75M12 20.8V19.75M3.2 12H4.25"
+        d="M10.2 12.2C10.8 11.7 11.4 11.35 12 11C12.6 11.35 13.2 11.7 13.8 12.2L12 15.1L10.2 12.2Z"
+        fill="currentColor"
+        opacity="0.75"
+      />
+      <path
+        d="M6 7.5H7.3M16.7 7.5H18"
         stroke="currentColor"
-        strokeWidth="1.35"
+        strokeWidth="1.4"
         strokeLinecap="round"
-        opacity="0.55"
+        opacity="0.5"
       />
     </SvgIcon>
   );
@@ -264,29 +270,29 @@ function IconMetricAverage(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M4.5 18.7H19.5"
+        d="M4 18.5H20"
         stroke="currentColor"
-        strokeWidth="1.45"
+        strokeWidth="1.5"
         strokeLinecap="round"
-        opacity="0.4"
+        opacity="0.45"
       />
       <path
-        d="M5 15.4L9 11.8L12.2 14L18.7 6.9"
+        d="M5 15.5L9 11.7L12.2 14.2L18.8 6.8"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.7 6.9H18.7V9.9"
+        d="M15.7 6.8H18.8V9.9"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="5" cy="15.4" r="1.25" fill="currentColor" />
-      <circle cx="9" cy="11.8" r="1.25" fill="currentColor" />
-      <circle cx="12.2" cy="14" r="1.25" fill="currentColor" />
+      <circle cx="5" cy="15.5" r="1.35" fill="currentColor" />
+      <circle cx="9" cy="11.7" r="1.35" fill="currentColor" />
+      <circle cx="12.2" cy="14.2" r="1.35" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -295,19 +301,27 @@ function IconMetricGames(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M7 7.6H17C19.15 7.6 20.45 9.55 20.75 12L21.2 15.6C21.55 18.35 18.4 19.55 16.8 17.2L15.15 14.95H8.85L7.2 17.2C5.6 19.55 2.45 18.35 2.8 15.6L3.25 12C3.55 9.55 4.85 7.6 7 7.6Z"
+        d="M7.1 7.5H16.9C19.15 7.5 20.3 9.45 20.65 11.95L21.15 15.75C21.55 18.75 18.15 20.1 16.45 17.65L14.85 15.35H9.15L7.55 17.65C5.85 20.1 2.45 18.75 2.85 15.75L3.35 11.95C3.7 9.45 4.85 7.5 7.1 7.5Z"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
         strokeLinejoin="round"
       />
       <path
-        d="M7.1 11.2V14.9M5.2 13.05H9"
+        d="M7.2 11.3V15M5.3 13.15H9.1"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
-      <circle cx="16.45" cy="12.2" r="1.2" fill="currentColor" />
-      <circle cx="18.55" cy="14.3" r="1.2" fill="currentColor" opacity="0.72" />
+      <circle cx="16.5" cy="12.3" r="1.25" fill="currentColor" />
+      <circle cx="18.6" cy="14.4" r="1.25" fill="currentColor" opacity="0.72" />
+      <path
+        d="M12 5.2V3.7M12 3.7L10.9 4.8M12 3.7L13.1 4.8"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.7"
+      />
     </SvgIcon>
   );
 }
@@ -785,27 +799,36 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
 function PremiumIconBadge({
   children,
-  tone: _tone,
+  tone,
   size = "md",
 }: {
   children: ReactNode;
   tone: "red" | "blue" | "violet" | "green";
   size?: "sm" | "md";
 }) {
+  const styles = {
+    red: "border-red-500/25 bg-red-500/[0.11] text-red-300",
+    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300",
+    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300",
+    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300",
+  } as const;
+
   const sizes = {
-    sm: "h-8 w-8 rounded-[9px]",
-    md: "h-9 w-9 rounded-[10px]",
+    sm: "h-9 w-9 rounded-[11px]",
+    md: "h-12 w-12 rounded-[13px]",
   } as const;
 
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center border border-red-500/20 bg-red-500/[0.08] text-red-500 ${sizes[size]}`}
+      className={`relative flex shrink-0 items-center justify-center border shadow-[inset_0_0_12px_rgba(255,255,255,0.025)] ${sizes[size]} ${styles[tone]}`}
     >
-      <span className="absolute inset-[2px] rounded-[7px] border border-red-400/[0.10]" />
+      <span className="absolute inset-[3px] rounded-[9px] border border-white/[0.07]" />
+      <span className="absolute inset-[6px] rounded-[7px] border border-current/10" />
       <span className="relative">{children}</span>
     </div>
   );
 }
+
 
 function Metric({
   icon,
@@ -819,16 +842,17 @@ function Metric({
   tone: "red" | "blue" | "violet" | "green";
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <PremiumIconBadge tone={tone} size="sm">
+    <div className="flex min-w-0 items-center gap-2.5">
+      <PremiumIconBadge tone={tone}>
         {icon}
       </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[8px] font-black uppercase tracking-[0.10em] text-white/50">
+        <p className="truncate text-[10px] font-black uppercase tracking-[0.10em] text-white/65">
           {label}
         </p>
-        <p className="mt-0.5 truncate text-[16px] font-black leading-none tracking-tight text-white">
+
+        <p className="mt-1 truncate text-[20px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
       </div>
@@ -836,76 +860,34 @@ function Metric({
   );
 }
 
+
 /* ---------- ATIVIDADE ---------- */
-
-
-
-function IconPlayStation(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path
-        d="M8.7 17.6V6.8C8.7 5.45 9.55 4.7 10.75 5.05L13.85 5.95C15.25 6.35 16 7.45 16 9V17.6M8.7 17.6L6.55 18.35C5.35 18.78 4.45 18.25 4.45 17.3C4.45 16.58 4.95 16 5.75 15.7L8.7 14.6M16 12.65L18.95 13.75C19.75 14.05 20.25 14.63 20.25 15.35C20.25 16.3 19.35 16.83 18.15 16.4L16 15.65"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </SvgIcon>
-  );
-}
-
-function IconSteam(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <circle cx="16.8" cy="7.9" r="3.2" stroke="currentColor" strokeWidth="1.7" />
-      <circle cx="7.3" cy="16.7" r="2.7" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M9.5 15.65L14.3 11.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      <circle cx="16.8" cy="7.9" r="1.1" fill="currentColor" />
-      <circle cx="7.3" cy="16.7" r="0.9" fill="currentColor" />
-    </SvgIcon>
-  );
-}
-
-function PlatformBadge({ platform }: { platform?: string }) {
-  const value = normalizeKey(platform);
-
-  if (value.includes("steam")) {
-    return <IconSteam className="h-3.5 w-3.5 text-white/80" />;
-  }
-
-  if (value.includes("playstation") || value.includes("ps5") || value.includes("ps4")) {
-    return <IconPlayStation className="h-3.5 w-3.5 text-blue-300" />;
-  }
-
-  return <IconGamepad className="h-3.5 w-3.5 text-white/55" />;
-}
 
 function ActivityRow({
   entry,
   game,
-  achievementCount = 0,
 }: {
   entry: JourneyEntry;
   game?: GameLike;
-  achievementCount?: number;
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
   const platform = getGamePlatform(game);
 
   return (
-    <article className="grid grid-cols-[54px_minmax(0,1fr)_82px_76px_22px] items-center gap-3 border-b border-white/[0.07] px-3 py-3 last:border-b-0 md:grid-cols-[58px_minmax(0,1fr)_95px_92px_22px] md:px-4">
+    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
       <div>
-        <p className="text-[24px] font-black leading-none tracking-tight text-white md:text-[26px]">
+        <p className="text-[29px] font-black leading-none tracking-tight text-white md:text-[31px]">
           {date.getDate()}
         </p>
-        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.10em] text-red-500">
+
+        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.10em] text-red-400">
           {getMonthShort(entry.date)}
         </p>
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[62px] w-[48px] shrink-0 overflow-hidden rounded-[6px] border border-white/10 bg-black shadow-lg md:h-[66px] md:w-[50px]">
+        <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
           {cover ? (
             <img
               src={cover}
@@ -920,47 +902,37 @@ function ActivityRow({
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[13px] font-black text-white md:text-[14px]">
+          <h3 className="truncate text-[17px] font-black text-white md:text-[18px]">
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
-          <div className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[9px] font-medium text-white/45 md:text-[10px]">
-            <span className="truncate">
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/65 md:text-[13px]">
+            <span>
               {entry.weekDay ||
-                date.toLocaleDateString("pt-BR", { weekday: "long" })}
+                date.toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                })}
             </span>
-            {platform && <span className="text-white/15">•</span>}
-            {platform && <PlatformBadge platform={platform} />}
-            {platform && <span className="truncate">{platform}</span>}
+
+            {platform && (
+              <>
+                <span className="text-white/15">•</span>
+                <span>{platform}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="text-red-500">
-          <IconMetricTime className="h-3.5 w-3.5" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-[12px] font-black text-white md:text-[13px]">
-            {formatPlayedTime(entry.playedMinutes)}
-          </p>
-          <p className="mt-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-white/25">
-            Tempo jogado
-          </p>
-        </div>
-      </div>
-
-      <div className="text-left">
-        <p className="text-[13px] font-black leading-none text-white md:text-[14px]">
-          {achievementCount}
+      <div className="text-right">
+        <p className="text-[18px] font-black leading-none text-white md:text-[19px]">
+          {formatPlayedTime(entry.playedMinutes)}
         </p>
-        <p className="mt-0.5 text-[7px] font-black uppercase tracking-[0.10em] text-white/25">
-          {achievementCount === 1 ? "Conquista" : "Conquistas"}
+
+        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
+          Tempo jogado
         </p>
       </div>
-
-      <span className="text-right text-white/45">
-        <span className="text-[22px] leading-none">›</span>
-      </span>
     </article>
   );
 }
@@ -1061,18 +1033,6 @@ export default function AtividadePage() {
     );
   }, [games]);
 
-  const achievementCountsByDate = useMemo(() => {
-    const map = new Map<string, number>();
-
-    for (const achievement of allCompletedAchievements) {
-      const date = getDateKey(getAchievementDate(achievement));
-      if (!date) continue;
-      map.set(date, (map.get(date) || 0) + 1);
-    }
-
-    return map;
-  }, [allCompletedAchievements]);
-
   const filteredEntries = useMemo(() => {
     const query = normalizeKey(search);
 
@@ -1133,13 +1093,7 @@ export default function AtividadePage() {
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
-              <div className="border-l-2 border-red-500 pl-3">
-                <p className="text-[17px] font-black text-white">
-                  Rumo à Conquista
-                </p>
-              </div>
-
-              <nav className="mt-7 space-y-1">
+              <nav className="mt-4 space-y-1">
                 {[
                   ["Início", "/", <IconHome />],
                   ["Jogos", "/jogos", <IconGamepad />],
@@ -1151,7 +1105,7 @@ export default function AtividadePage() {
                   <Link
                     key={String(href)}
                     href={String(href)}
-                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[11px] font-bold transition ${
+                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[12px] font-bold transition ${
                       href === "/atividade"
                         ? "bg-red-500/10 text-red-300"
                         : "text-white/50 hover:bg-white/[0.03] hover:text-white"
@@ -1177,7 +1131,7 @@ export default function AtividadePage() {
             <div className="mt-auto space-y-2 pt-8">
               <Link
                 href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
+                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
               >
                 <IconTarget className="h-4 w-4" />
                 Configurações
@@ -1185,7 +1139,7 @@ export default function AtividadePage() {
 
               <button
                 type="button"
-                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
+                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
               >
                 <span className="text-sm">↪</span>
                 Sair
@@ -1193,7 +1147,7 @@ export default function AtividadePage() {
 
               <button
                 type="button"
-                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[10px] font-black text-white transition hover:bg-red-500"
+                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[12px] font-black text-white transition hover:bg-red-500"
               >
                 Entrar
               </button>
@@ -1202,58 +1156,86 @@ export default function AtividadePage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-3 py-4 md:px-4 lg:px-5">
-          <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
-          <header className="relative overflow-hidden rounded-[14px] border border-white/10 bg-[#07090d]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_12%,rgba(255,35,48,0.38),transparent_28%),radial-gradient(circle_at_28%_88%,rgba(160,0,15,0.24),transparent_42%)]" />
-            <div className="absolute right-[26%] top-[-70px] h-[190px] w-[190px] rounded-full bg-[radial-gradient(circle,rgba(255,57,65,0.64)_0%,rgba(255,28,38,0.26)_35%,rgba(255,0,15,0)_72%)]" />
-            <div className="absolute right-[29%] top-[56px] opacity-[0.16]">
-              <IconTrophy className="h-[125px] w-[125px] text-red-400" />
-            </div>
-            <div className="absolute inset-x-0 bottom-[48px] h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-[84px] bg-[linear-gradient(180deg,rgba(3,4,7,0)_0%,rgba(3,4,7,0.88)_62%,rgba(3,4,7,0.98)_100%)]" />
+          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
 
-            <div className="relative flex min-h-[158px] flex-col justify-between px-5 pb-3 pt-5 md:px-7 md:pt-6">
-              <div className="max-w-[520px]">
-                <p className="text-[8px] font-black uppercase tracking-[0.26em] text-red-500">
+            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
+              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
+            </div>
+
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
+
+            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
+              <div className="max-w-[650px]">
+                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
                   Sua trajetória
                 </p>
-                <h1 className="mt-1 text-[38px] font-black leading-none tracking-tight text-white md:text-[42px]">
+
+                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
                   ATIVIDADE
                 </h1>
-                <p className="mt-3 max-w-[500px] text-[11px] font-medium leading-relaxed text-white/55 md:text-[12px]">
+
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
+
+                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
+                  <Metric
+                    icon={<IconMetricDays className="h-[21px] w-[21px]" />}
+                    label="Dias jogados"
+                    value={isLoaded ? uniqueDays : "..."}
+                    tone="red"
+                  />
+
+                  <Metric
+                    icon={<IconMetricTime className="h-[21px] w-[21px]" />}
+                    label="Tempo jogado"
+                    value={
+                      isLoaded
+                        ? formatPlayedTime(totalMinutes)
+                        : "..."
+                    }
+                    tone="blue"
+                  />
+
+                  <Metric
+                    icon={<IconMetricAverage className="h-[21px] w-[21px]" />}
+                    label="Média por dia"
+                    value={
+                      isLoaded
+                        ? formatPlayedTime(averageMinutes)
+                        : "..."
+                    }
+                    tone="violet"
+                  />
+
+                  <Metric
+                    icon={<IconMetricGames className="h-[21px] w-[21px]" />}
+                    label="Jogos"
+                    value={isLoaded ? differentGames : "..."}
+                    tone="green"
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-5 border-t border-white/10 pt-3 sm:grid-cols-4 sm:gap-x-4">
-                <Metric
-                  icon={<IconMetricDays className="h-[16px] w-[16px]" />}
-                  label="Dias jogados"
-                  value={isLoaded ? uniqueDays : "..."}
-                  tone="red"
-                />
-                <Metric
-                  icon={<IconMetricTime className="h-[16px] w-[16px]" />}
-                  label="Tempo jogado"
-                  value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
-                  tone="red"
-                />
-                <Metric
-                  icon={<IconMetricAverage className="h-[16px] w-[16px]" />}
-                  label="Média por dia"
-                  value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
-                  tone="red"
-                />
-                <Metric
-                  icon={<IconMetricGames className="h-[16px] w-[16px]" />}
-                  label="Jogos registrados"
-                  value={isLoaded ? differentGames : "..."}
-                  tone="red"
-                />
+              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
+                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
+                  Sequência atual
+                </p>
+
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="text-3xl font-black text-white">
+                    {currentStreak}
+                  </span>
+                  <span className="pb-1 text-[10px] font-bold text-white/40">
+                    dias
+                  </span>
+                </div>
               </div>
             </div>
           </header>
@@ -1275,7 +1257,7 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[11px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"
@@ -1304,13 +1286,13 @@ export default function AtividadePage() {
                         setSearch(event.target.value)
                       }
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[10px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
                   >
                     <IconCalendar className="h-3.5 w-3.5" />
                     Todos os Meses ▾
@@ -1318,7 +1300,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
                   >
                     <IconGamepad className="h-3.5 w-3.5" />
                     Todas as Plataformas ▾
@@ -1327,7 +1309,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/55">
+                    <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/65">
                       Atividades recentes
                     </p>
 
@@ -1338,11 +1320,11 @@ export default function AtividadePage() {
                           className="mt-4"
                         >
                           <div className="mb-2 flex items-center justify-between px-1">
-                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/75">
+                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white/80">
                               {month}
                             </h2>
 
-                            <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/38">
+                            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/45">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1373,11 +1355,6 @@ export default function AtividadePage() {
                                   key={entry.id}
                                   entry={entry}
                                   game={game}
-                                  achievementCount={
-                                    achievementCountsByDate.get(
-                                      getDateKey(entry.date)
-                                    ) || 0
-                                  }
                                 />
                               );
                             })}
@@ -1482,45 +1459,82 @@ export default function AtividadePage() {
             </div>
 
             {/* SIDEBAR DIREITA */}
+{/* RIGHT */}
             <aside className="space-y-3 xl:sticky xl:top-20">
               <ActivityMap entries={sourceEntries} />
-
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                    <span className="h-5 w-0.5 rounded-full bg-red-500" />
                     Resumo da atividade
                   </h2>
+
                   <IconFlame className="h-4 w-4 text-red-500" />
                 </div>
 
-                <div className="mt-3 space-y-0">
+                <div className="mt-3 space-y-3">
                   {[
-                    [<IconFlame className="h-4 w-4" />, "Sequência atual", `${currentStreak} dias`, "red"],
-                    [<IconCalendar className="h-4 w-4" />, "Dias jogados", `${uniqueDays}`, "red"],
-                    [<IconClock className="h-4 w-4" />, "Horas jogadas", formatPlayedTime(totalMinutes), "red"],
-                    [<IconTrophy className="h-4 w-4" />, "Conquistas desbloqueadas", `${allCompletedAchievements.length}`, "amber"],
-                    [<IconTrend className="h-4 w-4" />, "Média diária", formatPlayedTime(averageMinutes), "green"],
-                    [<IconTarget className="h-4 w-4" />, "Jogos diferentes", `${differentGames}`, "pink"],
+                    [
+                      <IconFlame className="h-4 w-4" />,
+                      "Sequência atual",
+                      `${currentStreak} dias`,
+                      "red",
+                    ],
+                    [
+                      <IconCalendar className="h-4 w-4" />,
+                      "Dias jogados",
+                      `${uniqueDays}`,
+                      "violet",
+                    ],
+                    [
+                      <IconClock className="h-4 w-4" />,
+                      "Horas jogadas",
+                      formatPlayedTime(totalMinutes),
+                      "blue",
+                    ],
+                    [
+                      <IconTrophy className="h-4 w-4" />,
+                      "Conquistas desbloqueadas",
+                      `${allCompletedAchievements.length}`,
+                      "red",
+                    ],
+                    [
+                      <IconTrend className="h-4 w-4" />,
+                      "Média diária",
+                      formatPlayedTime(averageMinutes),
+                      "green",
+                    ],
+                    [
+                      <IconTarget className="h-4 w-4" />,
+                      "Jogos diferentes",
+                      `${differentGames}`,
+                      "violet",
+                    ],
                   ].map(([icon, label, value, tone]) => (
-                    <div key={String(label)} className="flex items-center justify-between gap-3 border-b border-white/[0.06] py-2.5 last:border-b-0">
+                    <div
+                      key={String(label)}
+                      className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0"
+                    >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div
-                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${
-                            tone === "green"
-                              ? "border-emerald-500/15 bg-emerald-500/10 text-emerald-400"
-                              : tone === "amber"
-                              ? "border-amber-500/15 bg-amber-500/10 text-amber-400"
-                              : tone === "pink"
-                              ? "border-pink-500/15 bg-pink-500/10 text-pink-400"
-                              : "border-red-500/15 bg-red-500/10 text-red-400"
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
+                            tone === "violet"
+                              ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
+                              : tone === "blue"
+                              ? "border-sky-500/20 bg-sky-500/10 text-sky-300"
+                              : tone === "green"
+                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                              : "border-red-500/20 bg-red-500/10 text-red-300"
                           }`}
                         >
                           {icon}
                         </div>
-                        <span className="truncate text-[9px] font-medium text-white/50">
+
+                        <span className="truncate text-[11px] font-medium text-white/55">
                           {label}
                         </span>
                       </div>
+
                       <strong className="shrink-0 text-[11px] font-black text-white">
                         {value}
                       </strong>
@@ -1530,59 +1544,136 @@ export default function AtividadePage() {
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
+                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
                   Distribuição de tempo por jogo
                 </h2>
 
-                <div className="mt-4 flex items-center gap-3">
+                <div className="mt-4 flex items-center gap-4">
                   <div
-                    className="relative h-[112px] w-[112px] shrink-0 rounded-full"
+                    className="relative h-32 w-32 shrink-0 rounded-full"
                     style={{
                       background:
                         gameDistribution.length > 0
                           ? (() => {
-                              const palette = ["#ef2432", "#ec4899", "#8b5cf6", "#667085"];
+                              const palette = [
+                                "#ef2432",
+                                "#a92b83",
+                                "#5e70e8",
+                                "#7f42a8",
+                                "#8b5cf6",
+                              ];
+
                               let start = 0;
-                              return `conic-gradient(${gameDistribution.slice(0, 4).map((item, index) => {
-                                const end = start + item.percent;
-                                const result = `${palette[index % palette.length]} ${start}% ${end}%`;
-                                start = end;
-                                return result;
-                              }).join(", ")})`;
+
+                              return `conic-gradient(${gameDistribution
+                                .slice(0, 5)
+                                .map((item, index) => {
+                                  const end =
+                                    start + item.percent;
+                                  const result = `${
+                                    palette[
+                                      index %
+                                        palette.length
+                                    ]
+                                  } ${start}% ${end}%`;
+                                  start = end;
+                                  return result;
+                                })
+                                .join(", ")})`;
                             })()
                           : "conic-gradient(#24262d 0 100%)",
                     }}
                   >
-                    <div className="absolute inset-[18px] flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
-                      <span className="text-[21px] font-black">{Math.round(totalMinutes / 60)}h</span>
-                      <span className="text-[7px] font-black uppercase tracking-[0.16em] text-white/25">total</span>
+                    <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
+                      <span className="text-[23px] font-black">
+                        {Math.round(totalMinutes / 60)}h
+                      </span>
+                      <span className="text-[7px] font-black uppercase tracking-[0.16em] text-white/25">
+                        total
+                      </span>
                     </div>
                   </div>
 
-                  <div className="min-w-0 flex-1 space-y-2">
-                    {gameDistribution.slice(0, 4).map((item, index) => (
-                      <div key={item.title}>
-                        <div className="flex items-center gap-2">
-                          <span className={`h-2 w-2 shrink-0 rounded-full ${["bg-red-500","bg-pink-500","bg-violet-500","bg-slate-500"][index]}`} />
-                          <p className="truncate text-[8px] font-bold text-white/60">{item.title}</p>
+                  <div className="min-w-0 flex-1 space-y-2.5">
+                    {gameDistribution
+                      .slice(0, 5)
+                      .map((item, index) => (
+                        <div key={item.title}>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`h-2 w-2 shrink-0 rounded-full ${
+                                [
+                                  "bg-red-500",
+                                  "bg-pink-500",
+                                  "bg-indigo-400",
+                                  "bg-violet-500",
+                                  "bg-purple-500",
+                                ][index] ||
+                                "bg-white/30"
+                              }`}
+                            />
+
+                            <p className="truncate text-[8px] font-bold text-white/55">
+                              {item.title}
+                            </p>
+                          </div>
+
+                          <p className="ml-4 mt-0.5 text-[8px] text-white/35">
+                            {formatPlayedTime(item.minutes)} (
+                            {Math.round(item.percent)}
+                            %)
+                          </p>
                         </div>
-                        <p className="ml-4 mt-0.5 text-[7px] text-white/25">
-                          {formatPlayedTime(item.minutes)} ({Math.round(item.percent)}%)
-                        </p>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-start gap-2 border-t border-white/[0.07] pt-3">
-                  <IconTarget className="mt-0.5 h-3 w-3 shrink-0 text-red-500" />
-                  <p className="text-[7px] leading-relaxed text-white/30">
+                <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
+                  <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-[8px] leading-relaxed text-white/30">
                     Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
                   </p>
                 </div>
               </section>
-            </aside>
 
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  Atividade recente
+                </h2>
+
+                <div className="mt-3 space-y-2">
+                  {sourceEntries.slice(0, 5).map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-300">
+                        <IconGamepad className="h-3.5 w-3.5" />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[9px] font-black text-white/70">
+                          {normalizeGameTitle(
+                            entry.gameTitle
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-[7px] text-white/25">
+                          {getDateKey(entry.date)}
+                        </p>
+                      </div>
+
+                      <span className="text-[8px] font-black text-white/45">
+                        {formatPlayedTime(
+                          entry.playedMinutes
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </aside>
           </div>
         </div>
       </div>
