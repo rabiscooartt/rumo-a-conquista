@@ -202,6 +202,130 @@ function IconHome(props: { className?: string }) {
   );
 }
 
+
+function IconMetricDays(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M6 4.5H18C19.1 4.5 20 5.4 20 6.5V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6.5C4 5.4 4.9 4.5 6 4.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 12.5H8.01M12 12.5H12.01M16 12.5H16.01M8 16H8.01M12 16H12.01"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16.8 15.4L18 16.6L20 14.4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconMetricTime(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M8 3.5H16M8 20.5H16"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8.8 3.8C8.8 7.7 11 9.2 12 10C13 10.8 15.2 12.3 15.2 20.2M15.2 3.8C15.2 7.7 13 9.2 12 10C11 10.8 8.8 12.3 8.8 20.2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10.2 12.2C10.8 11.7 11.4 11.35 12 11C12.6 11.35 13.2 11.7 13.8 12.2L12 15.1L10.2 12.2Z"
+        fill="currentColor"
+        opacity="0.75"
+      />
+      <path
+        d="M6 7.5H7.3M16.7 7.5H18"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+    </SvgIcon>
+  );
+}
+
+function IconMetricAverage(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M4 18.5H20"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
+      <path
+        d="M5 15.5L9 11.7L12.2 14.2L18.8 6.8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15.7 6.8H18.8V9.9"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="5" cy="15.5" r="1.35" fill="currentColor" />
+      <circle cx="9" cy="11.7" r="1.35" fill="currentColor" />
+      <circle cx="12.2" cy="14.2" r="1.35" fill="currentColor" />
+    </SvgIcon>
+  );
+}
+
+function IconMetricGames(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M7.1 7.5H16.9C19.15 7.5 20.3 9.45 20.65 11.95L21.15 15.75C21.55 18.75 18.15 20.1 16.45 17.65L14.85 15.35H9.15L7.55 17.65C5.85 20.1 2.45 18.75 2.85 15.75L3.35 11.95C3.7 9.45 4.85 7.5 7.1 7.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.2 11.3V15M5.3 13.15H9.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <circle cx="16.5" cy="12.3" r="1.25" fill="currentColor" />
+      <circle cx="18.6" cy="14.4" r="1.25" fill="currentColor" opacity="0.72" />
+      <path
+        d="M12 5.2V3.7M12 3.7L10.9 4.8M12 3.7L13.1 4.8"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.7"
+      />
+    </SvgIcon>
+  );
+}
+
 function IconGamepad(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
@@ -1043,86 +1167,97 @@ export default function AtividadePage() {
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
-          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
+          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#07080b]">
+            {/* Lua / brilho central */}
+            <div className="absolute left-[58%] top-[-62px] h-[185px] w-[185px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,76,82,0.95)_0%,rgba(255,35,45,0.62)_36%,rgba(255,35,45,0.18)_62%,transparent_72%)] blur-[1px]" />
+            <div className="absolute left-[58%] top-[-38px] h-[135px] w-[135px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,194,194,0.22)_0%,rgba(255,45,55,0.18)_42%,transparent_72%)]" />
 
-            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
-              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
+            {/* Montanhas estilizadas */}
+            <div
+              className="absolute inset-x-0 bottom-[36px] h-[92px] opacity-90"
+              style={{
+                clipPath:
+                  "polygon(0% 86%, 7% 62%, 13% 74%, 19% 43%, 24% 66%, 31% 28%, 36% 59%, 43% 22%, 49% 56%, 56% 35%, 62% 65%, 68% 25%, 74% 55%, 80% 32%, 86% 69%, 92% 38%, 97% 66%, 100% 54%, 100% 100%, 0% 100%)",
+                background:
+                  "linear-gradient(180deg,rgba(82,6,13,0.98),rgba(20,4,8,1))",
+              }}
+            />
+            <div
+              className="absolute inset-x-0 bottom-[32px] h-[66px] opacity-95"
+              style={{
+                clipPath:
+                  "polygon(0% 82%, 9% 54%, 16% 72%, 23% 40%, 30% 70%, 38% 34%, 45% 65%, 54% 29%, 62% 63%, 71% 36%, 79% 73%, 88% 46%, 94% 69%, 100% 50%, 100% 100%, 0% 100%)",
+                background:
+                  "linear-gradient(180deg,rgba(44,5,10,1),rgba(8,8,11,1))",
+              }}
+            />
+
+            {/* Troféu central */}
+            <div className="absolute left-[58%] bottom-[47px] hidden -translate-x-1/2 items-end md:flex">
+              <div className="absolute bottom-[36px] left-1/2 h-10 w-28 -translate-x-1/2 rounded-full bg-red-500/20 blur-2xl" />
+              <IconTrophy className="relative h-[112px] w-[112px] text-[#0b0b0d] drop-shadow-[0_8px_18px_rgba(0,0,0,0.85)]" />
             </div>
 
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
+            {/* Vignette / leitura */}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.74)_44%,rgba(4,5,8,0.34)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(4,5,8,0.98))]" />
 
-            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
-              <div className="max-w-[650px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
+            <div className="relative flex min-h-[156px] flex-col justify-end p-5 md:p-6">
+              <div className="max-w-[560px]">
+                <p className="text-[9px] font-black uppercase tracking-[0.26em] text-red-400">
                   Sua trajetória
                 </p>
 
-                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
+                <h1 className="mt-1 text-[36px] font-black leading-none tracking-tight text-white md:text-[42px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
+                <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/60 md:text-[12px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
-                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
+                <div className="mt-4 grid grid-cols-2 border-t border-white/10 pt-3 sm:grid-cols-4">
                   <Metric
-                    icon={<IconCalendar className="h-[18px] w-[18px]" />}
+                    icon={<IconMetricDays className="h-[17px] w-[17px]" />}
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
                     tone="red"
                   />
 
                   <Metric
-                    icon={<IconClock className="h-[18px] w-[18px]" />}
+                    icon={<IconMetricTime className="h-[17px] w-[17px]" />}
                     label="Tempo jogado"
                     value={
                       isLoaded
                         ? formatPlayedTime(totalMinutes)
                         : "..."
                     }
-                    tone="blue"
+                    tone="red"
                   />
 
                   <Metric
-                    icon={<IconTrend className="h-[18px] w-[18px]" />}
+                    icon={<IconMetricAverage className="h-[17px] w-[17px]" />}
                     label="Média por dia"
                     value={
                       isLoaded
                         ? formatPlayedTime(averageMinutes)
                         : "..."
                     }
-                    tone="violet"
+                    tone="red"
                   />
 
                   <Metric
-                    icon={<IconGamepad className="h-[18px] w-[18px]" />}
-                    label="Jogos"
+                    icon={<IconMetricGames className="h-[17px] w-[17px]" />}
+                    label="Jogos registrados"
                     value={isLoaded ? differentGames : "..."}
-                    tone="green"
+                    tone="red"
                   />
-                </div>
-              </div>
-
-              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
-                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
-                  Sequência atual
-                </p>
-
-                <div className="mt-1 flex items-end gap-2">
-                  <span className="text-3xl font-black text-white">
-                    {currentStreak}
-                  </span>
-                  <span className="pb-1 text-[10px] font-bold text-white/40">
-                    dias
-                  </span>
                 </div>
               </div>
             </div>
           </header>
 
-              <div className="mt-4">
+          <div className="mt-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
