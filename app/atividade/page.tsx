@@ -655,7 +655,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const cellSize = 19;
+  const cellSize = 16;
   const cellGap = 2;
 
   return (
@@ -664,16 +664,10 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-            <h2 className="text-[14px] font-black tracking-[0.01em] text-white/95 whitespace-nowrap">
+            <h2 className="text-[16px] font-black tracking-[0.01em] text-white/95">
               MAPA DE ATIVIDADE
             </h2>
 
-            <span
-              title="Calendário dos últimos 60 dias"
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/60"
-            >
-              i
-            </span>
           </div>
         </div>
 
@@ -683,7 +677,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       </div>
 
       <div className="mt-4 flex justify-center">
-        <div className="grid grid-cols-2 gap-[6px]">
+        <div className="grid grid-cols-2 gap-[10px]">
           {months.map((month) => (
             <div
               key={`${month.year}-${month.month}`}
@@ -723,7 +717,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         return (
                           <div
                             key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
-                            className="h-[18px] w-[18px]"
+                            className="h-[16px] w-[16px]"
                           />
                         );
                       }
@@ -737,7 +731,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                           title={`${day} • ${formatPlayedTime(
                             minutes
                           )}`}
-                          className={`h-[18px] w-[18px] rounded-[3px] ${getIntensity(
+                          className={`h-[16px] w-[16px] rounded-[3px] ${getIntensity(
                             minutes
                           )}`}
                         />
