@@ -655,7 +655,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const cellSize = 18;
+  const cellSize = 20;
   const cellGap = 2;
 
   return (
@@ -664,37 +664,37 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-            <h2 className="text-[16px] font-black tracking-[0.01em] text-white/95">
+            <h2 className="text-[17px] font-black tracking-[0.01em] text-white/95">
               Mapa de atividade
             </h2>
 
             <span
               title="Calendário dos últimos 60 dias"
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/50"
+              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/60"
             >
               i
             </span>
           </div>
         </div>
 
-        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-[8px] font-black tracking-[0.04em] text-white/50">
+        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-[9px] font-black tracking-[0.04em] text-white/60">
           Últimos 60 dias
         </span>
       </div>
 
       <div className="mt-4 flex justify-center">
-        <div className="grid grid-cols-2 gap-[8px]">
+        <div className="grid grid-cols-2 gap-[6px]">
           {months.map((month) => (
             <div
               key={`${month.year}-${month.month}`}
               className="min-w-0"
             >
               <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[10px] font-black tracking-[0.10em] text-white/60">
+                <span className="text-[11px] font-black tracking-[0.10em] text-white/75">
                   {month.label}
                 </span>
 
-                <span className="text-[8px] font-bold text-white/45">
+                <span className="text-[9px] font-bold text-white/55">
                   {month.days.length}
                 </span>
               </div>
@@ -723,7 +723,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         return (
                           <div
                             key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
-                            className="h-[18px] w-[18px]"
+                            className="h-[20px] w-[20px]"
                           />
                         );
                       }
@@ -737,7 +737,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                           title={`${day} • ${formatPlayedTime(
                             minutes
                           )}`}
-                          className={`h-[18px] w-[18px] rounded-[3px] ${getIntensity(
+                          className={`h-[20px] w-[20px] rounded-[3px] ${getIntensity(
                             minutes
                           )}`}
                         />
@@ -750,7 +750,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-1.5 text-[9px] font-bold text-white/45">
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] font-bold text-white/55">
         <span>Menos</span>
 
         <span className="h-2.5 w-2.5 rounded-[2px] bg-[#171a21]" />
