@@ -790,11 +790,11 @@ function Metric({
       <PremiumIconBadge>{icon}</PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[16px] font-black leading-none tracking-tight text-white">
+        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
 
-        <p className="mt-1 truncate text-[10px] font-medium leading-none text-white/55">
+        <p className="mt-1 truncate text-[13px] font-medium leading-none text-white/55">
           {label}
         </p>
       </div>
@@ -1131,27 +1131,27 @@ export default function AtividadePage() {
 
               <div className="absolute bottom-5 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
                 <Metric
-                  icon={<IconMetricDays className="h-[19px] w-[19px]" />}
+                  icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
                   value={isLoaded ? uniqueDays : "..."}
                 />
 
                 <Metric
-                  icon={<IconMetricTime className="h-[19px] w-[19px]" />}
+                  icon={<IconMetricTime className="h-[22px] w-[22px]" />}
                   label="Tempo jogado"
                   value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
                   divided
                 />
 
                 <Metric
-                  icon={<IconMetricAverage className="h-[19px] w-[19px]" />}
+                  icon={<IconMetricAverage className="h-[22px] w-[22px]" />}
                   label="Média por dia"
                   value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
                   divided
                 />
 
                 <Metric
-                  icon={<IconMetricGames className="h-[19px] w-[19px]" />}
+                  icon={<IconMetricGames className="h-[22px] w-[22px]" />}
                   label="Jogos"
                   value={isLoaded ? differentGames : "..."}
                   divided
