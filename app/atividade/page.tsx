@@ -815,7 +815,7 @@ function PremiumIconBadge({
 
   const sizes = {
     sm: "h-9 w-9 rounded-[11px]",
-    md: "h-12 w-12 rounded-[13px]",
+    md: "h-11 w-11 rounded-[12px]",
   } as const;
 
   return (
@@ -848,11 +848,11 @@ function Metric({
       </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-black uppercase tracking-[0.10em] text-white/65">
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.10em] text-white/55">
           {label}
         </p>
 
-        <p className="mt-1 truncate text-[20px] font-black leading-none tracking-tight text-white">
+        <p className="mt-1 truncate text-[18px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
       </div>
@@ -877,7 +877,7 @@ function ActivityRow({
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_120px] md:px-4">
       <div>
-        <p className="text-[29px] font-black leading-none tracking-tight text-white md:text-[31px]">
+        <p className="text-[27px] font-black leading-none tracking-tight text-white md:text-[29px]">
           {date.getDate()}
         </p>
 
@@ -902,11 +902,11 @@ function ActivityRow({
         </div>
 
         <div className="min-w-0">
-          <h3 className="truncate text-[17px] font-black text-white md:text-[18px]">
+          <h3 className="truncate text-[16px] font-black text-white md:text-[17px]">
             {normalizeGameTitle(entry.gameTitle)}
           </h3>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/65 md:text-[13px]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-white/55 md:text-[12px]">
             <span>
               {entry.weekDay ||
                 date.toLocaleDateString("pt-BR", {
@@ -925,7 +925,7 @@ function ActivityRow({
       </div>
 
       <div className="text-right">
-        <p className="text-[18px] font-black leading-none text-white md:text-[19px]">
+        <p className="text-[17px] font-black leading-none text-white md:text-[18px]">
           {formatPlayedTime(entry.playedMinutes)}
         </p>
 
@@ -1093,7 +1093,13 @@ export default function AtividadePage() {
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
-              <nav className="mt-4 space-y-1">
+              <div className="border-l-2 border-red-500 pl-3">
+                <p className="text-[17px] font-black text-white">
+                  Rumo à Conquista
+                </p>
+              </div>
+
+              <nav className="mt-7 space-y-1">
                 {[
                   ["Início", "/", <IconHome />],
                   ["Jogos", "/jogos", <IconGamepad />],
@@ -1105,7 +1111,7 @@ export default function AtividadePage() {
                   <Link
                     key={String(href)}
                     href={String(href)}
-                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[12px] font-bold transition ${
+                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[11px] font-bold transition ${
                       href === "/atividade"
                         ? "bg-red-500/10 text-red-300"
                         : "text-white/50 hover:bg-white/[0.03] hover:text-white"
@@ -1117,12 +1123,21 @@ export default function AtividadePage() {
                 ))}
               </nav>
 
+              <div className="mt-8 border-t border-white/[0.08] pt-6">
+                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                  Seu espaço
+                </p>
+
+                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
+                  Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
+                </p>
+              </div>
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
               <Link
                 href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
+                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
               >
                 <IconTarget className="h-4 w-4" />
                 Configurações
@@ -1130,7 +1145,7 @@ export default function AtividadePage() {
 
               <button
                 type="button"
-                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
+                className="flex items-center gap-3 px-2.5 py-2 text-[11px] font-bold text-white/50"
               >
                 <span className="text-sm">↪</span>
                 Sair
@@ -1138,7 +1153,7 @@ export default function AtividadePage() {
 
               <button
                 type="button"
-                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[12px] font-black text-white transition hover:bg-red-500"
+                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[10px] font-black text-white transition hover:bg-red-500"
               >
                 Entrar
               </button>
@@ -1152,86 +1167,97 @@ export default function AtividadePage() {
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
-          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
+          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#07080b]">
+            {/* Lua / brilho central */}
+            <div className="absolute left-[58%] top-[-62px] h-[185px] w-[185px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,76,82,0.95)_0%,rgba(255,35,45,0.62)_36%,rgba(255,35,45,0.18)_62%,transparent_72%)] blur-[1px]" />
+            <div className="absolute left-[58%] top-[-38px] h-[135px] w-[135px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,194,194,0.22)_0%,rgba(255,45,55,0.18)_42%,transparent_72%)]" />
 
-            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
-              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
+            {/* Montanhas estilizadas */}
+            <div
+              className="absolute inset-x-0 bottom-[36px] h-[92px] opacity-90"
+              style={{
+                clipPath:
+                  "polygon(0% 86%, 7% 62%, 13% 74%, 19% 43%, 24% 66%, 31% 28%, 36% 59%, 43% 22%, 49% 56%, 56% 35%, 62% 65%, 68% 25%, 74% 55%, 80% 32%, 86% 69%, 92% 38%, 97% 66%, 100% 54%, 100% 100%, 0% 100%)",
+                background:
+                  "linear-gradient(180deg,rgba(82,6,13,0.98),rgba(20,4,8,1))",
+              }}
+            />
+            <div
+              className="absolute inset-x-0 bottom-[32px] h-[66px] opacity-95"
+              style={{
+                clipPath:
+                  "polygon(0% 82%, 9% 54%, 16% 72%, 23% 40%, 30% 70%, 38% 34%, 45% 65%, 54% 29%, 62% 63%, 71% 36%, 79% 73%, 88% 46%, 94% 69%, 100% 50%, 100% 100%, 0% 100%)",
+                background:
+                  "linear-gradient(180deg,rgba(44,5,10,1),rgba(8,8,11,1))",
+              }}
+            />
+
+            {/* Troféu central */}
+            <div className="absolute left-[58%] bottom-[47px] hidden -translate-x-1/2 items-end md:flex">
+              <div className="absolute bottom-[36px] left-1/2 h-10 w-28 -translate-x-1/2 rounded-full bg-red-500/20 blur-2xl" />
+              <IconTrophy className="relative h-[112px] w-[112px] text-[#0b0b0d] drop-shadow-[0_8px_18px_rgba(0,0,0,0.85)]" />
             </div>
 
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
+            {/* Vignette / leitura */}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.74)_44%,rgba(4,5,8,0.34)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(4,5,8,0.98))]" />
 
-            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
-              <div className="max-w-[650px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
+            <div className="relative flex min-h-[156px] flex-col justify-end p-5 md:p-6">
+              <div className="max-w-[560px]">
+                <p className="text-[9px] font-black uppercase tracking-[0.26em] text-red-400">
                   Sua trajetória
                 </p>
 
-                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
+                <h1 className="mt-1 text-[36px] font-black leading-none tracking-tight text-white md:text-[42px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
+                <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/60 md:text-[12px]">
                   Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
 
-                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
+                <div className="mt-4 grid grid-cols-2 border-t border-white/10 pt-3 sm:grid-cols-4">
                   <Metric
-                    icon={<IconMetricDays className="h-[21px] w-[21px]" />}
+                    icon={<IconMetricDays className="h-[17px] w-[17px]" />}
                     label="Dias jogados"
                     value={isLoaded ? uniqueDays : "..."}
                     tone="red"
                   />
 
                   <Metric
-                    icon={<IconMetricTime className="h-[21px] w-[21px]" />}
+                    icon={<IconMetricTime className="h-[17px] w-[17px]" />}
                     label="Tempo jogado"
                     value={
                       isLoaded
                         ? formatPlayedTime(totalMinutes)
                         : "..."
                     }
-                    tone="blue"
+                    tone="red"
                   />
 
                   <Metric
-                    icon={<IconMetricAverage className="h-[21px] w-[21px]" />}
+                    icon={<IconMetricAverage className="h-[17px] w-[17px]" />}
                     label="Média por dia"
                     value={
                       isLoaded
                         ? formatPlayedTime(averageMinutes)
                         : "..."
                     }
-                    tone="violet"
+                    tone="red"
                   />
 
                   <Metric
-                    icon={<IconMetricGames className="h-[21px] w-[21px]" />}
-                    label="Jogos"
+                    icon={<IconMetricGames className="h-[17px] w-[17px]" />}
+                    label="Jogos registrados"
                     value={isLoaded ? differentGames : "..."}
-                    tone="green"
+                    tone="red"
                   />
-                </div>
-              </div>
-
-              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
-                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
-                  Sequência atual
-                </p>
-
-                <div className="mt-1 flex items-end gap-2">
-                  <span className="text-3xl font-black text-white">
-                    {currentStreak}
-                  </span>
-                  <span className="pb-1 text-[10px] font-bold text-white/40">
-                    dias
-                  </span>
                 </div>
               </div>
             </div>
           </header>
 
-              <div className="mt-4">
+          <div className="mt-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
                 <div className="border-b border-white/[0.08] px-3 pt-3">
                   <div className="flex items-center gap-1">
@@ -1248,10 +1274,10 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 border-b-2 px-4 py-3 text-[12px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[11px] font-black transition ${
                           activeTab === value
-                            ? "border-red-500 text-red-300"
-                            : "border-transparent text-white/45 hover:text-white"
+                            ? "bg-red-500/10 text-red-300"
+                            : "text-white/40 hover:text-white"
                         }`}
                       >
                         {value === "jogos" ? (
@@ -1277,13 +1303,13 @@ export default function AtividadePage() {
                         setSearch(event.target.value)
                       }
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[10px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
                   >
                     <IconCalendar className="h-3.5 w-3.5" />
                     Todos os Meses ▾
@@ -1291,7 +1317,7 @@ export default function AtividadePage() {
 
                   <button
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
+                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[10px] font-black text-white/45"
                   >
                     <IconGamepad className="h-3.5 w-3.5" />
                     Todas as Plataformas ▾
@@ -1300,7 +1326,7 @@ export default function AtividadePage() {
 
                 {activeTab === "jogos" && (
                   <div className="px-3 pb-3">
-                    <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/65">
+                    <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-[0.16em] text-white/55">
                       Atividades recentes
                     </p>
 
@@ -1311,11 +1337,11 @@ export default function AtividadePage() {
                           className="mt-4"
                         >
                           <div className="mb-2 flex items-center justify-between px-1">
-                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white/80">
+                            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white/75">
                               {month}
                             </h2>
 
-                            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/45">
+                            <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/38">
                               {monthEntries.length} registros
                             </span>
                           </div>
@@ -1455,7 +1481,7 @@ export default function AtividadePage() {
               <ActivityMap entries={sourceEntries} />
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
-                  <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
                     <span className="h-5 w-0.5 rounded-full bg-red-500" />
                     Resumo da atividade
                   </h2>
@@ -1507,11 +1533,21 @@ export default function AtividadePage() {
                       className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-300">
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
+                            tone === "violet"
+                              ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
+                              : tone === "blue"
+                              ? "border-sky-500/20 bg-sky-500/10 text-sky-300"
+                              : tone === "green"
+                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                              : "border-red-500/20 bg-red-500/10 text-red-300"
+                          }`}
+                        >
                           {icon}
                         </div>
 
-                        <span className="truncate text-[11px] font-medium text-white/55">
+                        <span className="truncate text-[10px] font-medium text-white/45">
                           {label}
                         </span>
                       </div>
@@ -1525,7 +1561,7 @@ export default function AtividadePage() {
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
                   <span className="h-5 w-0.5 rounded-full bg-red-500" />
                   Distribuição de tempo por jogo
                 </h2>
@@ -1586,12 +1622,12 @@ export default function AtividadePage() {
                               className={`h-2 w-2 shrink-0 rounded-full ${
                                 [
                                   "bg-red-500",
-                                  "bg-red-400",
-                                  "bg-red-300",
-                                  "bg-white/35",
-                                  "bg-white/25",
+                                  "bg-pink-500",
+                                  "bg-indigo-400",
+                                  "bg-violet-500",
+                                  "bg-purple-500",
                                 ][index] ||
-                                "bg-white/25"
+                                "bg-white/30"
                               }`}
                             />
 
@@ -1600,7 +1636,7 @@ export default function AtividadePage() {
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[8px] text-white/35">
+                          <p className="ml-4 mt-0.5 text-[7px] text-white/25">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
@@ -1610,8 +1646,50 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
+                <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
+                  <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  <p className="text-[8px] leading-relaxed text-white/30">
+                    Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
+                  </p>
+                </div>
               </section>
 
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  Atividade recente
+                </h2>
+
+                <div className="mt-3 space-y-2">
+                  {sourceEntries.slice(0, 5).map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-300">
+                        <IconGamepad className="h-3.5 w-3.5" />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[8px] font-black text-white/60">
+                          {normalizeGameTitle(
+                            entry.gameTitle
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-[7px] text-white/25">
+                          {getDateKey(entry.date)}
+                        </p>
+                      </div>
+
+                      <span className="text-[7px] font-black text-white/35">
+                        {formatPlayedTime(
+                          entry.playedMinutes
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
             </aside>
           </div>
         </div>
