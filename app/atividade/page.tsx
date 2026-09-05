@@ -665,7 +665,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           <div className="flex items-center gap-1.5">
             <span className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
             <h2 className="whitespace-nowrap text-[15px] font-black tracking-[0.01em] text-white/95">
-              Mapa de atividade
+              MAPA DE ATIVIDADE
             </h2>
 
             <span
@@ -1404,10 +1404,28 @@ export default function AtividadePage() {
                       "red",
                     ],
                     [
+                      <IconCalendar className="h-4 w-4" />,
+                      "Dias jogados",
+                      `${uniqueDays}`,
+                      "violet",
+                    ],
+                    [
+                      <IconClock className="h-4 w-4" />,
+                      "Horas jogadas",
+                      formatPlayedTime(totalMinutes),
+                      "blue",
+                    ],
+                    [
                       <IconTrophy className="h-4 w-4" />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
                       "red",
+                    ],
+                    [
+                      <IconTrend className="h-4 w-4" />,
+                      "Média diária",
+                      formatPlayedTime(averageMinutes),
+                      "green",
                     ],
                     [
                       <IconTarget className="h-4 w-4" />,
