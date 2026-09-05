@@ -794,7 +794,7 @@ function Metric({
           {value}
         </p>
 
-        <p className="mt-1 truncate text-[13px] font-medium leading-none text-white/55">
+        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">
           {label}
         </p>
       </div>
@@ -1129,7 +1129,7 @@ export default function AtividadePage() {
                 </p>
               </div>
 
-              <div className="absolute bottom-5 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
+              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
