@@ -206,11 +206,13 @@ function IconHome(props: { className?: string }) {
 function IconMetricDays(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <path
-        d="M6 4.5H18C19.1 4.5 20 5.4 20 6.5V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6.5C4 5.4 4.9 4.5 6 4.5Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
+      <rect
+        x="4.5"
+        y="5.5"
+        width="15"
+        height="14"
+        rx="2"
+        fill="currentColor"
       />
       <path
         d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
@@ -220,16 +222,9 @@ function IconMetricDays(props: { className?: string }) {
       />
       <path
         d="M8 12.5H8.01M12 12.5H12.01M16 12.5H16.01M8 16H8.01M12 16H12.01"
-        stroke="currentColor"
-        strokeWidth="2.6"
+        stroke="#090b0f"
+        strokeWidth="2.1"
         strokeLinecap="round"
-      />
-      <path
-        d="M16.8 15.4L18 16.6L20 14.4"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -238,29 +233,19 @@ function IconMetricDays(props: { className?: string }) {
 function IconMetricTime(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <path
-        d="M8 3.5H16M8 20.5H16"
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
         stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
+        strokeWidth="2.6"
       />
       <path
-        d="M8.8 3.8C8.8 7.7 11 9.2 12 10C13 10.8 15.2 12.3 15.2 20.2M15.2 3.8C15.2 7.7 13 9.2 12 10C11 10.8 8.8 12.3 8.8 20.2"
+        d="M12 7.8V12L15 13.8"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2.4"
         strokeLinecap="round"
-      />
-      <path
-        d="M10.2 12.2C10.8 11.7 11.4 11.35 12 11C12.6 11.35 13.2 11.7 13.8 12.2L12 15.1L10.2 12.2Z"
-        fill="currentColor"
-        opacity="0.75"
-      />
-      <path
-        d="M6 7.5H7.3M16.7 7.5H18"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        opacity="0.5"
+        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -270,29 +255,30 @@ function IconMetricAverage(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M4 18.5H20"
+        d="M4.5 18.7H19.5"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="1.45"
         strokeLinecap="round"
-        opacity="0.45"
+        opacity="0.4"
       />
       <path
-        d="M5 15.5L9 11.7L12.2 14.2L18.8 6.8"
+        d="M5 15.4L9 11.8L12.2 14L18.7 6.9"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.7 6.8H18.8V9.9"
+        d="M15.7 6.9H18.7V9.9"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="5" cy="15.5" r="1.35" fill="currentColor" />
-      <circle cx="9" cy="11.7" r="1.35" fill="currentColor" />
-      <circle cx="12.2" cy="14.2" r="1.35" fill="currentColor" />
+      <circle cx="5" cy="15.4" r="1.25" fill="currentColor" />
+      <circle cx="9" cy="11.8" r="1.2" fill="currentColor" />
+      <circle cx="12.2" cy="14" r="1.2" fill="currentColor" />
+      <circle cx="18.7" cy="6.9" r="1.25" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -300,27 +286,13 @@ function IconMetricAverage(props: { className?: string }) {
 function IconMetricGames(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
+      <circle cx="9" cy="9.2" r="3.1" fill="currentColor" />
+      <circle cx="15" cy="9.2" r="3.1" fill="currentColor" />
       <path
-        d="M7.1 7.5H16.9C19.15 7.5 20.3 9.45 20.65 11.95L21.15 15.75C21.55 18.75 18.15 20.1 16.45 17.65L14.85 15.35H9.15L7.55 17.65C5.85 20.1 2.45 18.75 2.85 15.75L3.35 11.95C3.7 9.45 4.85 7.5 7.1 7.5Z"
+        d="M4.8 19C5.2 15.85 6.9 14.2 9 14.2C11.1 14.2 12.8 15.85 13.2 19M10.8 19C11.2 15.85 12.9 14.2 15 14.2C17.1 14.2 18.8 15.85 19.2 19"
         stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7.2 11.3V15M5.3 13.15H9.1"
-        stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2.4"
         strokeLinecap="round"
-      />
-      <circle cx="16.5" cy="12.3" r="1.25" fill="currentColor" />
-      <circle cx="18.6" cy="14.4" r="1.25" fill="currentColor" opacity="0.72" />
-      <path
-        d="M12 5.2V3.7M12 3.7L10.9 4.8M12 3.7L13.1 4.8"
-        stroke="currentColor"
-        strokeWidth="1.45"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.7"
       />
     </SvgIcon>
   );
@@ -683,7 +655,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const cellSize = 17;
+  const cellSize = 18;
   const cellGap = 2;
 
   return (
@@ -691,26 +663,25 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <h2 className="whitespace-nowrap text-[14px] font-black leading-none tracking-[0.01em] text-white/95">
+            <h2 className="text-[16px] font-black tracking-[0.01em] text-white/95">
               Mapa de atividade
             </h2>
 
             <span
-              title="Calendário automático: 1 quadrado representa 1 dia"
-              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[9px] font-black text-white/50"
+              title="Calendário dos últimos 60 dias"
+              className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-white/20 text-[8px] font-black text-white/50"
             >
               i
             </span>
           </div>
-
         </div>
 
-        <span className="shrink-0 whitespace-nowrap rounded-md border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-[9px] font-black tracking-[0.02em] text-white/50">
+        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2 py-1 text-[8px] font-black tracking-[0.04em] text-white/50">
           Últimos 60 dias
         </span>
       </div>
 
-      <div className="mt-3 flex justify-center">
+      <div className="mt-4 flex justify-center">
         <div className="grid grid-cols-2 gap-[8px]">
           {months.map((month) => (
             <div
@@ -722,7 +693,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                   {month.label}
                 </span>
 
-                <span className="text-[8px] font-bold text-white/40">
+                <span className="text-[8px] font-bold text-white/45">
                   {month.days.length}
                 </span>
               </div>
@@ -751,7 +722,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         return (
                           <div
                             key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
-                            className="h-[17px] w-[17px]"
+                            className="h-[18px] w-[18px]"
                           />
                         );
                       }
@@ -765,7 +736,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                           title={`${day} • ${formatPlayedTime(
                             minutes
                           )}`}
-                          className={`h-[17px] w-[17px] rounded-[3px] ${getIntensity(
+                          className={`h-[18px] w-[18px] rounded-[3px] ${getIntensity(
                             minutes
                           )}`}
                         />
@@ -778,14 +749,14 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-1.5 text-[9px] font-bold text-white/45">
+      <div className="mt-4 flex items-center justify-center gap-1.5 text-[9px] font-bold text-white/45">
         <span>Menos</span>
 
-        <span className="h-3 w-3 rounded-[2px] bg-[#171a21]" />
-        <span className="h-3 w-3 rounded-[2px] bg-red-950" />
-        <span className="h-3 w-3 rounded-[2px] bg-red-800" />
-        <span className="h-3 w-3 rounded-[2px] bg-red-600" />
-        <span className="h-3 w-3 rounded-[2px] bg-red-500" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-[#171a21]" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-950" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-800" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-600" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-red-500" />
 
         <span>Mais</span>
       </div>
@@ -796,32 +767,12 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
 function PremiumIconBadge({
   children,
-  tone,
-  size = "md",
 }: {
   children: ReactNode;
-  tone: "red" | "blue" | "violet" | "green";
-  size?: "sm" | "md";
 }) {
-  const styles = {
-    red: "border-red-500/25 bg-red-500/[0.11] text-red-300",
-    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300",
-    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300",
-    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300",
-  } as const;
-
-  const sizes = {
-    sm: "h-9 w-9 rounded-[11px]",
-    md: "h-12 w-12 rounded-[13px]",
-  } as const;
-
   return (
-    <div
-      className={`relative flex shrink-0 items-center justify-center border shadow-[inset_0_0_12px_rgba(255,255,255,0.025)] ${sizes[size]} ${styles[tone]}`}
-    >
-      <span className="absolute inset-[3px] rounded-[9px] border border-white/[0.07]" />
-      <span className="absolute inset-[6px] rounded-[7px] border border-current/10" />
-      <span className="relative">{children}</span>
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+      {children}
     </div>
   );
 }
@@ -831,26 +782,28 @@ function Metric({
   icon,
   label,
   value,
-  tone,
+  divided = false,
 }: {
   icon: ReactNode;
   label: string;
   value: string | number;
-  tone: "red" | "blue" | "violet" | "green";
+  divided?: boolean;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
-      <PremiumIconBadge tone={tone}>
-        {icon}
-      </PremiumIconBadge>
+    <div
+      className={`flex min-w-0 items-center gap-2.5 ${
+        divided ? "border-l border-white/10 pl-4" : ""
+      }`}
+    >
+      <PremiumIconBadge>{icon}</PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-black uppercase tracking-[0.10em] text-white/65">
-          {label}
+        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
+          {value}
         </p>
 
-        <p className="mt-1 truncate text-[20px] font-black leading-none tracking-tight text-white">
-          {value}
+        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">
+          {label}
         </p>
       </div>
     </div>
@@ -1158,81 +1111,53 @@ export default function AtividadePage() {
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
-          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
+          <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
+            <div
+              className="absolute inset-0 bg-cover bg-right-center bg-no-repeat"
+              style={{ backgroundImage: "url('/images/activity-banner-bg.png')" }}
+            />
 
-            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
-              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
-            </div>
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
-
-            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
-              <div className="max-w-[650px]">
-                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
-                  Sua trajetória
+            <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
+              <div className="max-w-[400px]">
+                <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+                  <span className="text-[10px] leading-none">✣</span>
+                  Sua jornada em números
                 </p>
 
-                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
+                <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
-                  Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
+                <p className="mt-3 max-w-[340px] text-[12px] font-medium leading-[1.35] text-white/70">
+                  Acompanhe seus dias de jogo, horas investidas e
+                  conquistas ao longo do tempo.
                 </p>
-
-                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
-                  <Metric
-                    icon={<IconMetricDays className="h-[21px] w-[21px]" />}
-                    label="Dias jogados"
-                    value={isLoaded ? uniqueDays : "..."}
-                    tone="red"
-                  />
-
-                  <Metric
-                    icon={<IconMetricTime className="h-[21px] w-[21px]" />}
-                    label="Tempo jogado"
-                    value={
-                      isLoaded
-                        ? formatPlayedTime(totalMinutes)
-                        : "..."
-                    }
-                    tone="blue"
-                  />
-
-                  <Metric
-                    icon={<IconMetricAverage className="h-[21px] w-[21px]" />}
-                    label="Média por dia"
-                    value={
-                      isLoaded
-                        ? formatPlayedTime(averageMinutes)
-                        : "..."
-                    }
-                    tone="violet"
-                  />
-
-                  <Metric
-                    icon={<IconMetricGames className="h-[21px] w-[21px]" />}
-                    label="Jogos"
-                    value={isLoaded ? differentGames : "..."}
-                    tone="green"
-                  />
-                </div>
               </div>
 
-              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
-                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
-                  Sequência atual
-                </p>
+              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
+                <Metric
+                  icon={<IconMetricDays className="h-[22px] w-[22px]" />}
+                  label="Dias jogados"
+                  value={isLoaded ? uniqueDays : "..."}
+                />
 
-                <div className="mt-1 flex items-end gap-2">
-                  <span className="text-3xl font-black text-white">
-                    {currentStreak}
-                  </span>
-                  <span className="pb-1 text-[10px] font-bold text-white/40">
-                    dias
-                  </span>
-                </div>
+                <Metric
+                  icon={<IconMetricTime className="h-[22px] w-[22px]" />}
+                  label="Tempo jogado"
+                  value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
+                  divided
+                />
+
+                <Metric
+                  icon={<IconMetricAverage className="h-[22px] w-[22px]" />}
+                  label="Média por dia"
+                  value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
+                  divided
+                />
+
               </div>
             </div>
           </header>
