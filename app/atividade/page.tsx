@@ -275,16 +275,16 @@ function IconMetricGames(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M7.15 8.5H16.85C19.1 8.5 20.55 10.55 20.9 13.05L21.35 16.55C21.7 19.25 18.55 20.15 17.1 17.95L15.5 15.6H8.5L6.9 17.95C5.45 20.15 2.3 19.25 2.65 16.55L3.1 13.05C3.45 10.55 4.9 8.5 7.15 8.5Z"
-        fill="none"
+        d="M7.2 8.5H16.8C19.15 8.5 20.35 10.55 20.7 13.1L21.2 16.8C21.55 19.2 18.75 20.1 17.35 18.3L15.3 15.8H8.7L6.65 18.3C5.25 20.1 2.45 19.2 2.8 16.8L3.3 13.1C3.65 10.55 4.85 8.5 7.2 8.5Z"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2.2"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M7 11.2V14.8M5.2 13H8.8M15.3 12.4H15.31M18.1 14.9H18.11"
+        d="M7.1 11V14.7M5.25 12.85H8.95M15.3 12.4H15.31M18 14.7H18.01"
         stroke="currentColor"
-        strokeWidth="2.1"
+        strokeWidth="2.2"
         strokeLinecap="round"
       />
     </SvgIcon>
