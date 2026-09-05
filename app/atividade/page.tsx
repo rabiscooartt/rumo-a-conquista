@@ -1404,28 +1404,10 @@ export default function AtividadePage() {
                       "red",
                     ],
                     [
-                      <IconCalendar className="h-4 w-4" />,
-                      "Dias jogados",
-                      `${uniqueDays}`,
-                      "violet",
-                    ],
-                    [
-                      <IconClock className="h-4 w-4" />,
-                      "Horas jogadas",
-                      formatPlayedTime(totalMinutes),
-                      "blue",
-                    ],
-                    [
                       <IconTrophy className="h-4 w-4" />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
                       "red",
-                    ],
-                    [
-                      <IconTrend className="h-4 w-4" />,
-                      "Média diária",
-                      formatPlayedTime(averageMinutes),
-                      "green",
                     ],
                     [
                       <IconTarget className="h-4 w-4" />,
