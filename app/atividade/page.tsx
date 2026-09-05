@@ -507,6 +507,49 @@ function IconFile(props: { className?: string }) {
   );
 }
 
+function SummaryFlameIcon(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M13.1 3.5C13.45 6.2 11.5 7.65 10.45 9.25C9.5 10.7 9.7 12.55 11.55 13.1C11.1 11.5 12.2 10.1 13.55 9.2C15.95 11.05 17.8 13.45 17.8 16.35C17.8 19.55 15.2 21.2 12.25 21.2C8.55 21.2 6.2 19.05 6.2 16.05C6.2 13 8.2 10.9 10 8.65C10.9 7.5 11.2 6.2 10.95 4.35C11.75 4.15 12.45 3.85 13.1 3.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M12.15 13.25C11.25 14.25 10.75 15.15 10.75 16.2C10.75 17.5 11.55 18.3 12.55 18.3C13.7 18.3 14.45 17.5 14.45 16.4C14.45 15.5 14.05 14.7 13.15 14"
+        fill="#090b0f"
+      />
+    </SvgIcon>
+  );
+}
+
+function SummaryTrophyIcon(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M8 4.5H16V9.7C16 12.55 14.45 14.75 12 14.75C9.55 14.75 8 12.55 8 9.7V4.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M8 6.2H6.1C5 6.2 4.4 6.9 4.4 8C4.4 10.15 5.7 11.7 8 12.1M16 6.2H17.9C19 6.2 19.6 6.9 19.6 8C19.6 10.15 18.3 11.7 16 12.1"
+        fill="currentColor"
+      />
+      <path d="M12 14.75V18.2M8.4 20H15.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 6.4L12.7 7.7L14.15 7.9L13.1 8.9L13.35 10.35L12 9.65L10.65 10.35L10.9 8.9L9.85 7.9L11.3 7.7L12 6.4Z" fill="#090b0f" />
+    </SvgIcon>
+  );
+}
+
+function SummaryTargetIcon(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8.75" fill="currentColor" opacity="0.22" />
+      <circle cx="12" cy="12" r="6.15" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="2.6" fill="currentColor" />
+      <path d="M16.3 7.7L20 4M17.2 4H20V6.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </SvgIcon>
+  );
+}
+
 /* ---------- MAPA ---------- */
 
 function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
@@ -1392,22 +1435,22 @@ export default function AtividadePage() {
                 <div className="mt-3 space-y-3.5">
                   {[
                     [
-                      <IconFlame className="h-[18px] w-[18px]" />,
+                      <SummaryFlameIcon className="h-[18px] w-[18px]" />,
                       "Sequência atual",
                       `${currentStreak} dias`,
                       "red",
                     ],
                     [
-                      <IconTrophy className="h-[18px] w-[18px]" />,
+                      <SummaryTrophyIcon className="h-[18px] w-[18px]" />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
-                      "red",
+                      "amber",
                     ],
                     [
-                      <IconTarget className="h-[18px] w-[18px]" />,
+                      <SummaryTargetIcon className="h-[18px] w-[18px]" />,
                       "Jogos diferentes",
                       `${differentGames}`,
-                      "violet",
+                      "pink",
                     ],
                   ].map(([icon, label, value, tone]) => (
                     <div
@@ -1417,8 +1460,10 @@ export default function AtividadePage() {
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div
                           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border ${
-                            tone === "violet"
-                              ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
+                            tone === "amber"
+                              ? "border-amber-500/20 bg-amber-500/10 text-amber-300"
+                              : tone === "pink"
+                              ? "border-pink-500/20 bg-pink-500/10 text-pink-300"
                               : "border-red-500/20 bg-red-500/10 text-red-300"
                           }`}
                         >
