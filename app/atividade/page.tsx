@@ -655,7 +655,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const cellSize = 16;
+  const cellSize = 18;
   const cellGap = 2;
 
   return (
@@ -664,8 +664,8 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-            <h2 className="whitespace-nowrap text-[15px] font-black tracking-[0.01em] text-white/95">
-              MAPA DE ATIVIDADE
+            <h2 className="text-[15px] font-black tracking-[0.01em] text-white/95">
+              Mapa de atividade
             </h2>
 
             <span
@@ -683,7 +683,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       </div>
 
       <div className="mt-4 flex justify-center">
-        <div className="grid grid-cols-2 gap-[10px]">
+        <div className="grid grid-cols-2 gap-[8px]">
           {months.map((month) => (
             <div
               key={`${month.year}-${month.month}`}
@@ -723,7 +723,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         return (
                           <div
                             key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
-                            className="h-[16px] w-[16px]"
+                            className="h-[18px] w-[18px]"
                           />
                         );
                       }
@@ -737,7 +737,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                           title={`${day} • ${formatPlayedTime(
                             minutes
                           )}`}
-                          className={`h-[16px] w-[16px] rounded-[3px] ${getIntensity(
+                          className={`h-[18px] w-[18px] rounded-[3px] ${getIntensity(
                             minutes
                           )}`}
                         />
