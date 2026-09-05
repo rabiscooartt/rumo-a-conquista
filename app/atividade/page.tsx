@@ -655,7 +655,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
     return "bg-red-500";
   };
 
-  const cellSize = 20;
+  const cellSize = 16;
   const cellGap = 2;
 
   return (
@@ -664,7 +664,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-            <h2 className="text-[17px] font-black tracking-[0.01em] text-white/95">
+            <h2 className="text-[16px] font-black tracking-[0.01em] text-white/95">
               Mapa de atividade
             </h2>
 
@@ -677,13 +677,13 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
           </div>
         </div>
 
-        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-[9px] font-black tracking-[0.04em] text-white/60">
+        <span className="shrink-0 rounded-md border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-[9px] font-black tracking-[0.02em] text-white/60">
           Últimos 60 dias
         </span>
       </div>
 
       <div className="mt-4 flex justify-center">
-        <div className="grid grid-cols-2 gap-[6px]">
+        <div className="grid grid-cols-2 gap-[10px]">
           {months.map((month) => (
             <div
               key={`${month.year}-${month.month}`}
@@ -723,7 +723,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                         return (
                           <div
                             key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
-                            className="h-[20px] w-[20px]"
+                            className="h-[16px] w-[16px]"
                           />
                         );
                       }
@@ -737,7 +737,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
                           title={`${day} • ${formatPlayedTime(
                             minutes
                           )}`}
-                          className={`h-[20px] w-[20px] rounded-[3px] ${getIntensity(
+                          className={`h-[16px] w-[16px] rounded-[3px] ${getIntensity(
                             minutes
                           )}`}
                         />
