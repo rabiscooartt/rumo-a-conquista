@@ -206,27 +206,30 @@ function IconHome(props: { className?: string }) {
 function IconMetricDays(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <rect
-        x="4.5"
-        y="5.5"
-        width="15"
-        height="14"
-        rx="2.2"
-        fill="none"
+      <path
+        d="M6 4.5H18C19.1 4.5 20 5.4 20 6.5V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6.5C4 5.4 4.9 4.5 6 4.5Z"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
       />
       <path
-        d="M8 3.5V7M16 3.5V7M4.8 9.2H19.2"
+        d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
       <path
-        d="M8.5 13H8.51M12 13H12.01M15.5 13H15.51M8.5 16.5H8.51M12 16.5H12.01"
+        d="M8 12.5H8.01M12 12.5H12.01M16 12.5H16.01M8 16H8.01M12 16H12.01"
         stroke="currentColor"
         strokeWidth="2.6"
         strokeLinecap="round"
+      />
+      <path
+        d="M16.8 15.4L18 16.6L20 14.4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -235,22 +238,30 @@ function IconMetricDays(props: { className?: string }) {
 function IconMetricTime(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle
-        cx="12"
-        cy="12"
-        r="8.6"
-        fill="none"
+      <path
+        d="M8 3.5H16M8 20.5H16"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="1.8"
+        strokeLinecap="round"
       />
       <path
-        d="M12 7.4V12L15.2 14"
+        d="M8.8 3.8C8.8 7.7 11 9.2 12 10C13 10.8 15.2 12.3 15.2 20.2M15.2 3.8C15.2 7.7 13 9.2 12 10C11 10.8 8.8 12.3 8.8 20.2"
         stroke="currentColor"
-        strokeWidth="2.4"
+        strokeWidth="1.7"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="1.3" fill="currentColor" />
+      <path
+        d="M10.2 12.2C10.8 11.7 11.4 11.35 12 11C12.6 11.35 13.2 11.7 13.8 12.2L12 15.1L10.2 12.2Z"
+        fill="currentColor"
+        opacity="0.75"
+      />
+      <path
+        d="M6 7.5H7.3M16.7 7.5H18"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
     </SvgIcon>
   );
 }
@@ -259,28 +270,29 @@ function IconMetricAverage(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M4.8 18.4H19.2"
+        d="M4 18.5H20"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
+      <path
+        d="M5 15.5L9 11.7L12.2 14.2L18.8 6.8"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-        opacity="0.55"
-      />
-      <path
-        d="M5.5 15.4L9.3 11.8L12.2 14.1L18.4 7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.5 7H18.4V9.9"
-        fill="none"
+        d="M15.7 6.8H18.8V9.9"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <circle cx="5" cy="15.5" r="1.35" fill="currentColor" />
+      <circle cx="9" cy="11.7" r="1.35" fill="currentColor" />
+      <circle cx="12.2" cy="14.2" r="1.35" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -289,20 +301,20 @@ function IconMetricGames(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M6.7 8.2H17.3C19.1 8.2 20.2 10 20.45 12L20.9 15.4C21.2 17.7 18.6 19.1 17.25 17.15L15.65 14.9H8.35L6.75 17.15C5.4 19.1 2.8 17.7 3.1 15.4L3.55 12C3.8 10 4.9 8.2 6.7 8.2Z"
+        d="M7 8.4H17C19.25 8.4 20.6 10.35 20.95 13L21.35 16.6C21.65 19.25 18.65 20.25 17.15 18.15L15.65 16H8.35L6.85 18.15C5.35 20.25 2.35 19.25 2.65 16.6L3.05 13C3.4 10.35 4.75 8.4 7 8.4Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2.05"
         strokeLinejoin="round"
       />
       <path
-        d="M7.1 11.5V15M5.35 13.25H8.85"
+        d="M7 11.3V15M5.15 13.15H8.85"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2.05"
         strokeLinecap="round"
       />
-      <circle cx="15.8" cy="11.8" r="1.15" fill="currentColor" />
-      <circle cx="18" cy="13.9" r="1.15" fill="currentColor" />
+      <circle cx="16.25" cy="12.7" r="1.45" fill="currentColor" />
+      <circle cx="18.45" cy="14.9" r="1.45" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -780,12 +792,32 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
 
 function PremiumIconBadge({
   children,
+  tone,
+  size = "md",
 }: {
   children: ReactNode;
+  tone: "red" | "blue" | "violet" | "green";
+  size?: "sm" | "md";
 }) {
+  const styles = {
+    red: "border-red-500/25 bg-red-500/[0.11] text-red-300",
+    blue: "border-sky-400/25 bg-sky-400/[0.10] text-sky-300",
+    violet: "border-violet-400/25 bg-violet-400/[0.10] text-violet-300",
+    green: "border-emerald-400/25 bg-emerald-400/[0.10] text-emerald-300",
+  } as const;
+
+  const sizes = {
+    sm: "h-9 w-9 rounded-[11px]",
+    md: "h-12 w-12 rounded-[13px]",
+  } as const;
+
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-      {children}
+    <div
+      className={`relative flex shrink-0 items-center justify-center border shadow-[inset_0_0_12px_rgba(255,255,255,0.025)] ${sizes[size]} ${styles[tone]}`}
+    >
+      <span className="absolute inset-[3px] rounded-[9px] border border-white/[0.07]" />
+      <span className="absolute inset-[6px] rounded-[7px] border border-current/10" />
+      <span className="relative">{children}</span>
     </div>
   );
 }
@@ -795,28 +827,26 @@ function Metric({
   icon,
   label,
   value,
-  divided = false,
+  tone,
 }: {
   icon: ReactNode;
   label: string;
   value: string | number;
-  divided?: boolean;
+  tone: "red" | "blue" | "violet" | "green";
 }) {
   return (
-    <div
-      className={`flex min-w-0 items-center gap-2.5 ${
-        divided ? "border-l border-white/10 pl-4" : ""
-      }`}
-    >
-      <PremiumIconBadge>{icon}</PremiumIconBadge>
+    <div className="flex min-w-0 items-center gap-2.5">
+      <PremiumIconBadge tone={tone}>
+        {icon}
+      </PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
-          {value}
+        <p className="truncate text-[10px] font-black uppercase tracking-[0.10em] text-white/65">
+          {label}
         </p>
 
-        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">
-          {label}
+        <p className="mt-1 truncate text-[20px] font-black leading-none tracking-tight text-white">
+          {value}
         </p>
       </div>
     </div>
@@ -1124,59 +1154,81 @@ export default function AtividadePage() {
             {/* COLUNA PRINCIPAL */}
             <div className="min-w-0">
           {/* HERO */}
-          <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-            <div
-              className="absolute inset-0 bg-cover bg-right-center bg-no-repeat"
-              style={{ backgroundImage: "url('/images/activity-banner-bg.png')" }}
-            />
+          <header className="relative overflow-hidden rounded-[16px] border border-white/10 bg-[#090b10]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_15%,rgba(255,35,45,0.55),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(255,0,30,0.22),transparent_45%)]" />
 
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
+            <div className="absolute inset-y-0 right-[23%] flex items-end opacity-[0.10]">
+              <IconTrophy className="h-[190px] w-[190px] text-red-300" />
+            </div>
 
-            <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
-              <div className="max-w-[400px]">
-                <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
-                  <span className="text-[10px] leading-none">✣</span>
-                  Sua jornada em números
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.98)_0%,rgba(4,5,8,0.78)_48%,rgba(4,5,8,0.44)_100%)]" />
+
+            <div className="relative flex min-h-[225px] flex-col justify-end p-7 md:p-8">
+              <div className="max-w-[650px]">
+                <p className="text-[9px] font-black uppercase tracking-[0.28em] text-red-400">
+                  Sua trajetória
                 </p>
 
-                <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                <h1 className="mt-1 text-[48px] font-black leading-none tracking-tight text-white md:text-[56px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[340px] text-[12px] font-medium leading-[1.35] text-white/70">
-                  Acompanhe seus dias de jogo, horas investidas e
-                  conquistas ao longo do tempo.
+                <p className="mt-3 max-w-[560px] text-[14px] font-medium leading-relaxed text-white/55 md:text-[15px]">
+                  Acompanhe seus dias de jogo, horas investidas e conquistas ao longo do tempo.
                 </p>
+
+                <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-white/10 pt-4 sm:grid-cols-4 sm:gap-x-4">
+                  <Metric
+                    icon={<IconMetricDays className="h-[21px] w-[21px]" />}
+                    label="Dias jogados"
+                    value={isLoaded ? uniqueDays : "..."}
+                    tone="red"
+                  />
+
+                  <Metric
+                    icon={<IconMetricTime className="h-[21px] w-[21px]" />}
+                    label="Tempo jogado"
+                    value={
+                      isLoaded
+                        ? formatPlayedTime(totalMinutes)
+                        : "..."
+                    }
+                    tone="blue"
+                  />
+
+                  <Metric
+                    icon={<IconMetricAverage className="h-[21px] w-[21px]" />}
+                    label="Média por dia"
+                    value={
+                      isLoaded
+                        ? formatPlayedTime(averageMinutes)
+                        : "..."
+                    }
+                    tone="violet"
+                  />
+
+                  <Metric
+                    icon={<IconMetricGames className="h-[21px] w-[21px]" />}
+                    label="Jogos"
+                    value={isLoaded ? differentGames : "..."}
+                    tone="green"
+                  />
+                </div>
               </div>
 
-              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
-                <Metric
-                  icon={<IconMetricDays className="h-[22px] w-[22px]" />}
-                  label="Dias jogados"
-                  value={isLoaded ? uniqueDays : "..."}
-                />
+              <div className="absolute bottom-6 right-5 hidden rounded-xl border border-red-500/25 bg-black/30 px-5 py-3 backdrop-blur-sm md:block">
+                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-red-300">
+                  Sequência atual
+                </p>
 
-                <Metric
-                  icon={<IconMetricTime className="h-[22px] w-[22px]" />}
-                  label="Tempo jogado"
-                  value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
-                  divided
-                />
-
-                <Metric
-                  icon={<IconMetricAverage className="h-[22px] w-[22px]" />}
-                  label="Média por dia"
-                  value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
-                  divided
-                />
-
-                <Metric
-                  icon={<IconMetricGames className="h-[22px] w-[22px]" />}
-                  label="Jogos"
-                  value={isLoaded ? differentGames : "..."}
-                  divided
-                />
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="text-3xl font-black text-white">
+                    {currentStreak}
+                  </span>
+                  <span className="pb-1 text-[10px] font-bold text-white/40">
+                    dias
+                  </span>
+                </div>
               </div>
             </div>
           </header>
