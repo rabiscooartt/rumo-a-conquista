@@ -211,21 +211,19 @@ function IconMetricDays(props: { className?: string }) {
         y="5.5"
         width="15"
         height="14"
-        rx="2.2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
+        rx="2"
+        fill="currentColor"
       />
       <path
-        d="M8 3.5V7M16 3.5V7M4.8 9.2H19.2"
+        d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
       <path
-        d="M8.5 13H8.51M12 13H12.01M15.5 13H15.51M8.5 16.5H8.51M12 16.5H12.01"
-        stroke="currentColor"
-        strokeWidth="2.6"
+        d="M8 12.5H8.01M12 12.5H12.01M16 12.5H16.01M8 16H8.01M12 16H12.01"
+        stroke="#090b0f"
+        strokeWidth="2.1"
         strokeLinecap="round"
       />
     </SvgIcon>
@@ -238,19 +236,17 @@ function IconMetricTime(props: { className?: string }) {
       <circle
         cx="12"
         cy="12"
-        r="8.6"
-        fill="none"
+        r="8.5"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2.6"
       />
       <path
-        d="M12 7.4V12L15.2 14"
+        d="M12 7.8V12L15 13.8"
         stroke="currentColor"
         strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="1.3" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -258,28 +254,18 @@ function IconMetricTime(props: { className?: string }) {
 function IconMetricAverage(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
+      <circle cx="12" cy="8" r="4" fill="currentColor" />
       <path
-        d="M4.8 18.4H19.2"
+        d="M5.8 19.2C6.55 15.55 8.45 13.8 12 13.8C15.55 13.8 17.45 15.55 18.2 19.2"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.8"
         strokeLinecap="round"
-        opacity="0.55"
       />
       <path
-        d="M5.5 15.4L9.3 11.8L12.2 14.1L18.4 7"
-        fill="none"
+        d="M8.6 18.8H15.4"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="2.6"
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M15.5 7H18.4V9.9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -289,20 +275,18 @@ function IconMetricGames(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M6.7 8.2H17.3C19.1 8.2 20.2 10 20.45 12L20.9 15.4C21.2 17.7 18.6 19.1 17.25 17.15L15.65 14.9H8.35L6.75 17.15C5.4 19.1 2.8 17.7 3.1 15.4L3.55 12C3.8 10 4.9 8.2 6.7 8.2Z"
+        d="M7.15 8.5H16.85C19.1 8.5 20.55 10.55 20.9 13.05L21.35 16.55C21.7 19.25 18.55 20.15 17.1 17.95L15.5 15.6H8.5L6.9 17.95C5.45 20.15 2.3 19.25 2.65 16.55L3.1 13.05C3.45 10.55 4.9 8.5 7.15 8.5Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2.25"
         strokeLinejoin="round"
       />
       <path
-        d="M7.1 11.5V15M5.35 13.25H8.85"
+        d="M7 11.2V14.8M5.2 13H8.8M15.3 12.4H15.31M18.1 14.9H18.11"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2.1"
         strokeLinecap="round"
       />
-      <circle cx="15.8" cy="11.8" r="1.15" fill="currentColor" />
-      <circle cx="18" cy="13.9" r="1.15" fill="currentColor" />
     </SvgIcon>
   );
 }
