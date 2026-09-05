@@ -664,7 +664,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-            <h2 className="text-[16px] font-black tracking-[0.01em] text-white/95">
+            <h2 className="whitespace-nowrap text-[15px] font-black tracking-[0.01em] text-white/95">
               Mapa de atividade
             </h2>
 
