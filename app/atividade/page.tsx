@@ -254,38 +254,19 @@ function IconMetricTime(props: { className?: string }) {
 function IconMetricAverage(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle cx="12" cy="8" r="4" fill="currentColor" />
       <path
-        d="M5.8 19.2C6.55 15.55 8.45 13.8 12 13.8C15.55 13.8 17.45 15.55 18.2 19.2"
-        stroke="currentColor"
-        strokeWidth="2.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M8.6 18.8H15.4"
-        stroke="currentColor"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-    </SvgIcon>
-  );
-}
-
-function IconMetricGames(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path
-        d="M7.2 8.5H16.8C19.15 8.5 20.35 10.55 20.7 13.1L21.2 16.8C21.55 19.2 18.75 20.1 17.35 18.3L15.3 15.8H8.7L6.65 18.3C5.25 20.1 2.45 19.2 2.8 16.8L3.3 13.1C3.65 10.55 4.85 8.5 7.2 8.5Z"
+        d="M4.5 17.5L8.8 13.8L12.3 16.5L19.5 8.5"
         stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M7.1 11V14.7M5.25 12.85H8.95M15.3 12.4H15.31M18 14.7H18.01"
+        d="M16.5 8.5H19.5V11.5"
         stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -1134,7 +1115,7 @@ export default function AtividadePage() {
                 </p>
               </div>
 
-              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
+              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
@@ -1155,12 +1136,6 @@ export default function AtividadePage() {
                   divided
                 />
 
-                <Metric
-                  icon={<IconMetricGames className="h-[22px] w-[22px]" />}
-                  label="Jogos"
-                  value={isLoaded ? differentGames : "..."}
-                  divided
-                />
               </div>
             </div>
           </header>
