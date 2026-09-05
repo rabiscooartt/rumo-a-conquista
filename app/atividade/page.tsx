@@ -206,26 +206,30 @@ function IconHome(props: { className?: string }) {
 function IconMetricDays(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <rect
-        x="5"
-        y="5"
-        width="14"
-        height="14"
-        rx="2.5"
+      <path
+        d="M6 4.5H18C19.1 4.5 20 5.4 20 6.5V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6.5C4 5.4 4.9 4.5 6 4.5Z"
         stroke="currentColor"
         strokeWidth="1.8"
+        strokeLinejoin="round"
       />
       <path
-        d="M8 3.5V7M16 3.5V7M5 9.5H19"
+        d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
       />
       <path
-        d="M8.5 13H8.51M12 13H12.01M15.5 13H15.51M8.5 16H8.51M12 16H12.01"
+        d="M8 12.5H8.01M12 12.5H12.01M16 12.5H16.01M8 16H8.01M12 16H12.01"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2.6"
         strokeLinecap="round"
+      />
+      <path
+        d="M16.8 15.4L18 16.6L20 14.4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -235,23 +239,28 @@ function IconMetricTime(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M8 4H16M8 20H16"
+        d="M8 3.5H16M8 20.5H16"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
       />
       <path
-        d="M9 4.2C9 7.9 10.9 9.1 12 10C13.1 10.9 15 12.1 15 15.8C15 18.1 13.6 20 12 20C10.4 20 9 18.1 9 15.8C9 12.1 10.9 10.9 12 10C13.1 9.1 15 7.9 15 4.2"
+        d="M8.8 3.8C8.8 7.7 11 9.2 12 10C13 10.8 15.2 12.3 15.2 20.2M15.2 3.8C15.2 7.7 13 9.2 12 10C11 10.8 8.8 12.3 8.8 20.2"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.7"
         strokeLinecap="round"
       />
       <path
-        d="M10.5 14.5H13.5"
+        d="M10.2 12.2C10.8 11.7 11.4 11.35 12 11C12.6 11.35 13.2 11.7 13.8 12.2L12 15.1L10.2 12.2Z"
+        fill="currentColor"
+        opacity="0.75"
+      />
+      <path
+        d="M6 7.5H7.3M16.7 7.5H18"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.4"
         strokeLinecap="round"
-        opacity="0.7"
+        opacity="0.5"
       />
     </SvgIcon>
   );
@@ -261,26 +270,29 @@ function IconMetricAverage(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M5 18.5V15.5M9 18.5V12.5M13 18.5V9M17 18.5V5.5"
+        d="M4 18.5H20"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         opacity="0.45"
       />
       <path
-        d="M4.5 14.5L8.5 11L12 13L18.5 6.5"
+        d="M5 15.5L9 11.7L12.2 14.2L18.8 6.8"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M15.5 6.5H18.5V9.5"
+        d="M15.7 6.8H18.8V9.9"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <circle cx="5" cy="15.5" r="1.35" fill="currentColor" />
+      <circle cx="9" cy="11.7" r="1.35" fill="currentColor" />
+      <circle cx="12.2" cy="14.2" r="1.35" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -289,19 +301,27 @@ function IconMetricGames(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M7.5 8.5H16.5C19 8.5 20.2 10.8 20.6 13.4L21.1 16.4C21.5 19 18.6 20 17.2 17.9L15.5 15.4H8.5L6.8 17.9C5.4 20 2.5 19 2.9 16.4L3.4 13.4C3.8 10.8 5 8.5 7.5 8.5Z"
+        d="M7.1 7.5H16.9C19.15 7.5 20.3 9.45 20.65 11.95L21.15 15.75C21.55 18.75 18.15 20.1 16.45 17.65L14.85 15.35H9.15L7.55 17.65C5.85 20.1 2.45 18.75 2.85 15.75L3.35 11.95C3.7 9.45 4.85 7.5 7.1 7.5Z"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
       <path
-        d="M7 11.5V15M5 13.25H9"
+        d="M7.2 11.3V15M5.3 13.15H9.1"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
       />
-      <circle cx="16.5" cy="12.5" r="1.1" fill="currentColor" />
-      <circle cx="18.7" cy="14.4" r="1.1" fill="currentColor" opacity="0.75" />
+      <circle cx="16.5" cy="12.3" r="1.25" fill="currentColor" />
+      <circle cx="18.6" cy="14.4" r="1.25" fill="currentColor" opacity="0.72" />
+      <path
+        d="M12 5.2V3.7M12 3.7L10.9 4.8M12 3.7L13.1 4.8"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.7"
+      />
     </SvgIcon>
   );
 }
@@ -1097,15 +1117,6 @@ export default function AtividadePage() {
                 ))}
               </nav>
 
-              <div className="mt-8 border-t border-white/[0.08] pt-6">
-                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
-                  Seu espaço
-                </p>
-
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
-                  Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
-                </p>
-              </div>
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
@@ -1237,10 +1248,10 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 border-b-2 px-4 py-3 text-[12px] font-black transition ${
                           activeTab === value
-                            ? "bg-red-500/10 text-red-300"
-                            : "text-white/40 hover:text-white"
+                            ? "border-red-500 text-red-300"
+                            : "border-transparent text-white/45 hover:text-white"
                         }`}
                       >
                         {value === "jogos" ? (
@@ -1496,17 +1507,7 @@ export default function AtividadePage() {
                       className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
-                            tone === "violet"
-                              ? "border-violet-500/20 bg-violet-500/10 text-violet-300"
-                              : tone === "blue"
-                              ? "border-sky-500/20 bg-sky-500/10 text-sky-300"
-                              : tone === "green"
-                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                              : "border-red-500/20 bg-red-500/10 text-red-300"
-                          }`}
-                        >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-300">
                           {icon}
                         </div>
 
@@ -1585,12 +1586,12 @@ export default function AtividadePage() {
                               className={`h-2 w-2 shrink-0 rounded-full ${
                                 [
                                   "bg-red-500",
-                                  "bg-pink-500",
-                                  "bg-indigo-400",
-                                  "bg-violet-500",
-                                  "bg-purple-500",
+                                  "bg-red-400",
+                                  "bg-red-300",
+                                  "bg-white/35",
+                                  "bg-white/25",
                                 ][index] ||
-                                "bg-white/30"
+                                "bg-white/25"
                               }`}
                             />
 
@@ -1609,50 +1610,8 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
-                  <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-                  <p className="text-[8px] leading-relaxed text-white/30">
-                    Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
-                  </p>
-                </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Atividade recente
-                </h2>
-
-                <div className="mt-3 space-y-2">
-                  {sourceEntries.slice(0, 5).map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
-                    >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-300">
-                        <IconGamepad className="h-3.5 w-3.5" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[9px] font-black text-white/70">
-                          {normalizeGameTitle(
-                            entry.gameTitle
-                          )}
-                        </p>
-                        <p className="mt-0.5 text-[7px] text-white/25">
-                          {getDateKey(entry.date)}
-                        </p>
-                      </div>
-
-                      <span className="text-[8px] font-black text-white/45">
-                        {formatPlayedTime(
-                          entry.playedMinutes
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </section>
             </aside>
           </div>
         </div>
