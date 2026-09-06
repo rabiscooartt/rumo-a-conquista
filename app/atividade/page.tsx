@@ -1538,7 +1538,7 @@ export default function AtividadePage() {
                     </div>
                   </div>
 
-                  <div className="min-w-0 flex-1 space-y-3">
+                  <div className="min-w-0 flex-1 space-y-2.5">
                     {gameDistribution
                       .slice(0, 5)
                       .map((item, index) => (
@@ -1557,12 +1557,12 @@ export default function AtividadePage() {
                               }`}
                             />
 
-                            <p className="truncate text-[10px] font-bold text-white/65">
+                            <p className="truncate text-[8px] font-bold text-white/55">
                               {item.title}
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[9px] text-white/45">
+                          <p className="ml-4 mt-0.5 text-[8px] text-white/35">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
@@ -1580,42 +1580,7 @@ export default function AtividadePage() {
                 </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Atividade recente
-                </h2>
-
-                <div className="mt-3 space-y-2">
-                  {sourceEntries.slice(0, 5).map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.01] p-2"
-                    >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-red-500/15 bg-red-500/10 text-red-300">
-                        <IconGamepad className="h-3.5 w-3.5" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[9px] font-black text-white/70">
-                          {normalizeGameTitle(
-                            entry.gameTitle
-                          )}
-                        </p>
-                        <p className="mt-0.5 text-[7px] text-white/25">
-                          {getDateKey(entry.date)}
-                        </p>
-                      </div>
-
-                      <span className="text-[8px] font-black text-white/45">
-                        {formatPlayedTime(
-                          entry.playedMinutes
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              
             </aside>
           </div>
         </div>
