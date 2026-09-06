@@ -1437,38 +1437,39 @@ export default function AtividadePage() {
                 <div className="mt-3 space-y-3.5">
                   {[
                     [
-                      <SummaryFlame className="h-[18px] w-[18px]" />,
+                      <img
+                        src="/images/activity-summary-icons/flame.png"
+                        alt=""
+                        className="h-9 w-9 object-contain"
+                      />,
                       "Sequência atual",
                       `${currentStreak} dias`,
-                      "red",
                     ],
                     [
-                      <SummaryTrophy className="h-[18px] w-[18px] text-amber-400" />,
+                      <img
+                        src="/images/activity-summary-icons/trophy.png"
+                        alt=""
+                        className="h-9 w-9 object-contain"
+                      />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
-                      "gold",
                     ],
                     [
-                      <SummaryTarget className="h-[18px] w-[18px] text-pink-400" />,
+                      <img
+                        src="/images/activity-summary-icons/target.png"
+                        alt=""
+                        className="h-9 w-9 object-contain"
+                      />,
                       "Jogos diferentes",
                       `${differentGames}`,
-                      "pink",
                     ],
-                  ].map(([icon, label, value, tone]) => (
+                  ].map(([icon, label, value]) => (
                     <div
                       key={String(label)}
                       className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3.5 last:border-b-0 last:pb-0"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border ${
-                            tone === "gold"
-                              ? "border-amber-500/20 bg-amber-500/10 text-amber-400"
-                              : tone === "pink"
-                              ? "border-pink-500/20 bg-pink-500/10 text-pink-300"
-                              : "border-red-500/20 bg-red-500/10 text-red-300"
-                          }`}
-                        >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center">
                           {icon}
                         </div>
 
