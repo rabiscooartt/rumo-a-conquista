@@ -511,12 +511,8 @@ function SummaryFlameIcon(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path
-        d="M13.1 3.5C13.45 6.2 11.5 7.65 10.45 9.25C9.5 10.7 9.7 12.55 11.55 13.1C11.1 11.5 12.2 10.1 13.55 9.2C15.95 11.05 17.8 13.45 17.8 16.35C17.8 19.55 15.2 21.2 12.25 21.2C8.55 21.2 6.2 19.05 6.2 16.05C6.2 13 8.2 10.9 10 8.65C10.9 7.5 11.2 6.2 10.95 4.35C11.75 4.15 12.45 3.85 13.1 3.5Z"
+        d="M13.2 3.5C14.05 6.25 12.4 7.95 11.3 9.45C10.45 10.6 10.8 11.95 12.15 11.95C13.45 11.95 14.25 10.95 14.15 9.55C16.95 11.3 18.55 13.7 18.55 16.35C18.55 19.65 15.75 21.7 12.25 21.7C8.25 21.7 5.45 19.25 5.45 15.95C5.45 12.65 7.55 10.35 9.45 8.05C10.45 6.85 11 5.3 10.95 3.2C11.8 3.2 12.65 3.3 13.2 3.5Z"
         fill="currentColor"
-      />
-      <path
-        d="M12.15 13.25C11.25 14.25 10.75 15.15 10.75 16.2C10.75 17.5 11.55 18.3 12.55 18.3C13.7 18.3 14.45 17.5 14.45 16.4C14.45 15.5 14.05 14.7 13.15 14"
-        fill="#090b0f"
       />
     </SvgIcon>
   );
@@ -530,11 +526,10 @@ function SummaryTrophyIcon(props: { className?: string }) {
         fill="currentColor"
       />
       <path
-        d="M8 6.2H6.1C5 6.2 4.4 6.9 4.4 8C4.4 10.15 5.7 11.7 8 12.1M16 6.2H17.9C19 6.2 19.6 6.9 19.6 8C19.6 10.15 18.3 11.7 16 12.1"
+        d="M8 6H6C4.9 6 4.25 6.7 4.25 7.85C4.25 10.3 5.8 11.8 8 12.15M16 6H18C19.1 6 19.75 6.7 19.75 7.85C19.75 10.3 18.2 11.8 16 12.15"
         fill="currentColor"
       />
       <path d="M12 14.75V18.2M8.4 20H15.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M12 6.4L12.7 7.7L14.15 7.9L13.1 8.9L13.35 10.35L12 9.65L10.65 10.35L10.9 8.9L9.85 7.9L11.3 7.7L12 6.4Z" fill="#090b0f" />
     </SvgIcon>
   );
 }
@@ -542,10 +537,16 @@ function SummaryTrophyIcon(props: { className?: string }) {
 function SummaryTargetIcon(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle cx="12" cy="12" r="8.75" fill="currentColor" opacity="0.22" />
-      <circle cx="12" cy="12" r="6.15" fill="none" stroke="currentColor" strokeWidth="2" />
-      <circle cx="12" cy="12" r="2.6" fill="currentColor" />
-      <path d="M16.3 7.7L20 4M17.2 4H20V6.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="8.5" fill="currentColor" opacity="0.22" />
+      <circle cx="12" cy="12" r="5.8" fill="none" stroke="currentColor" strokeWidth="2.1" />
+      <circle cx="12" cy="12" r="2.8" fill="currentColor" />
+      <path
+        d="M16.2 7.8L20 4M17.3 4H20V6.7"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </SvgIcon>
   );
 }
