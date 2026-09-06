@@ -465,6 +465,51 @@ function IconFlame(props: { className?: string }) {
     </SvgIcon>
   );
 }
+
+function SummaryFlame(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M13.4 3.6C14.2 6.3 12.6 7.9 11.4 9.5C10.3 11 10.7 12.7 12.2 12.7C13.5 12.7 14.35 11.7 14.15 10.25C16.85 12 18.3 14.25 18.3 16.55C18.3 19.65 15.85 21.6 12.25 21.6C8.35 21.6 5.7 19.2 5.7 15.95C5.7 12.7 7.7 10.35 9.55 8.1C10.55 6.9 11.1 5.35 11 3.2C11.9 3.2 12.8 3.35 13.4 3.6Z"
+        fill="currentColor"
+      />
+      <path
+        d="M12.2 13.7C11.3 14.8 10.85 15.65 10.85 16.45C10.85 17.55 11.55 18.25 12.45 18.25C13.5 18.25 14.2 17.55 14.2 16.55C14.2 15.75 13.75 15.05 13 14.4"
+        stroke="#090b0f"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </SvgIcon>
+  );
+}
+
+function SummaryTrophy(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path
+        d="M8 5H16V9.5C16 12.55 14.45 14.75 12 14.75C9.55 14.75 8 12.55 8 9.5V5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M8 6.5H5.9C4.75 6.5 4.2 7.15 4.3 8.3C4.5 10.4 5.9 11.7 8.1 11.9M16 6.5H18.1C19.25 6.5 19.8 7.15 19.7 8.3C19.5 10.4 18.1 11.7 15.9 11.9"
+        fill="currentColor"
+      />
+      <path d="M10 14.3V18.2M14 14.3V18.2M8.3 20H15.7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </SvgIcon>
+  );
+}
+
+function SummaryTarget(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8.6" fill="currentColor" />
+      <circle cx="12" cy="12" r="5.1" fill="#090b0f" />
+      <circle cx="12" cy="12" r="2.55" fill="currentColor" />
+    </SvgIcon>
+  );
+}
+
 function IconSearch(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
@@ -502,50 +547,6 @@ function IconFile(props: { className?: string }) {
         stroke="currentColor"
         strokeWidth="1.9"
         strokeLinecap="round"
-      />
-    </SvgIcon>
-  );
-}
-
-function SummaryFlameIcon(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path
-        d="M13.2 3.5C14.05 6.25 12.4 7.95 11.3 9.45C10.45 10.6 10.8 11.95 12.15 11.95C13.45 11.95 14.25 10.95 14.15 9.55C16.95 11.3 18.55 13.7 18.55 16.35C18.55 19.65 15.75 21.7 12.25 21.7C8.25 21.7 5.45 19.25 5.45 15.95C5.45 12.65 7.55 10.35 9.45 8.05C10.45 6.85 11 5.3 10.95 3.2C11.8 3.2 12.65 3.3 13.2 3.5Z"
-        fill="currentColor"
-      />
-    </SvgIcon>
-  );
-}
-
-function SummaryTrophyIcon(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path
-        d="M8 4.5H16V9.7C16 12.55 14.45 14.75 12 14.75C9.55 14.75 8 12.55 8 9.7V4.5Z"
-        fill="currentColor"
-      />
-      <path
-        d="M8 6H6C4.9 6 4.25 6.7 4.25 7.85C4.25 10.3 5.8 11.8 8 12.15M16 6H18C19.1 6 19.75 6.7 19.75 7.85C19.75 10.3 18.2 11.8 16 12.15"
-        fill="currentColor"
-      />
-      <path d="M12 14.75V18.2M8.4 20H15.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </SvgIcon>
-  );
-}
-
-function SummaryTargetIcon(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <circle cx="12" cy="12" r="8.5" fill="currentColor" opacity="0.22" />
-      <circle cx="12" cy="12" r="5.8" fill="none" stroke="currentColor" strokeWidth="2.1" />
-      <circle cx="12" cy="12" r="2.8" fill="currentColor" />
-      <path
-        d="M16.2 7.8L20 4M17.3 4H20V6.7"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </SvgIcon>
   );
@@ -1430,25 +1431,25 @@ export default function AtividadePage() {
                     Resumo da atividade
                   </h2>
 
-                  <IconFlame className="h-[18px] w-[18px] text-red-500" />
+                  <SummaryFlame className="h-[18px] w-[18px] text-red-500" />
                 </div>
 
                 <div className="mt-3 space-y-3.5">
                   {[
                     [
-                      <SummaryFlameIcon className="h-[18px] w-[18px]" />,
+                      <SummaryFlame className="h-[18px] w-[18px]" />,
                       "Sequência atual",
                       `${currentStreak} dias`,
                       "red",
                     ],
                     [
-                      <SummaryTrophyIcon className="h-[18px] w-[18px]" />,
+                      <SummaryTrophy className="h-[18px] w-[18px] text-amber-400" />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
-                      "amber",
+                      "gold",
                     ],
                     [
-                      <SummaryTargetIcon className="h-[18px] w-[18px]" />,
+                      <SummaryTarget className="h-[18px] w-[18px] text-pink-400" />,
                       "Jogos diferentes",
                       `${differentGames}`,
                       "pink",
@@ -1461,8 +1462,8 @@ export default function AtividadePage() {
                       <div className="flex min-w-0 items-center gap-2.5">
                         <div
                           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border ${
-                            tone === "amber"
-                              ? "border-amber-500/20 bg-amber-500/10 text-amber-300"
+                            tone === "gold"
+                              ? "border-amber-500/20 bg-amber-500/10 text-amber-400"
                               : tone === "pink"
                               ? "border-pink-500/20 bg-pink-500/10 text-pink-300"
                               : "border-red-500/20 bg-red-500/10 text-red-300"
