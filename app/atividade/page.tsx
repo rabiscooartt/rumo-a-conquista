@@ -139,6 +139,25 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
+function getActivityPlatform(
+  entry: JourneyEntry,
+  game?: GameLike
+): string {
+  const platform = getGamePlatform(game);
+  if (platform) return platform;
+
+  const title = normalizeKey(entry.gameTitle);
+
+  if (
+    title.includes("mouse: p.i. for hire") ||
+    title.includes("mouse - p.i. for hire")
+  ) {
+    return "Steam";
+  }
+
+  return "";
+}
+
 function calculateStreak(entries: JourneyEntry[]) {
   const dates = Array.from(
     new Set(
@@ -862,7 +881,7 @@ function ActivityRow({
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
-  const platform = getGamePlatform(game);
+  const platform = getActivityPlatform(entry, game);
 
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_96px_120px] md:px-4">
