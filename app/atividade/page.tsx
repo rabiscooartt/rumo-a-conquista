@@ -911,10 +911,19 @@ function ActivityRow({
         </div>
       </div>
 
-      <div className="hidden items-center justify-center md:flex">
-        <span className="text-[11px] font-semibold text-white/60">
-          {platform || "STEAM"}
-        </span>
+      <div className="hidden items-center justify-center gap-2 md:flex">
+        {platform && (
+          <>
+            <img
+              src="/images/platforms/steam.png"
+              alt="Steam"
+              className="h-5 w-5 object-contain"
+            />
+            <span className="truncate text-[11px] font-semibold text-white/60">
+              {platform}
+            </span>
+          </>
+        )}
       </div>
 
       <div className="text-right">
