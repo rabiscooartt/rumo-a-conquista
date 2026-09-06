@@ -1440,7 +1440,7 @@ export default function AtividadePage() {
                       <img
                         src="/images/activity-summary-icons/flame.png"
                         alt=""
-                        className="h-10 w-10 object-contain"
+                        className="h-[38px] w-[38px] object-contain"
                       />,
                       "Sequência atual",
                       `${currentStreak} dias`,
@@ -1449,7 +1449,7 @@ export default function AtividadePage() {
                       <img
                         src="/images/activity-summary-icons/trophy.png"
                         alt=""
-                        className="h-10 w-10 object-contain"
+                        className="h-[38px] w-[38px] object-contain"
                       />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
@@ -1458,7 +1458,7 @@ export default function AtividadePage() {
                       <img
                         src="/images/activity-summary-icons/target.png"
                         alt=""
-                        className="h-10 w-10 object-contain"
+                        className="h-[38px] w-[38px] object-contain"
                       />,
                       "Jogos diferentes",
                       `${differentGames}`,
@@ -1473,12 +1473,12 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[12px] font-semibold text-white/75">
+                        <span className="truncate text-[16px] font-semibold text-white/80">
                           {label}
                         </span>
                       </div>
 
-                      <strong className="shrink-0 text-[13px] font-black text-white">
+                      <strong className="shrink-0 text-[17px] font-black text-white">
                         {value}
                       </strong>
                     </div>
