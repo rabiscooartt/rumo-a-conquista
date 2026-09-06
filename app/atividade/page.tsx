@@ -1473,12 +1473,12 @@ export default function AtividadePage() {
                           {icon}
                         </div>
 
-                        <span className="truncate text-[16px] font-semibold text-white/80">
+                        <span className="truncate text-[14px] font-semibold text-white/80">
                           {label}
                         </span>
                       </div>
 
-                      <strong className="shrink-0 text-[17px] font-black text-white">
+                      <strong className="shrink-0 text-[15px] font-black text-white">
                         {value}
                       </strong>
                     </div>
