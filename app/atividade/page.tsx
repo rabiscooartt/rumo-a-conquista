@@ -1156,6 +1156,30 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
+                <div className="mt-4 rounded-[12px] bg-white/[0.035] px-3 py-2.5">
+                  <div className="flex items-center justify-center">
+                    <span className="text-[14px] font-black text-white/90">2026</span>
+                  </div>
+
+                  <div className="mt-2.5 grid grid-cols-4 items-center gap-1">
+                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
+                      <IconGamepad className="h-3 w-3 text-white/45" />
+                      <span>—</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
+                      <IconTrophy className="h-3 w-3 text-white/45" />
+                      <span>—</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
+                      <IconTarget className="h-3 w-3 text-white/45" />
+                      <span>—</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
+                      <IconClock className="h-3 w-3 text-white/45" />
+                      <span>—</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
