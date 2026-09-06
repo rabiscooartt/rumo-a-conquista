@@ -1489,7 +1489,7 @@ export default function AtividadePage() {
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
                   <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Distribuição de tempo por jogo
+                  DISTRIBUIÇÃO DE TEMPO
                 </h2>
 
                 <div className="mt-4 flex items-center gap-4">
