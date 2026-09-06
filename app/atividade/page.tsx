@@ -1109,12 +1109,40 @@ export default function AtividadePage() {
 
               <div className="mt-8 border-t border-white/[0.08] pt-6">
                 <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
-                  Seu espaço
+                  Atividade por tipo
                 </p>
 
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-white/38">
-                  Acompanhe sua evolução, dias jogados e conquistas ao longo do tempo.
-                </p>
+                <div className="mt-3 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                      <span className="truncate text-[9px] font-bold uppercase tracking-[0.02em] text-white/50">
+                        Jogando
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-black text-white/35">—</span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-purple-500" />
+                      <span className="truncate text-[9px] font-bold uppercase tracking-[0.02em] text-white/50">
+                        Finalizados
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-black text-white/35">—</span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                      <span className="truncate text-[9px] font-bold uppercase tracking-[0.02em] text-white/50">
+                        Total de conquistas
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-black text-white/35">—</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1580,53 +1608,6 @@ export default function AtividadePage() {
                 </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Atividade por tipo
-                </h2>
-
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
-                        <span className="truncate text-[11px] font-bold uppercase tracking-[0.02em] text-white/75">JOGANDO</span>
-                      </div>
-                      <span className="text-[11px] font-black text-white/85">—</span>
-                    </div>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
-                      <div className="h-full w-0 rounded-full bg-blue-500" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-purple-500" />
-                        <span className="truncate text-[11px] font-bold uppercase tracking-[0.02em] text-white/75">FINALIZADOS</span>
-                      </div>
-                      <span className="text-[11px] font-black text-white/85">—</span>
-                    </div>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
-                      <div className="h-full w-0 rounded-full bg-purple-500" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-orange-500" />
-                        <span className="truncate text-[11px] font-bold uppercase tracking-[0.02em] text-white/75">TOTAL DE CONQUISTAS</span>
-                      </div>
-                      <span className="text-[11px] font-black text-white/85">—</span>
-                    </div>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
-                      <div className="h-full w-0 rounded-full bg-orange-500" />
-                    </div>
-                  </div>
-                </div>
-              </section>
 
               
             </aside>
