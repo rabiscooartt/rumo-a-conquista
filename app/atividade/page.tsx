@@ -139,18 +139,6 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
-function getActivityPlatform(entry: JourneyEntry, game?: GameLike) {
-  const platform = getGamePlatform(game);
-  if (platform) return platform;
-
-  const title = normalizeKey(entry.gameTitle);
-  if (title.includes("mouse: p.i. for hire") || title.includes("mouse - p.i. for hire")) {
-    return "Steam";
-  }
-
-  return "";
-}
-
 function calculateStreak(entries: JourneyEntry[]) {
   const dates = Array.from(
     new Set(
@@ -874,7 +862,7 @@ function ActivityRow({
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
-  const platform = getActivityPlatform(entry, game);
+  const platform = getGamePlatform(game);
 
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_96px_120px] md:px-4">
@@ -1133,7 +1121,7 @@ export default function AtividadePage() {
 
               <div className="mt-8 border-t border-white/[0.08] pt-6">
                 <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
-                  Atividade por tipo
+                  Estatísticas
                 </p>
 
                 <div className="mt-3 space-y-2.5">
