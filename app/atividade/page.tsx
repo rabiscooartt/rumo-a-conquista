@@ -139,6 +139,25 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
+function getActivityPlatform(
+  entry: JourneyEntry,
+  game?: GameLike
+): string {
+  const platform = getGamePlatform(game);
+  if (platform) return platform;
+
+  const title = normalizeKey(entry.gameTitle);
+
+  if (
+    title.includes("mouse") &&
+    title.includes("p.i. for hire")
+  ) {
+    return "Steam";
+  }
+
+  return "";
+}
+
 function calculateStreak(entries: JourneyEntry[]) {
   const dates = Array.from(
     new Set(
@@ -862,11 +881,7 @@ function ActivityRow({
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
-  const platform =
-    getGamePlatform(game) ||
-    (normalizeKey(entry.gameTitle).includes("mouse: p.i. for hire")
-      ? "STEAM"
-      : "");
+  const platform = getActivityPlatform(entry, game);
 
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_96px_120px] md:px-4">
@@ -1153,31 +1168,6 @@ export default function AtividadePage() {
                       </span>
                     </div>
                     <span className="text-[9px] font-black text-white/35">—</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 rounded-[12px] bg-white/[0.035] px-3 py-2.5">
-                  <div className="flex items-center justify-center">
-                    <span className="text-[14px] font-black text-white/90">2026</span>
-                  </div>
-
-                  <div className="mt-2.5 grid grid-cols-4 items-center gap-1">
-                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
-                      <IconGamepad className="h-3 w-3 text-white/45" />
-                      <span>—</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
-                      <IconTrophy className="h-3 w-3 text-white/45" />
-                      <span>—</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
-                      <IconTarget className="h-3 w-3 text-white/45" />
-                      <span>—</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1 text-[8px] font-black text-white/65">
-                      <IconClock className="h-3 w-3 text-white/45" />
-                      <span>—</span>
-                    </div>
                   </div>
                 </div>
               </div>
