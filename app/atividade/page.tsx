@@ -1440,7 +1440,7 @@ export default function AtividadePage() {
                       <img
                         src="/images/activity-summary-icons/flame.png"
                         alt=""
-                        className="h-9 w-9 object-contain"
+                        className="h-11 w-11 object-contain"
                       />,
                       "Sequência atual",
                       `${currentStreak} dias`,
@@ -1449,7 +1449,7 @@ export default function AtividadePage() {
                       <img
                         src="/images/activity-summary-icons/trophy.png"
                         alt=""
-                        className="h-9 w-9 object-contain"
+                        className="h-11 w-11 object-contain"
                       />,
                       "Conquistas desbloqueadas",
                       `${allCompletedAchievements.length}`,
@@ -1458,7 +1458,7 @@ export default function AtividadePage() {
                       <img
                         src="/images/activity-summary-icons/target.png"
                         alt=""
-                        className="h-9 w-9 object-contain"
+                        className="h-11 w-11 object-contain"
                       />,
                       "Jogos diferentes",
                       `${differentGames}`,
@@ -1469,11 +1469,11 @@ export default function AtividadePage() {
                       className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3.5 last:border-b-0 last:pb-0"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center">
                           {icon}
                         </div>
 
-                        <span className="truncate text-[11px] font-semibold text-white/60">
+                        <span className="truncate text-[11px] font-semibold text-white/70">
                           {label}
                         </span>
                       </div>
