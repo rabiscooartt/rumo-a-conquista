@@ -1109,7 +1109,7 @@ export default function AtividadePage() {
 
               <div className="mt-8 border-t border-white/[0.08] pt-6">
                 <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
-                  Atividade por tipo
+                  Estatísticas
                 </p>
 
                 <div className="mt-3 space-y-2.5">
