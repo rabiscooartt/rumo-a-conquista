@@ -1538,7 +1538,7 @@ export default function AtividadePage() {
                     </div>
                   </div>
 
-                  <div className="min-w-0 flex-1 space-y-2.5">
+                  <div className="min-w-0 flex-1 space-y-3">
                     {gameDistribution
                       .slice(0, 5)
                       .map((item, index) => (
@@ -1557,12 +1557,12 @@ export default function AtividadePage() {
                               }`}
                             />
 
-                            <p className="truncate text-[8px] font-bold text-white/55">
+                            <p className="truncate text-[10px] font-bold text-white/65">
                               {item.title}
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[8px] text-white/35">
+                          <p className="ml-4 mt-0.5 text-[9px] text-white/45">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
