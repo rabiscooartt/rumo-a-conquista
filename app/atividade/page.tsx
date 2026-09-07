@@ -862,10 +862,13 @@ function ActivityRow({
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
+  const normalizedTitle = normalizeKey(entry.gameTitle);
+
   const platform =
     getGamePlatform(game) ||
-    (normalizeKey(entry.gameTitle).includes("mouse: p.i. for hire")
-      ? "STEAM"
+    (normalizedTitle.includes("mouse") &&
+    normalizedTitle.includes("p.i. for hire")
+      ? "Steam"
       : "");
 
   return (
@@ -1090,7 +1093,7 @@ export default function AtividadePage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[185px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)]">
         {/* SIDEBAR */}
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
