@@ -1107,44 +1107,6 @@ export default function AtividadePage() {
 
               <div className="mt-6 border-t border-white/[0.08] pt-5">
                 <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
-                  Estatísticas
-                </p>
-
-                <div className="mt-3 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                      <span className="truncate text-[11px] font-semibold uppercase tracking-[0.01em] text-white/65">
-                        Jogando
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-black text-white/45">—</span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-purple-500" />
-                      <span className="truncate text-[11px] font-semibold uppercase tracking-[0.01em] text-white/65">
-                        Finalizados
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-black text-white/45">—</span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
-                      <span className="truncate text-[11px] font-semibold uppercase tracking-[0.01em] text-white/65">
-                        Total de conquistas
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-black text-white/45">—</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
                   Período
                 </p>
 
