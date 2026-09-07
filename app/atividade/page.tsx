@@ -139,25 +139,6 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
-function getActivityPlatform(
-  entry: JourneyEntry,
-  game?: GameLike
-): string {
-  const platform = getGamePlatform(game);
-  if (platform) return platform;
-
-  const title = normalizeKey(entry.gameTitle);
-
-  if (
-    title.includes("mouse") &&
-    title.includes("p.i. for hire")
-  ) {
-    return "Steam";
-  }
-
-  return "";
-}
-
 function calculateStreak(entries: JourneyEntry[]) {
   const dates = Array.from(
     new Set(
@@ -881,7 +862,11 @@ function ActivityRow({
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
-  const platform = getActivityPlatform(entry, game);
+  const platform =
+    getGamePlatform(game) ||
+    (normalizeKey(entry.gameTitle).includes("mouse: p.i. for hire")
+      ? "STEAM"
+      : "");
 
   return (
     <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_96px_120px] md:px-4">
@@ -1110,31 +1095,14 @@ export default function AtividadePage() {
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
-              <nav className="mt-4 space-y-1">
-                {[
-                  ["Início", "/", <IconHome />],
-                  ["Jogos", "/jogos", <IconGamepad />],
-                  ["Sagas", "/sagas", <IconTarget />],
-                  ["Backlog", "/backlog", <IconFile />],
-                  ["Conteúdo", "/conteudo", <IconFile />],
-                  ["Atividade", "/atividade", <IconTrend />],
-                ].map(([label, href, icon]) => (
-                  <Link
-                    key={String(href)}
-                    href={String(href)}
-                    className={`flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-[12px] font-bold transition ${
-                      href === "/atividade"
-                        ? "bg-red-500/10 text-red-300"
-                        : "text-white/50 hover:bg-white/[0.03] hover:text-white"
-                    }`}
-                  >
-                    <span>{icon}</span>
-                    {label}
-                  </Link>
-                ))}
-              </nav>
+              <div className="border-t border-white/[0.08] pt-5">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/70">
+                  <IconTrend className="h-3.5 w-3.5 text-red-400" />
+                  Atividade
+                </div>
+              </div>
 
-              <div className="mt-8 border-t border-white/[0.08] pt-6">
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
                 <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
                   Estatísticas
                 </p>
@@ -1169,6 +1137,19 @@ export default function AtividadePage() {
                     </div>
                     <span className="text-[9px] font-black text-white/35">—</span>
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
+                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                  Período
+                </p>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <IconCalendar className="h-3.5 w-3.5 text-white/40" />
+                  <span className="text-[9px] font-bold text-white/55">
+                    Últimos 60 dias
+                  </span>
                 </div>
               </div>
             </div>
