@@ -192,29 +192,34 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
-function calculateStreak(entries: JourneyEntry[]) {
-  const dates = Array.from(
-    new Set(
-      entries
-        .map((entry) => getDateKey(entry.date))
-        .filter(Boolean)
-    )
-  ).sort((a, b) => b.localeCompare(a));
+function calculateStreak(
+  entries: JourneyEntry[],
+  referenceDate = new Date()
+) {
+  const playedDates = new Set(
+    entries
+      .map((entry) => getDateKey(entry.date))
+      .filter(Boolean)
+  );
 
-  if (!dates.length) return 0;
+  const todayKey = getDateKey(referenceDate.toISOString());
+
+  if (!todayKey || !playedDates.has(todayKey)) {
+    return 0;
+  }
 
   let streak = 1;
+  const cursor = new Date(`${todayKey}T12:00:00`);
 
-  for (let index = 0; index < dates.length - 1; index += 1) {
-    const current = new Date(`${dates[index]}T12:00:00`);
-    const previous = new Date(`${dates[index + 1]}T12:00:00`);
+  while (true) {
+    cursor.setDate(cursor.getDate() - 1);
 
-    const diff = Math.round(
-      (current.getTime() - previous.getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
+    const previousKey = getDateKey(cursor.toISOString());
 
-    if (diff !== 1) break;
+    if (!previousKey || !playedDates.has(previousKey)) {
+      break;
+    }
+
     streak += 1;
   }
 
@@ -1111,8 +1116,8 @@ export default function AtividadePage() {
       : 0;
 
   const currentStreak = useMemo(
-    () => calculateStreak(recent60Entries),
-    [recent60Entries]
+    () => calculateStreak(recent60Entries, today),
+    [recent60Entries, today]
   );
 
   const allCompletedAchievements = useMemo(() => {
