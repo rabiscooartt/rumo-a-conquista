@@ -1200,7 +1200,19 @@ export default function AtividadePage() {
     const map = new Map<string, number>();
 
     for (const entry of recent60Entries) {
-      const title = normalizeGameTitle(entry.gameTitle);
+      const rawTitle = normalizeGameTitle(entry.gameTitle);
+      const compactTitle = normalizeKey(rawTitle).replace(
+        /[^a-z0-9]+/g,
+        ""
+      );
+
+      // Unifica variações de cadastro do Mouse: P.I. For Hire
+      // em uma única entrada na distribuição.
+      const title = compactTitle.includes(
+        "mousepiforhire"
+      )
+        ? "Mouse: P.I. For Hire"
+        : rawTitle;
 
       map.set(
         title,
