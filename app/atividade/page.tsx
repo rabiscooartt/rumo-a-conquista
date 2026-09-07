@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import {
+  useEffect,
   useMemo,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 import Navbar from "@/components/Navbar";
@@ -74,6 +74,58 @@ function getDateKey(value?: string) {
   if (Number.isNaN(date.getTime())) return "";
 
   return date.toISOString().slice(0, 10);
+}
+
+function getLast60DaysEntries(
+  entries: JourneyEntry[],
+  referenceDate = new Date()
+) {
+  const today = new Date(referenceDate);
+  const end = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+    12,
+    0,
+    0,
+    0
+  );
+
+  const start = new Date(end);
+  start.setDate(start.getDate() - 59);
+
+  return entries.filter((entry) => {
+    const key = getDateKey(entry.date);
+    if (!key) return false;
+
+    const date = new Date(`${key}T12:00:00`);
+    return date >= start && date <= end;
+  });
+}
+
+function isWithinLast60Days(
+  value: string | undefined,
+  referenceDate = new Date()
+) {
+  const key = getDateKey(value);
+  if (!key) return false;
+
+  const today = new Date(referenceDate);
+  const end = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+    12,
+    0,
+    0,
+    0
+  );
+
+  const start = new Date(end);
+  start.setDate(start.getDate() - 59);
+
+  const date = new Date(`${key}T12:00:00`);
+  return date >= start && date <= end;
 }
 
 function getMonthLabel(date: string) {
@@ -966,255 +1018,6 @@ function ActivityRow({
   );
 }
 
-
-
-type AnnualHistorySummary = {
-  year: number;
-  gamesRegistered: number;
-  gamesStarted: number;
-  gamesCompleted: number;
-  playedDays: number;
-  playedMinutes: number;
-  achievementsUnlocked: number;
-  reviewsCreated: number;
-  reviewsUpdated: number;
-  topGames: Array<{ slug: string; title: string; minutes: number }>;
-};
-
-function formatAnnualMinutes(minutes: number) {
-  const safe = Math.max(0, Math.round(Number(minutes) || 0));
-  const hours = Math.floor(safe / 60);
-  const mins = safe % 60;
-  if (hours <= 0) return `${mins}min`;
-  if (mins <= 0) return `${hours}h`;
-  return `${hours}h ${mins}min`;
-}
-
-function AnnualHistorySection() {
-  const currentYear = new Date().getFullYear();
-  const [years, setYears] = useState<number[]>([currentYear]);
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [summary, setSummary] = useState<AnnualHistorySummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadYears = async () => {
-      try {
-        const response = await fetch("/api/jornada/historico", {
-          cache: "no-store",
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data?.error || "Não foi possível carregar o histórico.");
-        }
-
-        if (cancelled) return;
-
-        const nextYears = Array.isArray(data?.years)
-          ? data.years.map(Number).filter(Number.isFinite)
-          : [];
-
-        const orderedYears = Array.from(
-          new Set([currentYear, ...nextYears])
-        ).sort((a, b) => b - a);
-
-        setYears(orderedYears.length ? orderedYears : [currentYear]);
-      } catch (requestError) {
-        if (!cancelled) {
-          setError(
-            requestError instanceof Error
-              ? requestError.message
-              : "Não foi possível carregar o histórico."
-          );
-        }
-      }
-    };
-
-    loadYears();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentYear]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    setError("");
-
-    const loadSummary = async () => {
-      try {
-        const response = await fetch(
-          `/api/jornada/historico?year=${selectedYear}`,
-          { cache: "no-store" }
-        );
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data?.error || "Não foi possível carregar o resumo anual.");
-        }
-
-        if (cancelled) return;
-
-        setSummary(data?.summary ?? null);
-      } catch (requestError) {
-        if (!cancelled) {
-          setSummary(null);
-          setError(
-            requestError instanceof Error
-              ? requestError.message
-              : "Não foi possível carregar o resumo anual."
-          );
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    };
-
-    loadSummary();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedYear]);
-
-  const stats = summary
-    ? [
-        ["Jogos registrados", summary.gamesRegistered],
-        ["Jogos iniciados", summary.gamesStarted],
-        ["Jogos concluídos", summary.gamesCompleted],
-        ["Dias jogados", summary.playedDays],
-        ["Tempo jogado", formatAnnualMinutes(summary.playedMinutes)],
-        ["Conquistas desbloqueadas", summary.achievementsUnlocked],
-        ["Reviews criadas", summary.reviewsCreated],
-        ["Reviews atualizadas", summary.reviewsUpdated],
-      ]
-    : [];
-
-  return (
-    <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-4 md:p-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-5 w-0.5 rounded-full bg-red-500" />
-            <h2 className="text-[17px] font-black uppercase tracking-[0.01em] text-white/95">
-              Histórico anual
-            </h2>
-          </div>
-          <p className="mt-1 pl-2.5 text-[10px] font-medium leading-relaxed text-white/35">
-            Dados reconstruídos automaticamente a partir do histórico permanente da Jornada.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          {years.map((year) => (
-            <button
-              key={year}
-              type="button"
-              onClick={() => setSelectedYear(year)}
-              className={`rounded-lg border px-3 py-2 text-[10px] font-black transition ${
-                selectedYear === year
-                  ? "border-red-500/30 bg-red-500/10 text-red-300"
-                  : "border-white/10 bg-white/[0.02] text-white/40 hover:text-white"
-              }`}
-            >
-              {year}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {error ? (
-        <div className="mt-4 rounded-xl border border-red-500/15 bg-red-500/[0.04] p-4 text-[10px] font-bold text-red-300">
-          {error}
-        </div>
-      ) : isLoading ? (
-        <div className="mt-4 rounded-xl border border-white/[0.08] p-6 text-center text-[10px] font-bold text-white/30">
-          Carregando {selectedYear}...
-        </div>
-      ) : (
-        <>
-          <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-            {stats.map(([label, value]) => (
-              <div
-                key={String(label)}
-                className="rounded-xl border border-white/[0.08] bg-black/20 px-3 py-3"
-              >
-                <p className="text-[18px] font-black leading-none text-white">
-                  {value}
-                </p>
-                <p className="mt-1.5 text-[9px] font-bold uppercase tracking-[0.08em] text-white/30">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 rounded-xl border border-white/[0.08] bg-black/20 p-3.5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.10em] text-white/70">
-                  Jogos mais jogados
-                </p>
-                <p className="mt-1 text-[9px] text-white/25">
-                  Ranking por tempo registrado em {selectedYear}.
-                </p>
-              </div>
-              <span className="text-[9px] font-black text-white/25">
-                {summary?.playedDays ?? 0} dias
-              </span>
-            </div>
-
-            <div className="mt-3 space-y-2.5">
-              {(summary?.topGames ?? []).length === 0 ? (
-                <p className="py-3 text-center text-[10px] font-bold text-white/25">
-                  Nenhuma sessão registrada neste ano.
-                </p>
-              ) : (
-                summary?.topGames.map((game, index) => (
-                  <div
-                    key={`${game.slug}-${index}`}
-                    className="flex items-center gap-3"
-                  >
-                    <span className="w-4 text-[9px] font-black text-white/25">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="truncate text-[10px] font-black text-white/65">
-                          {game.title}
-                        </p>
-                        <span className="shrink-0 text-[9px] font-black text-white/40">
-                          {formatAnnualMinutes(game.minutes)}
-                        </span>
-                      </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                        <div
-                          className="h-full rounded-full bg-red-500"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              summary.playedMinutes > 0
-                                ? (game.minutes / summary.playedMinutes) * 100
-                                : 0
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </>
-      )}
-    </section>
-  );
-}
-
 export default function AtividadePage() {
   const { entries, isLoaded } = useJourneyEntries();
   const { gamesList } = useSiteGames();
@@ -1238,36 +1041,68 @@ export default function AtividadePage() {
     [entries]
   );
 
+  const [today, setToday] = useState(() => new Date());
+
+  useEffect(() => {
+    const scheduleNextDay = () => {
+      const now = new Date();
+      const next = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0,
+        0,
+        1,
+        0
+      );
+
+      const timeout = window.setTimeout(() => {
+        setToday(new Date());
+        scheduleNextDay();
+      }, Math.max(1000, next.getTime() - now.getTime()));
+
+      return timeout;
+    };
+
+    const timeout = scheduleNextDay();
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  const recent60Entries = useMemo(
+    () => getLast60DaysEntries(sourceEntries, today),
+    [sourceEntries, today]
+  );
+
   const totalMinutes = useMemo(
     () =>
-      sourceEntries.reduce(
+      recent60Entries.reduce(
         (total, entry) =>
           total + Number(entry.playedMinutes || 0),
         0
       ),
-    [sourceEntries]
+    [recent60Entries]
   );
 
   const uniqueDays = useMemo(
     () =>
       new Set(
-        sourceEntries
+        recent60Entries
           .map((entry) => getDateKey(entry.date))
           .filter(Boolean)
       ).size,
-    [sourceEntries]
+    [recent60Entries]
   );
 
   const differentGames = useMemo(
     () =>
       new Set(
-        sourceEntries.map((entry) =>
+        recent60Entries.map((entry) =>
           normalizeKey(
             normalizeGameTitle(entry.gameTitle)
           )
         )
       ).size,
-    [sourceEntries]
+    [recent60Entries]
   );
 
   const averageMinutes =
@@ -1276,8 +1111,8 @@ export default function AtividadePage() {
       : 0;
 
   const currentStreak = useMemo(
-    () => calculateStreak(sourceEntries),
-    [sourceEntries]
+    () => calculateStreak(recent60Entries),
+    [recent60Entries]
   );
 
   const allCompletedAchievements = useMemo(() => {
@@ -1311,6 +1146,25 @@ export default function AtividadePage() {
     );
   }, [games]);
 
+  const summaryAchievementsLast60 = useMemo(() => {
+    let count = 0;
+
+    for (const game of games) {
+      for (const item of game.achievementsList || []) {
+        const achievement = item as AchievementLike;
+
+        if (
+          isCompletedAchievement(achievement) &&
+          isWithinLast60Days(getAchievementDate(achievement), today)
+        ) {
+          count += 1;
+        }
+      }
+    }
+
+    return count;
+  }, [games, today]);
+
   const filteredEntries = useMemo(() => {
     const query = normalizeKey(search);
 
@@ -1340,7 +1194,7 @@ export default function AtividadePage() {
   const gameDistribution = useMemo(() => {
     const map = new Map<string, number>();
 
-    for (const entry of sourceEntries) {
+    for (const entry of recent60Entries) {
       const title = normalizeGameTitle(entry.gameTitle);
 
       map.set(
@@ -1360,7 +1214,7 @@ export default function AtividadePage() {
             : 0,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-  }, [sourceEntries, totalMinutes]);
+  }, [recent60Entries, totalMinutes]);
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -1726,7 +1580,7 @@ export default function AtividadePage() {
                         className="h-[38px] w-[38px] object-contain"
                       />,
                       "Conquistas desbloqueadas",
-                      `${allCompletedAchievements.length}`,
+                      `${summaryAchievementsLast60}`,
                     ],
                     [
                       <img
@@ -1858,8 +1712,6 @@ export default function AtividadePage() {
               
             </aside>
           </div>
-
-          <AnnualHistorySection />
         </div>
       </div>
     </main>
