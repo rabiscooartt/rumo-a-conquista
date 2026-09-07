@@ -112,33 +112,6 @@ function getLast60DaysEntries(
   return getLastNDaysEntries(entries, 60, referenceDate);
 }
 
-function isWithinLastNDays(
-  value: string | undefined,
-  days: number,
-  referenceDate = new Date()
-) {
-  const key = getDateKey(value);
-  if (!key) return false;
-
-  const safeDays = Math.max(1, Math.floor(days));
-  const today = new Date(referenceDate);
-  const end = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-    12,
-    0,
-    0,
-    0
-  );
-
-  const start = new Date(end);
-  start.setDate(start.getDate() - (safeDays - 1));
-
-  const date = new Date(`${key}T12:00:00`);
-  return date >= start && date <= end;
-}
-
 function countUniqueDays(entries: JourneyEntry[]) {
   return new Set(
     entries
@@ -626,13 +599,7 @@ function IconFile(props: { className?: string }) {
 
 /* ---------- MAPA ---------- */
 
-function ActivityMap({
-  entries,
-  referenceDate,
-}: {
-  entries: JourneyEntry[];
-  referenceDate: Date;
-}) {
+function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
   const activityByDay = useMemo(() => {
     const map = new Map<string, number>();
 
@@ -651,73 +618,114 @@ function ActivityMap({
   }, [entries]);
 
   /*
-   * Janela móvel exata de 60 dias.
-   * O mapa acompanha o mesmo período usado pelos indicadores da Jornada.
+   * Dois meses automáticos:
+   * mês anterior + mês atual.
+   * Cada dia real = 1 quadrado.
+   * O calendário muda sozinho conforme o número real de dias do mês.
    */
-  const days = useMemo(() => {
-    const end = new Date(
-      referenceDate.getFullYear(),
-      referenceDate.getMonth(),
-      referenceDate.getDate(),
-      12,
-      0,
-      0,
-      0
-    );
+  const months = useMemo(() => {
+    const today = new Date();
 
-    const start = new Date(end);
-    start.setDate(start.getDate() - 59);
+    const buildMonth = (
+      year: number,
+      month: number
+    ) => {
+      const daysInMonth = new Date(
+        year,
+        month + 1,
+        0
+      ).getDate();
 
-    const result: string[] = [];
-    const cursor = new Date(start);
+      const days: string[] = [];
 
-    while (cursor <= end) {
-      result.push(cursor.toISOString().slice(0, 10));
-      cursor.setDate(cursor.getDate() + 1);
-    }
+      for (
+        let day = 1;
+        day <= daysInMonth;
+        day += 1
+      ) {
+        const date = new Date(
+          year,
+          month,
+          day,
+          12,
+          0,
+          0,
+          0
+        );
 
-    return result;
-  }, [referenceDate]);
+        days.push(
+          date.toISOString().slice(0, 10)
+        );
+      }
 
-  const slots = useMemo(() => {
-    if (!days.length) return [];
+      const firstDate = new Date(
+        `${days[0]}T12:00:00`
+      );
 
-    const firstDate = new Date(`${days[0]}T12:00:00`);
-    const mondayOffset = (firstDate.getDay() + 6) % 7;
+      const mondayOffset =
+        (firstDate.getDay() + 6) % 7;
 
-    return [
-      ...Array<string | null>(mondayOffset).fill(null),
-      ...days,
-    ];
-  }, [days]);
+      const slots: Array<string | null> =
+        Array(mondayOffset).fill(null);
 
-  const weeks = Math.ceil(slots.length / 7);
+      slots.push(...days);
 
-  while (slots.length < weeks * 7) {
-    slots.push(null);
-  }
+      const weeks = Math.ceil(
+        slots.length / 7
+      );
 
-  const startLabel = days[0]
-    ? new Date(`${days[0]}T12:00:00`)
-        .toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "short",
-        })
-        .replace(".", "")
-        .toUpperCase()
-    : "";
+      while (slots.length < weeks * 7) {
+        slots.push(null);
+      }
 
-  const endLabel = days[days.length - 1]
-    ? new Date(
-        `${days[days.length - 1]}T12:00:00`
+      const label = new Date(
+        year,
+        month,
+        1,
+        12,
+        0,
+        0,
+        0
       )
         .toLocaleDateString("pt-BR", {
-          day: "2-digit",
           month: "short",
         })
         .replace(".", "")
-        .toUpperCase()
-    : "";
+        .toUpperCase();
+
+      return {
+        year,
+        month,
+        label,
+        days,
+        slots,
+        weeks,
+      };
+    };
+
+    const currentMonth = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+
+    const previousMonth = new Date(
+      today.getFullYear(),
+      today.getMonth() - 1,
+      1
+    );
+
+    return [
+      buildMonth(
+        previousMonth.getFullYear(),
+        previousMonth.getMonth()
+      ),
+      buildMonth(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth()
+      ),
+    ];
+  }, []);
 
   const weekdays = [
     "Seg",
@@ -758,67 +766,71 @@ function ActivityMap({
         </span>
       </div>
 
-      <div className="mt-4">
-        <div className="mb-2 flex items-center justify-between text-[9px] font-black tracking-[0.08em] text-white/45">
-          <span>{startLabel}</span>
-          <span>{endLabel}</span>
-        </div>
+      <div className="mt-4 flex justify-center">
+        <div className="grid grid-cols-2 gap-[10px]">
+          {months.map((month) => (
+            <div
+              key={`${month.year}-${month.month}`}
+              className="min-w-0"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-black tracking-[0.10em] text-white/75">
+                  {month.label}
+                </span>
 
-        <div className="grid grid-cols-[24px_minmax(0,1fr)] gap-1.5">
-          <div className="grid grid-rows-7 gap-[2px]">
-            {weekdays.map((weekday) => (
-              <span
-                key={weekday}
-                className="flex h-[19px] items-center text-[7px] font-black uppercase text-white/25"
+                <span className="text-[9px] font-bold text-white/55">
+                  {month.days.length}
+                </span>
+              </div>
+
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: `repeat(${month.weeks}, ${cellSize}px)`,
+                  gridTemplateRows: `repeat(7, ${cellSize}px)`,
+                  columnGap: `${cellGap}px`,
+                  rowGap: `${cellGap}px`,
+                }}
               >
-                {weekday}
-              </span>
-            ))}
-          </div>
+                {Array.from({ length: 7 }).flatMap(
+                  (_, rowIndex) =>
+                    Array.from({
+                      length: month.weeks,
+                    }).map((_, weekIndex) => {
+                      const day =
+                        month.slots[
+                          weekIndex * 7 +
+                            rowIndex
+                        ];
 
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: `repeat(${weeks}, ${cellSize}px)`,
-              gridTemplateRows: `repeat(7, ${cellSize}px)`,
-              columnGap: `${cellGap}px`,
-              rowGap: `${cellGap}px`,
-            }}
-          >
-            {Array.from({ length: 7 }).flatMap(
-              (_, rowIndex) =>
-                Array.from({ length: weeks }).map(
-                  (_, weekIndex) => {
-                    const day =
-                      slots[weekIndex * 7 + rowIndex];
+                      if (!day) {
+                        return (
+                          <div
+                            key={`empty-${month.year}-${month.month}-${rowIndex}-${weekIndex}`}
+                            className="h-[19px] w-[19px]"
+                          />
+                        );
+                      }
 
-                    if (!day) {
+                      const minutes =
+                        activityByDay.get(day) || 0;
+
                       return (
                         <div
-                          key={`empty-${rowIndex}-${weekIndex}`}
-                          className="h-[19px] w-[19px]"
+                          key={day}
+                          title={`${day} • ${formatPlayedTime(
+                            minutes
+                          )}`}
+                          className={`h-[19px] w-[19px] rounded-[3px] ${getIntensity(
+                            minutes
+                          )}`}
                         />
                       );
-                    }
-
-                    const minutes =
-                      activityByDay.get(day) || 0;
-
-                    return (
-                      <div
-                        key={day}
-                        title={`${day} • ${formatPlayedTime(
-                          minutes
-                        )}`}
-                        className={`h-[19px] w-[19px] rounded-[3px] ${getIntensity(
-                          minutes
-                        )}`}
-                      />
-                    );
-                  }
-                )
-            )}
-          </div>
+                    })
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -1012,6 +1024,7 @@ export default function AtividadePage() {
         1,
         0
       );
+
       const timeout = window.setTimeout(() => {
         setToday(new Date());
         scheduleNextDay();
@@ -1039,6 +1052,11 @@ export default function AtividadePage() {
     [recent60Entries]
   );
 
+  const uniqueDays = useMemo(
+    () => countUniqueDays(sourceEntries),
+    [sourceEntries]
+  );
+
   const uniqueDaysLast60 = useMemo(
     () => countUniqueDays(recent60Entries),
     [recent60Entries]
@@ -1047,13 +1065,13 @@ export default function AtividadePage() {
   const differentGames = useMemo(
     () =>
       new Set(
-        recent60Entries.map((entry) =>
+        sourceEntries.map((entry) =>
           normalizeKey(
             normalizeGameTitle(entry.gameTitle)
           )
         )
       ).size,
-    [recent60Entries]
+    [sourceEntries]
   );
 
   const averageMinutes =
@@ -1062,8 +1080,8 @@ export default function AtividadePage() {
       : 0;
 
   const currentStreak = useMemo(
-    () => calculateStreak(recent60Entries),
-    [recent60Entries]
+    () => calculateStreak(sourceEntries),
+    [sourceEntries]
   );
 
   const allCompletedAchievements = useMemo(() => {
@@ -1082,10 +1100,6 @@ export default function AtividadePage() {
           continue;
         }
 
-        if (!isWithinLastNDays(getAchievementDate(achievement), 60, today)) {
-          continue;
-        }
-
         result.push({
           ...achievement,
           gameTitle: normalizeGameTitle(game.title),
@@ -1099,19 +1113,19 @@ export default function AtividadePage() {
         new Date(getAchievementDate(b)).getTime() -
         new Date(getAchievementDate(a)).getTime()
     );
-  }, [games, today]);
+  }, [games]);
 
   const filteredEntries = useMemo(() => {
     const query = normalizeKey(search);
 
-    if (!query) return recent60Entries;
+    if (!query) return sourceEntries;
 
-    return recent60Entries.filter((entry) =>
+    return sourceEntries.filter((entry) =>
       normalizeKey(
         normalizeGameTitle(entry.gameTitle)
       ).includes(query)
     );
-  }, [search, recent60Entries]);
+  }, [search, sourceEntries]);
 
   const groupedEntries = useMemo(() => {
     const groups: Record<string, JourneyEntry[]> = {};
@@ -1130,7 +1144,7 @@ export default function AtividadePage() {
   const gameDistribution = useMemo(() => {
     const map = new Map<string, number>();
 
-    for (const entry of recent60Entries) {
+    for (const entry of sourceEntries) {
       const title = normalizeGameTitle(entry.gameTitle);
 
       map.set(
@@ -1150,7 +1164,7 @@ export default function AtividadePage() {
             : 0,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-  }, [recent60Entries, totalMinutes]);
+  }, [sourceEntries, totalMinutes]);
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -1487,7 +1501,7 @@ export default function AtividadePage() {
             {/* SIDEBAR DIREITA */}
 {/* RIGHT */}
             <aside className="space-y-3 xl:sticky xl:top-20">
-              <ActivityMap entries={recent60Entries} referenceDate={today} />
+              <ActivityMap entries={sourceEntries} />
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
                   <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
