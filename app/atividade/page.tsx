@@ -75,6 +75,38 @@ function getDateKey(value?: string) {
   return date.toISOString().slice(0, 10);
 }
 
+function getLast60DaysEntries(entries: JourneyEntry[]) {
+  const today = new Date();
+  const end = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+    12,
+    0,
+    0,
+    0
+  );
+
+  const start = new Date(end);
+  start.setDate(start.getDate() - 59);
+
+  return entries.filter((entry) => {
+    const key = getDateKey(entry.date);
+    if (!key) return false;
+
+    const date = new Date(`${key}T12:00:00`);
+    return date >= start && date <= end;
+  });
+}
+
+function countUniqueDays(entries: JourneyEntry[]) {
+  return new Set(
+    entries
+      .map((entry) => getDateKey(entry.date))
+      .filter(Boolean)
+  ).size;
+}
+
 function getMonthLabel(date: string) {
   const parsed = new Date(`${date}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return "";
@@ -975,14 +1007,19 @@ export default function AtividadePage() {
     [sourceEntries]
   );
 
-  const uniqueDays = useMemo(
-    () =>
-      new Set(
-        sourceEntries
-          .map((entry) => getDateKey(entry.date))
-          .filter(Boolean)
-      ).size,
+  const recent60Entries = useMemo(
+    () => getLast60DaysEntries(sourceEntries),
     [sourceEntries]
+  );
+
+  const uniqueDays = useMemo(
+    () => countUniqueDays(sourceEntries),
+    [sourceEntries]
+  );
+
+  const uniqueDaysLast60 = useMemo(
+    () => countUniqueDays(recent60Entries),
+    [recent60Entries]
   );
 
   const differentGames = useMemo(
@@ -1182,7 +1219,7 @@ export default function AtividadePage() {
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
-                  value={isLoaded ? uniqueDays : "..."}
+                  value={isLoaded ? uniqueDaysLast60 : "..."}
                 />
 
                 <Metric
