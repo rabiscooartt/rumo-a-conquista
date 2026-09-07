@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -74,50 +73,6 @@ function getDateKey(value?: string) {
   if (Number.isNaN(date.getTime())) return "";
 
   return date.toISOString().slice(0, 10);
-}
-
-function getLastNDaysEntries(
-  entries: JourneyEntry[],
-  days: number,
-  referenceDate = new Date()
-) {
-  const safeDays = Math.max(1, Math.floor(days));
-  const today = new Date(referenceDate);
-  const end = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-    12,
-    0,
-    0,
-    0
-  );
-
-  const start = new Date(end);
-  start.setDate(start.getDate() - (safeDays - 1));
-
-  return entries.filter((entry) => {
-    const key = getDateKey(entry.date);
-    if (!key) return false;
-
-    const date = new Date(`${key}T12:00:00`);
-    return date >= start && date <= end;
-  });
-}
-
-function getLast60DaysEntries(
-  entries: JourneyEntry[],
-  referenceDate = new Date()
-) {
-  return getLastNDaysEntries(entries, 60, referenceDate);
-}
-
-function countUniqueDays(entries: JourneyEntry[]) {
-  return new Set(
-    entries
-      .map((entry) => getDateKey(entry.date))
-      .filter(Boolean)
-  ).size;
 }
 
 function getMonthLabel(date: string) {
@@ -709,20 +664,43 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
       1
     );
 
-    const previousMonth = new Date(
-      today.getFullYear(),
-      today.getMonth() - 1,
+    /*
+     * O mapa trabalha em pares fixos de meses.
+     *
+     * Exemplos:
+     * AGO + SET
+     * OUT + NOV
+     * DEZ + JAN
+     *
+     * Assim, quando o calendário entra em outubro, o mapa
+     * troca o par inteiro para OUT + NOV, sem ficar
+     * exibindo SET + OUT.
+     */
+    const pairStartMonth =
+      currentMonth.getMonth() % 2 === 1
+        ? currentMonth.getMonth()
+        : currentMonth.getMonth() - 1;
+
+    const firstMonth = new Date(
+      currentMonth.getFullYear(),
+      pairStartMonth,
+      1
+    );
+
+    const secondMonth = new Date(
+      firstMonth.getFullYear(),
+      firstMonth.getMonth() + 1,
       1
     );
 
     return [
       buildMonth(
-        previousMonth.getFullYear(),
-        previousMonth.getMonth()
+        firstMonth.getFullYear(),
+        firstMonth.getMonth()
       ),
       buildMonth(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth()
+        secondMonth.getFullYear(),
+        secondMonth.getMonth()
       ),
     ];
   }, []);
@@ -1010,56 +988,24 @@ export default function AtividadePage() {
     [entries]
   );
 
-  const [today, setToday] = useState(() => new Date());
-
-  useEffect(() => {
-    const scheduleNextDay = () => {
-      const now = new Date();
-      const next = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1,
-        0,
-        0,
-        1,
-        0
-      );
-
-      const timeout = window.setTimeout(() => {
-        setToday(new Date());
-        scheduleNextDay();
-      }, Math.max(1000, next.getTime() - now.getTime()));
-
-      return timeout;
-    };
-
-    const timeout = scheduleNextDay();
-    return () => window.clearTimeout(timeout);
-  }, []);
-
-  const recent60Entries = useMemo(
-    () => getLast60DaysEntries(sourceEntries, today),
-    [sourceEntries, today]
-  );
-
   const totalMinutes = useMemo(
     () =>
-      recent60Entries.reduce(
+      sourceEntries.reduce(
         (total, entry) =>
           total + Number(entry.playedMinutes || 0),
         0
       ),
-    [recent60Entries]
-  );
-
-  const uniqueDays = useMemo(
-    () => countUniqueDays(sourceEntries),
     [sourceEntries]
   );
 
-  const uniqueDaysLast60 = useMemo(
-    () => countUniqueDays(recent60Entries),
-    [recent60Entries]
+  const uniqueDays = useMemo(
+    () =>
+      new Set(
+        sourceEntries
+          .map((entry) => getDateKey(entry.date))
+          .filter(Boolean)
+      ).size,
+    [sourceEntries]
   );
 
   const differentGames = useMemo(
@@ -1075,8 +1021,8 @@ export default function AtividadePage() {
   );
 
   const averageMinutes =
-    uniqueDaysLast60 > 0
-      ? Math.round(totalMinutes / uniqueDaysLast60)
+    uniqueDays > 0
+      ? Math.round(totalMinutes / uniqueDays)
       : 0;
 
   const currentStreak = useMemo(
@@ -1259,7 +1205,7 @@ export default function AtividadePage() {
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
-                  value={isLoaded ? uniqueDaysLast60 : "..."}
+                  value={isLoaded ? uniqueDays : "..."}
                 />
 
                 <Metric
