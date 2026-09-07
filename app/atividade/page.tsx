@@ -75,7 +75,8 @@ function getDateKey(value?: string) {
   return date.toISOString().slice(0, 10);
 }
 
-function getLast60DaysEntries(entries: JourneyEntry[]) {
+function getLastNDaysEntries(entries: JourneyEntry[], days: number) {
+  const safeDays = Math.max(1, Math.floor(days));
   const today = new Date();
   const end = new Date(
     today.getFullYear(),
@@ -88,7 +89,7 @@ function getLast60DaysEntries(entries: JourneyEntry[]) {
   );
 
   const start = new Date(end);
-  start.setDate(start.getDate() - 59);
+  start.setDate(start.getDate() - (safeDays - 1));
 
   return entries.filter((entry) => {
     const key = getDateKey(entry.date);
@@ -97,6 +98,10 @@ function getLast60DaysEntries(entries: JourneyEntry[]) {
     const date = new Date(`${key}T12:00:00`);
     return date >= start && date <= end;
   });
+}
+
+function getLast60DaysEntries(entries: JourneyEntry[]) {
+  return getLastNDaysEntries(entries, 60);
 }
 
 function countUniqueDays(entries: JourneyEntry[]) {
