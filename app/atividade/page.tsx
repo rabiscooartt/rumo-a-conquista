@@ -1096,14 +1096,14 @@ export default function AtividadePage() {
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
               <div className="border-t border-white/[0.08] pt-5">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/70">
-                  <IconTrend className="h-3.5 w-3.5 text-red-400" />
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <IconTrend className="h-4 w-4 text-red-400" />
                   Atividade
                 </div>
               </div>
 
               <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
                   Estatísticas
                 </p>
 
@@ -1111,43 +1111,43 @@ export default function AtividadePage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                      <span className="truncate text-[9px] font-bold uppercase tracking-[0.02em] text-white/50">
+                      <span className="truncate text-[11px] font-semibold uppercase tracking-[0.01em] text-white/65">
                         Jogando
                       </span>
                     </div>
-                    <span className="text-[9px] font-black text-white/35">—</span>
+                    <span className="text-[10px] font-black text-white/45">—</span>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-purple-500" />
-                      <span className="truncate text-[9px] font-bold uppercase tracking-[0.02em] text-white/50">
+                      <span className="truncate text-[11px] font-semibold uppercase tracking-[0.01em] text-white/65">
                         Finalizados
                       </span>
                     </div>
-                    <span className="text-[9px] font-black text-white/35">—</span>
+                    <span className="text-[10px] font-black text-white/45">—</span>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
-                      <span className="truncate text-[9px] font-bold uppercase tracking-[0.02em] text-white/50">
+                      <span className="truncate text-[11px] font-semibold uppercase tracking-[0.01em] text-white/65">
                         Total de conquistas
                       </span>
                     </div>
-                    <span className="text-[9px] font-black text-white/35">—</span>
+                    <span className="text-[10px] font-black text-white/45">—</span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
                   Período
                 </p>
 
                 <div className="mt-3 flex items-center gap-2">
-                  <IconCalendar className="h-3.5 w-3.5 text-white/40" />
-                  <span className="text-[9px] font-bold text-white/55">
+                  <IconCalendar className="h-4 w-4 text-white/45" />
+                  <span className="text-[11px] font-semibold text-white/65">
                     Últimos 60 dias
                   </span>
                 </div>
