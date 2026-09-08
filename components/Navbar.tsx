@@ -347,7 +347,7 @@ export default function Navbar() {
           <AdminAvatarLogin showLabel />
 
           <Link
-            href="/biblioteca"
+            href={isAdminMode ? "/admin/jogos" : "/biblioteca"}
             className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white/70"
           >
             Jogos
