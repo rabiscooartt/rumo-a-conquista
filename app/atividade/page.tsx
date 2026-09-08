@@ -9,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import Navbar from "@/components/Navbar";
+import { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT } from "@/components/AdminAvatarLogin";
 import { useSiteGames } from "@/lib/useSiteGames";
 import {
   type JourneyEntry,
@@ -228,6 +229,16 @@ function getGamePlatform(game?: GameLike) {
 
   return "";
 }
+
+const ACTIVITY_PLATFORM_TAG_PREFIX = "__platform:";
+
+function getEntryPlatform(entry: JourneyEntry) {
+  const tag = entry.tags.find((value) =>
+    value.toLowerCase().startsWith(ACTIVITY_PLATFORM_TAG_PREFIX)
+  );
+  return tag ? tag.slice(ACTIVITY_PLATFORM_TAG_PREFIX.length).trim() : "";
+}
+
 
 function calculateStreak(
   entries: JourneyEntry[],
@@ -976,17 +987,20 @@ function ActivityRow({
   game,
   onEdit,
   onRemove,
+  isAdmin,
 }: {
   entry: JourneyEntry;
   game?: GameLike;
   onEdit: (entry: JourneyEntry) => void;
   onRemove: (entry: JourneyEntry) => void;
+  isAdmin: boolean;
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
   const normalizedTitle = normalizeKey(entry.gameTitle);
 
   const platform =
+    getEntryPlatform(entry) ||
     getGamePlatform(game) ||
     (normalizedTitle.includes("mouse") &&
     normalizedTitle.includes("p.i. for hire")
@@ -1061,22 +1075,26 @@ function ActivityRow({
         </p>
       </div>
 
-      <div className="hidden items-center justify-end gap-1 md:flex">
-        <button
-          type="button"
-          onClick={() => onEdit(entry)}
-          className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[8px] font-black text-white/50 transition hover:border-red-500/30 hover:text-red-300"
-        >
-          Editar
-        </button>
-        <button
-          type="button"
-          onClick={() => onRemove(entry)}
-          className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[8px] font-black text-white/35 transition hover:border-red-500/30 hover:text-red-300"
-        >
-          ×
-        </button>
-      </div>
+      {isAdmin ? (
+        <div className="hidden items-center justify-end gap-1 md:flex">
+          <button
+            type="button"
+            onClick={() => onEdit(entry)}
+            className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[8px] font-black text-white/50 transition hover:border-red-500/30 hover:text-red-300"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(entry)}
+            className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[8px] font-black text-white/35 transition hover:border-red-500/30 hover:text-red-300"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <div className="hidden md:block" />
+      )}
     </article>
   );
 }
@@ -1093,7 +1111,7 @@ function formatDateInputValue(date?: string) {
   return "";
 }
 
-export default function AdminAtividadePage() {
+export default function AtividadePage() {
   const {
     entries,
     isLoaded,
@@ -1103,6 +1121,64 @@ export default function AdminAtividadePage() {
   } = useJourneyEntries();
   const { gamesList, updateGame } = useSiteGames();
 
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isAdminStatusLoaded, setIsAdminStatusLoaded] = useState(false);
+
+  useEffect(() => {
+    async function refreshAdminStatus() {
+      try {
+        const response = await fetch("/api/admin/auth/status", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          setIsAdminMode(false);
+          return;
+        }
+
+        const data = (await response.json()) as {
+          authenticated?: boolean;
+        };
+
+        setIsAdminMode(data.authenticated === true);
+      } catch {
+        setIsAdminMode(false);
+      } finally {
+        setIsAdminStatusLoaded(true);
+      }
+    }
+
+    void refreshAdminStatus();
+
+    function handleAuthChanged() {
+      void refreshAdminStatus();
+    }
+
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    };
+  }, []);
+
+  async function handleSidebarLogout() {
+    try {
+      await fetch("/api/admin/auth/logout", {
+        method: "POST",
+        cache: "no-store",
+      });
+    } finally {
+      setIsAdminMode(false);
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+      window.location.reload();
+    }
+  }
+
+  function handleSidebarLogin() {
+    window.dispatchEvent(new Event(OPEN_LOGIN_EVENT));
+  }
+
   const [activeTab, setActiveTab] =
     useState<ActivityTab>("jogos");
   const [search, setSearch] = useState("");
@@ -1110,8 +1186,6 @@ export default function AdminAtividadePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [activityGameSlug, setActivityGameSlug] = useState("");
-  const [activityGameSearch, setActivityGameSearch] = useState("");
-  const [isGamePickerOpen, setIsGamePickerOpen] = useState(false);
   const [activityDate, setActivityDate] = useState(
     () => new Date().toISOString().slice(0, 10)
   );
@@ -1262,8 +1336,6 @@ export default function AdminAtividadePage() {
   function resetActivityForm() {
     setEditingEntryId(null);
     setActivityGameSlug("");
-    setActivityGameSearch("");
-    setIsGamePickerOpen(false);
     setActivityDate(new Date().toISOString().slice(0, 10));
     setActivityHours("0");
     setActivityMinutes("0");
@@ -1275,8 +1347,6 @@ export default function AdminAtividadePage() {
   function startNewActivity() {
     setEditingEntryId(null);
     setActivityGameSlug("");
-    setActivityGameSearch("");
-    setIsGamePickerOpen(false);
     setActivityDate(new Date().toISOString().slice(0, 10));
     setActivityHours("0");
     setActivityMinutes("0");
@@ -1288,8 +1358,6 @@ export default function AdminAtividadePage() {
   function startEditActivity(entry: JourneyEntry) {
     setEditingEntryId(entry.id);
     setActivityGameSlug(entry.gameSlug || "");
-    setActivityGameSearch(normalizeGameTitle(entry.gameTitle));
-    setIsGamePickerOpen(false);
     setActivityDate(formatDateInputValue(entry.date));
     setActivityHours(String(Math.floor((entry.playedMinutes || 0) / 60)));
     setActivityMinutes(String((entry.playedMinutes || 0) % 60));
@@ -1320,41 +1388,11 @@ export default function AdminAtividadePage() {
     });
   }
 
-  const selectableGames = useMemo(
-    () =>
-      games.filter((game) => game.slug && game.title),
-    [games]
-  );
-
-  const filteredGameOptions = useMemo(() => {
-    const query = normalizeKey(activityGameSearch);
-
-    if (!query) return selectableGames.slice(0, 12);
-
-    return selectableGames
-      .filter((game) => {
-        const title = normalizeKey(game.title);
-        const slug = normalizeKey(game.slug);
-        return title.includes(query) || slug.includes(query);
-      })
-      .slice(0, 12);
-  }, [activityGameSearch, selectableGames]);
-
-  function selectActivityGame(game: GameLike) {
-    if (!game.slug || !game.title) return;
-
-    setActivityGameSlug(game.slug);
-    setActivityGameSearch(normalizeGameTitle(game.title));
-    setIsGamePickerOpen(false);
-  }
-
   async function handleActivitySubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const selectedGame = games.find(
       (game) => normalizeKey(game.slug) === normalizeKey(activityGameSlug)
-    ) || games.find(
-      (game) => normalizeKey(normalizeGameTitle(game.title)) === normalizeKey(activityGameSearch)
     );
 
     if (!selectedGame?.slug || !selectedGame.title) {
@@ -1587,20 +1625,24 @@ export default function AdminAtividadePage() {
                 Configurações
               </Link>
 
-              <button
-                type="button"
-                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
-              >
-                <span className="text-sm">↪</span>
-                Sair
-              </button>
-
-              <button
-                type="button"
-                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[12px] font-black text-white transition hover:bg-red-500"
-              >
-                Entrar
-              </button>
+              {isAdminStatusLoaded && isAdminMode ? (
+                <button
+                  type="button"
+                  onClick={() => void handleSidebarLogout()}
+                  className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55 transition hover:text-white"
+                >
+                  <span className="text-sm">↪</span>
+                  Sair
+                </button>
+              ) : isAdminStatusLoaded ? (
+                <button
+                  type="button"
+                  onClick={handleSidebarLogin}
+                  className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[12px] font-black text-white transition hover:bg-red-500"
+                >
+                  Entrar
+                </button>
+              ) : null}
             </div>
           </div>
         </aside>
@@ -1637,14 +1679,16 @@ export default function AdminAtividadePage() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={startNewActivity}
-                className="absolute right-7 top-7 inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.08em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/20"
-              >
-                <span className="text-base leading-none">+</span>
-                Registrar atividade
-              </button>
+              {isAdminMode && (
+                <button
+                  type="button"
+                  onClick={startNewActivity}
+                  className="absolute right-7 top-7 inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.08em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/20"
+                >
+                  <span className="text-base leading-none">+</span>
+                  Registrar atividade
+                </button>
+              )}
 
               <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
                 <Metric
@@ -1671,7 +1715,7 @@ export default function AdminAtividadePage() {
             </div>
           </header>
 
-          {isEditorOpen && (
+          {isAdminMode && isEditorOpen && (
             <section className="mt-4 rounded-[14px] border border-red-500/20 bg-[#090b0f] p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -1696,71 +1740,22 @@ export default function AdminAtividadePage() {
 
               <form onSubmit={handleActivitySubmit} className="mt-4 space-y-3">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_170px]">
-                  <label className="relative block">
+                  <label className="block">
                     <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Jogo</span>
-                    <div className="relative">
-                      <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
-                      <input
-                        type="text"
-                        value={activityGameSearch}
-                        onFocus={() => setIsGamePickerOpen(true)}
-                        onBlur={() => window.setTimeout(() => setIsGamePickerOpen(false), 120)}
-                        onChange={(event) => {
-                          setActivityGameSearch(event.target.value);
-                          setActivityGameSlug("");
-                          setIsGamePickerOpen(true);
-                        }}
-                        placeholder="Digite ou selecione o jogo..."
-                        autoComplete="off"
-                        className="w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-10 pr-3 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
-                      />
-
-                      {isGamePickerOpen && (
-                        <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-xl border border-white/10 bg-[#0b0d12] p-1.5 shadow-2xl">
-                          {filteredGameOptions.length > 0 ? (
-                            filteredGameOptions.map((game) => {
-                              const selected =
-                                normalizeKey(game.slug) ===
-                                normalizeKey(activityGameSlug);
-
-                              return (
-                                <button
-                                  key={game.slug}
-                                  type="button"
-                                  onMouseDown={(event) => event.preventDefault()}
-                                  onClick={() => selectActivityGame(game)}
-                                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[11px] font-semibold transition ${
-                                    selected
-                                      ? "bg-red-500/10 text-red-300"
-                                      : "text-white/75 hover:bg-white/[0.05] hover:text-white"
-                                  }`}
-                                >
-                                  <span className="h-7 w-5 shrink-0 overflow-hidden rounded border border-white/10 bg-black">
-                                    {getGameCover(game, game.slug) ? (
-                                      <img
-                                        src={getGameCover(game, game.slug)}
-                                        alt=""
-                                        className="h-full w-full object-cover"
-                                      />
-                                    ) : null}
-                                  </span>
-                                  <span className="min-w-0 flex-1 truncate">
-                                    {normalizeGameTitle(game.title)}
-                                  </span>
-                                  {selected && (
-                                    <span className="text-[10px] font-black text-red-400">✓</span>
-                                  )}
-                                </button>
-                              );
-                            })
-                          ) : (
-                            <div className="px-3 py-3 text-[10px] font-semibold text-white/35">
-                              Nenhum jogo encontrado. Cadastre o jogo em Jogos para poder registrar a atividade.
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <select
+                      value={activityGameSlug}
+                      onChange={(event) => setActivityGameSlug(event.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
+                    >
+                      <option value="">Selecione o jogo</option>
+                      {games
+                        .filter((game) => game.slug && game.title)
+                        .map((game) => (
+                          <option key={game.slug} value={game.slug}>
+                            {game.title}
+                          </option>
+                        ))}
+                    </select>
                   </label>
 
                   <label className="block">
@@ -1956,6 +1951,7 @@ export default function AdminAtividadePage() {
                                   game={game}
                                   onEdit={startEditActivity}
                                   onRemove={handleRemoveActivity}
+                                  isAdmin={isAdminMode}
                                 />
                               );
                             })}

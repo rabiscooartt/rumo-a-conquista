@@ -229,6 +229,21 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
+const ACTIVITY_PLATFORM_TAG_PREFIX = "__platform:";
+
+function getEntryPlatform(entry: JourneyEntry) {
+  const tag = entry.tags.find((value) =>
+    value.toLowerCase().startsWith(ACTIVITY_PLATFORM_TAG_PREFIX)
+  );
+  return tag ? tag.slice(ACTIVITY_PLATFORM_TAG_PREFIX.length).trim() : "";
+}
+
+function getDefaultActivityPlatform(game?: GameLike) {
+  const platform = getGamePlatform(game);
+  if (!platform) return "";
+  return platform.split("•")[0].trim();
+}
+
 function calculateStreak(
   entries: JourneyEntry[],
   referenceDate = new Date()
@@ -987,6 +1002,7 @@ function ActivityRow({
   const normalizedTitle = normalizeKey(entry.gameTitle);
 
   const platform =
+    getEntryPlatform(entry) ||
     getGamePlatform(game) ||
     (normalizedTitle.includes("mouse") &&
     normalizedTitle.includes("p.i. for hire")
@@ -1039,11 +1055,13 @@ function ActivityRow({
       <div className="hidden items-center justify-center gap-2 md:flex">
         {platform && (
           <>
-            <img
-              src="/images/platforms/steam.png"
-              alt="Steam"
-              className="h-5 w-5 object-contain"
-            />
+            {platform.toLowerCase().includes("steam") && (
+              <img
+                src="/images/platforms/steam.png"
+                alt="Steam"
+                className="h-5 w-5 object-contain"
+              />
+            )}
             <span className="truncate text-[11px] font-semibold text-white/60">
               {platform}
             </span>
@@ -1117,6 +1135,7 @@ export default function AdminAtividadePage() {
   const [activityMinutes, setActivityMinutes] = useState("0");
   const [activityTitle, setActivityTitle] = useState("");
   const [activityNotes, setActivityNotes] = useState("");
+  const [activityPlatform, setActivityPlatform] = useState("");
 
   const games = useMemo(
     () => gamesList as GameLike[],
@@ -1265,6 +1284,7 @@ export default function AdminAtividadePage() {
     setActivityMinutes("0");
     setActivityTitle("");
     setActivityNotes("");
+    setActivityPlatform("");
     setIsEditorOpen(keepOpen);
   }
 
@@ -1284,6 +1304,7 @@ export default function AdminAtividadePage() {
     setActivityMinutes(String((entry.playedMinutes || 0) % 60));
     setActivityTitle(entry.title || "");
     setActivityNotes(entry.notes || "");
+    setActivityPlatform(getEntryPlatform(entry) || getDefaultActivityPlatform(games.find((game) => game.slug === entry.gameSlug)));
     setIsEditorOpen(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1306,7 +1327,15 @@ export default function AdminAtividadePage() {
     await updateGame(gameSlug, {
       hours: formatPlayedTimeForGame(totalMinutes),
       manualTotalPlayedMinutes: totalMinutes,
+      skipAchievementsSync: true,
     });
+  }
+
+  function inputTagsForActivity(game: GameLike, platform: string) {
+    const selectedPlatform = platform.trim() || getDefaultActivityPlatform(game);
+    return selectedPlatform
+      ? [`${ACTIVITY_PLATFORM_TAG_PREFIX}${selectedPlatform}`]
+      : [];
   }
 
   async function handleActivitySubmit(event: FormEvent<HTMLFormElement>) {
@@ -1346,7 +1375,9 @@ export default function AdminAtividadePage() {
       notes: activityNotes.trim() || "Sessão de jogo.",
       highlight: "",
       threadsUrl: "",
-      tags: [],
+      tags: [
+        ...inputTagsForActivity(selectedGame, activityPlatform),
+      ],
       playedMinutes,
     };
 
@@ -1654,12 +1685,17 @@ export default function AdminAtividadePage() {
               </div>
 
               <form onSubmit={handleActivitySubmit} className="mt-4 space-y-3">
-                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_170px]">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_170px_150px]">
                   <label className="block">
                     <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Jogo</span>
                     <select
                       value={activityGameSlug}
-                      onChange={(event) => setActivityGameSlug(event.target.value)}
+                      onChange={(event) => {
+                        const nextSlug = event.target.value;
+                        const nextGame = games.find((game) => game.slug === nextSlug);
+                        setActivityGameSlug(nextSlug);
+                        setActivityPlatform(getDefaultActivityPlatform(nextGame));
+                      }}
                       className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
                     >
                       <option value="">Selecione o jogo</option>
@@ -1670,6 +1706,24 @@ export default function AdminAtividadePage() {
                             {game.title}
                           </option>
                         ))}
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Plataforma</span>
+                    <select
+                      value={activityPlatform}
+                      onChange={(event) => setActivityPlatform(event.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
+                    >
+                      <option value="">Automática</option>
+                      <option value="Steam">Steam</option>
+                      <option value="PlayStation">PlayStation</option>
+                      <option value="Xbox">Xbox</option>
+                      <option value="Nintendo Switch">Nintendo Switch</option>
+                      <option value="Epic Games">Epic Games</option>
+                      <option value="GOG">GOG</option>
+                      <option value="Outras">Outras</option>
                     </select>
                   </label>
 
