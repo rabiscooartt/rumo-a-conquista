@@ -219,14 +219,14 @@ const navLinks = [
     icon: PlayIcon,
   },
   {
-    label: "Jornada",
-    href: "/jornada",
-    adminHref: "/admin/jornada",
+    label: "Atividade",
+    href: "/atividade",
     icon: ScrollIcon,
   },
   {
     label: "Próximas Maestrias",
     href: "/backlog",
+    adminHref: "/admin/backlog",
     icon: DiamondIcon,
   },
   {
