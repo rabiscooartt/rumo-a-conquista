@@ -6,11 +6,13 @@ import {
   useMemo,
   useState,
   type ReactNode,
+  type FormEvent,
 } from "react";
 import Navbar from "@/components/Navbar";
 import { useSiteGames } from "@/lib/useSiteGames";
 import {
   type JourneyEntry,
+  type JourneyEntryInput,
   useJourneyEntries,
 } from "@/lib/useJourneyEntries";
 
@@ -22,6 +24,8 @@ type GameLike = {
   subtitle?: string;
   image?: string;
   cardImage?: string;
+  manualTotalPlayedMinutes?: number | null;
+  status?: string;
   platform?: string;
   platforms?: string[];
   console?: string;
@@ -50,6 +54,26 @@ function formatPlayedTime(minutes = 0) {
   return `${hours}h ${mins}min`;
 }
 
+function formatPlayedTimeForGame(minutes: number) {
+  const safe = Math.max(0, Math.round(Number(minutes) || 0));
+  const hours = Math.floor(safe / 60);
+  const mins = safe % 60;
+
+  if (hours <= 0 && mins <= 0) return "0h";
+  if (mins <= 0) return `${hours}h`;
+  if (hours <= 0) return `${mins}m`;
+  return `${hours}h - ${mins}m`;
+}
+
+function getWeekDay(dateValue: string) {
+  const parsed = new Date(`${dateValue}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  return parsed.toLocaleDateString("pt-BR", {
+    weekday: "long",
+  });
+}
+
 function normalizeKey(value?: string) {
   return (value || "")
     .trim()
@@ -65,6 +89,19 @@ function normalizeGameTitle(title?: string) {
   return title
     .replace(/^Rumo\s*[àáa]\s*Conquista\s*:\s*/i, "")
     .trim();
+}
+
+function getDistributionGameKey(title?: string) {
+  const normalized = normalizeKey(normalizeGameTitle(title));
+
+  if (
+    normalized.includes("mouse") &&
+    normalized.includes("p.i. for hire")
+  ) {
+    return "mouse-p.i.-for-hire";
+  }
+
+  return normalized;
 }
 
 function getDateKey(value?: string) {
@@ -937,9 +974,13 @@ function Metric({
 function ActivityRow({
   entry,
   game,
+  onEdit,
+  onRemove,
 }: {
   entry: JourneyEntry;
   game?: GameLike;
+  onEdit: (entry: JourneyEntry) => void;
+  onRemove: (entry: JourneyEntry) => void;
 }) {
   const date = new Date(`${entry.date}T12:00:00`);
   const cover = getGameCover(game, entry.gameSlug);
@@ -953,7 +994,7 @@ function ActivityRow({
       : "");
 
   return (
-    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_96px_120px] md:px-4">
+    <article className="grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px] md:px-4">
       <div>
         <p className="text-[29px] font-black leading-none tracking-tight text-white md:text-[31px]">
           {date.getDate()}
@@ -1019,17 +1060,63 @@ function ActivityRow({
           Tempo jogado
         </p>
       </div>
+
+      <div className="hidden items-center justify-end gap-1 md:flex">
+        <button
+          type="button"
+          onClick={() => onEdit(entry)}
+          className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[8px] font-black text-white/50 transition hover:border-red-500/30 hover:text-red-300"
+        >
+          Editar
+        </button>
+        <button
+          type="button"
+          onClick={() => onRemove(entry)}
+          className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1.5 text-[8px] font-black text-white/35 transition hover:border-red-500/30 hover:text-red-300"
+        >
+          ×
+        </button>
+      </div>
     </article>
   );
 }
 
+function formatDateInputValue(date?: string) {
+  if (!date) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+
+  const parsed = new Date(date);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  return "";
+}
+
 export default function AtividadePage() {
-  const { entries, isLoaded } = useJourneyEntries();
-  const { gamesList } = useSiteGames();
+  const {
+    entries,
+    isLoaded,
+    addEntry,
+    updateEntry,
+    removeEntry,
+  } = useJourneyEntries();
+  const { gamesList, updateGame } = useSiteGames();
 
   const [activeTab, setActiveTab] =
     useState<ActivityTab>("jogos");
   const [search, setSearch] = useState("");
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [activityGameSlug, setActivityGameSlug] = useState("");
+  const [activityDate, setActivityDate] = useState(
+    () => new Date().toISOString().slice(0, 10)
+  );
+  const [activityHours, setActivityHours] = useState("0");
+  const [activityMinutes, setActivityMinutes] = useState("0");
+  const [activityTitle, setActivityTitle] = useState("");
+  const [activityNotes, setActivityNotes] = useState("");
 
   const games = useMemo(
     () => gamesList as GameLike[],
@@ -1170,6 +1257,159 @@ export default function AtividadePage() {
     return count;
   }, [games, today]);
 
+  function resetActivityForm() {
+    setEditingEntryId(null);
+    setActivityGameSlug("");
+    setActivityDate(new Date().toISOString().slice(0, 10));
+    setActivityHours("0");
+    setActivityMinutes("0");
+    setActivityTitle("");
+    setActivityNotes("");
+    setIsEditorOpen(false);
+  }
+
+  function startNewActivity() {
+    setEditingEntryId(null);
+    setActivityGameSlug("");
+    setActivityDate(new Date().toISOString().slice(0, 10));
+    setActivityHours("0");
+    setActivityMinutes("0");
+    setActivityTitle("");
+    setActivityNotes("");
+    setIsEditorOpen(true);
+  }
+
+  function startEditActivity(entry: JourneyEntry) {
+    setEditingEntryId(entry.id);
+    setActivityGameSlug(entry.gameSlug || "");
+    setActivityDate(formatDateInputValue(entry.date));
+    setActivityHours(String(Math.floor((entry.playedMinutes || 0) / 60)));
+    setActivityMinutes(String((entry.playedMinutes || 0) % 60));
+    setActivityTitle(entry.title || "");
+    setActivityNotes(entry.notes || "");
+    setIsEditorOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function syncActivityGameTotal(
+    gameSlug: string,
+    nextEntry?: JourneyEntry,
+    replacedEntryId?: string
+  ) {
+    if (!gameSlug) return;
+
+    const totalMinutes = entries.reduce((total, entry) => {
+      if (entry.id === replacedEntryId) return total;
+      if (entry.gameSlug !== gameSlug) return total;
+      return total + Math.max(0, Number(entry.playedMinutes || 0));
+    }, 0) + (nextEntry ? Math.max(0, Number(nextEntry.playedMinutes || 0)) : 0);
+
+    if (totalMinutes <= 0) return;
+
+    await updateGame(gameSlug, {
+      hours: formatPlayedTimeForGame(totalMinutes),
+      manualTotalPlayedMinutes: totalMinutes,
+    });
+  }
+
+  async function handleActivitySubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const selectedGame = games.find(
+      (game) => normalizeKey(game.slug) === normalizeKey(activityGameSlug)
+    );
+
+    if (!selectedGame?.slug || !selectedGame.title) {
+      alert("Selecione o jogo.");
+      return;
+    }
+
+    if (!activityDate) {
+      alert("Informe a data.");
+      return;
+    }
+
+    const playedMinutes =
+      Math.max(0, Number(activityHours || 0)) * 60 +
+      Math.max(0, Number(activityMinutes || 0));
+
+    if (playedMinutes <= 0) {
+      alert("Informe pelo menos 1 minuto de jogo.");
+      return;
+    }
+
+    const input: JourneyEntryInput = {
+      gameTitle: selectedGame.title,
+      gameSlug: selectedGame.slug,
+      dayLabel: "Atividade",
+      status: "ATIVIDADE",
+      weekDay: getWeekDay(activityDate),
+      date: activityDate,
+      title: activityTitle.trim(),
+      notes: activityNotes.trim() || "Sessão de jogo.",
+      highlight: "",
+      threadsUrl: "",
+      tags: [],
+      playedMinutes,
+    };
+
+    setIsSubmitting(true);
+
+    try {
+      const previousEntry = editingEntryId
+        ? entries.find((entry) => entry.id === editingEntryId)
+        : undefined;
+
+      const savedEntry = editingEntryId
+        ? await updateEntry(editingEntryId, input)
+        : await addEntry(input);
+
+      await syncActivityGameTotal(
+        selectedGame.slug,
+        savedEntry,
+        editingEntryId || undefined
+      );
+
+      if (
+        previousEntry?.gameSlug &&
+        previousEntry.gameSlug !== selectedGame.slug
+      ) {
+        await syncActivityGameTotal(
+          previousEntry.gameSlug,
+          undefined,
+          editingEntryId || undefined
+        );
+      }
+
+      resetActivityForm();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar a atividade."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleRemoveActivity(entry: JourneyEntry) {
+    if (!window.confirm("Remover esta atividade?")) return;
+
+    try {
+      await removeEntry(entry.id);
+      if (entry.gameSlug) {
+        await syncActivityGameTotal(entry.gameSlug, undefined, entry.id);
+      }
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível remover a atividade."
+      );
+    }
+  }
+
   const filteredEntries = useMemo(() => {
     const query = normalizeKey(search);
 
@@ -1197,41 +1437,78 @@ export default function AtividadePage() {
   }, [filteredEntries]);
 
   const gameDistribution = useMemo(() => {
-    const map = new Map<string, number>();
+    const totals = new Map<
+      string,
+      { title: string; minutes: number }
+    >();
+
+    const sessionMinutesByGame = new Map<string, number>();
 
     for (const entry of recent60Entries) {
-      const rawTitle = normalizeGameTitle(entry.gameTitle);
-      const compactTitle = normalizeKey(rawTitle).replace(
-        /[^a-z0-9]+/g,
-        ""
-      );
+      const minutes = Number(entry.playedMinutes || 0);
 
-      // Unifica variações de cadastro do Mouse: P.I. For Hire
-      // em uma única entrada na distribuição.
-      const title = compactTitle.includes(
-        "mousepiforhire"
-      )
-        ? "Mouse: P.I. For Hire"
-        : rawTitle;
+      if (minutes <= 0) continue;
 
-      map.set(
-        title,
-        (map.get(title) || 0) +
-          Number(entry.playedMinutes || 0)
+      const key = getDistributionGameKey(entry.gameTitle);
+      const current = totals.get(key);
+
+      totals.set(key, {
+        title:
+          current?.title ||
+          normalizeGameTitle(entry.gameTitle),
+        minutes:
+          (current?.minutes || 0) + minutes,
+      });
+
+      sessionMinutesByGame.set(
+        key,
+        (sessionMinutesByGame.get(key) || 0) +
+          minutes
       );
     }
 
-    return Array.from(map.entries())
-      .map(([title, minutes]) => ({
+    for (const game of games) {
+      const key = getDistributionGameKey(game.title);
+
+      if ((sessionMinutesByGame.get(key) || 0) > 0) {
+        continue;
+      }
+
+      if (
+        normalizeKey(game.status) !== "completed" ||
+        !game.manualTotalPlayedMinutes ||
+        Number(game.manualTotalPlayedMinutes) <= 0
+      ) {
+        continue;
+      }
+
+      totals.set(key, {
+        title:
+          totals.get(key)?.title ||
+          normalizeGameTitle(game.title),
+        minutes: Math.round(
+          Number(game.manualTotalPlayedMinutes)
+        ),
+      });
+    }
+
+    const distributionTotalMinutes =
+      Array.from(totals.values()).reduce(
+        (sum, item) => sum + item.minutes,
+        0
+      );
+
+    return Array.from(totals.values())
+      .map(({ title, minutes }) => ({
         title,
         minutes,
         percent:
-          totalMinutes > 0
-            ? (minutes / totalMinutes) * 100
+          distributionTotalMinutes > 0
+            ? (minutes / distributionTotalMinutes) * 100
             : 0,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-  }, [recent60Entries, totalMinutes]);
+  }, [games, recent60Entries]);
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -1322,6 +1599,15 @@ export default function AtividadePage() {
                 </p>
               </div>
 
+              <button
+                type="button"
+                onClick={startNewActivity}
+                className="absolute right-7 top-7 inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.08em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/20"
+              >
+                <span className="text-base leading-none">+</span>
+                Registrar atividade
+              </button>
+
               <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
@@ -1346,6 +1632,125 @@ export default function AtividadePage() {
               </div>
             </div>
           </header>
+
+          {isEditorOpen && (
+            <section className="mt-4 rounded-[14px] border border-red-500/20 bg-[#090b0f] p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
+                    {editingEntryId ? "Editar atividade" : "Nova atividade"}
+                  </p>
+                  <h2 className="mt-1 text-[18px] font-black text-white">
+                    Registrar sessão de jogo
+                  </h2>
+                  <p className="mt-1 text-[10px] text-white/35">
+                    O tempo informado aqui entra no total de horas do jogo.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetActivityForm}
+                  className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[9px] font-black text-white/40 transition hover:text-white"
+                >
+                  Fechar
+                </button>
+              </div>
+
+              <form onSubmit={handleActivitySubmit} className="mt-4 space-y-3">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_170px]">
+                  <label className="block">
+                    <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Jogo</span>
+                    <select
+                      value={activityGameSlug}
+                      onChange={(event) => setActivityGameSlug(event.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
+                    >
+                      <option value="">Selecione o jogo</option>
+                      {games
+                        .filter((game) => game.slug && game.title)
+                        .map((game) => (
+                          <option key={game.slug} value={game.slug}>
+                            {game.title}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Data</span>
+                    <input
+                      type="date"
+                      value={activityDate}
+                      onChange={(event) => setActivityDate(event.target.value)}
+                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
+                    />
+                  </label>
+
+                  <div>
+                    <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Tempo jogado</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        value={activityHours}
+                        onChange={(event) => setActivityHours(event.target.value)}
+                        placeholder="Horas"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={activityMinutes}
+                        onChange={(event) => setActivityMinutes(event.target.value)}
+                        placeholder="Min"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Título (opcional)</span>
+                    <input
+                      value={activityTitle}
+                      onChange={(event) => setActivityTitle(event.target.value)}
+                      placeholder="Ex.: Avancei na campanha"
+                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none placeholder:text-white/20 focus:border-red-500/35"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Observação (opcional)</span>
+                    <input
+                      value={activityNotes}
+                      onChange={(event) => setActivityNotes(event.target.value)}
+                      placeholder="O que aconteceu nesta sessão?"
+                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none placeholder:text-white/20 focus:border-red-500/35"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={resetActivityForm}
+                    className="rounded-xl border border-white/10 px-4 py-2.5 text-[10px] font-black text-white/45 transition hover:text-white"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="rounded-xl bg-red-600 px-5 py-2.5 text-[10px] font-black text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Salvando..." : editingEntryId ? "Salvar alteração" : "Registrar atividade"}
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
 
               <div className="mt-4">
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
@@ -1462,6 +1867,8 @@ export default function AtividadePage() {
                                   key={entry.id}
                                   entry={entry}
                                   game={game}
+                                  onEdit={startEditActivity}
+                                  onRemove={handleRemoveActivity}
                                 />
                               );
                             })}
@@ -1675,7 +2082,7 @@ export default function AtividadePage() {
                   >
                     <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-[#090b0f]">
                       <span className="text-[23px] font-black">
-                        {Math.round(totalMinutes / 60)}h
+                        {Math.floor(totalMinutes / 60)}h
                       </span>
                       <span className="text-[7px] font-black uppercase tracking-[0.16em] text-white/25">
                         total
