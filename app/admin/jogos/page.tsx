@@ -112,6 +112,22 @@ const reviewStatusOptions: {
 
 const rankOptions: AchievementRank[] = ["Bronze", "Prata", "Ouro", "Diamante"];
 
+function parsePlayedTimeToMinutes(value: string): number | null {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const hoursMatch = normalized.match(/(\d+(?:[.,]\d+)?)\s*(?:h|hora|horas)/);
+  const minutesMatch = normalized.match(/(\d+)\s*(?:m|min|mins|minuto|minutos)/);
+
+  const hours = hoursMatch ? Number(hoursMatch[1].replace(',', '.')) : 0;
+  const minutes = minutesMatch ? Number(minutesMatch[1]) : 0;
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  if (hours === 0 && minutes === 0) return 0;
+
+  return Math.max(0, Math.round(hours * 60 + minutes));
+}
+
 function rankToTrophy(rank: AchievementRank) {
   if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
@@ -440,7 +456,7 @@ function GameEditorCard({
 }: {
   game: SiteGame;
   onSave: (slug: string, update: Partial<SiteGame>) => Promise<void>;
-  onRemove: (slug: string) => Promise<void>;
+  onRemove: (slug: string) => Promise<boolean>;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }) {
@@ -449,7 +465,7 @@ function GameEditorCard({
     subtitle: game.subtitle || "",
     status: game.status || "progress",
     progress: Number(game.progress) || 0,
-    hours: String(game.hours || "0h"),
+    hours: game.manualTotalPlayedMinutes != null ? `${Math.floor(game.manualTotalPlayedMinutes / 60)}h - ${game.manualTotalPlayedMinutes % 60}m` : String(game.hours || "0h"),
     currentObjective: String(game.currentObjective || game.objective || ""),
     image: String(game.image || ""),
     cardImage: String(game.cardImage || ""),
@@ -551,7 +567,7 @@ function GameEditorCard({
       subtitle: game.subtitle || "",
       status: game.status || "progress",
       progress: Number(game.progress) || 0,
-      hours: String(game.hours || "0h"),
+      hours: game.manualTotalPlayedMinutes != null ? `${Math.floor(game.manualTotalPlayedMinutes / 60)}h - ${game.manualTotalPlayedMinutes % 60}m` : String(game.hours || "0h"),
       currentObjective: String(game.currentObjective || game.objective || ""),
       image: String(game.image || ""),
       cardImage: String(game.cardImage || ""),
@@ -686,6 +702,10 @@ function handleCopyAchievementNames() {
       status: form.status,
       progress,
       hours: form.hours.trim() || "0h",
+      manualTotalPlayedMinutes:
+        form.status === "completed"
+          ? parsePlayedTimeToMinutes(form.hours)
+          : game.manualTotalPlayedMinutes ?? null,
       currentObjective: form.currentObjective.trim(),
       objective: form.currentObjective.trim(),
       image: form.image.trim() || getImagePath(game.slug, "banner.jpg"),
