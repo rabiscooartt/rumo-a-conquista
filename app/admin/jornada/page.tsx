@@ -1106,7 +1106,7 @@ export default function AdminAtividadePage() {
   const [activeTab, setActiveTab] =
     useState<ActivityTab>("jogos");
   const [search, setSearch] = useState("");
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [activityGameSlug, setActivityGameSlug] = useState("");
@@ -1257,7 +1257,7 @@ export default function AdminAtividadePage() {
     return count;
   }, [games, today]);
 
-  function resetActivityForm() {
+  function resetActivityForm(keepOpen = true) {
     setEditingEntryId(null);
     setActivityGameSlug("");
     setActivityDate(new Date().toISOString().slice(0, 10));
@@ -1265,18 +1265,15 @@ export default function AdminAtividadePage() {
     setActivityMinutes("0");
     setActivityTitle("");
     setActivityNotes("");
-    setIsEditorOpen(false);
+    setIsEditorOpen(keepOpen);
   }
 
   function startNewActivity() {
-    setEditingEntryId(null);
-    setActivityGameSlug("");
-    setActivityDate(new Date().toISOString().slice(0, 10));
-    setActivityHours("0");
-    setActivityMinutes("0");
-    setActivityTitle("");
-    setActivityNotes("");
-    setIsEditorOpen(true);
+    resetActivityForm(true);
+  }
+
+  function minimizeActivityEditor() {
+    setIsEditorOpen(false);
   }
 
   function startEditActivity(entry: JourneyEntry) {
@@ -1649,10 +1646,10 @@ export default function AdminAtividadePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={resetActivityForm}
-                  className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[9px] font-black text-white/40 transition hover:text-white"
+                  onClick={minimizeActivityEditor}
+                  className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[9px] font-black text-white/40 transition hover:border-white/20 hover:text-white"
                 >
-                  Fechar
+                  Minimizar
                 </button>
               </div>
 
@@ -1735,10 +1732,10 @@ export default function AdminAtividadePage() {
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
-                    onClick={resetActivityForm}
+                    onClick={minimizeActivityEditor}
                     className="rounded-xl border border-white/10 px-4 py-2.5 text-[10px] font-black text-white/45 transition hover:text-white"
                   >
-                    Cancelar
+                    Minimizar
                   </button>
                   <button
                     type="submit"
@@ -1750,6 +1747,26 @@ export default function AdminAtividadePage() {
                 </div>
               </form>
             </section>
+          )}
+
+          {!isEditorOpen && (
+            <button
+              type="button"
+              onClick={startNewActivity}
+              className="mt-4 flex w-full items-center justify-between rounded-[14px] border border-red-500/20 bg-[#090b0f] px-4 py-3 text-left transition hover:border-red-500/35 hover:bg-red-500/[0.04]"
+            >
+              <span>
+                <span className="block text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
+                  Nova atividade
+                </span>
+                <span className="mt-0.5 block text-[11px] font-semibold text-white/55">
+                  Abrir formulário para registrar outra sessão
+                </span>
+              </span>
+              <span className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-[9px] font-black uppercase tracking-[0.08em] text-red-300">
+                Abrir
+              </span>
+            </button>
           )}
 
               <div className="mt-4">
