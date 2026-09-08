@@ -465,7 +465,10 @@ function GameEditorCard({
     subtitle: game.subtitle || "",
     status: game.status || "progress",
     progress: Number(game.progress) || 0,
-    hours: game.manualTotalPlayedMinutes != null ? `${Math.floor(game.manualTotalPlayedMinutes / 60)}h - ${game.manualTotalPlayedMinutes % 60}m` : String(game.hours || "0h"),
+    hours:
+      typeof game.manualTotalPlayedMinutes === "number"
+        ? `${Math.floor(game.manualTotalPlayedMinutes / 60)}h - ${game.manualTotalPlayedMinutes % 60}m`
+        : String(game.hours || "0h"),
     currentObjective: String(game.currentObjective || game.objective || ""),
     image: String(game.image || ""),
     cardImage: String(game.cardImage || ""),
@@ -567,7 +570,10 @@ function GameEditorCard({
       subtitle: game.subtitle || "",
       status: game.status || "progress",
       progress: Number(game.progress) || 0,
-      hours: game.manualTotalPlayedMinutes != null ? `${Math.floor(game.manualTotalPlayedMinutes / 60)}h - ${game.manualTotalPlayedMinutes % 60}m` : String(game.hours || "0h"),
+      hours:
+      typeof game.manualTotalPlayedMinutes === "number"
+        ? `${Math.floor(game.manualTotalPlayedMinutes / 60)}h - ${game.manualTotalPlayedMinutes % 60}m`
+        : String(game.hours || "0h"),
       currentObjective: String(game.currentObjective || game.objective || ""),
       image: String(game.image || ""),
       cardImage: String(game.cardImage || ""),
@@ -2592,7 +2598,10 @@ export default function AdminJogosPage() {
                   key={game.slug}
                   game={game}
                   onSave={handleSaveGame}
-                  onRemove={removeGame}
+                  onRemove={async (slug) => {
+                    const removed = await removeGame(slug);
+                    return removed !== false;
+                  }}
                   isExpanded={expandedGameSlug === game.slug}
                   onToggleExpand={() => handleOpenGame(game.slug)}
                   
