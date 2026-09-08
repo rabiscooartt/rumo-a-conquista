@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import AdminAvatarLogin from "@/components/AdminAvatarLogin";
+import { useEffect, useState } from "react";
+import AdminAvatarLogin, { AUTH_CHANGED_EVENT } from "@/components/AdminAvatarLogin";
 
 type IconProps = {
   className?: string;
@@ -204,6 +205,7 @@ const navLinks = [
   {
     label: "Jogos",
     href: "/biblioteca",
+    adminHref: "/admin/jogos",
     icon: GamepadIcon,
   },
   {
@@ -219,6 +221,7 @@ const navLinks = [
   {
     label: "Jornada",
     href: "/jornada",
+    adminHref: "/admin/jornada",
     icon: ScrollIcon,
   },
   {
@@ -235,6 +238,28 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [isAdminMode, setIsAdminMode] = useState(false);
+
+  useEffect(() => {
+    async function loadAdminStatus() {
+      try {
+        const response = await fetch("/api/admin/auth/status", {
+          cache: "no-store",
+        });
+        const data = (await response.json()) as { authenticated?: boolean };
+        setIsAdminMode(data.authenticated === true);
+      } catch {
+        setIsAdminMode(false);
+      }
+    }
+
+    void loadAdminStatus();
+    window.addEventListener(AUTH_CHANGED_EVENT, loadAdminStatus);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, loadAdminStatus);
+    };
+  }, []);
 
   function isActiveLink(href: string) {
     if (href === "/") {
@@ -259,13 +284,15 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-5 lg:flex">
           {navLinks.map((link) => {
-            const isActive = isActiveLink(link.href);
+            const targetHref =
+              isAdminMode && link.adminHref ? link.adminHref : link.href;
+            const isActive = isActiveLink(targetHref);
             const Icon = link.icon;
 
             return (
               <Link
                 key={link.href}
-                href={link.href}
+                href={targetHref}
                 className={`group relative flex items-center gap-2 py-7 text-sm font-black transition ${
                   isActive
                     ? "text-red-400"
@@ -293,7 +320,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-5 lg:flex">
-          <AdminAvatarLogin />
+          <AdminAvatarLogin showLabel />
 
           <a
             href="https://www.youtube.com/@orabiisco"
@@ -317,7 +344,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3 lg:hidden">
-          <AdminAvatarLogin />
+          <AdminAvatarLogin showLabel />
 
           <Link
             href="/biblioteca"

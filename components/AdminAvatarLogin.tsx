@@ -1,44 +1,77 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-const OWNER_MODE_KEY = "rumo-a-conquista-owner-mode";
 const AVATAR_SRC = "/images/avatar.png";
+const AUTH_CHANGED_EVENT = "rumo-admin-auth-changed";
+const OPEN_LOGIN_EVENT = "rumo-admin-open-login";
 
-export default function AdminAvatarLogin() {
-  const [isOwnerMode, setIsOwnerMode] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+export { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT };
+
+type AdminAvatarLoginProps = {
+  showLabel?: boolean;
+};
+
+export default function AdminAvatarLogin({
+  showLabel = false,
+}: AdminAvatarLoginProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [loginNext, setLoginNext] = useState("");
+
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [imageHasError, setImageHasError] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [user, setUser] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function refreshStatus() {
+    try {
+      const response = await fetch("/api/admin/auth/status", {
+        method: "GET",
+        cache: "no-store",
+      });
+      const data = (await response.json()) as { authenticated?: boolean };
+      setIsAuthenticated(data.authenticated === true);
+    } catch {
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoaded(true);
+    }
+  }
 
   useEffect(() => {
-    setIsMounted(true);
+    void refreshStatus();
 
-    const searchParams = new URLSearchParams(window.location.search);
-    const adminParam = searchParams.get("admin");
-
-    if (adminParam === "1") {
-      localStorage.setItem(OWNER_MODE_KEY, "true");
-      setIsOwnerMode(true);
-      setIsLoaded(true);
-      return;
+    function handleAuthChanged() {
+      void refreshStatus();
     }
 
-    if (adminParam === "0") {
-      localStorage.removeItem(OWNER_MODE_KEY);
-      setIsOwnerMode(false);
-      setIsOpen(false);
-      setIsLoaded(true);
-      return;
+    function handleOpenLogin() {
+      setError("");
+      setIsOpen(true);
     }
 
-    const savedOwnerMode = localStorage.getItem(OWNER_MODE_KEY) === "true";
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    window.addEventListener(OPEN_LOGIN_EVENT, handleOpenLogin);
 
-    setIsOwnerMode(savedOwnerMode);
-    setIsLoaded(true);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+      window.removeEventListener(OPEN_LOGIN_EVENT, handleOpenLogin);
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("adminLogin") !== "1") return;
+
+    setLoginNext(params.get("next") || "");
+    setError("");
+    setIsOpen(true);
   }, []);
 
   useEffect(() => {
@@ -59,152 +92,200 @@ export default function AdminAvatarLogin() {
     };
   }, [isOpen]);
 
-  function disableAdminClick() {
-    localStorage.removeItem(OWNER_MODE_KEY);
-    setIsOwnerMode(false);
+  function closeLogin() {
     setIsOpen(false);
-  }
+    setError("");
+    setPassword("");
 
-  function AvatarImage() {
-    if (!imageHasError) {
-      return (
-        <img
-          src={AVATAR_SRC}
-          alt="Avatar Rabiisco"
-          className="h-full w-full object-cover"
-          onError={() => setImageHasError(true)}
-        />
-      );
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("adminLogin") === "1") {
+      setLoginNext("");
+      router.replace(pathname);
     }
-
-    return (
-      <span className="flex h-full w-full items-center justify-center text-sm">
-        ⚙️
-      </span>
-    );
   }
 
-  const modal =
-    isMounted && isOpen
-      ? createPortal(
-          <div className="fixed inset-0 z-[999999] flex min-h-screen items-center justify-center overflow-y-auto px-6 py-10">
-            <button
-              type="button"
-              aria-label="Fechar área admin"
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-lg"
-            />
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
 
-            <div className="relative z-10 w-full max-w-[660px] overflow-hidden rounded-[38px] border border-red-500/30 bg-[#05070a]/95 p-8 text-center shadow-[0_0_90px_rgba(239,68,68,0.42)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.25),transparent_42%),radial-gradient(circle_at_bottom,rgba(34,211,238,0.10),transparent_40%)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_35%,rgba(255,255,255,0.03))]" />
+    try {
+      const response = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user, password }),
+      });
 
-              <div className="relative z-10">
-                <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-red-400/45 bg-red-500/10 shadow-[0_0_45px_rgba(239,68,68,0.35)]">
-                  <AvatarImage />
-                </div>
+      const data = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+      };
 
-                <p className="mt-7 text-xs font-black uppercase tracking-[0.35em] text-red-300">
-                  Área do criador
-                </p>
+      if (!response.ok || !data.ok) {
+        setError(data.error || "Usuário ou senha inválidos.");
+        return;
+      }
 
-                <h2 className="mt-4 text-5xl font-black tracking-tight text-white md:text-6xl">
-                  Painel Admin
-                </h2>
+      setIsAuthenticated(true);
+      setIsOpen(false);
+      setPassword("");
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 
-                <p className="mx-auto mt-5 max-w-[500px] text-base font-bold leading-relaxed text-white/55">
-                  Atalho privado para editar jogos, emblemas e próximas
-                  maestrias do projeto Rumo à Conquista.
-                </p>
+      if (loginNext && loginNext.startsWith("/admin")) {
+        router.push(loginNext);
+      } else {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("adminLogin") === "1") {
+          router.replace(pathname);
+        }
+      }
+    } catch {
+      setError("Não foi possível realizar o login.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-                <div className="mx-auto mt-6 max-w-[500px] rounded-2xl border border-yellow-400/20 bg-yellow-500/[0.07] px-5 py-4 text-left">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-yellow-200/80">
-                    Dica rápida
-                  </p>
+  async function handleLogout() {
+    setIsSubmitting(true);
 
-                  <p className="mt-2 text-xs font-bold leading-relaxed text-yellow-50/60">
-                    O avatar só abre este painel neste navegador porque o modo
-                    dono está ativado. Para deixar o avatar visível, mas sem
-                    clique de Admin, use{" "}
-                    <span className="font-black text-yellow-100">
-                      Desativar clique Admin
-                    </span>
-                    . Para ativar novamente, abra o site usando{" "}
-                    <span className="font-black text-white">?admin=1</span>.
-                  </p>
-                </div>
-
-                <div className="mx-auto mt-8 grid max-w-[390px] gap-3">
-                  <Link
-                    href="/admin/jogos"
-                    className="rounded-2xl border border-red-400/40 bg-red-500/20 px-6 py-4 text-base font-black text-red-50 shadow-[0_0_28px_rgba(239,68,68,0.16)] transition hover:-translate-y-0.5 hover:bg-red-500/30"
-                  >
-                    Entrar no Admin
-                  </Link>
-
-                  <Link
-                    href="/admin/backlog"
-                    className="rounded-2xl border border-cyan-400/35 bg-cyan-500/15 px-6 py-4 text-base font-black text-cyan-50 transition hover:-translate-y-0.5 hover:bg-cyan-500/25"
-                  >
-                    Editar Próximas Maestrias
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={disableAdminClick}
-                    className="rounded-2xl border border-yellow-400/25 bg-yellow-500/10 px-6 py-3 text-sm font-black text-yellow-100/80 transition hover:bg-yellow-500/20 hover:text-yellow-50"
-                  >
-                    Desativar clique Admin
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsOpen(false)}
-                    className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-black text-white/50 transition hover:bg-white/[0.07] hover:text-white/80"
-                  >
-                    Voltar para o site
-                  </button>
-                </div>
-
-                <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.2em] text-white/25">
-                  Rabiisco · Rumo à Conquista
-                </p>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )
-      : null;
+    try {
+      await fetch("/api/admin/auth/logout", {
+        method: "POST",
+        cache: "no-store",
+      });
+    } finally {
+      setIsAuthenticated(false);
+      setIsSubmitting(false);
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+      router.refresh();
+    }
+  }
 
   if (!isLoaded) {
     return null;
-  }
-
-  if (!isOwnerMode) {
-    return (
-      <div
-        className="flex h-10 w-10 cursor-default items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.035] opacity-75"
-        title="Rabiisco"
-        aria-label="Avatar Rabiisco"
-      >
-        <AvatarImage />
-      </div>
-    );
   }
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
-        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-red-500/35 bg-red-500/10 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition hover:scale-105 hover:border-red-400/60"
-        title="Área Admin"
-        aria-label="Abrir área admin"
+        onClick={() => {
+          if (isAuthenticated) {
+            void handleLogout();
+          } else {
+            setError("");
+            setIsOpen(true);
+          }
+        }}
+        disabled={isSubmitting}
+        className={
+          showLabel
+            ? "inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/15 disabled:cursor-wait disabled:opacity-60"
+            : "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-red-500/35 bg-red-500/10 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition hover:scale-105 hover:border-red-400/60 disabled:cursor-wait disabled:opacity-60"
+        }
+        title={isAuthenticated ? "Sair do modo Admin" : "Entrar no modo Admin"}
+        aria-label={isAuthenticated ? "Sair do modo Admin" : "Entrar no modo Admin"}
       >
-        <AvatarImage />
+        {!showLabel ? (
+          !imageHasError ? (
+            <img
+              src={AVATAR_SRC}
+              alt={isAuthenticated ? "Admin ativo" : "Login Admin"}
+              className="h-full w-full object-cover"
+              onError={() => setImageHasError(true)}
+            />
+          ) : (
+            <span className="flex h-full w-full items-center justify-center text-sm">
+              ⚙️
+            </span>
+          )
+        ) : (
+          <>
+            <span className="text-sm leading-none">{isAuthenticated ? "↪" : "↳"}</span>
+            <span>{isAuthenticated ? "Sair" : "Entrar"}</span>
+          </>
+        )}
       </button>
 
-      {modal}
+      {isOpen && !isAuthenticated ? (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center px-6 py-8">
+          <button
+            type="button"
+            aria-label="Fechar login"
+            onClick={closeLogin}
+            className="absolute inset-0 bg-black/65 backdrop-blur-md"
+          />
+
+          <form
+            onSubmit={handleLogin}
+            className="relative z-10 w-full max-w-[380px] rounded-[28px] border border-red-500/25 bg-[#090b0f] p-6 shadow-[0_0_50px_rgba(239,68,68,0.18)]"
+          >
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
+              Área restrita
+            </p>
+
+            <h2 className="mt-2 text-2xl font-black text-white">
+              Entrar no Admin
+            </h2>
+
+            <p className="mt-2 text-xs font-bold leading-relaxed text-white/45">
+              Acesso exclusivo para o criador do Rumo à Conquista.
+            </p>
+
+            <div className="mt-5 space-y-3">
+              <label className="block">
+                <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
+                  Usuário
+                </span>
+                <input
+                  autoFocus
+                  value={user}
+                  onChange={(event) => setUser(event.target.value)}
+                  autoComplete="username"
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-semibold text-white outline-none focus:border-red-500/40"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
+                  Senha
+                </span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-semibold text-white outline-none focus:border-red-500/40"
+                />
+              </label>
+            </div>
+
+            {error ? (
+              <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={closeLogin}
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black text-white/45 transition hover:text-white"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-xl bg-red-600 px-4 py-3 text-xs font-black text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-60"
+              >
+                {isSubmitting ? "Entrando..." : "Entrar"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </>
   );
 }

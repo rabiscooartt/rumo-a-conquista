@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  ADMIN_SESSION_COOKIE,
+  verifyAdminSession,
+} from "@/lib/admin-auth";
 
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-
-function unauthorizedResponse() {
-  return new NextResponse("Área restrita do Rumo à Conquista.", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": 'Basic realm="Rumo a Conquista Admin"',
-      "Cache-Control": "no-store",
-    },
-  });
-}
-
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isAdminPage = pathname.startsWith("/admin");
@@ -23,49 +14,55 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!ADMIN_USER || !ADMIN_PASSWORD) {
+  // Os endpoints de autenticação precisam ficar públicos para que o login
+  // possa criar a sessão antes de qualquer outra chamada administrativa.
+  const isAuthEndpoint =
+    pathname === "/api/admin/auth/login" ||
+    pathname === "/api/admin/auth/logout" ||
+    pathname === "/api/admin/auth/status";
+
+  if (isAuthEndpoint) {
+    return NextResponse.next();
+  }
+
+  const adminUser = process.env.ADMIN_USER;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminUser || !adminPassword) {
     return new NextResponse(
       "Admin não configurado. Defina ADMIN_USER e ADMIN_PASSWORD.",
       {
         status: 500,
-        headers: {
-          "Cache-Control": "no-store",
-        },
+        headers: { "Cache-Control": "no-store" },
       }
     );
   }
 
-  const authHeader = request.headers.get("authorization");
+  const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const authenticated = await verifyAdminSession(token);
 
-  if (!authHeader) {
-    return unauthorizedResponse();
+  if (authenticated) {
+    return NextResponse.next();
   }
 
-  const [scheme, encodedCredentials] = authHeader.split(" ");
+  // Navegação direta para uma área administrativa leva o criador ao site
+  // público, onde o login global pode ser aberto automaticamente.
+  if (isAdminPage) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/";
+    loginUrl.search = "";
+    loginUrl.searchParams.set("adminLogin", "1");
+    loginUrl.searchParams.set("next", pathname);
 
-  if (scheme !== "Basic" || !encodedCredentials) {
-    return unauthorizedResponse();
+    return NextResponse.redirect(loginUrl);
   }
 
-  try {
-    const decodedCredentials = atob(encodedCredentials);
-    const separatorIndex = decodedCredentials.indexOf(":");
-
-    if (separatorIndex === -1) {
-      return unauthorizedResponse();
-    }
-
-    const user = decodedCredentials.slice(0, separatorIndex);
-    const password = decodedCredentials.slice(separatorIndex + 1);
-
-    if (user === ADMIN_USER && password === ADMIN_PASSWORD) {
-      return NextResponse.next();
-    }
-
-    return unauthorizedResponse();
-  } catch {
-    return unauthorizedResponse();
-  }
+  return new NextResponse("Área restrita do Rumo à Conquista.", {
+    status: 401,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 export const config = {
