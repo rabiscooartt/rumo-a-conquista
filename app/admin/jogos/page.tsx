@@ -456,7 +456,7 @@ function GameEditorCard({
 }: {
   game: SiteGame;
   onSave: (slug: string, update: Partial<SiteGame>) => Promise<void>;
-  onRemove: (slug: string) => Promise<void>;
+  onRemove: (slug: string) => Promise<boolean>;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }) {
@@ -2599,7 +2599,8 @@ export default function AdminJogosPage() {
                   game={game}
                   onSave={handleSaveGame}
                   onRemove={async (slug) => {
-                    await removeGame(slug);
+                    const removed = await removeGame(slug);
+                    return removed !== false;
                   }}
                   isExpanded={expandedGameSlug === game.slug}
                   onToggleExpand={() => handleOpenGame(game.slug)}

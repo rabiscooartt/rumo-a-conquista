@@ -1093,7 +1093,7 @@ function formatDateInputValue(date?: string) {
   return "";
 }
 
-export default function AtividadePage() {
+export default function AdminAtividadePage() {
   const {
     entries,
     isLoaded,
@@ -1110,6 +1110,8 @@ export default function AtividadePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [activityGameSlug, setActivityGameSlug] = useState("");
+  const [activityGameSearch, setActivityGameSearch] = useState("");
+  const [isGamePickerOpen, setIsGamePickerOpen] = useState(false);
   const [activityDate, setActivityDate] = useState(
     () => new Date().toISOString().slice(0, 10)
   );
@@ -1260,6 +1262,8 @@ export default function AtividadePage() {
   function resetActivityForm() {
     setEditingEntryId(null);
     setActivityGameSlug("");
+    setActivityGameSearch("");
+    setIsGamePickerOpen(false);
     setActivityDate(new Date().toISOString().slice(0, 10));
     setActivityHours("0");
     setActivityMinutes("0");
@@ -1271,6 +1275,8 @@ export default function AtividadePage() {
   function startNewActivity() {
     setEditingEntryId(null);
     setActivityGameSlug("");
+    setActivityGameSearch("");
+    setIsGamePickerOpen(false);
     setActivityDate(new Date().toISOString().slice(0, 10));
     setActivityHours("0");
     setActivityMinutes("0");
@@ -1282,6 +1288,8 @@ export default function AtividadePage() {
   function startEditActivity(entry: JourneyEntry) {
     setEditingEntryId(entry.id);
     setActivityGameSlug(entry.gameSlug || "");
+    setActivityGameSearch(normalizeGameTitle(entry.gameTitle));
+    setIsGamePickerOpen(false);
     setActivityDate(formatDateInputValue(entry.date));
     setActivityHours(String(Math.floor((entry.playedMinutes || 0) / 60)));
     setActivityMinutes(String((entry.playedMinutes || 0) % 60));
@@ -1312,11 +1320,41 @@ export default function AtividadePage() {
     });
   }
 
+  const selectableGames = useMemo(
+    () =>
+      games.filter((game) => game.slug && game.title),
+    [games]
+  );
+
+  const filteredGameOptions = useMemo(() => {
+    const query = normalizeKey(activityGameSearch);
+
+    if (!query) return selectableGames.slice(0, 12);
+
+    return selectableGames
+      .filter((game) => {
+        const title = normalizeKey(game.title);
+        const slug = normalizeKey(game.slug);
+        return title.includes(query) || slug.includes(query);
+      })
+      .slice(0, 12);
+  }, [activityGameSearch, selectableGames]);
+
+  function selectActivityGame(game: GameLike) {
+    if (!game.slug || !game.title) return;
+
+    setActivityGameSlug(game.slug);
+    setActivityGameSearch(normalizeGameTitle(game.title));
+    setIsGamePickerOpen(false);
+  }
+
   async function handleActivitySubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const selectedGame = games.find(
       (game) => normalizeKey(game.slug) === normalizeKey(activityGameSlug)
+    ) || games.find(
+      (game) => normalizeKey(normalizeGameTitle(game.title)) === normalizeKey(activityGameSearch)
     );
 
     if (!selectedGame?.slug || !selectedGame.title) {
@@ -1658,22 +1696,71 @@ export default function AtividadePage() {
 
               <form onSubmit={handleActivitySubmit} className="mt-4 space-y-3">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_170px]">
-                  <label className="block">
+                  <label className="relative block">
                     <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Jogo</span>
-                    <select
-                      value={activityGameSlug}
-                      onChange={(event) => setActivityGameSlug(event.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-[11px] font-semibold text-white outline-none focus:border-red-500/35"
-                    >
-                      <option value="">Selecione o jogo</option>
-                      {games
-                        .filter((game) => game.slug && game.title)
-                        .map((game) => (
-                          <option key={game.slug} value={game.slug}>
-                            {game.title}
-                          </option>
-                        ))}
-                    </select>
+                    <div className="relative">
+                      <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                      <input
+                        type="text"
+                        value={activityGameSearch}
+                        onFocus={() => setIsGamePickerOpen(true)}
+                        onBlur={() => window.setTimeout(() => setIsGamePickerOpen(false), 120)}
+                        onChange={(event) => {
+                          setActivityGameSearch(event.target.value);
+                          setActivityGameSlug("");
+                          setIsGamePickerOpen(true);
+                        }}
+                        placeholder="Digite ou selecione o jogo..."
+                        autoComplete="off"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-10 pr-3 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      />
+
+                      {isGamePickerOpen && (
+                        <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-xl border border-white/10 bg-[#0b0d12] p-1.5 shadow-2xl">
+                          {filteredGameOptions.length > 0 ? (
+                            filteredGameOptions.map((game) => {
+                              const selected =
+                                normalizeKey(game.slug) ===
+                                normalizeKey(activityGameSlug);
+
+                              return (
+                                <button
+                                  key={game.slug}
+                                  type="button"
+                                  onMouseDown={(event) => event.preventDefault()}
+                                  onClick={() => selectActivityGame(game)}
+                                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[11px] font-semibold transition ${
+                                    selected
+                                      ? "bg-red-500/10 text-red-300"
+                                      : "text-white/75 hover:bg-white/[0.05] hover:text-white"
+                                  }`}
+                                >
+                                  <span className="h-7 w-5 shrink-0 overflow-hidden rounded border border-white/10 bg-black">
+                                    {getGameCover(game, game.slug) ? (
+                                      <img
+                                        src={getGameCover(game, game.slug)}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : null}
+                                  </span>
+                                  <span className="min-w-0 flex-1 truncate">
+                                    {normalizeGameTitle(game.title)}
+                                  </span>
+                                  {selected && (
+                                    <span className="text-[10px] font-black text-red-400">✓</span>
+                                  )}
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="px-3 py-3 text-[10px] font-semibold text-white/35">
+                              Nenhum jogo encontrado. Cadastre o jogo em Jogos para poder registrar a atividade.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </label>
 
                   <label className="block">

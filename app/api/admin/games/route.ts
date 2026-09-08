@@ -35,20 +35,6 @@ function normalizeText(value: unknown, fallback = "") {
     .replace(/\s+/g, " ");
 }
 
-function cleanDisplayText(value: unknown, fallback = "") {
-  if (typeof value !== "string" && typeof value !== "number") return fallback;
-
-  return String(value)
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-function capitalizeFirstLetter(value: string) {
-  const text = value.trim();
-  if (!text) return "";
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 function normalizeTitle(value?: string) {
   return normalizeText(value)
     .replace(/[^a-z0-9\s]/g, "")
@@ -121,6 +107,7 @@ type GamePayload = {
   emblem?: unknown;
   trophies?: unknown;
   review?: unknown;
+  manualTotalPlayedMinutes?: number | null;
   achievementsList?: IncomingAchievement[];
   isHidden?: boolean;
   isDeleted?: boolean;
@@ -129,10 +116,26 @@ type GamePayload = {
 function buildGameData(game: GamePayload) {
   const slug = normalizeSlug(game.slug);
 
+  const manualTimeProvided = Object.prototype.hasOwnProperty.call(
+    game,
+    "manualTotalPlayedMinutes"
+  );
+
+  const manualTotalPlayedMinutes =
+    game.manualTotalPlayedMinutes === null ||
+    game.manualTotalPlayedMinutes === undefined
+      ? null
+      : Math.max(
+          0,
+          Math.round(
+            normalizeNumber(game.manualTotalPlayedMinutes, 0)
+          )
+        );
+
   return {
     slug,
-    title: capitalizeFirstLetter(cleanDisplayText(game.title, "Jogo sem nome")),
-    subtitle: capitalizeFirstLetter(cleanDisplayText(game.subtitle)),
+    title: normalizeText(game.title, "Jogo sem nome"),
+    subtitle: normalizeText(game.subtitle),
     status: normalizeText(game.status, "progress"),
     progress: Math.min(
       100,
@@ -141,16 +144,19 @@ function buildGameData(game: GamePayload) {
     hours:
       typeof game.hours === "number"
         ? String(game.hours)
-        : cleanDisplayText(game.hours, "0h"),
-    current_objective: capitalizeFirstLetter(
-      cleanDisplayText(game.currentObjective ?? game.objective)
+        : normalizeText(game.hours, "0h"),
+    current_objective: normalizeText(
+      game.currentObjective ?? game.objective
     ),
-    image: cleanDisplayText(game.image),
-    card_image: cleanDisplayText(game.cardImage),
+    image: normalizeText(game.image),
+    card_image: normalizeText(game.cardImage),
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
     review: game.review ?? null,
+    ...(manualTimeProvided
+      ? { manual_total_played_minutes: manualTotalPlayedMinutes }
+      : {}),
     is_hidden: game.isHidden === true,
     is_deleted: game.isDeleted === true,
     updated_at: new Date().toISOString(),
@@ -163,18 +169,19 @@ function buildAchievementDefinition(
   gameSlug: string
 ) {
   const legacyId = legacyIdFor(achievement, index);
-  const title = capitalizeFirstLetter(
-    cleanDisplayText(achievement.title, `Conquista ${index + 1}`)
+  const title = normalizeText(
+    achievement.title,
+    `Conquista ${index + 1}`
   );
 
   return {
     game_slug: gameSlug,
     legacy_id: legacyId,
     title,
-    description: cleanDisplayText(achievement.description),
-    trophy: cleanDisplayText(achievement.trophy ?? achievement.icon, ""),
+    description: normalizeText(achievement.description),
+    trophy: normalizeText(achievement.trophy ?? achievement.icon, ""),
     rank: normalizeRank(achievement.rank || achievement.difficulty),
-    image: cleanDisplayText(achievement.image),
+    image: normalizeText(achievement.image),
     source: normalizeText(achievement.source, "manual"),
     external_id: normalizeText(achievement.externalId) || null,
     official_image: normalizeText(achievement.officialImage) || null,
@@ -219,9 +226,9 @@ async function syncAchievements(
   const seenTitles = new Set<string>();
 
   for (const achievement of achievements) {
-    const title = capitalizeFirstLetter(
-      cleanDisplayText(achievement.title, "Conquista")
-    );
+    const title = String(
+      achievement.title?.trim() || "Conquista"
+    ).trim();
     const titleKey = normalizeTitle(title);
 
     if (!titleKey || seenTitles.has(titleKey)) {
@@ -552,6 +559,7 @@ export async function GET() {
         emblem,
         trophies,
         review,
+        manual_total_played_minutes,
         is_hidden,
         is_deleted,
         created_at,

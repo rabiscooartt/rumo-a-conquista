@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { games as baseGames } from "@/data/games";
-import { supabase } from "@/lib/supabase";
 
 export type FlexibleAchievementInput = {
   id?: string;
@@ -43,13 +42,13 @@ export type SiteGame = {
   achievementsTotal?: number;
   createdAt?: string;
   updatedAt?: string;
+  manualTotalPlayedMinutes?: number | null;
   finalBadge?: {
     title: string;
     icon: string;
     image?: string;
   };
   emblem?: GameEmblemInput;
-  review?: unknown;
   trophies?: {
     bronze?: number;
     silver?: number;
@@ -80,13 +79,6 @@ export type GameFormInput = {
   emblemUnlockedAt?: string;
 };
 
-type AchievementState = {
-  rank: string;
-  status: string;
-  date: string;
-  image: string;
-};
-
 type AchievementProgressStats = {
   completed: number;
   total: number;
@@ -107,40 +99,13 @@ type DatabaseGame = {
   final_badge: unknown;
   emblem: unknown;
   trophies: unknown;
-  review: unknown;
   is_hidden: boolean;
   is_deleted: boolean;
   created_at: string;
   updated_at: string;
+  manual_total_played_minutes: number | null;
+  achievementsList?: FlexibleAchievementInput[];
 };
-
-type DatabaseAchievement = {
-  id: string;
-  game_slug: string;
-  legacy_id: string;
-  title: string;
-  description: string;
-  trophy: string;
-  rank: string;
-  image: string;
-  source: string | null;
-  external_id: string | null;
-  official_image: string | null;
-  sort_order: number;
-  is_custom: boolean;
-  is_hidden: boolean;
-};
-
-type DatabaseAchievementProgress = {
-  achievement_id: string;
-  owner_key: string;
-  status: string;
-  earned_at: string | null;
-  rank_override: string | null;
-  image_override: string | null;
-};
-
-const OWNER_KEY = "default";
 
 
 export const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
@@ -222,29 +187,6 @@ function readStringArray(value: unknown) {
     .filter(Boolean);
 }
 
-function normalizeFinalBadge(
-  value: unknown
-): SiteGame["finalBadge"] | undefined {
-  if (!value || typeof value !== "object") {
-    return undefined;
-  }
-
-  const record = value as Record<string, unknown>;
-  const title = readText(record.title, "").trim();
-  const icon = readText(record.icon, "").trim();
-  const image = readText(record.image, "").trim();
-
-  if (!title && !icon && !image) {
-    return undefined;
-  }
-
-  return {
-    title: title || "Maestria Final",
-    icon: icon || "ðŸ’Ž",
-    image,
-  };
-}
-
 function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
@@ -305,11 +247,11 @@ function normalizeRank(value?: string) {
 }
 
 function rankToTrophy(rank: string) {
-  if (rank === "Diamante") return "ðŸ’Ž";
-  if (rank === "Ouro") return "ðŸ¥‡";
-  if (rank === "Prata") return "ðŸ¥ˆ";
+  if (rank === "Diamante") return "💎";
+  if (rank === "Ouro") return "🥇";
+  if (rank === "Prata") return "🥈";
 
-  return "ðŸ¥‰";
+  return "🥉";
 }
 
 function normalizeAchievement(
@@ -347,18 +289,17 @@ function normalizeAchievement(
     status: normalizeAchievementStatus(readText(achievement.status, "locked")),
     earnedDate: readText(achievement.earnedDate, ""),
     image: readText(achievement.image, "").trim(),
-    isCustom: Boolean(achievement.isCustom ?? false),
+    isCustom: Boolean(achievement.isCustom ?? true),
   };
 }
 
 function calculateAchievementProgress(
-  slug: string,
   achievementsList: FlexibleAchievementInput[],
   fallbackProgress: unknown
 ): AchievementProgressStats {
- // A lista jÃ¡ chega normalizada.
-// NÃ£o recarregamos mais os estados aqui.
-const activeAchievements = achievementsList;
+  const activeAchievements = achievementsList.filter((achievement) => {
+    return readText(achievement.title, "").trim().length > 0;
+  });
 
   const total = activeAchievements.length;
 
@@ -459,7 +400,7 @@ function createFinalBadgeFromAchievements(
   if (fallback && typeof fallback === "object") {
     return {
       title: readText(fallback.title, "Maestria Final"),
-      icon: readText(fallback.icon, "ðŸ’Ž"),
+      icon: readText(fallback.icon, "💎"),
       image:
         readText(fallback.image, "") ||
         `/images/games/${finalSlug}/achievements/maestria-final.png`,
@@ -468,15 +409,12 @@ function createFinalBadgeFromAchievements(
 
   return {
     title: "Maestria Final",
-    icon: "ðŸ’Ž",
+    icon: "💎",
     image: `/images/games/${finalSlug}/achievements/maestria-final.png`,
   };
 }
 
-function normalizeGame(
-  slug: string,
-  game: Partial<SiteGame>
-): SiteGame {
+function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const finalSlug = readText(game.slug, slug);
   const title = readText(game.title, "Jogo sem nome");
   const subtitle = readText(game.subtitle, "");
@@ -492,23 +430,26 @@ function normalizeGame(
   const cardImage =
     readText(game.cardImage, "") || `/images/games/${finalSlug}/cover.jpg`;
 
-  const baseAchievementsList = Array.isArray(game.achievementsList)
+  // A lista de conquistas e o progresso vindo da API/Supabase são a fonte
+  // oficial. Nenhum estado local do navegador é aplicado por cima desses dados.
+  const achievementsList = Array.isArray(game.achievementsList)
     ? game.achievementsList.map((achievement, index) =>
         normalizeAchievement(achievement, index, finalSlug)
       )
     : [];
 
-  const achievementsList = baseAchievementsList;
+  const activeAchievementsForBadge = achievementsList.filter((achievement) => {
+    return readText(achievement.title, "").trim().length > 0;
+  });
 
   const progressStats = calculateAchievementProgress(
-    finalSlug,
     achievementsList,
     game.progress
   );
 
   const finalBadge = createFinalBadgeFromAchievements(
     finalSlug,
-    achievementsList,
+    activeAchievementsForBadge,
     game.finalBadge
   );
 
@@ -537,128 +478,142 @@ function normalizeGame(
 }
 
 async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
-  const { data, error } = await supabase
-    .from("games")
-    .select(`
-      id,
-      slug,
-      title,
-      subtitle,
-      status,
-      progress,
-      hours,
-      current_objective,
-      image,
-      card_image,
-      final_badge,
-      emblem,
-      trophies,
-      review,
-      is_hidden,
-      is_deleted,
-      created_at,
-      updated_at
-    `)
-    .order("updated_at", { ascending: false });
-
-  if (error) {
-    console.error("[Games] Erro ao carregar jogos do Supabase:", error);
-    throw error;
-  }
-
-  const gameRows = (data ?? []) as DatabaseGame[];
-  const gameSlugs = gameRows.map((game) => game.slug).filter(Boolean);
-  const { data: achievements, error: achievementsError } = gameSlugs.length
-    ? await supabase
-        .from("achievements")
-        .select(
-          "id, game_slug, legacy_id, title, description, trophy, rank, image, source, external_id, official_image, sort_order, is_custom, is_hidden"
-        )
-        .in("game_slug", gameSlugs)
-        .order("sort_order", { ascending: true })
-    : { data: [], error: null };
-
-  if (achievementsError) {
-    console.error("[Games] Erro ao carregar conquistas do Supabase:", achievementsError);
-    throw achievementsError;
-  }
-
-  const achievementRows = (achievements ?? []) as DatabaseAchievement[];
-  const achievementIds = achievementRows.map((achievement) => achievement.id);
-  const { data: progress, error: progressError } = achievementIds.length
-    ? await supabase
-        .from("achievement_progress")
-        .select("achievement_id, owner_key, status, earned_at, rank_override, image_override")
-        .eq("owner_key", OWNER_KEY)
-        .in("achievement_id", achievementIds)
-    : { data: [], error: null };
-
-  if (progressError) {
-    console.error("[Games] Erro ao carregar progresso do Supabase:", progressError);
-    throw progressError;
-  }
-
-  const progressByAchievementId = new Map(
-    ((progress ?? []) as DatabaseAchievementProgress[]).map((item) => [
-      item.achievement_id,
-      item,
-    ])
-  );
-  const achievementsByGameSlug = new Map<string, FlexibleAchievementInput[]>();
-
-  for (const achievement of achievementRows) {
-    const progressRow = progressByAchievementId.get(achievement.id);
-    const rank = progressRow?.rank_override ?? achievement.rank;
-    const list = achievementsByGameSlug.get(achievement.game_slug) ?? [];
-    list.push({
-      id: achievement.legacy_id || achievement.id,
-      title: achievement.title,
-      description: achievement.description,
-      trophy: achievement.trophy,
-      icon: achievement.trophy,
-      rank,
-      difficulty: rank,
-      status: progressRow?.status ?? "locked",
-      earnedDate: progressRow?.earned_at ?? "",
-      image: progressRow?.image_override || achievement.image || "",
-      source: achievement.source ?? "manual",
-      externalId: achievement.external_id ?? undefined,
-      officialImage: achievement.official_image ?? undefined,
-      isCustom: achievement.is_custom,
-      isHidden: achievement.is_hidden,
+  try {
+    const response = await fetch("/api/admin/games", {
+      method: "GET",
+      cache: "no-store",
     });
-    achievementsByGameSlug.set(achievement.game_slug, list);
+
+    const payload = (await response.json().catch(() => null)) as {
+      games?: DatabaseGame[];
+      error?: string;
+    } | null;
+
+    if (!response.ok) {
+      throw new Error(
+        payload?.error || "Não foi possível carregar os jogos."
+      );
+    }
+
+    const games: Record<string, SiteGame> = {};
+
+    for (const game of payload?.games ?? []) {
+      if (game.is_deleted) continue;
+
+      const finalBadge =
+        game.final_badge && typeof game.final_badge === "object"
+          ? (game.final_badge as SiteGame["finalBadge"])
+          : undefined;
+
+      const emblem =
+        game.emblem && typeof game.emblem === "object"
+          ? (game.emblem as GameEmblemInput)
+          : undefined;
+
+      const trophies =
+        game.trophies && typeof game.trophies === "object"
+          ? (game.trophies as SiteGame["trophies"])
+          : undefined;
+
+      games[game.slug] = normalizeGame(game.slug, {
+        slug: game.slug,
+        title: game.title,
+        subtitle: game.subtitle ?? "",
+        status: game.status ?? "progress",
+        progress: game.progress ?? 0,
+        hours: game.hours ?? "0h",
+        currentObjective: game.current_objective ?? "",
+        image: game.image ?? "",
+        manualTotalPlayedMinutes:
+          game.manual_total_played_minutes ?? null,
+        cardImage: game.card_image ?? "",
+        achievementsList: Array.isArray(game.achievementsList)
+          ? game.achievementsList
+          : [],
+        finalBadge,
+        emblem,
+        trophies,
+        isHidden: game.is_hidden === true,
+        isDeleted: Boolean(game.is_deleted),
+        createdAt: game.created_at,
+        updatedAt: game.updated_at,
+      });
+    }
+
+    console.info(
+      "[Games] Jogos carregados pela API:",
+      Object.keys(games).length
+    );
+
+    return games;
+  } catch (error) {
+    console.error("[Games] Erro ao carregar jogos pela API:", error);
+    return {};
   }
-
-  const games: Record<string, SiteGame> = {};
-
-  for (const game of gameRows) {
-    games[game.slug] = normalizeGame(game.slug, {
-      slug: game.slug,
-      title: game.title,
-      subtitle: game.subtitle ?? "",
-      status: game.status ?? "progress",
-      progress: game.progress ?? 0,
-      hours: game.hours ?? "0h",
-      currentObjective: game.current_objective ?? "",
-      image: game.image ?? "",
-      cardImage: game.card_image ?? "",
-      finalBadge: normalizeFinalBadge(game.final_badge),
-      emblem: game.emblem ?? undefined,
-      trophies: game.trophies ?? undefined,
-      review: game.review ?? undefined,
-      achievementsList: achievementsByGameSlug.get(game.slug) ?? [],
-      isHidden: game.is_hidden,
-      isDeleted: game.is_deleted,
-      createdAt: game.created_at,
-      updatedAt: game.updated_at,
-    });
-  }
-
-  console.info("[Games] Jogos carregados do Supabase:", Object.keys(games).length);
-
-  return games;
 }
+
+
+async function requestGameApi<T>(
+  method: "POST" | "PUT" | "DELETE",
+  body: unknown
+): Promise<T> {
+  const response = await fetch("/api/admin/games", {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error || "Não foi possível salvar o jogo."
+    );
+  }
+
+  return payload as T;
+}
+
+async function saveGameToSupabase(
+  game: SiteGame,
+  options?: { isHidden?: boolean; isDeleted?: boolean }
+) {
+  return requestGameApi<{
+    ok: boolean;
+    game: DatabaseGame;
+  }>("POST", {
+    slug: game.slug,
+    title: game.title,
+    subtitle: game.subtitle,
+    status: game.status,
+    progress: game.progress,
+    hours: game.hours,
+    currentObjective: game.currentObjective,
+    objective: game.objective,
+    image: game.image,
+    cardImage: game.cardImage,
+    finalBadge: game.finalBadge,
+    emblem: game.emblem,
+    trophies: game.trophies,
+    manualTotalPlayedMinutes:
+      game.manualTotalPlayedMinutes ?? null,
+    isHidden: options?.isHidden === true,
+    isDeleted: options?.isDeleted === true,
+  });
+}
+
+async function changeGameVisibility(
+  slug: string,
+  action: "hide" | "delete" | "restore"
+) {
+  return requestGameApi<{
+    ok: boolean;
+    game: DatabaseGame;
+  }>("DELETE", { slug, action });
+}
+
 function getGameSortTime(game: SiteGame) {
   const updatedAt = readText(game.updatedAt, "");
   const createdAt = readText(game.createdAt, "");
@@ -678,8 +633,9 @@ function getGameSortTime(game: SiteGame) {
 }
 
 export function useSiteGames() {
-  const [serverGames, setServerGames] = useState<Record<string, SiteGame>>({});
-  const [isUsingBaseFallback, setIsUsingBaseFallback] = useState(false);
+  const [customGames, setCustomGames] = useState<Record<string, SiteGame>>({});
+  const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
+  const [deletedGameSlugs, setDeletedGameSlugs] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const baseGamesMap = useMemo(() => {
@@ -696,14 +652,22 @@ export function useSiteGames() {
   const loadGames = useCallback(async () => {
     try {
       const supabaseGames = await loadGamesFromSupabase();
-      setServerGames(supabaseGames);
-      setIsUsingBaseFallback(false);
+
+      // Supabase é a fonte oficial. Mesmo que a resposta venha vazia,
+      // não reativamos dados antigos do localStorage.
+      setCustomGames(supabaseGames);
+      setHiddenGameSlugs(
+        Object.values(supabaseGames)
+          .filter((game) => game.isHidden === true)
+          .map((game) => game.slug)
+      );
+      setDeletedGameSlugs([]);
+      setIsLoaded(true);
     } catch (error) {
-      // data/games.ts is only an emergency read fallback when Supabase is unavailable.
-      // It never merges with or overwrites successful Supabase data.
-      console.warn("[Games] Usando fallback base temporário:", error);
-      setIsUsingBaseFallback(true);
-    } finally {
+      console.error("[Games] Falha ao sincronizar com a API:", error);
+      setCustomGames({});
+      setHiddenGameSlugs([]);
+      setDeletedGameSlugs([]);
       setIsLoaded(true);
     }
   }, []);
@@ -717,11 +681,13 @@ export function useSiteGames() {
 
     window.addEventListener(GAMES_UPDATED_EVENT, handleUpdate);
     window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
     window.addEventListener("focus", handleUpdate);
 
     return () => {
       window.removeEventListener(GAMES_UPDATED_EVENT, handleUpdate);
       window.removeEventListener(ACHIEVEMENTS_UPDATED_EVENT, handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
       window.removeEventListener("focus", handleUpdate);
     };
   }, [loadGames]);
@@ -731,17 +697,27 @@ export function useSiteGames() {
   }
 
   const gamesMap = useMemo(() => {
-    const sourceGames = isUsingBaseFallback ? baseGamesMap : serverGames;
+    const mergedGames: Record<string, SiteGame> = {
+      ...baseGamesMap,
+      ...customGames,
+    };
 
-    return Object.entries(sourceGames).reduce<Record<string, SiteGame>>(
+    const blockedSlugs = Array.from(
+      new Set([...hiddenGameSlugs, ...deletedGameSlugs])
+    );
+
+    blockedSlugs.forEach((slug) => {
+      delete mergedGames[slug];
+    });
+
+    return Object.entries(mergedGames).reduce<Record<string, SiteGame>>(
       (acc, [slug, game]) => {
-        if (game.isHidden === true || game.isDeleted === true) return acc;
         acc[slug] = normalizeGame(slug, game);
         return acc;
       },
       {}
     );
-  }, [baseGamesMap, isUsingBaseFallback, serverGames]);
+  }, [baseGamesMap, customGames, hiddenGameSlugs, deletedGameSlugs]);
 
   const gamesList = useMemo(() => {
     return Object.values(gamesMap).sort((a, b) => {
@@ -755,58 +731,65 @@ export function useSiteGames() {
       return a.title.localeCompare(b.title);
     });
   }, [gamesMap]);
+const allGamesMap = useMemo(() => {
+  const mergedGames: Record<string, SiteGame> = {
+    ...baseGamesMap,
+    ...customGames,
+  };
 
-  const hiddenBaseGames = useMemo(() => {
-    const sourceGames = isUsingBaseFallback ? baseGamesMap : serverGames;
+  deletedGameSlugs.forEach((slug) => {
+    delete mergedGames[slug];
+  });
 
-    return Object.values(sourceGames).filter(
-      (game) => game.isHidden === true && game.isDeleted !== true
-    );
-  }, [baseGamesMap, isUsingBaseFallback, serverGames]);
-
-  const hiddenGameSlugs = useMemo(
-    () => hiddenBaseGames.map((game) => game.slug),
-    [hiddenBaseGames]
+  return Object.entries(mergedGames).reduce<Record<string, SiteGame>>(
+    (acc, [slug, game]) => {
+      acc[slug] = normalizeGame(slug, game);
+      return acc;
+    },
+    {}
   );
+}, [baseGamesMap, customGames, deletedGameSlugs]);
 
-  const deletedGameSlugs = useMemo(() => {
-    const sourceGames = isUsingBaseFallback ? baseGamesMap : serverGames;
+const allGamesList = useMemo(() => {
+  return Object.values(allGamesMap).sort((a, b) => {
+    const dateA = getGameSortTime(a);
+    const dateB = getGameSortTime(b);
 
-    return Object.values(sourceGames)
-      .filter((game) => game.isDeleted === true)
-      .map((game) => game.slug);
-  }, [baseGamesMap, isUsingBaseFallback, serverGames]);
-
-  async function requestGameMutation(
-    method: "POST" | "PUT" | "DELETE",
-    payload: Record<string, unknown>
-  ) {
-    const response = await fetch("/api/admin/games", {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const body = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-
-    if (!response.ok) {
-      throw new Error(body?.error ?? "Não foi possível salvar o jogo.");
+    if (dateA !== dateB) {
+      return dateB - dateA;
     }
 
-    await loadGames();
-    emitUpdate();
-  }
+    return a.title.localeCompare(b.title);
+  });
+}, [allGamesMap]);
+
+const hiddenGamesList = useMemo(() => {
+  return hiddenGameSlugs
+    .filter((slug) => !deletedGameSlugs.includes(slug))
+    .map((slug) => allGamesMap[slug])
+    .filter((game): game is SiteGame => Boolean(game));
+}, [allGamesMap, hiddenGameSlugs, deletedGameSlugs]);
+
+  
+
+  const hiddenBaseGames = useMemo(() => {
+    return hiddenGameSlugs
+      .filter((slug) => !deletedGameSlugs.includes(slug))
+      .map((slug) => baseGamesMap[slug])
+      .filter((game): game is SiteGame => Boolean(game));
+  }, [baseGamesMap, hiddenGameSlugs, deletedGameSlugs]);
 
   async function addGame(input: GameFormInput) {
     const slug = slugify(input.slug || input.title);
 
     if (!slug) {
-      throw new Error("Digite um nome ou slug para o jogo.");
+      alert("Digite um nome ou slug para o jogo.");
+      return false;
     }
 
-    await requestGameMutation("POST", {
+    const now = new Date().toISOString();
+
+    const normalizedGame = normalizeGame(slug, {
       slug,
       title: input.title.trim() || "Jogo sem nome",
       subtitle: input.subtitle.trim(),
@@ -825,40 +808,201 @@ export function useSiteGames() {
         unlockedAt: input.emblemUnlockedAt,
       }),
       achievementsList: [],
+      createdAt: now,
+      updatedAt: now,
     });
+
+    try {
+      await saveGameToSupabase(normalizedGame, {
+        isHidden: false,
+        isDeleted: false,
+      });
+    } catch (error) {
+      console.error("[Games] Erro salvando jogo no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar o jogo."
+      );
+      return false;
+    }
+
+    const nextCustomGames = {
+      ...customGames,
+      [slug]: normalizedGame,
+    };
+
+    const nextHiddenGameSlugs = hiddenGameSlugs.filter((item) => item !== slug);
+    const nextDeletedGameSlugs = deletedGameSlugs.filter(
+      (item) => item !== slug
+    );
+
+    setCustomGames(nextCustomGames);
+    setHiddenGameSlugs(nextHiddenGameSlugs);
+    setDeletedGameSlugs(nextDeletedGameSlugs);
+
+    emitUpdate();
+
+    return true;
   }
 
   async function updateGame(slug: string, update: Partial<SiteGame>) {
     const currentGame =
-      gamesMap[slug] ||
-      serverGames[slug] ||
-      (isUsingBaseFallback ? baseGamesMap[slug] : undefined);
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
 
     if (!currentGame) {
-      throw new Error("Jogo não encontrado.");
+      return false;
     }
 
-    await requestGameMutation("PUT", { ...currentGame, ...update, slug });
+    const nextGame = normalizeGame(slug, {
+      ...currentGame,
+      ...update,
+      slug,
+      updatedAt: new Date().toISOString(),
+    });
+
+    try {
+      await saveGameToSupabase(nextGame, {
+        isHidden: hiddenGameSlugs.includes(slug),
+        isDeleted: false,
+      });
+    } catch (error) {
+      console.error("[Games] Erro atualizando jogo no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o jogo."
+      );
+      return false;
+    }
+
+    const nextCustomGames = {
+      ...customGames,
+      [slug]: nextGame,
+    };
+
+    setCustomGames(nextCustomGames);
+
+    emitUpdate();
+
+    return true;
   }
 
   async function removeGame(slug: string) {
-    await requestGameMutation("DELETE", { slug, action: "hide" });
+    const currentGame =
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+    if (!currentGame) {
+      return false;
+    }
+
+    try {
+      await changeGameVisibility(slug, "hide");
+    } catch (error) {
+      console.error("[Games] Erro ocultando jogo no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível ocultar o jogo."
+      );
+      return false;
+    }
+
+    const nextHiddenGameSlugs = Array.from(
+      new Set([...hiddenGameSlugs, slug])
+    );
+
+    setHiddenGameSlugs(nextHiddenGameSlugs);
+    emitUpdate();
+
+    return true;
   }
 
-  async function deleteGamePermanently(slug: string) {
-    await requestGameMutation("DELETE", { slug, action: "delete" });
+  async function deleteGamePermanently(slug: string): Promise<void> {
+    const currentGame =
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+    try {
+      await changeGameVisibility(slug, "delete");
+    } catch (error) {
+      console.error("[Games] Erro excluindo jogo no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível excluir o jogo."
+      );
+      return;
+    }
+
+    const nextCustomGames = { ...customGames };
+    delete nextCustomGames[slug];
+
+    const nextHiddenGameSlugs = hiddenGameSlugs.filter((item) => item !== slug);
+    const nextDeletedGameSlugs = Array.from(
+      new Set([...deletedGameSlugs, slug])
+    );
+
+    setCustomGames(nextCustomGames);
+    setHiddenGameSlugs(nextHiddenGameSlugs);
+    setDeletedGameSlugs(nextDeletedGameSlugs);
+    emitUpdate();
   }
 
   async function restoreGame(slug: string) {
-    await requestGameMutation("DELETE", { slug, action: "restore" });
+    try {
+      await changeGameVisibility(slug, "restore");
+    } catch (error) {
+      console.error("[Games] Erro restaurando jogo no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível restaurar o jogo."
+      );
+      return false;
+    }
+
+    const nextHiddenGameSlugs = hiddenGameSlugs.filter((item) => item !== slug);
+    const nextDeletedGameSlugs = deletedGameSlugs.filter(
+      (item) => item !== slug
+    );
+
+
+    setHiddenGameSlugs(nextHiddenGameSlugs);
+    setDeletedGameSlugs(nextDeletedGameSlugs);
+    emitUpdate();
+
+    return true;
   }
 
   async function restoreAllGames() {
-    await Promise.all(hiddenGameSlugs.map((slug) => restoreGame(slug)));
+    const slugsToRestore = Array.from(
+      new Set([...hiddenGameSlugs, ...deletedGameSlugs])
+    );
+
+    try {
+      await Promise.all(
+        slugsToRestore.map((slug) => changeGameVisibility(slug, "restore"))
+      );
+    } catch (error) {
+      console.error("[Games] Erro restaurando jogos no Supabase:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível restaurar os jogos."
+      );
+      return false;
+    }
+
+
+    setHiddenGameSlugs([]);
+    setDeletedGameSlugs([]);
+    emitUpdate();
+
+    return true;
   }
 
   function isCustomGame(slug: string) {
-    return Boolean(serverGames[slug]) && !Boolean(baseGamesMap[slug]);
+    return Boolean(customGames[slug]);
   }
 
   function isBaseGame(slug: string) {
@@ -870,7 +1014,7 @@ export function useSiteGames() {
     gamesMap,
     gamesList,
     hiddenBaseGames,
-    customGames: serverGames,
+    customGames,
     hiddenGameSlugs,
     deletedGameSlugs,
     addGame,
