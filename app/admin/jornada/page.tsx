@@ -113,8 +113,24 @@ function formatDate(date?: string) {
   return `${day}/${month}/${year}`;
 }
 
+function formatPlayedTimeForGame(minutes: number) {
+  const safeMinutes = Math.max(0, Math.round(Number(minutes) || 0));
+  const hours = Math.floor(safeMinutes / 60);
+  const mins = safeMinutes % 60;
+
+  if (hours <= 0 && mins <= 0) return "0h";
+  if (mins <= 0) return `${hours}h`;
+  if (hours <= 0) return `${mins}m`;
+
+  return `${hours}h - ${mins}m`;
+}
+
 export default function AdminJornadaPage() {
-  const { gamesList, isLoaded: isGamesLoaded } = useSiteGames();
+  const {
+    gamesList,
+    isLoaded: isGamesLoaded,
+    updateGame,
+  } = useSiteGames();
 
   const {
     entries,
@@ -194,6 +210,36 @@ const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   setEditingEntryId(null);
 }
 
+  async function syncGamePlayedTime(
+    gameSlug: string,
+    nextEntry?: JourneyEntry,
+    replacedEntryId?: string
+  ) {
+    if (!gameSlug) return;
+
+    const game = (gamesList || []).find(
+      (item) => readText(item.slug, "") === gameSlug
+    );
+
+    if (!game) return;
+
+    // Depois que o tempo oficial foi informado no encerramento, ele tem prioridade
+    // e não deve ser sobrescrito por uma edição/remoção de sessão da Jornada.
+    if (game.manualTotalPlayedMinutes != null) return;
+
+    const totalMinutes = entries.reduce((total, entry) => {
+      if (entry.id === replacedEntryId) return total;
+      if (entry.gameSlug !== gameSlug) return total;
+      return total + Math.max(0, Number(entry.playedMinutes || 0));
+    }, 0) + (nextEntry ? Math.max(0, Number(nextEntry.playedMinutes || 0)) : 0);
+
+    if (totalMinutes <= 0) return;
+
+    await updateGame(gameSlug, {
+      hours: formatPlayedTimeForGame(totalMinutes),
+    });
+  }
+
   async function handleSubmit() {
     const input: JourneyEntryInput = {
   ...form,
@@ -219,12 +265,33 @@ const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
     setIsSubmitting(true);
 
     try {
+      const previousEntry = editingEntryId
+        ? entries.find((entry) => entry.id === editingEntryId)
+        : undefined;
+
+      let savedEntry: JourneyEntry;
+
       if (editingEntryId) {
-        console.log("EDITANDO:", editingEntryId);
-  console.log("DADOS:", input)
-        await updateEntry(editingEntryId, input);
+        savedEntry = await updateEntry(editingEntryId, input);
       } else {
-        await addEntry(input);
+        savedEntry = await addEntry(input);
+      }
+
+      await syncGamePlayedTime(
+        input.gameSlug || "",
+        savedEntry,
+        editingEntryId || undefined
+      );
+
+      if (
+        previousEntry?.gameSlug &&
+        previousEntry.gameSlug !== input.gameSlug
+      ) {
+        await syncGamePlayedTime(
+          previousEntry.gameSlug,
+          undefined,
+          editingEntryId || undefined
+        );
       }
 
       resetForm();
@@ -240,8 +307,14 @@ const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   }
 
   async function handleRemove(entryId: string) {
+    const entryToRemove = entries.find((entry) => entry.id === entryId);
+
     try {
       await removeEntry(entryId);
+
+      if (entryToRemove?.gameSlug) {
+        await syncGamePlayedTime(entryToRemove.gameSlug, undefined, entryId);
+      }
     } catch (error) {
       alert(
         error instanceof Error
