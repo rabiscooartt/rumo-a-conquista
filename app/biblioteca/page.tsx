@@ -563,7 +563,7 @@ function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
   return <span className="text-lg">{mastery.icon || "💎"}</span>;
 }
 
-function MiniStatCard({
+function HeroStat({
   label,
   value,
   icon,
@@ -571,10 +571,19 @@ function MiniStatCard({
 }: {
   label: string;
   value: string;
-  icon?: string;
+  icon: string;
   accent?: "white" | "green" | "red" | "cyan";
 }) {
-  const valueColor =
+  const iconClass =
+    accent === "green"
+      ? "bg-emerald-500/10 text-emerald-300"
+      : accent === "cyan"
+      ? "bg-cyan-500/10 text-cyan-300"
+      : accent === "red"
+      ? "bg-red-500/10 text-red-300"
+      : "bg-red-500/10 text-red-300";
+
+  const valueClass =
     accent === "green"
       ? "text-emerald-300"
       : accent === "cyan"
@@ -583,34 +592,16 @@ function MiniStatCard({
       ? "text-red-300"
       : "text-white";
 
-  const glowClass =
-    accent === "green"
-      ? "group-hover/card:border-emerald-400/25 group-hover/card:bg-emerald-500/[0.04]"
-      : accent === "cyan"
-      ? "group-hover/card:border-cyan-400/25 group-hover/card:bg-cyan-500/[0.04]"
-      : accent === "red"
-      ? "group-hover/card:border-red-400/25 group-hover/card:bg-red-500/[0.04]"
-      : "group-hover/card:border-white/20 group-hover/card:bg-white/[0.05]";
-
   return (
-    <div
-      className={`min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 transition ${glowClass}`}
-    >
-      <p className="truncate text-[9px] font-black uppercase tracking-[0.22em] text-white/35">
-        {label}
-      </p>
-
-      <div className="mt-3 flex min-w-0 items-center gap-2">
-        {icon ? (
-          <span className="shrink-0 text-xl leading-none">{icon}</span>
-        ) : null}
-
-        <p
-          className={`min-w-0 truncate text-[18px] font-black leading-none tracking-tight ${valueColor}`}
-          title={value}
-        >
+    <div className="flex min-w-0 items-center gap-3">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[18px] ${iconClass}`}>
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className={`truncate text-[19px] font-black leading-none tracking-tight ${valueClass}`}>
           {value}
         </p>
+        <p className="mt-1 text-[10px] font-bold text-white/45">{label}</p>
       </div>
     </div>
   );
@@ -947,31 +938,34 @@ export default function BibliotecaPage() {
         <div className="min-w-0 px-4 py-5 md:px-6 lg:px-5">
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div className="min-w-0">
-            <header className="relative overflow-hidden rounded-[24px] border border-white/10 bg-zinc-950/85 shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
-              <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(127,29,29,0.38),rgba(10,12,18,0.72)_42%,rgba(8,18,30,0.72))]" />
+            <header className="relative overflow-hidden rounded-[18px] border border-white/10 bg-[#08090c]">
               {currentHeroGame ? (
                 <img
                   src={readText(currentHeroGame.image, "") || readText(currentHeroGame.cardImage, "")}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover opacity-25 blur-[1px]"
+                  className="absolute inset-0 h-full w-full object-cover object-center opacity-45"
                 />
               ) : null}
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.92),rgba(4,5,8,0.72)_48%,rgba(4,5,8,0.3))]" />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.96)_0%,rgba(4,5,8,0.84)_38%,rgba(4,5,8,0.58)_70%,rgba(4,5,8,0.28)_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,5,8,0.12),rgba(4,5,8,0.72)_100%)]" />
 
-              <div className="relative z-10 flex min-h-[215px] flex-col justify-between gap-12 p-6 sm:p-8">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-red-400">Biblioteca</p>
-                  <h1 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">Jogos da Jornada</h1>
-                  <p className="mt-3 max-w-[680px] text-sm leading-relaxed text-white/55">
-                    Todos os jogos da jornada em um só lugar. Acompanhe progresso, conquistas, tempo jogado e o caminho até a Maestria.
-                  </p>
-                </div>
+              <div className="relative z-10 px-6 pb-5 pt-6 sm:px-7 sm:pb-6 sm:pt-7">
+                <p className="text-[10px] font-black uppercase tracking-[0.32em] text-red-400">+ Sua jornada em jogos</p>
+                <h1 className="mt-2 text-[34px] font-black leading-none tracking-tight text-white sm:text-[40px]">Jogos da Jornada</h1>
+                <p className="mt-3 max-w-[650px] text-[12px] leading-relaxed text-white/60 sm:text-[13px]">
+                  Todos os jogos da sua jornada em um só lugar. Acompanhe seu progresso, conquistas e o caminho até a Maestria.
+                </p>
 
-                <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
-                  <MiniStatCard label="Jogos" value={String(bibliotecaGames.length)} />
-                  <MiniStatCard label="Em progresso" value={String(progressGames.length)} accent="red" />
-                  <MiniStatCard label="Finalizados" value={String(completedGames.length)} accent="green" />
-                  <MiniStatCard label="Na fila" value={String(backlogGames.length)} accent="cyan" />
+                <div className="mt-6 grid grid-cols-1 gap-4 border-t border-white/10 pt-4 sm:grid-cols-3 sm:gap-0">
+                  <div className="sm:border-r sm:border-white/10 sm:pr-5">
+                    <HeroStat label="Jogos na biblioteca" value={String(bibliotecaGames.length)} icon="🎮" />
+                  </div>
+                  <div className="sm:border-r sm:border-white/10 sm:px-5">
+                    <HeroStat label="Finalizados" value={String(completedGames.length)} icon="🏆" accent="green" />
+                  </div>
+                  <div className="sm:pl-5">
+                    <HeroStat label="Na fila" value={String(backlogGames.length)} icon="🎯" accent="cyan" />
+                  </div>
                 </div>
               </div>
             </header>
