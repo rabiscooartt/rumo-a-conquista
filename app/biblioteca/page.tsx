@@ -947,31 +947,65 @@ export default function BibliotecaPage() {
         <div className="min-w-0 px-4 py-5 md:px-6 lg:px-5">
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div className="min-w-0">
-            <header className="relative overflow-hidden rounded-[24px] border border-white/10 bg-zinc-950/85 shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
-              <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(127,29,29,0.38),rgba(10,12,18,0.72)_42%,rgba(8,18,30,0.72))]" />
+            <header className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[#07090d] shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
               {currentHeroGame ? (
                 <img
-                  src={readText(currentHeroGame.image, "") || readText(currentHeroGame.cardImage, "")}
+                  src={readText(currentHeroGame.image, "")}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover opacity-25 blur-[1px]"
+                  className="absolute inset-0 h-full w-full object-cover object-center opacity-45"
                 />
               ) : null}
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.92),rgba(4,5,8,0.72)_48%,rgba(4,5,8,0.3))]" />
 
-              <div className="relative z-10 flex min-h-[190px] flex-col justify-between gap-8 p-6 sm:p-8 lg:flex-row lg:items-end">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-red-400">Biblioteca</p>
-                  <h1 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">Jogos da Jornada</h1>
-                  <p className="mt-3 max-w-[680px] text-sm leading-relaxed text-white/55">
-                    Todos os jogos da jornada em um só lugar. Acompanhe progresso, conquistas, tempo jogado e o caminho até a Maestria.
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.97)_0%,rgba(4,5,8,0.88)_35%,rgba(4,5,8,0.58)_65%,rgba(4,5,8,0.28)_100%)]" />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(4,5,8,0.45)_45%,rgba(4,5,8,0.94)_100%)]" />
+              <div className="absolute left-0 top-0 h-full w-[3px] bg-red-500/80" />
+
+              <div className="relative z-10 min-h-[190px] px-6 py-6 sm:px-8 sm:py-7">
+                <div className="max-w-[590px]">
+                  <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.26em] text-red-500">
+                    <span className="text-[10px] leading-none">✣</span>
+                    Sua jornada em jogos
+                  </p>
+
+                  <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white sm:text-[42px]">
+                    Jogos da Jornada
+                  </h1>
+
+                  <p className="mt-3 max-w-[560px] text-[12px] font-medium leading-[1.45] text-white/65">
+                    Todos os jogos da sua jornada em um só lugar. Acompanhe seu progresso, conquistas e o caminho até a Maestria.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[410px]">
-                  <MiniStatCard label="Jogos" value={String(bibliotecaGames.length)} />
-                  <MiniStatCard label="Em progresso" value={String(progressGames.length)} accent="red" />
-                  <MiniStatCard label="Finalizados" value={String(completedGames.length)} accent="green" />
-                  <MiniStatCard label="Na fila" value={String(backlogGames.length)} accent="cyan" />
+                <div className="absolute bottom-6 left-6 right-6 grid grid-cols-3 sm:left-8 sm:right-8">
+                  <div className="flex items-center gap-3 pr-4 sm:pr-6">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-[18px] text-red-400">
+                      🎮
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[19px] font-black leading-none text-white">{bibliotecaGames.length}</p>
+                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Jogos na biblioteca</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 border-l border-white/[0.08] px-4 sm:px-6">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-[18px] text-red-400">
+                      🏆
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[19px] font-black leading-none text-white">{completedGames.length}</p>
+                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Finalizados</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 border-l border-white/[0.08] pl-4 sm:pl-6">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/15 text-[18px] text-red-400">
+                      🎯
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[19px] font-black leading-none text-white">{backlogGames.length}</p>
+                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Na fila</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </header>
