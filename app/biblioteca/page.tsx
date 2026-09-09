@@ -616,116 +616,172 @@ function MiniStatCard({
   );
 }
 
-function getPlatformLabel(game: BibliotecaGame) {
-  const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();
-  if (value) return value;
-  return "Plataforma não definida";
+
+function getGameField(game: BibliotecaGame, key: string) {
+  const value = (game as unknown as Record<string, unknown>)[key];
+  return typeof value === "string" || typeof value === "number" ? String(value) : "";
 }
 
-function formatGameDate(game: BibliotecaGame) {
-  const raw = readText(game.updatedAt, "") || readText(game.createdAt, "");
-  if (!raw) return "";
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return "";
+function getGamePlatform(game: BibliotecaGame) {
+  return (
+    getGameField(game, "platform") ||
+    getGameField(game, "platformName") ||
+    "Plataforma não definida"
+  );
+}
+
+function getGameDate(game: BibliotecaGame) {
+  return (
+    getGameField(game, "lastPlayedAt") ||
+    getGameField(game, "updatedAt") ||
+    getGameField(game, "date") ||
+    getGameField(game, "startedAt") ||
+    ""
+  );
+}
+
+function formatGameDate(value: string) {
+  if (!value) return "Data não definida";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
   return date.toLocaleDateString("pt-BR");
 }
 
-function GameRow({ game }: { game: BibliotecaGame }) {
+function parsePlayedMinutes(value: string) {
+  const text = value.toLowerCase().trim();
+  if (!text) return 0;
+
+  let minutes = 0;
+
+  const hoursMatch = text.match(/(\d+(?:[.,]\d+)?)\s*h/);
+  const minutesMatch = text.match(/(\d+)\s*(?:min|m)\b/);
+
+  if (hoursMatch) {
+    minutes += Math.round(Number(hoursMatch[1].replace(",", ".")) * 60);
+  }
+
+  if (minutesMatch) {
+    minutes += Number(minutesMatch[1]);
+  }
+
+  return minutes;
+}
+
+function formatTotalMinutes(totalMinutes: number) {
+  if (totalMinutes <= 0) return "0h";
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}min`;
+}
+
+function getProgressColor(game: BibliotecaGame) {
+  if (isCompletedGame(game)) return "bg-emerald-400";
+  if (isBacklogGame(game)) return "bg-cyan-400";
+  return "bg-pink-500";
+}
+
+function GameCard({ game }: { game: BibliotecaGame }) {
   const gameSlug = readText(game.slug, "");
   const gameTitle = readText(game.title, "Jogo");
-  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const cardImage = readText(game.image, "") || readText(game.cardImage, "");
   const achievementStats = getAchievementStats(game);
   const progress = getProgressPercent(game, achievementStats);
   const isCompleted = isCompletedGame(game);
   const isBacklog = isBacklogGame(game);
   const statusLabel = getStatusLabel(game);
-  const platform = getPlatformLabel(game);
-  const date = formatGameDate(game);
-
-  const statusClass = isCompleted
-    ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
-    : isBacklog
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-300"
-    : "border-red-500/25 bg-red-500/10 text-red-300";
-
-  const progressClass = isCompleted
-    ? "bg-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.55)]"
-    : "bg-pink-500 shadow-[0_0_14px_rgba(236,72,153,0.45)]";
+  const platform = getGamePlatform(game);
+  const date = formatGameDate(getGameDate(game));
+  const hours = readText(game.hours, "0h");
 
   return (
     <Link
       href={`/games/${gameSlug}`}
-      className="group/row block border-b border-white/[0.07] px-3 py-5 transition hover:bg-white/[0.025]"
+      className="group/game block border-b border-white/[0.07] py-5 transition hover:bg-white/[0.018] first:pt-3 last:border-b-0"
     >
-      <div className="grid grid-cols-[64px_minmax(0,1fr)_112px_32px] items-start gap-4 lg:grid-cols-[64px_minmax(0,1fr)_132px_32px]">
-        <div className="h-[82px] w-16 shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+      <div className="grid grid-cols-[64px_minmax(0,1fr)_132px] items-center gap-4">
+        <div className="h-[88px] w-16 shrink-0 overflow-hidden border border-white/15 bg-zinc-900">
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
 
-        <div className="min-w-0 pt-0.5">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <h2 className="truncate text-[16px] font-black tracking-tight text-white sm:text-[17px]">
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2 className="truncate text-[16px] font-black leading-tight text-white">
               {gameTitle}
             </h2>
 
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-black text-white shadow-[0_0_10px_rgba(59,130,246,0.25)]">
+            <span
+              title="Jogo cadastrado na jornada"
+              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-500 text-[9px] font-black text-white"
+            >
               ✓
             </span>
 
-            <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
-              {statusLabel}
+            <span
+              className={`rounded-full border px-2 py-0.5 text-[9px] font-black ${
+                isCompleted
+                  ? "border-violet-400/20 bg-violet-500/10 text-violet-300"
+                  : isBacklog
+                  ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-300"
+                  : "border-amber-400/20 bg-amber-500/10 text-amber-300"
+              }`}
+            >
+              {isCompleted ? "Finalizado" : isBacklog ? "Na fila" : "Em progresso"}
             </span>
           </div>
 
-          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/45">
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/[0.06] text-[10px] text-white/80">
-                ◉
-              </span>
-              {platform}
-            </span>
-
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
-
-            <span className="whitespace-nowrap">🏆 {achievementStats.completed}/{achievementStats.total}</span>
-
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
-
-            <span className="whitespace-nowrap">◷ {readText(game.hours, "0h")}</span>
-
-            {date ? (
-              <>
-                <span className="hidden h-4 w-px bg-white/10 sm:block" />
-                <span className="whitespace-nowrap">▣ {date}</span>
-              </>
-            ) : null}
+          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-y-1 text-[10px] font-semibold text-white/45">
+            <span className="truncate">{platform}</span>
+            <span className="mx-2 text-white/15">|</span>
+            <span>🏆 {achievementStats.completed}/{achievementStats.total}</span>
+            <span className="mx-2 text-white/15">|</span>
+            <span>◷ {hours}</span>
+            <span className="mx-2 text-white/15">|</span>
+            <span>▣ {date}</span>
           </div>
 
           <div className="mt-3 flex items-center gap-3">
-            <div className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div className="h-[4px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${progressClass}`}
+                className={`h-full rounded-full transition-all duration-500 ${getProgressColor(game)}`}
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className={`w-10 shrink-0 text-right text-[11px] font-black ${isCompleted ? "text-emerald-300" : "text-white/45"}`}>
+
+            <span
+              className={`w-9 shrink-0 text-right text-[10px] font-black ${
+                isCompleted
+                  ? "text-emerald-400"
+                  : isBacklog
+                  ? "text-cyan-400"
+                  : "text-pink-400"
+              }`}
+            >
               {progress}%
             </span>
           </div>
         </div>
 
-        <div className="hidden pt-1 text-right lg:block">
-          <p className="text-[13px] font-black text-white/90">{readText(game.hours, "0h")}</p>
-          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.13em] text-white/25">Tempo jogado</p>
-        </div>
-
-        <div className="flex justify-end pt-1">
-          <span className="text-lg leading-none text-white/35 transition group-hover/row:text-white/70">⋮</span>
+        <div className="flex items-center justify-end gap-4 text-white/35">
+          <span title="Acompanhar jogo" className="text-[17px] transition group-hover/game:text-white/70">
+            ♧
+          </span>
+          <span title="Conquistas" className="text-[17px] transition group-hover/game:text-white/70">
+            ♜
+          </span>
+          <span title="Detalhes" className="text-[17px] transition group-hover/game:text-white/70">
+            ▤
+          </span>
         </div>
       </div>
     </Link>
   );
 }
+
 
 function GameSection({
   eyebrow,
@@ -738,42 +794,116 @@ function GameSection({
   description: string;
   games: BibliotecaGame[];
 }) {
-  if (games.length === 0) {
-    return null;
-  }
+  if (games.length === 0) return null;
 
   return (
     <section>
-      <div className="mb-5 flex items-end justify-between gap-5 border-b border-white/10 pb-4">
+      <div className="mb-2 flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400">
             {eyebrow}
           </p>
-
-          <h2 className="mt-2 text-3xl font-black text-white">{title}</h2>
-
-          <p className="mt-2 max-w-[720px] text-sm leading-relaxed text-white/45">
+          <h2 className="mt-1 text-[22px] font-black text-white">{title}</h2>
+          <p className="mt-1 max-w-[720px] text-[11px] leading-relaxed text-white/35">
             {description}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-            Total
-          </p>
-
-          <p className="mt-1 text-2xl font-black text-white">{games.length}</p>
-        </div>
+        <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.15em] text-white/30">
+          {games.length} {games.length === 1 ? "jogo" : "jogos"}
+        </span>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(370px,430px))] gap-8">
+      <div className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4">
         {games.map((game) => (
-          <GameRow key={game.slug} game={game} />
+          <GameCard key={game.slug} game={game} />
         ))}
       </div>
     </section>
   );
 }
+
+function SidebarPanel({
+  title,
+  children,
+  accent = "red",
+}: {
+  title: string;
+  children: React.ReactNode;
+  accent?: "red" | "cyan";
+}) {
+  return (
+    <section className="rounded-[14px] border border-white/[0.09] bg-[#090b0f] p-4">
+      <div className="mb-4 flex items-center gap-2">
+        <span className={`h-4 w-[2px] ${accent === "cyan" ? "bg-cyan-400" : "bg-red-500"}`} />
+        <h2 className="text-[12px] font-black uppercase tracking-[0.08em] text-white">
+          {title}
+        </h2>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function SidebarMetric({
+  label,
+  value,
+  accent = "white",
+}: {
+  label: string;
+  value: string;
+  accent?: "white" | "pink" | "green" | "cyan";
+}) {
+  const valueClass =
+    accent === "pink"
+      ? "text-pink-400"
+      : accent === "green"
+      ? "text-emerald-400"
+      : accent === "cyan"
+      ? "text-cyan-400"
+      : "text-white";
+
+  return (
+    <div className="flex items-center justify-between border-b border-white/[0.06] py-3 last:border-b-0">
+      <span className="text-[10px] font-semibold text-white/40">{label}</span>
+      <span className={`text-[12px] font-black ${valueClass}`}>{value}</span>
+    </div>
+  );
+}
+
+function StatusBar({
+  label,
+  value,
+  total,
+  accent,
+}: {
+  label: string;
+  value: number;
+  total: number;
+  accent: "pink" | "green" | "cyan";
+}) {
+  const color =
+    accent === "green"
+      ? "bg-emerald-400"
+      : accent === "cyan"
+      ? "bg-cyan-400"
+      : "bg-pink-500";
+
+  const width = total > 0 ? Math.max(4, Math.round((value / total) * 100)) : 0;
+
+  return (
+    <div className="mb-4 last:mb-0">
+      <div className="mb-2 flex items-center justify-between text-[10px]">
+        <span className="text-white/45">{label}</span>
+        <span className="font-black text-white/75">{value}</span>
+      </div>
+      <div className="h-[4px] overflow-hidden rounded-full bg-white/[0.07]">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${width}%` }} />
+      </div>
+    </div>
+  );
+}
+
 
 export default function BibliotecaPage() {
   const { gamesList, isLoaded } = useSiteGames();
@@ -820,228 +950,326 @@ export default function BibliotecaPage() {
     updateUrlFilter(filter);
   }
 
-  const bibliotecaGames = useMemo(() => gamesList as BibliotecaGame[], [gamesList, refreshKey]);
+  const bibliotecaGames = useMemo(() => {
+    return gamesList as BibliotecaGame[];
+  }, [gamesList, refreshKey]);
 
-  const progressGames = useMemo(() => bibliotecaGames.filter((game) => isProgressGame(game)), [bibliotecaGames]);
-  const backlogGames = useMemo(
-    () => bibliotecaGames.filter((game) => isBacklogGame(game) && !isProgressGame(game) && !isCompletedGame(game)),
-    [bibliotecaGames]
+  const searchedGames = useMemo(() => {
+    const normalizedSearch = normalizeText(search);
+    if (!normalizedSearch) return bibliotecaGames;
+
+    return bibliotecaGames.filter((game) =>
+      normalizeText(readText(game.title, "")).includes(normalizedSearch)
+    );
+  }, [bibliotecaGames, search]);
+
+  const progressGames = useMemo(
+    () => searchedGames.filter((game) => isProgressGame(game)),
+    [searchedGames]
   );
-  const completedGames = useMemo(() => bibliotecaGames.filter((game) => isCompletedGame(game)), [bibliotecaGames]);
+
+  const backlogGames = useMemo(
+    () =>
+      searchedGames.filter(
+        (game) =>
+          isBacklogGame(game) &&
+          !isProgressGame(game) &&
+          !isCompletedGame(game)
+      ),
+    [searchedGames]
+  );
+
+  const completedGames = useMemo(
+    () => searchedGames.filter((game) => isCompletedGame(game)),
+    [searchedGames]
+  );
 
   const filteredGames = useMemo(() => {
-    const term = normalizeText(search);
-
-    return bibliotecaGames.filter((game) => {
-      if (activeFilter === "progress" && !isProgressGame(game)) return false;
-      if (activeFilter === "mastery" && !isCompletedGame(game)) return false;
-      if (activeFilter === "backlog" && !isBacklogGame(game)) return false;
-
-      if (!term) return true;
-
-      return normalizeText(readText(game.title, "")).includes(term);
+    return searchedGames.filter((game) => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "progress") return isProgressGame(game);
+      if (activeFilter === "mastery") return isCompletedGame(game);
+      if (activeFilter === "backlog") return isBacklogGame(game);
+      return true;
     });
-  }, [activeFilter, bibliotecaGames, search]);
+  }, [activeFilter, searchedGames]);
 
-  const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
-  const totalAchievementStats = useMemo(() => {
-    return bibliotecaGames.reduce(
-      (acc, game) => {
+  const totalMinutes = useMemo(
+    () =>
+      bibliotecaGames.reduce(
+        (sum, game) => sum + parsePlayedMinutes(readText(game.hours, "")),
+        0
+      ),
+    [bibliotecaGames]
+  );
+
+  const totalAchievements = useMemo(
+    () =>
+      bibliotecaGames.reduce((sum, game) => {
         const stats = getAchievementStats(game);
-        acc.completed += stats.completed;
-        acc.total += stats.total;
-        return acc;
-      },
-      { completed: 0, total: 0 }
-    );
-  }, [bibliotecaGames]);
+        return sum + stats.completed;
+      }, 0),
+    [bibliotecaGames]
+  );
 
-  const totalHours = useMemo(() => {
-    let minutes = 0;
-    for (const game of bibliotecaGames) {
-      const value = readText(game.hours, "").toLowerCase();
-      const h = value.match(/(\d+)\s*h/);
-      const m = value.match(/(\d+)\s*m/);
-      minutes += (h ? Number(h[1]) : 0) * 60 + (m ? Number(m[1]) : 0);
-    }
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins ? `${hours}h ${mins}min` : `${hours}h`;
-  }, [bibliotecaGames]);
+  const totalAchievementTargets = useMemo(
+    () =>
+      bibliotecaGames.reduce((sum, game) => {
+        const stats = getAchievementStats(game);
+        return sum + stats.total;
+      }, 0),
+    [bibliotecaGames]
+  );
 
-  const overallAchievementProgress = totalAchievementStats.total
-    ? Math.round((totalAchievementStats.completed / totalAchievementStats.total) * 100)
-    : 0;
+  const overallProgress =
+    totalAchievementTargets > 0
+      ? Math.round((totalAchievements / totalAchievementTargets) * 100)
+      : bibliotecaGames.length > 0
+      ? Math.round(
+          bibliotecaGames.reduce(
+            (sum, game) => sum + getProgressPercent(game, getAchievementStats(game)),
+            0
+          ) / bibliotecaGames.length
+        )
+      : 0;
+
+  const progressCount = bibliotecaGames.filter((game) => isProgressGame(game)).length;
+  const completedCount = bibliotecaGames.filter((game) => isCompletedGame(game)).length;
+  const backlogCount = bibliotecaGames.filter((game) => isBacklogGame(game)).length;
+
+  const nextBacklog = bibliotecaGames
+    .filter(
+      (game) =>
+        isBacklogGame(game) &&
+        !isProgressGame(game) &&
+        !isCompletedGame(game)
+    )
+    .slice(0, 4);
+
+  const heroGame = progressGames[0] || bibliotecaGames[0];
+  const heroImage = heroGame
+    ? readText(heroGame.image, "") || readText(heroGame.cardImage, "")
+    : "";
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#05070b_42%,#020202_100%)] text-white">
+    <main className="min-h-screen bg-[#050607] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_310px]">
+      <div className="mx-auto w-full max-w-[1500px] px-5 py-5 lg:px-8">
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_310px]">
           <div className="min-w-0">
-            <header className="relative overflow-hidden rounded-[24px] border border-white/10 bg-zinc-950/85 shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
-              <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(127,29,29,0.38),rgba(10,12,18,0.72)_42%,rgba(8,18,30,0.72))]" />
-              {currentHeroGame ? (
+            <header className="relative overflow-hidden rounded-[14px] border border-white/[0.09] bg-[#090b0f]">
+              {heroImage ? (
                 <img
-                  src={readText(currentHeroGame.image, "") || readText(currentHeroGame.cardImage, "")}
+                  src={heroImage}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover opacity-25 blur-[1px]"
+                  className="absolute inset-0 h-full w-full object-cover opacity-[0.18] blur-[1px]"
                 />
               ) : null}
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.92),rgba(4,5,8,0.72)_48%,rgba(4,5,8,0.3))]" />
 
-              <div className="relative z-10 flex min-h-[190px] flex-col justify-between gap-8 p-6 sm:p-8 lg:flex-row lg:items-end">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-red-400">Biblioteca</p>
-                  <h1 className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">Jogos da Jornada</h1>
-                  <p className="mt-3 max-w-[680px] text-sm leading-relaxed text-white/55">
-                    Todos os jogos da jornada em um só lugar. Acompanhe progresso, conquistas, tempo jogado e o caminho até a Maestria.
-                  </p>
-                </div>
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,#090b0f_8%,rgba(9,11,15,0.92)_48%,rgba(9,11,15,0.65)_100%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(239,68,68,0.14),transparent_42%)]" />
 
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[410px]">
-                  <MiniStatCard label="Jogos" value={String(bibliotecaGames.length)} />
-                  <MiniStatCard label="Em progresso" value={String(progressGames.length)} accent="red" />
-                  <MiniStatCard label="Finalizados" value={String(completedGames.length)} accent="green" />
-                  <MiniStatCard label="Na fila" value={String(backlogGames.length)} accent="cyan" />
+              <div className="relative z-10 px-5 py-6 md:px-7">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-400">
+                  Biblioteca
+                </p>
+
+                <div className="mt-2 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                  <div className="min-w-0">
+                    <h1 className="text-[32px] font-black leading-none tracking-tight md:text-[40px]">
+                      Jogos da Jornada
+                    </h1>
+                    <p className="mt-3 max-w-[650px] text-[11px] leading-relaxed text-white/45">
+                      Todos os jogos da jornada em um só lugar. Acompanhe progresso,
+                      conquistas, tempo jogado e o caminho até a Maestria.
+                    </p>
+                  </div>
+
+                  <div className="grid shrink-0 grid-cols-4 gap-2">
+                    <div className="min-w-[72px] rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2.5">
+                      <p className="text-[8px] font-black uppercase tracking-wider text-white/30">Jogos</p>
+                      <p className="mt-1 text-lg font-black text-white">{bibliotecaGames.length}</p>
+                    </div>
+                    <div className="min-w-[72px] rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2.5">
+                      <p className="text-[8px] font-black uppercase tracking-wider text-white/30">Ativos</p>
+                      <p className="mt-1 text-lg font-black text-pink-400">{progressCount}</p>
+                    </div>
+                    <div className="min-w-[72px] rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2.5">
+                      <p className="text-[8px] font-black uppercase tracking-wider text-white/30">Finalizados</p>
+                      <p className="mt-1 text-lg font-black text-emerald-400">{completedCount}</p>
+                    </div>
+                    <div className="min-w-[72px] rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2.5">
+                      <p className="text-[8px] font-black uppercase tracking-wider text-white/30">Fila</p>
+                      <p className="mt-1 text-lg font-black text-cyan-400">{backlogCount}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </header>
 
-            <section className="mt-6 overflow-hidden rounded-[20px] border border-white/10 bg-black/20">
-              <div className="border-b border-white/[0.07] p-3 sm:p-4">
-                <div className="flex flex-col gap-3 lg:flex-row">
-                  <div className="relative min-w-0 flex-1">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
-                    <input
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      placeholder="Buscar por nome do jogo..."
-                      className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.025] pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.map((filter) => {
-                      const isActive = activeFilter === filter.value;
-                      const count = filter.value === "all" ? bibliotecaGames.length : filter.value === "progress" ? progressGames.length : filter.value === "backlog" ? backlogGames.length : completedGames.length;
-                      return (
-                        <button
-                          key={filter.value}
-                          type="button"
-                          onClick={() => handleFilterChange(filter.value)}
-                          className={`h-11 rounded-xl border px-3 text-[11px] font-black transition ${
-                            isActive
-                              ? "border-red-500/45 bg-red-500/12 text-white"
-                              : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"
-                          }`}
-                        >
-                          {filter.label} <span className="ml-1 text-white/25">{count}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+            <section className="mt-4 rounded-[14px] border border-white/[0.08] bg-[#090b0f]">
+              <div className="flex flex-col gap-2.5 border-b border-white/[0.07] p-3 md:flex-row">
+                <div className="relative min-w-0 flex-1">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[12px] text-white/25">
+                    ⌕
+                  </span>
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Buscar por nome do jogo..."
+                    className="w-full rounded-xl border border-white/[0.08] bg-black/20 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                  />
+                </div>
+
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {filters.map((filter) => {
+                    const isActive = activeFilter === filter.value;
+
+                    return (
+                      <button
+                        key={filter.value}
+                        type="button"
+                        onClick={() => handleFilterChange(filter.value)}
+                        className={`rounded-xl border px-3.5 py-2.5 text-[10px] font-black transition ${
+                          isActive
+                            ? "border-red-500/40 bg-red-500/10 text-red-300"
+                            : "border-white/[0.08] bg-white/[0.015] text-white/45 hover:border-red-500/25 hover:text-white"
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="px-3 sm:px-4">
+              <div className="px-4 pb-4 pt-3">
                 {!isLoaded ? (
-                  <div className="py-10 text-center text-sm text-white/40">Carregando biblioteca...</div>
+                  <div className="rounded-xl border border-white/[0.07] bg-black/20 p-8 text-center text-[11px] text-white/40">
+                    Carregando biblioteca...
+                  </div>
+                ) : activeFilter === "all" ? (
+                  progressGames.length + backlogGames.length + completedGames.length > 0 ? (
+                    <div className="space-y-7">
+                      <GameSection
+                        eyebrow="Em progresso"
+                        title="Jogos em Progresso"
+                        description="Jogos ativos no momento e objetivos que estão acontecendo agora."
+                        games={progressGames}
+                      />
+
+                      <GameSection
+                        eyebrow="Fila"
+                        title="Próximas Maestrias"
+                        description="Jogos que estão na fila para entrar na jornada futuramente."
+                        games={backlogGames}
+                      />
+
+                      <div id="jogos-finalizados">
+                        <GameSection
+                          eyebrow="Finalizados"
+                          title="Jogos Finalizados"
+                          description="Jogos que já tiveram a jornada concluída ou maestria final liberada."
+                          games={completedGames}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-white/[0.07] bg-black/20 p-8 text-center text-[11px] text-white/40">
+                      Nenhum jogo encontrado.
+                    </div>
+                  )
                 ) : filteredGames.length === 0 ? (
-                  <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
+                  <div className="rounded-xl border border-white/[0.07] bg-black/20 p-8 text-center text-[11px] text-white/40">
+                    Nenhum jogo encontrado nesse filtro.
+                  </div>
                 ) : (
-                  filteredGames.map((game) => <GameRow key={game.slug} game={game} />)
+                  <div>
+                    {filteredGames.map((game) => (
+                      <GameCard key={game.slug} game={game} />
+                    ))}
+                  </div>
                 )}
               </div>
             </section>
           </div>
 
-          <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
-            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
-              <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400">Biblioteca</p>
-                  <h2 className="mt-1 text-lg font-black">Resumo da Jornada</h2>
+          <aside className="space-y-4 lg:sticky lg:top-4">
+            <SidebarPanel title="Resumo da Jornada">
+              <SidebarMetric label="Tempo total" value={formatTotalMinutes(totalMinutes)} />
+              <SidebarMetric
+                label="Conquistas"
+                value={`${totalAchievements}/${totalAchievementTargets}`}
+              />
+              <SidebarMetric
+                label="Progresso geral"
+                value={`${overallProgress}%`}
+                accent="pink"
+              />
+            </SidebarPanel>
+
+            <SidebarPanel title="Status dos Jogos">
+              <StatusBar
+                label="Em progresso"
+                value={progressCount}
+                total={bibliotecaGames.length}
+                accent="pink"
+              />
+              <StatusBar
+                label="Finalizados"
+                value={completedCount}
+                total={bibliotecaGames.length}
+                accent="green"
+              />
+              <StatusBar
+                label="Na fila"
+                value={backlogCount}
+                total={bibliotecaGames.length}
+                accent="cyan"
+              />
+            </SidebarPanel>
+
+            <SidebarPanel title="Próximos na Fila" accent="cyan">
+              {nextBacklog.length === 0 ? (
+                <p className="text-[10px] leading-relaxed text-white/35">
+                  Nenhum jogo planejado para a próxima etapa da jornada.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {nextBacklog.map((game, index) => {
+                    const image =
+                      readText(game.image, "") || readText(game.cardImage, "");
+
+                    return (
+                      <Link
+                        key={game.slug}
+                        href={`/games/${readText(game.slug, "")}`}
+                        className="flex items-center gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0"
+                      >
+                        <span className="w-4 shrink-0 text-center text-[10px] font-black text-cyan-400">
+                          {index + 1}
+                        </span>
+                        <div className="h-10 w-8 shrink-0 overflow-hidden border border-white/10 bg-zinc-900">
+                          <GameCoverImage src={image} title={readText(game.title, "Jogo")} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-[10px] font-black text-white">
+                            {readText(game.title, "Jogo")}
+                          </p>
+                          <p className="mt-0.5 truncate text-[9px] text-white/30">
+                            {getObjective(game)}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
-                <span className="text-lg text-red-400">◈</span>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Tempo total</span>
-                  <strong className="text-sm text-white">{totalHours}</strong>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Conquistas</span>
-                  <strong className="text-sm text-white">{totalAchievementStats.completed}/{totalAchievementStats.total}</strong>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Progresso geral</span>
-                  <strong className="text-sm text-pink-400">{overallAchievementProgress}%</strong>
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Status dos Jogos</h2>
-                <span className="text-red-400">◉</span>
-              </div>
-
-              <div className="mt-5 space-y-4">
-                {[
-                  { label: "Em progresso", value: progressGames.length, total: bibliotecaGames.length, className: "bg-red-500" },
-                  { label: "Finalizados", value: completedGames.length, total: bibliotecaGames.length, className: "bg-emerald-400" },
-                  { label: "Na fila", value: backlogGames.length, total: bibliotecaGames.length, className: "bg-cyan-400" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="mb-2 flex items-center justify-between text-[11px]">
-                      <span className="text-white/50">{item.label}</span>
-                      <strong className="text-white/80">{item.value}</strong>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                      <div className={`h-full rounded-full ${item.className}`} style={{ width: `${item.total ? (item.value / item.total) * 100 : 0}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
-              <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
-                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Próximos na Fila</h2>
-                <Link href="/backlog" className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 hover:text-red-300">Ver fila</Link>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                {backlogGames.slice(0, 4).map((game) => (
-                  <Link key={game.slug} href={`/games/${game.slug}`} className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/[0.035]">
-                    <div className="h-12 w-9 shrink-0 overflow-hidden rounded border border-white/10">
-                      <GameCoverImage src={readText(game.cardImage, "") || readText(game.image, "")} title={game.title} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-black text-white">{game.title}</p>
-                      <p className="mt-1 truncate text-[10px] text-white/30">{getObjective(game)}</p>
-                    </div>
-                  </Link>
-                ))}
-                {backlogGames.length === 0 ? <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p> : null}
-              </div>
-            </section>
-
-            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Primeira Run</h2>
-                <span className="text-red-400">✦</span>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-white/35">
-                A preparação da Primeira Run ficará vinculada diretamente a cada jogo. Aqui teremos o ponto de entrada quando esse sistema estiver pronto.
-              </p>
-            </section>
+              )}
+            </SidebarPanel>
           </aside>
         </div>
-      </section>
+      </div>
     </main>
   );
 }
-
