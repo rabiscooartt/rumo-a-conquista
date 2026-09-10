@@ -594,14 +594,14 @@ function HeroStat({
 
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[23px] ${iconClass}`}>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[20px] ${iconClass}`}>
         {icon}
       </span>
       <div className="min-w-0">
         <p className={`truncate text-[20px] font-black leading-none tracking-tight ${valueClass}`}>
           {value}
         </p>
-        <p className="mt-1 text-[12px] font-medium leading-[1.25] text-white/55">{label}</p>
+        <p className="mt-1 text-[11px] font-medium leading-[1.2] text-white/55">{label}</p>
       </div>
     </div>
   );
@@ -648,8 +648,8 @@ function GameRow({ game }: { game: BibliotecaGame }) {
       href={`/games/${gameSlug}`}
       className="group/row block border-b border-white/[0.07] px-3 py-5 transition hover:bg-white/[0.025]"
     >
-      <div className="grid grid-cols-[68px_minmax(0,1fr)_120px_32px] items-start gap-4 lg:grid-cols-[68px_minmax(0,1fr)_140px_32px]">
-        <div className="h-[88px] w-[68px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+      <div className="grid grid-cols-[64px_minmax(0,1fr)_112px_32px] items-start gap-4 lg:grid-cols-[64px_minmax(0,1fr)_132px_32px]">
+        <div className="h-[82px] w-16 shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
 
@@ -663,12 +663,12 @@ function GameRow({ game }: { game: BibliotecaGame }) {
               ✓
             </span>
 
-            <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
+            <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
               {statusLabel}
             </span>
           </div>
 
-          <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] font-medium text-white/60">
+          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] font-medium text-white/60">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
               <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/[0.07] text-[11px] text-white/90">
                 ◉
@@ -699,7 +699,7 @@ function GameRow({ game }: { game: BibliotecaGame }) {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className={`w-11 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/55"}`}>
+            <span className={`w-11 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/45"}`}>
               {progress}%
             </span>
           </div>
@@ -944,12 +944,12 @@ export default function BibliotecaPage() {
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover object-center opacity-100"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.96)_0%,rgba(4,5,8,0.84)_38%,rgba(4,5,8,0.58)_70%,rgba(4,5,8,0.28)_100%)]" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,5,8,0.12),rgba(4,5,8,0.72)_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.94)_0%,rgba(4,5,8,0.78)_36%,rgba(4,5,8,0.48)_68%,rgba(4,5,8,0.18)_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,5,8,0.08),rgba(4,5,8,0.58)_100%)]" />
 
-              <div className="relative z-10 px-6 pb-6 pt-6 sm:px-7 sm:pb-7 sm:pt-7">
+              <div className="relative z-10 px-6 pb-5 pt-6 sm:px-7 sm:pb-6 sm:pt-7">
                 <p className="text-[10px] font-black uppercase tracking-[0.32em] text-red-400">+ Sua jornada em jogos</p>
-                <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white sm:text-[40px]">Jogos da Jornada</h1>
+                <h1 className="mt-2 text-[36px] font-black leading-none tracking-tight text-white sm:text-[40px]">Jogos da Jornada</h1>
                 <p className="mt-3 max-w-[650px] text-[13px] font-medium leading-[1.35] text-white/70 sm:text-[13px]">
                   Todos os jogos da sua jornada em um só lugar. Acompanhe seu progresso, conquistas e o caminho até a Maestria.
                 </p>
@@ -977,7 +977,7 @@ export default function BibliotecaPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por nome do jogo..."
-                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.025] pl-10 pr-4 text-[13px] font-medium text-white outline-none transition placeholder:text-white/35 focus:border-red-500/40 focus:bg-white/[0.04]"
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.025] pl-10 pr-4 text-[13px] font-medium text-white outline-none transition placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
                     />
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1022,20 +1022,20 @@ export default function BibliotecaPage() {
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400">Biblioteca</p>
                   <h2 className="mt-1 text-[20px] font-black">Resumo da Jornada</h2>
                 </div>
-                <span className="text-xl text-red-400">◈</span>
+                <span className="text-lg text-red-400">◈</span>
               </div>
 
               <div className="mt-4 space-y-3">
                 <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
                   <span className="text-[13px] font-medium text-white/55">Tempo total</span>
-                  <strong className="text-[14px] text-white">{totalHours}</strong>
+                  <strong className="text-sm text-white">{totalHours}</strong>
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Conquistas</span>
+                  <span className="text-[13px] font-medium text-white/55">Conquistas</span>
                   <strong className="text-sm text-white">{totalAchievementStats.completed}/{totalAchievementStats.total}</strong>
                 </div>
                 <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Progresso geral</span>
+                  <span className="text-[13px] font-medium text-white/55">Progresso geral</span>
                   <strong className="text-sm text-pink-400">{overallAchievementProgress}%</strong>
                 </div>
               </div>
@@ -1044,7 +1044,7 @@ export default function BibliotecaPage() {
             <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-[15px] font-black uppercase tracking-[0.18em]">Status dos Jogos</h2>
-                <span className="text-base text-red-400">◉</span>
+                <span className="text-red-400">◉</span>
               </div>
 
               <div className="mt-5 space-y-4">
@@ -1068,14 +1068,14 @@ export default function BibliotecaPage() {
 
             <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
-                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Próximos na Fila</h2>
+                <h2 className="text-[15px] font-black uppercase tracking-[0.18em]">Próximos na Fila</h2>
                 <Link href="/backlog" className="text-[11px] font-black uppercase tracking-[0.15em] text-red-400 hover:text-red-300">Ver fila</Link>
               </div>
 
               <div className="mt-4 space-y-3">
                 {backlogGames.slice(0, 4).map((game) => (
                   <Link key={game.slug} href={`/games/${game.slug}`} className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/[0.035]">
-                    <div className="h-14 w-10 shrink-0 overflow-hidden rounded border border-white/10">
+                    <div className="h-13 w-10 shrink-0 overflow-hidden rounded border border-white/10">
                       <GameCoverImage src={readText(game.cardImage, "") || readText(game.image, "")} title={game.title} />
                     </div>
                     <div className="min-w-0">
@@ -1090,7 +1090,7 @@ export default function BibliotecaPage() {
 
             <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Primeira Run</h2>
+                <h2 className="text-[15px] font-black uppercase tracking-[0.18em]">Primeira Run</h2>
                 <span className="text-red-400">✦</span>
               </div>
               <p className="mt-3 text-[13px] font-medium leading-relaxed text-white/45">
