@@ -23,8 +23,8 @@ function SvgIcon({
 function IconGamepad(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
+      <path d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
     </SvgIcon>
   );
 }
@@ -43,9 +43,9 @@ function IconTrophy(props: { className?: string }) {
 function IconTarget(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="5.1" stroke="currentColor" strokeWidth="1.55" opacity="0.75" />
-      <path d="M12 7.3V16.7M7.3 12H16.7" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" opacity="0.5" />
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="5.1" stroke="currentColor" strokeWidth="1.7" opacity="0.75" />
+      <path d="M12 7.3V16.7M7.3 12H16.7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.5" />
       <path d="M12 9.2L14.8 12L12 14.8L9.2 12L12 9.2Z" fill="currentColor" />
     </SvgIcon>
   );
