@@ -834,6 +834,7 @@ export default function BibliotecaPage() {
     });
   }, [activeFilter, bibliotecaGames, search]);
 
+  const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
   const totalAchievementStats = useMemo(() => {
     return bibliotecaGames.reduce(
       (acc, game) => {
@@ -941,7 +942,7 @@ export default function BibliotecaPage() {
               <img
                 src="/images/jogos-bg.png"
                 alt=""
-                className="absolute inset-0 h-full w-full object-cover object-center opacity-45"
+                className="absolute inset-0 h-full w-full object-cover object-center opacity-100"
               />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.96)_0%,rgba(4,5,8,0.84)_38%,rgba(4,5,8,0.58)_70%,rgba(4,5,8,0.28)_100%)]" />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,5,8,0.12),rgba(4,5,8,0.72)_100%)]" />
