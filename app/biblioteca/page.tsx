@@ -1044,33 +1044,33 @@ export default function BibliotecaPage() {
                 </div>
 
                 <div className="absolute bottom-8 left-7 right-7 grid grid-cols-3">
-                  <div className="flex items-center gap-3 pr-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+                  <div className="flex min-w-0 items-center gap-2.5 pr-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
                       <IconGamepad className="h-[22px] w-[22px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-[19px] font-black leading-none text-white">{bibliotecaGames.length}</p>
-                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Jogos na biblioteca</p>
+                      <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{bibliotecaGames.length}</p>
+                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Jogos na biblioteca</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 border-l border-white/10 px-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
                       <IconTrophy className="h-[22px] w-[22px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-[19px] font-black leading-none text-white">{completedGames.length}</p>
-                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Finalizados</p>
+                      <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{completedGames.length}</p>
+                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Finalizados</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 border-l border-white/10 pl-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
                       <IconTarget className="h-[22px] w-[22px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-[19px] font-black leading-none text-white">{backlogGames.length}</p>
-                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Na fila</p>
+                      <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{backlogGames.length}</p>
+                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Na fila</p>
                     </div>
                   </div>
                 </div>
