@@ -592,29 +592,34 @@ function HeroStat({
       ? "text-red-300"
       : "text-white";
 
-  const iconSvg =
-    icon === "gamepad" ? (
-      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M7.5 6h9a4 4 0 0 1 3.84 2.88l1.1 3.85a3.25 3.25 0 0 1-5.94 2.42L14.6 13H9.4l-.9 2.15a3.25 3.25 0 0 1-5.94-2.42l1.1-3.85A4 4 0 0 1 7.5 6Z" />
-        <path d="M7 9v4M5 11h4M16.5 10.5h.01M19 12.5h.01" />
-      </svg>
-    ) : icon === "trophy" ? (
-      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M8 4h8v4.5a4 4 0 0 1-8 0V4Z" />
-        <path d="M8 6H5.5A1.5 1.5 0 0 0 4 7.5 3.5 3.5 0 0 0 7.5 11M16 6h2.5A1.5 1.5 0 0 1 20 7.5a3.5 3.5 0 0 1-3.5 3.5M12 13v4M9 20h6M10 17h4" />
-      </svg>
-    ) : (
-      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="8.5" />
-        <circle cx="12" cy="12" r="4.5" />
-        <path d="m12 9 1.1 2.1L15 12l-1.9.9L12 15l-1.1-2.1L9 12l1.9-.9L12 9Z" />
-      </svg>
-    );
+  const iconColor =
+    accent === "green"
+      ? "currentColor"
+      : accent === "cyan"
+      ? "currentColor"
+      : "currentColor";
 
   return (
     <div className="flex min-w-0 items-center gap-3">
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}>
-        {iconSvg}
+        {icon === "🎮" ? (
+          <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke={iconColor} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M7.5 6.5h9a4 4 0 0 1 3.75 2.6l1.2 3.2a3.5 3.5 0 0 1-6.55 2.5l-.65-1.3H9.75l-.65 1.3a3.5 3.5 0 0 1-6.55-2.5l1.2-3.2A4 4 0 0 1 7.5 6.5Z" />
+            <path d="M8 10v4M6 12h4M16.5 10.5h.01M18.5 12.5h.01" />
+          </svg>
+        ) : icon === "🏆" ? (
+          <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke={iconColor} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M8 4h8v5.5a4 4 0 0 1-8 0V4Z" />
+            <path d="M8 6H5a2 2 0 0 0 0 4h3M16 6h3a2 2 0 0 1 0 4h-3" />
+            <path d="M12 13.5V18M9 21h6M10 18h4" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke={iconColor} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5" />
+            <circle cx="12" cy="12" r="4.5" />
+            <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+          </svg>
+        )}
       </span>
       <div className="min-w-0">
         <p className={`truncate text-[19px] font-black leading-none tracking-tight ${valueClass}`}>
