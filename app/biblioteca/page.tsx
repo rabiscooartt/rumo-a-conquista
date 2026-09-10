@@ -1,77 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
-
-
-function SvgIcon({
-  children,
-  className = "h-4 w-4",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      {children}
-    </svg>
-  );
-}
-
-function IconGamepad(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </SvgIcon>
-  );
-}
-
-function IconTrophy(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-      <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 14.65V18.2M8.3 20H15.7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      <path d="M12 6.6L12.75 8.05L14.35 8.28L13.17 9.38L13.45 10.95L12 10.2L10.55 10.95L10.83 9.38L9.65 8.28L11.25 8.05L12 6.6Z" fill="currentColor" />
-    </SvgIcon>
-  );
-}
-
-function IconTarget(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="5.1" stroke="currentColor" strokeWidth="1.55" opacity="0.75" />
-      <path d="M12 7.3V16.7M7.3 12H16.7" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" opacity="0.5" />
-      <path d="M12 9.2L14.8 12L12 14.8L9.2 12L12 9.2Z" fill="currentColor" />
-    </SvgIcon>
-  );
-}
-
-function IconTrend(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <rect x="4" y="14" width="3" height="5.5" rx="1" fill="currentColor" opacity="0.4" />
-      <rect x="10.5" y="10" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.7" />
-      <rect x="17" y="5.5" width="3" height="14" rx="1" fill="currentColor" />
-      <path d="M4.5 10.8L9.2 6.9L13 9.8L19.5 4.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16 4.5H19.5V8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-    </SvgIcon>
-  );
-}
-
-function IconCalendar(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <rect x="4" y="5.5" width="16" height="14.5" rx="3" stroke="currentColor" strokeWidth="1.9" />
-      <path d="M7.5 3.8V7.1M16.5 3.8V7.1M4.5 9.5H19.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      <path d="M8 13H8.01M12 13H12.01M16 13H16.01M8 16.5H8.01M12 16.5H12.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-    </SvgIcon>
-  );
-}
 
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
@@ -631,7 +563,7 @@ function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
   return <span className="text-lg">{mastery.icon || "💎"}</span>;
 }
 
-function MiniStatCard({
+function HeroStat({
   label,
   value,
   icon,
@@ -639,10 +571,19 @@ function MiniStatCard({
 }: {
   label: string;
   value: string;
-  icon?: string;
+  icon: string;
   accent?: "white" | "green" | "red" | "cyan";
 }) {
-  const valueColor =
+  const iconClass =
+    accent === "green"
+      ? "bg-emerald-500/10 text-emerald-300"
+      : accent === "cyan"
+      ? "bg-cyan-500/10 text-cyan-300"
+      : accent === "red"
+      ? "bg-red-500/10 text-red-300"
+      : "bg-red-500/10 text-red-300";
+
+  const valueClass =
     accent === "green"
       ? "text-emerald-300"
       : accent === "cyan"
@@ -651,34 +592,35 @@ function MiniStatCard({
       ? "text-red-300"
       : "text-white";
 
-  const glowClass =
-    accent === "green"
-      ? "group-hover/card:border-emerald-400/25 group-hover/card:bg-emerald-500/[0.04]"
-      : accent === "cyan"
-      ? "group-hover/card:border-cyan-400/25 group-hover/card:bg-cyan-500/[0.04]"
-      : accent === "red"
-      ? "group-hover/card:border-red-400/25 group-hover/card:bg-red-500/[0.04]"
-      : "group-hover/card:border-white/20 group-hover/card:bg-white/[0.05]";
+  const iconSvg =
+    icon === "gamepad" ? (
+      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M7.5 6h9a4 4 0 0 1 3.84 2.88l1.1 3.85a3.25 3.25 0 0 1-5.94 2.42L14.6 13H9.4l-.9 2.15a3.25 3.25 0 0 1-5.94-2.42l1.1-3.85A4 4 0 0 1 7.5 6Z" />
+        <path d="M7 9v4M5 11h4M16.5 10.5h.01M19 12.5h.01" />
+      </svg>
+    ) : icon === "trophy" ? (
+      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M8 4h8v4.5a4 4 0 0 1-8 0V4Z" />
+        <path d="M8 6H5.5A1.5 1.5 0 0 0 4 7.5 3.5 3.5 0 0 0 7.5 11M16 6h2.5A1.5 1.5 0 0 1 20 7.5a3.5 3.5 0 0 1-3.5 3.5M12 13v4M9 20h6M10 17h4" />
+      </svg>
+    ) : (
+      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" />
+        <circle cx="12" cy="12" r="4.5" />
+        <path d="m12 9 1.1 2.1L15 12l-1.9.9L12 15l-1.1-2.1L9 12l1.9-.9L12 9Z" />
+      </svg>
+    );
 
   return (
-    <div
-      className={`min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 transition ${glowClass}`}
-    >
-      <p className="truncate text-[9px] font-black uppercase tracking-[0.22em] text-white/35">
-        {label}
-      </p>
-
-      <div className="mt-3 flex min-w-0 items-center gap-2">
-        {icon ? (
-          <span className="shrink-0 text-xl leading-none">{icon}</span>
-        ) : null}
-
-        <p
-          className={`min-w-0 truncate text-[18px] font-black leading-none tracking-tight ${valueColor}`}
-          title={value}
-        >
+    <div className="flex min-w-0 items-center gap-3">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}>
+        {iconSvg}
+      </span>
+      <div className="min-w-0">
+        <p className={`truncate text-[19px] font-black leading-none tracking-tight ${valueClass}`}>
           {value}
         </p>
+        <p className="mt-1 text-[10px] font-bold text-white/45">{label}</p>
       </div>
     </div>
   );
@@ -942,23 +884,20 @@ export default function BibliotecaPage() {
     : 0;
 
   return (
-    <main className="min-h-screen bg-[#050608] text-white">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#05070b_42%,#020202_100%)] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1560px] grid-cols-1 lg:grid-cols-[190px_minmax(0,1fr)]">
         {/* SIDEBAR — estrutura-base compartilhada entre as páginas */}
-        <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
+        <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-5 py-6 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
-              <div className="border-t border-white/[0.08] pt-5">
-                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
-                  <IconGamepad className="h-4 w-4 text-red-400" />
-                  Jogos
-                </div>
-                <p className="mt-2 text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Biblioteca</p>
+              <div className="border-l-2 border-red-500 pl-3">
+                <p className="text-[12px] font-black text-white">JOGOS</p>
+                <p className="mt-1 text-[8px] font-black uppercase tracking-[0.2em] text-white/25">Biblioteca</p>
               </div>
 
-              <nav className="mt-6 space-y-1">
+              <nav className="mt-7 space-y-1">
                 {[
                   ["Todos os jogos", "all"],
                   ["Em progresso", "progress"],
@@ -984,8 +923,8 @@ export default function BibliotecaPage() {
                 })}
               </nav>
 
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/25">
+              <div className="mt-8 border-t border-white/[0.08] pt-6">
+                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
                   Sua biblioteca
                 </p>
                 <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/35">
@@ -999,7 +938,7 @@ export default function BibliotecaPage() {
                 href="/configuracoes"
                 className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45 transition hover:text-white"
               >
-                <IconTarget className="h-4 w-4" />
+                <span className="text-sm">⚙</span>
                 Configurações
               </Link>
 
@@ -1015,70 +954,41 @@ export default function BibliotecaPage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+        <div className="min-w-0 px-4 py-5 md:px-6 lg:px-5">
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div className="min-w-0">
-            <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-              <div
-                className="absolute inset-0 bg-cover bg-right-center bg-no-repeat"
-                style={{ backgroundImage: "url('/images/jogos-bg.png')" }}
+            <header className="relative overflow-hidden rounded-[18px] border border-white/10 bg-[#08090c]">
+              <img
+                src="/images/jogos-bg.png"
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover object-center opacity-100"
               />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,8,0.96)_0%,rgba(4,5,8,0.84)_38%,rgba(4,5,8,0.58)_70%,rgba(4,5,8,0.28)_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,5,8,0.12),rgba(4,5,8,0.72)_100%)]" />
 
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
-              <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
+              <div className="relative z-10 px-6 pb-5 pt-6 sm:px-7 sm:pb-6 sm:pt-7">
+                <p className="text-[10px] font-black uppercase tracking-[0.32em] text-red-400">+ Sua jornada em jogos</p>
+                <h1 className="mt-2 text-[34px] font-black leading-none tracking-tight text-white sm:text-[40px]">Jogos da Jornada</h1>
+                <p className="mt-3 max-w-[650px] text-[12px] leading-relaxed text-white/60 sm:text-[13px]">
+                  Todos os jogos da sua jornada em um só lugar. Acompanhe seu progresso, conquistas e o caminho até a Maestria.
+                </p>
 
-              <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
-                <div className="max-w-[470px]">
-                  <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
-                    <span className="text-[10px] leading-none">✣</span>
-                    Sua jornada em jogos
-                  </p>
-
-                  <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
-                    JOGOS DA JORNADA
-                  </h1>
-
-                  <p className="mt-3 max-w-[390px] text-[12px] font-medium leading-[1.35] text-white/70">
-                    Todos os jogos da sua jornada em um só lugar. Acompanhe seu progresso, conquistas e o caminho até a Maestria.
-                  </p>
-                </div>
-
-                <div className="absolute bottom-8 left-7 right-7 grid grid-cols-3">
-                  <div className="flex items-center gap-3 pr-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                      <IconGamepad className="h-[22px] w-[22px]" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[19px] font-black leading-none text-white">{bibliotecaGames.length}</p>
-                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Jogos na biblioteca</p>
-                    </div>
+                <div className="mt-6 grid grid-cols-1 gap-4 border-t border-white/10 pt-4 sm:grid-cols-3 sm:gap-0">
+                  <div className="sm:border-r sm:border-white/10 sm:pr-5">
+                    <HeroStat label="Jogos na biblioteca" value={String(bibliotecaGames.length)} icon="gamepad" />
                   </div>
-
-                  <div className="flex items-center gap-3 border-l border-white/10 px-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                      <IconTrophy className="h-[22px] w-[22px]" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[19px] font-black leading-none text-white">{completedGames.length}</p>
-                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Finalizados</p>
-                    </div>
+                  <div className="sm:border-r sm:border-white/10 sm:px-5">
+                    <HeroStat label="Finalizados" value={String(completedGames.length)} icon="trophy" accent="green" />
                   </div>
-
-                  <div className="flex items-center gap-3 border-l border-white/10 pl-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                      <IconTarget className="h-[22px] w-[22px]" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[19px] font-black leading-none text-white">{backlogGames.length}</p>
-                      <p className="mt-1 truncate text-[10px] font-bold text-white/50">Na fila</p>
-                    </div>
+                  <div className="sm:pl-5">
+                    <HeroStat label="Na fila" value={String(backlogGames.length)} icon="target" accent="cyan" />
                   </div>
                 </div>
               </div>
             </header>
 
-            <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
-              <div className="border-b border-white/[0.08] px-3 pt-3">
+            <section className="mt-6 overflow-hidden rounded-[20px] border border-white/10 bg-black/20">
+              <div className="border-b border-white/[0.07] p-3 sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row">
                   <div className="relative min-w-0 flex-1">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
@@ -1086,7 +996,7 @@ export default function BibliotecaPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
+                      className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.025] pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
                     />
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1098,7 +1008,7 @@ export default function BibliotecaPage() {
                           key={filter.value}
                           type="button"
                           onClick={() => handleFilterChange(filter.value)}
-                          className={`rounded-xl border px-4 py-3 text-[11px] font-black transition ${
+                          className={`h-11 rounded-xl border px-3 text-[11px] font-black transition ${
                             isActive
                               ? "border-red-500/45 bg-red-500/12 text-white"
                               : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"
@@ -1124,8 +1034,8 @@ export default function BibliotecaPage() {
             </section>
             </div>
 
-            <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <aside className="space-y-5 xl:sticky xl:top-5 xl:self-start">
+            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400">Biblioteca</p>
@@ -1150,9 +1060,9 @@ export default function BibliotecaPage() {
               </div>
             </section>
 
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-[16px] font-black uppercase tracking-[0.01em]">Status dos Jogos</h2>
+                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Status dos Jogos</h2>
                 <span className="text-red-400">◉</span>
               </div>
 
@@ -1175,9 +1085,9 @@ export default function BibliotecaPage() {
               </div>
             </section>
 
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
-                <h2 className="text-[16px] font-black uppercase tracking-[0.01em]">Próximos na Fila</h2>
+                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Próximos na Fila</h2>
                 <Link href="/backlog" className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 hover:text-red-300">Ver fila</Link>
               </div>
 
@@ -1197,9 +1107,9 @@ export default function BibliotecaPage() {
               </div>
             </section>
 
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="rounded-[20px] border border-white/10 bg-black/25 p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-[16px] font-black uppercase tracking-[0.01em]">Primeira Run</h2>
+                <h2 className="text-sm font-black uppercase tracking-[0.18em]">Primeira Run</h2>
                 <span className="text-red-400">✦</span>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-white/35">
