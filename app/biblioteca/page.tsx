@@ -73,6 +73,43 @@ function IconCalendar(props: { className?: string }) {
   );
 }
 
+function IconClock(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.9" />
+      <path d="M12 7.5V12L15 14" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+    </SvgIcon>
+  );
+}
+
+function IconPlatform(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.5 10.5H15.5V15H8.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M10 8.5V10.5M14 8.5V10.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </SvgIcon>
+  );
+}
+
+function IconBell(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M6.8 16.5H17.2L16 14.6V10.8C16 8.35 14.4 6.5 12 6.5C9.6 6.5 8 8.35 8 10.8V14.6L6.8 16.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M10.2 18C10.65 18.65 11.25 19 12 19C12.75 19 13.35 18.65 13.8 18" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </SvgIcon>
+  );
+}
+
+function IconList(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="7" y="4.5" width="10" height="15" rx="1.8" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M9.5 9H14.5M9.5 12H14.5M9.5 15H13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </SvgIcon>
+  );
+}
+
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
 type AchievementSummary =
@@ -725,18 +762,18 @@ function GameRow({ game }: { game: BibliotecaGame }) {
       href={`/games/${gameSlug}`}
       className="group/row block border-b border-white/[0.07] px-3 py-5 transition hover:bg-white/[0.025]"
     >
-      <div className="grid grid-cols-[64px_minmax(0,1fr)_112px_32px] items-start gap-4 lg:grid-cols-[64px_minmax(0,1fr)_132px_32px]">
-        <div className="h-[82px] w-16 shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+      <div className="grid grid-cols-[72px_minmax(0,1fr)_82px] items-start gap-4 lg:grid-cols-[72px_minmax(0,1fr)_92px]">
+        <div className="h-[92px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
 
         <div className="min-w-0 pt-0.5">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <h2 className="truncate text-[16px] font-black tracking-tight text-white sm:text-[17px]">
+            <h2 className="truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]">
               {gameTitle}
             </h2>
 
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] font-black text-white shadow-[0_0_10px_rgba(59,130,246,0.25)]">
+            <span className="inline-flex h-[17px] w-[17px] items-center justify-center rounded-full bg-blue-500 text-[9px] font-black text-white shadow-[0_0_10px_rgba(59,130,246,0.25)]">
               ✓
             </span>
 
@@ -745,50 +782,75 @@ function GameRow({ game }: { game: BibliotecaGame }) {
             </span>
           </div>
 
-          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/45">
+          <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/[0.06] text-[10px] text-white/80">
-                ◉
-              </span>
+              <IconPlatform className="h-[15px] w-[15px] text-white/65" />
               {platform}
             </span>
 
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
+            <span className="hidden h-4 w-px bg-white/15 sm:block" />
 
-            <span className="whitespace-nowrap">🏆 {achievementStats.completed}/{achievementStats.total}</span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <IconTrophy className="h-[15px] w-[15px] text-white/65" />
+              {achievementStats.completed}/{achievementStats.total}
+            </span>
 
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
+            <span className="hidden h-4 w-px bg-white/15 sm:block" />
 
-            <span className="whitespace-nowrap">◷ {readText(game.hours, "0h")}</span>
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <IconClock className="h-[15px] w-[15px] text-white/65" />
+              {readText(game.hours, "0h")}
+            </span>
 
             {date ? (
               <>
-                <span className="hidden h-4 w-px bg-white/10 sm:block" />
-                <span className="whitespace-nowrap">▣ {date}</span>
+                <span className="hidden h-4 w-px bg-white/15 sm:block" />
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <IconCalendar className="h-[15px] w-[15px] text-white/65" />
+                  {date}
+                </span>
               </>
             ) : null}
           </div>
 
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex items-center gap-2.5">
             <div className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${progressClass}`}
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className={`w-10 shrink-0 text-right text-[11px] font-black ${isCompleted ? "text-emerald-300" : "text-white/45"}`}>
+            <span className={`w-10 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
               {progress}%
             </span>
           </div>
         </div>
 
-        <div className="hidden pt-1 text-right lg:block">
-          <p className="text-[13px] font-black text-white/90">{readText(game.hours, "0h")}</p>
-          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.13em] text-white/25">Tempo jogado</p>
-        </div>
-
-        <div className="flex justify-end pt-1">
-          <span className="text-lg leading-none text-white/35 transition group-hover/row:text-white/70">⋮</span>
+        <div className="flex items-start justify-end gap-3 pt-1.5">
+          <button
+            type="button"
+            aria-label={`Notificações de ${gameTitle}`}
+            onClick={(event) => event.preventDefault()}
+            className="text-white/45 transition hover:text-white/80"
+          >
+            <IconBell className="h-[17px] w-[17px]" />
+          </button>
+          <button
+            type="button"
+            aria-label={`Conquistas de ${gameTitle}`}
+            onClick={(event) => event.preventDefault()}
+            className="text-white/45 transition hover:text-white/80"
+          >
+            <IconTrophy className="h-[17px] w-[17px]" />
+          </button>
+          <button
+            type="button"
+            aria-label={`Detalhes de ${gameTitle}`}
+            onClick={(event) => event.preventDefault()}
+            className="text-white/45 transition hover:text-white/80"
+          >
+            <IconList className="h-[17px] w-[17px]" />
+          </button>
         </div>
       </div>
     </Link>
