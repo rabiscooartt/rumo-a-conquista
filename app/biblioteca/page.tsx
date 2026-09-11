@@ -728,6 +728,16 @@ function getPlatformLabel(game: BibliotecaGame) {
 }
 
 function formatGameDate(game: BibliotecaGame) {
+  const title = normalizeText(readText(game.title, ""));
+
+  if (title === "crisol theater of idols") {
+    return "27/03/2026 → 06/04/2026";
+  }
+
+  if (title === "hogwarts legacy") {
+    return "25/01/2026 → 10/02/2026";
+  }
+
   const raw = readText(game.updatedAt, "") || readText(game.createdAt, "");
   if (!raw) return "";
   const date = new Date(raw);
