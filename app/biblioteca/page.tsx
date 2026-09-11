@@ -799,7 +799,7 @@ function GameRow({ game }: { game: BibliotecaGame }) {
 
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
               <IconClock className="h-[15px] w-[15px] text-white/65" />
-              {readText(game.hours, "0h")}
+              {isBacklog ? "—" : readText(game.hours, "0h")}
             </span>
 
             {date ? (
