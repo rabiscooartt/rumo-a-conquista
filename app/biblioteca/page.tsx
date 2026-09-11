@@ -745,7 +745,7 @@ function GameRow({ game }: { game: BibliotecaGame }) {
   const isBacklog = isBacklogGame(game);
   const statusLabel = getStatusLabel(game);
   const platform = getPlatformLabel(game);
-  const date = formatGameDate(game);
+  const date = isBacklog ? "" : formatGameDate(game);
 
   const statusClass = isCompleted
     ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
