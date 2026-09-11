@@ -791,7 +791,7 @@ function GameRow({ game }: { game: BibliotecaGame }) {
             <span className="hidden h-4 w-px bg-white/15 sm:block" />
 
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <IconTrophy className="h-[15px] w-[15px] text-white/65" />
+              <IconTrophy className="h-[16px] w-[16px] text-amber-400" />
               {achievementStats.completed}/{achievementStats.total}
             </span>
 
