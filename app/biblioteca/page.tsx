@@ -83,9 +83,21 @@ function IconClock(props: { className?: string }) {
   );
 }
 
-function IconPlatform(props: { className?: string }) {
+function IconPlatform({ platform, className = "h-4 w-4" }: { platform?: string; className?: string }) {
+  const normalizedPlatform = normalizeText(platform);
+
+  if (normalizedPlatform === "steam") {
+    return (
+      <img
+        src="/images/platforms/steam.png"
+        alt="Steam"
+        className={`${className} shrink-0 object-contain`}
+      />
+    );
+  }
+
   return (
-    <SvgIcon {...props}>
+    <SvgIcon className={className}>
       <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.8" />
       <path d="M8.5 10.5H15.5V15H8.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
       <path d="M10 8.5V10.5M14 8.5V10.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -835,7 +847,7 @@ function GameRow({
 
           <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <IconPlatform className="h-[15px] w-[15px] text-white/65" />
+              <IconPlatform platform={platform} className="h-[17px] w-[17px]" />
               {platform}
             </span>
 
