@@ -37,6 +37,7 @@ type GameEditorForm = {
   currentObjective: string;
   image: string;
   cardImage: string;
+  platform: string;
   emblemTitle: string;
   emblemImage: string;
   emblemDescription: string;
@@ -79,6 +80,7 @@ const emptyGameForm: GameFormInput = {
   currentObjective: "",
   image: "",
   cardImage: "",
+  platform: "Steam",
   emblemTitle: "",
   emblemImage: "",
   emblemDescription: "",
@@ -472,6 +474,7 @@ function GameEditorCard({
     currentObjective: String(game.currentObjective || game.objective || ""),
     image: String(game.image || ""),
     cardImage: String(game.cardImage || ""),
+    platform: String(game.platform || "Steam"),
     emblemTitle: String(game.emblem?.title || ""),
     emblemImage: String(game.emblem?.image || ""),
     emblemDescription: String(game.emblem?.description || ""),
@@ -577,6 +580,7 @@ function GameEditorCard({
       currentObjective: String(game.currentObjective || game.objective || ""),
       image: String(game.image || ""),
       cardImage: String(game.cardImage || ""),
+      platform: String(game.platform || "Steam"),
       emblemTitle: String(game.emblem?.title || ""),
       emblemImage: String(game.emblem?.image || ""),
       emblemDescription: String(game.emblem?.description || ""),
@@ -716,6 +720,7 @@ function handleCopyAchievementNames() {
       objective: form.currentObjective.trim(),
       image: form.image.trim() || getImagePath(game.slug, "banner.jpg"),
       cardImage: form.cardImage.trim() || getImagePath(game.slug, "cover.jpg"),
+      platform: form.platform.trim() || "Steam",
       emblem: createEmblemPayload(form),
       achievementsList: normalizeAchievementsForSave(nextAchievements),
       review: normalizedReview,
@@ -956,6 +961,29 @@ function handleCopyAchievementNames() {
                 {statusOptions.map((status) => (
                   <option key={status.value} value={status.value}>
                     {status.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+                Plataforma
+              </span>
+
+              <select
+                value={form.platform}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    platform: event.target.value,
+                  }))
+                }
+                className="mt-2 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+              >
+                {['Steam', 'PlayStation', 'Xbox', 'Nintendo Switch', 'Epic Games', 'GOG', 'Ubisoft Connect', 'EA App'].map((platform) => (
+                  <option key={platform} value={platform}>
+                    {platform}
                   </option>
                 ))}
               </select>
@@ -1944,6 +1972,7 @@ export default function AdminJogosPage() {
       slug,
       image: form.image || `/images/games/${slug}/banner.jpg`,
       cardImage: form.cardImage || `/images/games/${slug}/cover.jpg`,
+      platform: form.platform || "Steam",
       emblemImage: form.emblemImage || `/images/games/${slug}/emblem.png`,
     });
 

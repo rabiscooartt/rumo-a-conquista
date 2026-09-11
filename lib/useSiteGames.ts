@@ -37,6 +37,7 @@ export type SiteGame = {
   objective?: string;
   image?: string;
   cardImage?: string;
+  platform?: string;
   achievementsList?: FlexibleAchievementInput[];
   achievementsUnlocked?: number;
   achievementsTotal?: number;
@@ -72,6 +73,7 @@ export type GameFormInput = {
   currentObjective: string;
   image: string;
   cardImage: string;
+  platform: string;
   emblemTitle?: string;
   emblemImage?: string;
   emblemDescription?: string;
@@ -96,6 +98,7 @@ type DatabaseGame = {
   current_objective: string | null;
   image: string | null;
   card_image: string | null;
+  platform: string | null;
   final_badge: unknown;
   emblem: unknown;
   trophies: unknown;
@@ -430,6 +433,8 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const cardImage =
     readText(game.cardImage, "") || `/images/games/${finalSlug}/cover.jpg`;
 
+  const platform = readText(game.platform, "Steam").trim() || "Steam";
+
   // A lista de conquistas e o progresso vindo da API/Supabase são a fonte
   // oficial. Nenhum estado local do navegador é aplicado por cima desses dados.
   const achievementsList = Array.isArray(game.achievementsList)
@@ -467,6 +472,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     objective: currentObjective,
     image,
     cardImage,
+    platform,
     achievementsList,
     achievementsUnlocked: progressStats.completed,
     achievementsTotal: progressStats.total,
@@ -527,6 +533,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         manualTotalPlayedMinutes:
           game.manual_total_played_minutes ?? null,
         cardImage: game.card_image ?? "",
+        platform: game.platform ?? "Steam",
         achievementsList: Array.isArray(game.achievementsList)
           ? game.achievementsList
           : [],
@@ -594,6 +601,7 @@ async function saveGameToSupabase(
     objective: game.objective,
     image: game.image,
     cardImage: game.cardImage,
+    platform: game.platform,
     finalBadge: game.finalBadge,
     emblem: game.emblem,
     trophies: game.trophies,
@@ -800,6 +808,7 @@ const hiddenGamesList = useMemo(() => {
       objective: input.currentObjective.trim(),
       image: input.image.trim() || `/images/games/${slug}/banner.jpg`,
       cardImage: input.cardImage.trim() || `/images/games/${slug}/cover.jpg`,
+      platform: input.platform.trim() || "Steam",
       emblem: normalizeEmblem({
         title: input.emblemTitle,
         image: input.emblemImage,

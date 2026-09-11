@@ -103,6 +103,7 @@ type GamePayload = {
   objective?: string;
   image?: string;
   cardImage?: string;
+  platform?: string;
   finalBadge?: unknown;
   emblem?: unknown;
   trophies?: unknown;
@@ -150,6 +151,7 @@ function buildGameData(game: GamePayload) {
     ),
     image: normalizeText(game.image),
     card_image: normalizeText(game.cardImage),
+    platform: normalizeText(game.platform, "Steam") || "Steam",
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
@@ -442,6 +444,7 @@ async function fetchEnrichedGame(
       current_objective,
       image,
       card_image,
+      platform,
       final_badge,
       emblem,
       trophies,
