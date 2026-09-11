@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { useJourneyEntries } from "@/lib/useJourneyEntries";
 
 
 function SvgIcon({
@@ -745,7 +746,49 @@ function formatGameDate(game: BibliotecaGame) {
   return date.toLocaleDateString("pt-BR");
 }
 
-function GameRow({ game }: { game: BibliotecaGame }) {
+type ActivitySummary = {
+  totalMinutes: number;
+  firstDate: string;
+  lastDate: string;
+};
+
+function formatMinutesAsGameTime(minutes: number) {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const mins = safeMinutes % 60;
+
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}min`;
+}
+
+function formatActivityDate(dateValue: string) {
+  if (!dateValue) return "";
+
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("pt-BR");
+}
+
+function getActivityPeriod(summary?: ActivitySummary) {
+  if (!summary?.firstDate) return "";
+
+  const firstDate = formatActivityDate(summary.firstDate);
+  const lastDate = formatActivityDate(summary.lastDate);
+
+  if (!firstDate) return "";
+  if (!lastDate || summary.firstDate === summary.lastDate) return firstDate;
+
+  return `${firstDate} → ${lastDate}`;
+}
+
+function GameRow({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
   const gameSlug = readText(game.slug, "");
   const gameTitle = readText(game.title, "Jogo");
   const cardImage = readText(game.cardImage, "") || readText(game.image, "");
@@ -755,7 +798,16 @@ function GameRow({ game }: { game: BibliotecaGame }) {
   const isBacklog = isBacklogGame(game);
   const statusLabel = getStatusLabel(game);
   const platform = getPlatformLabel(game);
-  const date = isBacklog ? "" : formatGameDate(game);
+  const date = isBacklog
+    ? ""
+    : isProgressGame(game)
+    ? getActivityPeriod(activitySummary)
+    : formatGameDate(game);
+  const playedTime = isBacklog
+    ? "—"
+    : isProgressGame(game) && activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
 
   const statusClass = isCompleted
     ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
@@ -809,7 +861,7 @@ function GameRow({ game }: { game: BibliotecaGame }) {
 
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
               <IconClock className="h-[15px] w-[15px] text-white/65" />
-              {isBacklog ? "—" : readText(game.hours, "0h")}
+              {playedTime}
             </span>
 
             {date ? (
@@ -917,6 +969,7 @@ function GameSection({
 
 export default function BibliotecaPage() {
   const { gamesList, isLoaded } = useSiteGames();
+  const { entries: journeyEntries } = useJourneyEntries();
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
@@ -962,6 +1015,38 @@ export default function BibliotecaPage() {
 
   const bibliotecaGames = useMemo(() => gamesList as BibliotecaGame[], [gamesList, refreshKey]);
 
+  const activitySummaryByGame = useMemo(() => {
+    const summary = new Map<string, ActivitySummary>();
+
+    for (const entry of journeyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      const date = readText(entry.date, "").trim();
+      if (!slug || !date) continue;
+
+      const playedMinutes = Math.max(0, readNumber(entry.playedMinutes, 0));
+      const current = summary.get(slug);
+
+      if (!current) {
+        summary.set(slug, {
+          totalMinutes: playedMinutes,
+          firstDate: date,
+          lastDate: date,
+        });
+        continue;
+      }
+
+      current.totalMinutes += playedMinutes;
+      if (new Date(date).getTime() < new Date(current.firstDate).getTime()) {
+        current.firstDate = date;
+      }
+      if (new Date(date).getTime() > new Date(current.lastDate).getTime()) {
+        current.lastDate = date;
+      }
+    }
+
+    return summary;
+  }, [journeyEntries]);
+
   const progressGames = useMemo(() => bibliotecaGames.filter((game) => isProgressGame(game)), [bibliotecaGames]);
   const backlogGames = useMemo(
     () => bibliotecaGames.filter((game) => isBacklogGame(game) && !isProgressGame(game) && !isCompletedGame(game)),
@@ -999,6 +1084,14 @@ export default function BibliotecaPage() {
   const totalHours = useMemo(() => {
     let minutes = 0;
     for (const game of bibliotecaGames) {
+      if (isBacklogGame(game)) continue;
+
+      const activitySummary = activitySummaryByGame.get(readText(game.slug, ""));
+      if (isProgressGame(game) && activitySummary) {
+        minutes += activitySummary.totalMinutes;
+        continue;
+      }
+
       const value = readText(game.hours, "").toLowerCase();
       const h = value.match(/(\d+)\s*h/);
       const m = value.match(/(\d+)\s*m/);
@@ -1007,7 +1100,7 @@ export default function BibliotecaPage() {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins ? `${hours}h ${mins}min` : `${hours}h`;
-  }, [bibliotecaGames]);
+  }, [activitySummaryByGame, bibliotecaGames]);
 
   const overallAchievementProgress = totalAchievementStats.total
     ? Math.round((totalAchievementStats.completed / totalAchievementStats.total) * 100)
@@ -1190,7 +1283,13 @@ export default function BibliotecaPage() {
                 ) : filteredGames.length === 0 ? (
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
-                  filteredGames.map((game) => <GameRow key={game.slug} game={game} />)
+                  filteredGames.map((game) => (
+                    <GameRow
+                      key={game.slug}
+                      game={game}
+                      activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                    />
+                  ))
                 )}
               </div>
             </section>
