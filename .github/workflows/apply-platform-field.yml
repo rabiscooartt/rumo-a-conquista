@@ -3,13 +3,14 @@ name: Apply platform field
 on:
   push:
     branches: [main]
+    paths:
+      - platform-update-trigger.txt
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.event.head_commit.message != 'chore: trigger platform update'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +42,6 @@ jobs:
           replace(p, '  cardImage?: string;\n  finalBadge?: unknown;', '  cardImage?: string;\n  platform?: string;\n  finalBadge?: unknown;')
           replace(p, '    card_image: normalizeText(game.cardImage),\n    final_badge:', '    card_image: normalizeText(game.cardImage),\n    platform: normalizeText(game.platform, "Steam") || "Steam",\n    final_badge:')
           replace(p, '      card_image,\n      final_badge,', '      card_image,\n      platform,\n      final_badge,')
-          replace(p, '      card_image,\n      final_badge,', '      card_image,\n      platform,\n      final_badge,', 0)
 
           p='app/admin/jogos/page.tsx'
           replace(p, '  cardImage: string;\n  emblemTitle:', '  cardImage: string;\n  platform: string;\n  emblemTitle:')
@@ -54,17 +54,14 @@ jobs:
           replace(p, marker, insert)
           replace(p, '      cardImage: form.cardImage || `/images/games/${slug}/cover.jpg`,\n      emblemImage:', '      cardImage: form.cardImage || `/images/games/${slug}/cover.jpg`,\n      platform: form.platform || "Steam",\n      emblemImage:')
 
-          mig=Path('supabase/migrations/20260911_add_games_platform.sql')
-          mig.write_text('''-- Plataforma pertence ao jogo (GAMES).\n-- Jogos antigos sem plataforma cadastrada passam a usar Steam como fallback na aplicação.\nalter table public.games\n  add column if not exists platform text;\n\nupdate public.games\nset platform = 'Steam'\nwhere platform is null or btrim(platform) = '';\n''')
+          Path('supabase/migrations/20260911_add_games_platform.sql').write_text('''-- Plataforma pertence ao jogo (GAMES).\n-- Jogos antigos sem plataforma cadastrada passam a usar Steam como fallback na aplicação.\nalter table public.games\n  add column if not exists platform text;\n\nupdate public.games\nset platform = 'Steam'\nwhere platform is null or btrim(platform) = '';\n''')
           PY
 
       - name: Commit platform support
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add lib/useSiteGames.ts app/api/admin/games/route.ts app/admin/jogos/page.tsx supabase/migrations/20260911_add_games_platform.sql .github/workflows/apply-platform-field.yml
-          git diff --cached --quiet && exit 0
-          git rm .github/workflows/apply-platform-field.yml
+          git add lib/useSiteGames.ts app/api/admin/games/route.ts app/admin/jogos/page.tsx supabase/migrations/20260911_add_games_platform.sql
+          git rm .github/workflows/apply-platform-field.yml platform-update-trigger.txt
           git commit -m 'feat: add platform to games'
-          git pull --rebase origin main
           git push origin HEAD:main
