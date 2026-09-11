@@ -340,11 +340,13 @@ function isCompletedGame(game: BibliotecaGame) {
   );
 }
 
-function isProgressGame(game: BibliotecaGame) {
+function isProgressGame(game: BibliotecaGame, hasActivity = false) {
   const status = normalizeText(game.status);
   const progress = readNumber(game.progress);
 
   if (isCompletedGame(game)) return false;
+
+  if (hasActivity) return true;
 
   if (
     status === "progress" ||
@@ -770,17 +772,6 @@ function formatActivityDate(dateValue: string) {
   return date.toLocaleDateString("pt-BR");
 }
 
-function getActivityPeriod(summary?: ActivitySummary) {
-  if (!summary?.firstDate) return "";
-
-  const firstDate = formatActivityDate(summary.firstDate);
-  const lastDate = formatActivityDate(summary.lastDate);
-
-  if (!firstDate) return "";
-  if (!lastDate || summary.firstDate === summary.lastDate) return firstDate;
-
-  return `${firstDate} → ${lastDate}`;
-}
 
 function GameRow({
   game,
@@ -795,17 +786,15 @@ function GameRow({
   const achievementStats = getAchievementStats(game);
   const progress = getProgressPercent(game, achievementStats);
   const isCompleted = isCompletedGame(game);
-  const isBacklog = isBacklogGame(game);
-  const statusLabel = getStatusLabel(game);
+  const hasActivity = Boolean(activitySummary);
+  const isProgress = isProgressGame(game, hasActivity);
+  const isBacklog = isBacklogGame(game) && !isProgress;
+  const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Em progresso" : isBacklog ? "Na fila" : (game.status || "Não definido");
   const platform = getPlatformLabel(game);
-  const date = isBacklog
-    ? ""
-    : isProgressGame(game)
-    ? getActivityPeriod(activitySummary)
-    : formatGameDate(game);
+  const date = isBacklog || isProgress ? "" : formatGameDate(game);
   const playedTime = isBacklog
     ? "—"
-    : isProgressGame(game) && activitySummary
+    : isProgress && activitySummary
     ? formatMinutesAsGameTime(activitySummary.totalMinutes)
     : readText(game.hours, "0h");
 
@@ -1047,10 +1036,22 @@ export default function BibliotecaPage() {
     return summary;
   }, [journeyEntries]);
 
-  const progressGames = useMemo(() => bibliotecaGames.filter((game) => isProgressGame(game)), [bibliotecaGames]);
+  const progressGames = useMemo(
+    () =>
+      bibliotecaGames.filter((game) =>
+        isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))
+      ),
+    [activitySummaryByGame, bibliotecaGames]
+  );
   const backlogGames = useMemo(
-    () => bibliotecaGames.filter((game) => isBacklogGame(game) && !isProgressGame(game) && !isCompletedGame(game)),
-    [bibliotecaGames]
+    () =>
+      bibliotecaGames.filter(
+        (game) =>
+          isBacklogGame(game) &&
+          !isProgressGame(game, activitySummaryByGame.has(readText(game.slug, ""))) &&
+          !isCompletedGame(game)
+      ),
+    [activitySummaryByGame, bibliotecaGames]
   );
   const completedGames = useMemo(() => bibliotecaGames.filter((game) => isCompletedGame(game)), [bibliotecaGames]);
 
@@ -1058,7 +1059,11 @@ export default function BibliotecaPage() {
     const term = normalizeText(search);
 
     return bibliotecaGames.filter((game) => {
-      if (activeFilter === "progress" && !isProgressGame(game)) return false;
+      if (
+        activeFilter === "progress" &&
+        !isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))
+      )
+        return false;
       if (activeFilter === "mastery" && !isCompletedGame(game)) return false;
       if (activeFilter === "backlog" && !isBacklogGame(game)) return false;
 
@@ -1066,7 +1071,7 @@ export default function BibliotecaPage() {
 
       return normalizeText(readText(game.title, "")).includes(term);
     });
-  }, [activeFilter, bibliotecaGames, search]);
+  }, [activeFilter, activitySummaryByGame, bibliotecaGames, search]);
 
   const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
   const totalAchievementStats = useMemo(() => {
@@ -1087,7 +1092,7 @@ export default function BibliotecaPage() {
       if (isBacklogGame(game)) continue;
 
       const activitySummary = activitySummaryByGame.get(readText(game.slug, ""));
-      if (isProgressGame(game) && activitySummary) {
+      if (isProgressGame(game, Boolean(activitySummary)) && activitySummary) {
         minutes += activitySummary.totalMinutes;
         continue;
       }
