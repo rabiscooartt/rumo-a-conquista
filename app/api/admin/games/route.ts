@@ -151,7 +151,7 @@ function buildGameData(game: GamePayload) {
     ),
     image: normalizeText(game.image),
     card_image: normalizeText(game.cardImage),
-    platform: normalizeText(game.platform, "Steam") || "Steam",
+    platform: typeof game.platform === "string" ? game.platform.trim() || "Steam" : "Steam",
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
