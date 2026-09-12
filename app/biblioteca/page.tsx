@@ -26,7 +26,7 @@ function IconGamepad(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
       <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-      <path d="M7 11V15M5 13H9M15.5 12.5H15.51M18 15H18.01" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M7 11V15M5 13H9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
     </SvgIcon>
   );
 }
@@ -900,7 +900,7 @@ function GameRow({
 
           <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <IconPlatform platform={platform} className="h-[15px] w-[15px] text-white/65" />
+              <IconPlatform platform={platform} className="h-[18px] w-[18px] text-white/65" />
               {platform}
             </span>
 
