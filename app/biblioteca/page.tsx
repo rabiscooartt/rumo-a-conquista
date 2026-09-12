@@ -39,7 +39,6 @@ function IconTrophy(props: { className?: string; filled?: boolean }) {
       <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
       <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 14.65V18.2M8.3 20H15.7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      <path d="M12 6.6L12.75 8.05L14.35 8.28L13.17 9.38L13.45 10.95L12 10.2L10.55 10.95L10.83 9.38L9.65 8.28L11.25 8.05L12 6.6Z" fill="currentColor" />
     </SvgIcon>
   );
 }
@@ -779,7 +778,7 @@ function getGameRating(game: BibliotecaGame) {
 function GameRating({ rating }: { rating: number }) {
   return (
     <span
-      className="inline-flex items-center gap-0.5 text-[15px] leading-none"
+      className="relative top-[1px] inline-flex h-[20px] items-center gap-1 text-[17px] leading-none"
       aria-label={`Nota ${rating} de 5 estrelas`}
       title={`Nota ${rating} de 5`}
     >
@@ -908,7 +907,7 @@ function GameRow({
             <span className="hidden h-4 w-px bg-white/15 sm:block" />
 
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <IconTrophy className="h-[16px] w-[16px] text-amber-400" filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total} />
+              <IconTrophy className="h-[18px] w-[18px] text-amber-400" filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total} />
               {achievementStats.completed}/{achievementStats.total}
             </span>
 
