@@ -838,13 +838,14 @@ function formatActivityDate(dateValue: string) {
 }
 
 
+
 function GameEmblem({ game, unlocked }: { game: BibliotecaGame; unlocked: boolean }) {
   const slug = readText(game.slug, "");
   if (!slug) return null;
 
   return (
     <span
-      className={`relative h-[38px] w-[38px] shrink-0 overflow-hidden rounded-md border ${
+      className={`relative flex h-[68px] w-[68px] shrink-0 items-center justify-center overflow-hidden rounded-lg border ${
         unlocked
           ? "border-white/15 bg-black/20"
           : "border-white/10 bg-black/30"
@@ -974,35 +975,11 @@ function GameRow({
             <span className={`w-10 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
               {progress}%
             </span>
-            <GameEmblem game={game} unlocked={isCompleted} />
           </div>
         </div>
 
-        <div className="flex items-start justify-end gap-3 pt-1.5">
-          <button
-            type="button"
-            aria-label={`Notificações de ${gameTitle}`}
-            onClick={(event) => event.preventDefault()}
-            className="text-white/45 transition hover:text-white/80"
-          >
-            <IconBell className="h-[17px] w-[17px]" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Conquistas de ${gameTitle}`}
-            onClick={(event) => event.preventDefault()}
-            className="text-white/45 transition hover:text-white/80"
-          >
-            <IconTrophy className="h-[17px] w-[17px]" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Detalhes de ${gameTitle}`}
-            onClick={(event) => event.preventDefault()}
-            className="text-white/45 transition hover:text-white/80"
-          >
-            <IconList className="h-[17px] w-[17px]" />
-          </button>
+        <div className="flex items-start justify-end pt-0.5">
+          <GameEmblem game={game} unlocked={isCompleted} />
         </div>
       </div>
     </Link>
