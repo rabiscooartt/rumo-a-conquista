@@ -706,6 +706,16 @@ function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
   return <span className="text-lg">{mastery.icon || "💎"}</span>;
 }
 
+function GameEmblem({ game }: { game: BibliotecaGame }) {
+  const mastery = getFinalMastery(game);
+
+  return (
+    <div className="h-[100px] w-[78px] shrink-0 overflow-hidden">
+      <MasteryVisual mastery={mastery} />
+    </div>
+  );
+}
+
 function MiniStatCard({
   label,
   value,
@@ -944,31 +954,37 @@ function GameRow({
           </div>
         </div>
 
-        <div className="flex items-start justify-end gap-3 pt-1.5">
-          <button
-            type="button"
-            aria-label={`Notificações de ${gameTitle}`}
-            onClick={(event) => event.preventDefault()}
-            className="text-white/45 transition hover:text-white/80"
-          >
-            <IconBell className="h-[17px] w-[17px]" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Conquistas de ${gameTitle}`}
-            onClick={(event) => event.preventDefault()}
-            className="text-white/45 transition hover:text-white/80"
-          >
-            <IconTrophy className="h-[17px] w-[17px]" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Detalhes de ${gameTitle}`}
-            onClick={(event) => event.preventDefault()}
-            className="text-white/45 transition hover:text-white/80"
-          >
-            <IconList className="h-[17px] w-[17px]" />
-          </button>
+        <div className="flex h-[100px] w-[78px] items-center justify-end">
+          {isCompleted ? (
+            <GameEmblem game={game} />
+          ) : (
+            <div className="flex items-start justify-end gap-3 pt-1.5">
+              <button
+                type="button"
+                aria-label={`Notificações de ${gameTitle}`}
+                onClick={(event) => event.preventDefault()}
+                className="text-white/45 transition hover:text-white/80"
+              >
+                <IconBell className="h-[17px] w-[17px]" />
+              </button>
+              <button
+                type="button"
+                aria-label={`Conquistas de ${gameTitle}`}
+                onClick={(event) => event.preventDefault()}
+                className="text-white/45 transition hover:text-white/80"
+              >
+                <IconTrophy className="h-[17px] w-[17px]" />
+              </button>
+              <button
+                type="button"
+                aria-label={`Detalhes de ${gameTitle}`}
+                onClick={(event) => event.preventDefault()}
+                className="text-white/45 transition hover:text-white/80"
+              >
+                <IconList className="h-[17px] w-[17px]" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </Link>
