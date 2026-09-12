@@ -992,36 +992,7 @@ function GameRow({
         </div>
 
         <div className="flex h-[100px] w-[78px] items-center justify-end">
-          {isCompleted ? (
-            <GameEmblem game={game} />
-          ) : (
-            <div className="flex items-start justify-end gap-3 pt-1.5">
-              <button
-                type="button"
-                aria-label={`Notificações de ${gameTitle}`}
-                onClick={(event) => event.preventDefault()}
-                className="text-white/45 transition hover:text-white/80"
-              >
-                <IconBell className="h-[17px] w-[17px]" />
-              </button>
-              <button
-                type="button"
-                aria-label={`Conquistas de ${gameTitle}`}
-                onClick={(event) => event.preventDefault()}
-                className="text-white/45 transition hover:text-white/80"
-              >
-                <IconTrophy className="h-[17px] w-[17px]" />
-              </button>
-              <button
-                type="button"
-                aria-label={`Detalhes de ${gameTitle}`}
-                onClick={(event) => event.preventDefault()}
-                className="text-white/45 transition hover:text-white/80"
-              >
-                <IconList className="h-[17px] w-[17px]" />
-              </button>
-            </div>
-          )}
+          <GameEmblem game={game} />
         </div>
       </div>
     </Link>
