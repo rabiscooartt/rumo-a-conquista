@@ -838,6 +838,35 @@ function formatActivityDate(dateValue: string) {
 }
 
 
+function GameEmblem({ game, unlocked }: { game: BibliotecaGame; unlocked: boolean }) {
+  const slug = readText(game.slug, "");
+  if (!slug) return null;
+
+  return (
+    <span
+      className={`relative h-[38px] w-[38px] shrink-0 overflow-hidden rounded-md border ${
+        unlocked
+          ? "border-white/15 bg-black/20"
+          : "border-white/10 bg-black/30"
+      }`}
+      title={unlocked ? "Emblema conquistado" : "Emblema bloqueado"}
+    >
+      <img
+        src={`/images/games/${slug}/emblem.png`}
+        alt=""
+        className={`h-full w-full object-contain ${
+          unlocked ? "" : "scale-[1.03] blur-[3px] opacity-35 grayscale"
+        }`}
+      />
+      {!unlocked ? (
+        <span className="absolute inset-0 flex items-center justify-center bg-black/25 text-[13px] text-white/75">
+          🔒
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function GameRow({
   game,
   activitySummary,
@@ -945,6 +974,7 @@ function GameRow({
             <span className={`w-10 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
               {progress}%
             </span>
+            <GameEmblem game={game} unlocked={isCompleted} />
           </div>
         </div>
 
