@@ -857,7 +857,7 @@ function GameEmblem({ game, unlocked }: { game: BibliotecaGame; unlocked: boolea
 
   return (
     <span
-      className="relative flex h-[132px] w-[132px] shrink-0 translate-y-[10px] items-center justify-center overflow-hidden"
+      className="relative flex h-[132px] w-[132px] shrink-0 translate-y-[-5px] items-center justify-center overflow-hidden"
       title={unlocked ? "Emblema conquistado" : "Emblema bloqueado"}
     >
       <img
@@ -917,7 +917,7 @@ function GameRow({
       href={`/games/${gameSlug}`}
       className="group/row block border-b border-white/[0.07] px-3 py-5 transition hover:bg-white/[0.025]"
     >
-      <div className="grid grid-cols-[72px_minmax(0,1fr)_116px] items-start gap-4 lg:grid-cols-[72px_minmax(0,1fr)_116px]">
+      <div className="grid translate-y-[20px] grid-cols-[72px_minmax(0,1fr)_116px] items-start gap-4 lg:grid-cols-[72px_minmax(0,1fr)_116px]">
         <div className="h-[92px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
@@ -986,7 +986,7 @@ function GameRow({
           </div>
         </div>
 
-        <div className="flex items-start justify-end pt-0.5 translate-x-[4px]">
+        <div className="flex items-start justify-end pt-0.5 translate-x-[23px]">
           <GameEmblem game={game} unlocked={isCompleted} />
         </div>
       </div>
