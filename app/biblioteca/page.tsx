@@ -128,24 +128,6 @@ function IconPlatform({
   );
 }
 
-function IconBell(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M6.8 16.5H17.2L16 14.6V10.8C16 8.35 14.4 6.5 12 6.5C9.6 6.5 8 8.35 8 10.8V14.6L6.8 16.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      <path d="M10.2 18C10.65 18.65 11.25 19 12 19C12.75 19 13.35 18.65 13.8 18" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </SvgIcon>
-  );
-}
-
-function IconList(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <rect x="7" y="4.5" width="10" height="15" rx="1.8" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M9.5 9H14.5M9.5 12H14.5M9.5 15H13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </SvgIcon>
-  );
-}
-
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
 type AchievementSummary =
@@ -736,18 +718,32 @@ function getGameEmblem(game: BibliotecaGame) {
 
 function GameEmblem({ game }: { game: BibliotecaGame }) {
   const emblem = getGameEmblem(game);
+  const isUnlocked = isCompletedGame(game);
+  const emblemImage = emblem.image || "/images/games/emblem.png";
 
   return (
-    <div className="flex h-[100px] w-[78px] shrink-0 items-center justify-center overflow-hidden">
-      {emblem.image ? (
+    <div className="relative flex h-[100px] w-[78px] shrink-0 items-center justify-center overflow-visible">
+      <div
+        className={`relative h-full w-full transition duration-300 ${
+          isUnlocked
+            ? "scale-[1.22]"
+            : "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
+        }`}
+      >
         <img
-          src={emblem.image}
+          src={emblemImage}
           alt={emblem.title}
-          className="h-[100px] w-[78px] object-contain"
+          className="h-full w-full object-contain"
           onError={(event) => {
-            event.currentTarget.style.display = "none";
+            event.currentTarget.src = "/images/games/emblem.png";
           }}
         />
+      </div>
+
+      {!isUnlocked ? (
+        <div className="pointer-events-none absolute right-0 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/75 text-sm shadow-[0_0_18px_rgba(0,0,0,0.5)] backdrop-blur-sm">
+          🔒
+        </div>
       ) : null}
     </div>
   );
