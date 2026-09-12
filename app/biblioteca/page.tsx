@@ -146,6 +146,18 @@ function IconList(props: { className?: string }) {
   );
 }
 
+function IconGrid(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="4.5" y="4.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="13.5" y="4.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="4.5" y="13.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="13.5" y="13.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+    </SvgIcon>
+  );
+}
+
+
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
 type AchievementSummary =
@@ -1322,16 +1334,26 @@ export default function BibliotecaPage() {
             </header>
 
             <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
-              <div className="border-b border-white/[0.08] px-3 pt-3">
-                <div className="flex flex-col gap-3 lg:flex-row">
-                  <div className="relative min-w-0 flex-1">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
-                    <input
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
-                    />
+              <div className="border-b border-white/[0.08] px-3 pt-3 pb-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label="Opções de visualização dos jogos"
+                      title="Visualização"
+                      className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/25 text-white/45 transition hover:border-white/20 hover:bg-white/[0.04] hover:text-white"
+                    >
+                      <IconGrid className="h-[19px] w-[19px]" />
+                    </button>
+                    <div className="relative min-w-0 flex-1">
+                      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
+                      <input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Buscar por nome do jogo..."
+                        className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {filters.map((filter) => {
@@ -1356,7 +1378,7 @@ export default function BibliotecaPage() {
                 </div>
               </div>
 
-              <div className="px-3 sm:px-4">
+              <div className="px-3 pt-1 sm:px-4">
                 {!isLoaded ? (
                   <div className="py-10 text-center text-sm text-white/40">Carregando biblioteca...</div>
                 ) : filteredGames.length === 0 ? (
