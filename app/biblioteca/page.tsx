@@ -128,6 +128,7 @@ function IconPlatform({
   );
 }
 
+
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
 type AchievementSummary =
@@ -726,7 +727,7 @@ function GameEmblem({ game }: { game: BibliotecaGame }) {
       <div
         className={`relative h-full w-full transition duration-300 ${
           isUnlocked
-            ? "translate-x-[3px] scale-[1.33]"
+            ? "translate-x-[5px] scale-[1.35]"
             : "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
         }`}
       >
