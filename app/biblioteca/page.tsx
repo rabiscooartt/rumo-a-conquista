@@ -887,7 +887,7 @@ function GameRow({
         <div className="min-w-0 pt-0.5">
           <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
             <h2
-              className="min-w-0 max-w-[72%] shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
+              className="min-w-0 flex-1 truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
               title={gameTitle}
             >
               {gameTitle}
