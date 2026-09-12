@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 
 
@@ -30,10 +31,12 @@ function IconGamepad(props: { className?: string }) {
   );
 }
 
-function IconTrophy(props: { className?: string }) {
+function IconTrophy(props: { className?: string; filled?: boolean }) {
+  const { filled = false, className } = props;
+
   return (
-    <SvgIcon {...props}>
-      <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
+    <SvgIcon className={className}>
+      <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
       <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 14.65V18.2M8.3 20H15.7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
       <path d="M12 6.6L12.75 8.05L14.35 8.28L13.17 9.38L13.45 10.95L12 10.2L10.55 10.95L10.83 9.38L9.65 8.28L11.25 8.05L12 6.6Z" fill="currentColor" />
@@ -83,7 +86,13 @@ function IconClock(props: { className?: string }) {
   );
 }
 
-function IconPlatform({ platform, className = "h-4 w-4" }: { platform?: string; className?: string }) {
+function IconPlatform({
+  platform,
+  className = "h-4 w-4",
+}: {
+  platform?: string;
+  className?: string;
+}) {
   const normalizedPlatform = normalizeText(platform || "Steam");
 
   if (normalizedPlatform === "steam") {
@@ -98,9 +107,25 @@ function IconPlatform({ platform, className = "h-4 w-4" }: { platform?: string; 
 
   return (
     <SvgIcon className={className}>
-      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8.5 10.5H15.5V15H8.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      <path d="M10 8.5V10.5M14 8.5V10.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <circle
+        cx="12"
+        cy="12"
+        r="8.25"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M8.5 10.5H15.5V15H8.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 8.5V10.5M14 8.5V10.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
     </SvgIcon>
   );
 }
@@ -736,6 +761,37 @@ function MiniStatCard({
   );
 }
 
+function getGameRating(game: BibliotecaGame) {
+  const directReview = (game as BibliotecaGame & { review?: { nota?: unknown } }).review;
+  const directRating = readNumber(directReview?.nota, 0);
+
+  if (directRating > 0) {
+    return Math.min(5, Math.max(0, Math.round(directRating / 2)));
+  }
+
+  const slug = readText(game.slug, "");
+  const baseGame = (baseGames as unknown as Record<string, { review?: { nota?: unknown } }>)[slug];
+  const baseRating = readNumber(baseGame?.review?.nota, 0);
+
+  return Math.min(5, Math.max(0, Math.round(baseRating / 2)));
+}
+
+function GameRating({ rating }: { rating: number }) {
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 text-[15px] leading-none"
+      aria-label={`Nota ${rating} de 5 estrelas`}
+      title={`Nota ${rating} de 5`}
+    >
+      {Array.from({ length: 5 }, (_, index) => (
+        <span key={index} className={index < rating ? "text-red-500" : "text-red-500/20"}>
+          ★
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function getPlatformLabel(game: BibliotecaGame) {
   const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();
   return value || "Steam";
@@ -801,6 +857,7 @@ function GameRow({
   const isProgress = isProgressGame(game, hasActivity);
   const isBacklog = isBacklogGame(game) && !isProgress;
   const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Em progresso" : isBacklog ? "Na fila" : (game.status || "Não definido");
+  const rating = getGameRating(game);
   const platform = getPlatformLabel(game);
   const date = isBacklog || isProgress ? "" : formatGameDate(game);
   const playedTime = isBacklog
@@ -835,9 +892,7 @@ function GameRow({
               {gameTitle}
             </h2>
 
-            <span className="inline-flex h-[17px] w-[17px] items-center justify-center rounded-full bg-blue-500 text-[9px] font-black text-white shadow-[0_0_10px_rgba(59,130,246,0.25)]">
-              ✓
-            </span>
+            {isCompleted ? <GameRating rating={rating} /> : null}
 
             <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
               {statusLabel}
@@ -846,14 +901,14 @@ function GameRow({
 
           <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <IconPlatform platform={platform} className="h-[17px] w-[17px]" />
+              <IconPlatform platform={platform} className="h-[15px] w-[15px] text-white/65" />
               {platform}
             </span>
 
             <span className="hidden h-4 w-px bg-white/15 sm:block" />
 
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <IconTrophy className="h-[16px] w-[16px] text-amber-400" />
+              <IconTrophy className="h-[16px] w-[16px] text-amber-400" filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total} />
               {achievementStats.completed}/{achievementStats.total}
             </span>
 
@@ -1226,31 +1281,31 @@ export default function BibliotecaPage() {
 
                 <div className="absolute bottom-8 left-7 right-7 grid grid-cols-3">
                   <div className="flex min-w-0 items-center gap-2.5 pr-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-                      <IconGamepad className="h-[22px] w-[22px]" />
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                      <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{bibliotecaGames.length}</p>
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{bibliotecaGames.length}</p>
                       <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Jogos na biblioteca</p>
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-                      <IconTrophy className="h-[22px] w-[22px]" />
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                      <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{completedGames.length}</p>
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{completedGames.length}</p>
                       <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Finalizados</p>
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-                      <IconTarget className="h-[22px] w-[22px]" />
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                      <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{backlogGames.length}</p>
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{backlogGames.length}</p>
                       <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Na fila</p>
                     </div>
                   </div>
