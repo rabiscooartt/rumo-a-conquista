@@ -845,14 +845,14 @@ function GameEmblem({ game, unlocked }: { game: BibliotecaGame; unlocked: boolea
 
   return (
     <span
-      className="relative flex h-[108px] w-[108px] shrink-0 translate-y-1 items-center justify-center overflow-hidden"
+      className="relative flex h-[96px] w-[96px] shrink-0 translate-y-1 items-center justify-center overflow-hidden"
       title={unlocked ? "Emblema conquistado" : "Emblema bloqueado"}
     >
       <img
         src={`/images/games/${slug}/emblem.png`}
         alt=""
         className={`h-full w-full object-contain ${
-          unlocked ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.12)]" : "scale-[1.03] blur-[2.5px] opacity-40 grayscale"
+          unlocked ? "" : "scale-[1.03] blur-[3px] opacity-35 grayscale"
         }`}
       />
       {!unlocked ? (
@@ -910,7 +910,7 @@ function GameRow({
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
 
-        <div className="min-w-0 pt-0.5">
+        <div className="min-w-0 pt-3.5">
           <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
             <h2
               className={`min-w-0 ${
