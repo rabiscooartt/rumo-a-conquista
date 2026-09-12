@@ -84,7 +84,7 @@ function IconClock(props: { className?: string }) {
 }
 
 function IconPlatform({ platform, className = "h-4 w-4" }: { platform?: string; className?: string }) {
-  const normalizedPlatform = normalizeText(platform);
+  const normalizedPlatform = normalizeText(platform || "Steam");
 
   if (normalizedPlatform === "steam") {
     return (
@@ -738,8 +738,7 @@ function MiniStatCard({
 
 function getPlatformLabel(game: BibliotecaGame) {
   const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();
-  if (value) return value;
-  return "Plataforma não definida";
+  return value || "Steam";
 }
 
 function formatGameDate(game: BibliotecaGame) {
