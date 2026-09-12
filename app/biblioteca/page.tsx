@@ -917,12 +917,12 @@ function GameRow({
       href={`/games/${gameSlug}`}
       className="group/row block border-b border-white/[0.07] px-3 py-5 transition hover:bg-white/[0.025]"
     >
-      <div className="grid grid-cols-[72px_minmax(0,1fr)_108px] items-start gap-4 lg:grid-cols-[72px_minmax(0,1fr)_108px]">
+      <div className="grid grid-cols-[72px_minmax(0,1fr)_116px] items-start gap-4 lg:grid-cols-[72px_minmax(0,1fr)_116px]">
         <div className="h-[92px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
 
-        <div className="min-w-0 pt-5.5">
+        <div className="min-w-0 pt-2.5">
           <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
             <h2
               className={`min-w-0 ${
@@ -986,7 +986,7 @@ function GameRow({
           </div>
         </div>
 
-        <div className="flex items-start justify-end pt-0.5">
+        <div className="flex items-start justify-end pt-0.5 translate-x-[4px]">
           <GameEmblem game={game} unlocked={isCompleted} />
         </div>
       </div>
