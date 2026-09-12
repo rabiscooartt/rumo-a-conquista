@@ -726,7 +726,7 @@ function GameEmblem({ game }: { game: BibliotecaGame }) {
       <div
         className={`relative h-full w-full transition duration-300 ${
           isUnlocked
-            ? "scale-[1.30]"
+            ? "translate-x-[3px] scale-[1.33]"
             : "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
         }`}
       >
