@@ -845,11 +845,7 @@ function GameEmblem({ game, unlocked }: { game: BibliotecaGame; unlocked: boolea
 
   return (
     <span
-      className={`relative flex h-[68px] w-[68px] shrink-0 items-center justify-center overflow-hidden rounded-lg border ${
-        unlocked
-          ? "border-white/15 bg-black/20"
-          : "border-white/10 bg-black/30"
-      }`}
+      className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden"
       title={unlocked ? "Emblema conquistado" : "Emblema bloqueado"}
     >
       <img
