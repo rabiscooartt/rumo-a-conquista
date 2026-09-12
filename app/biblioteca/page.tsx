@@ -146,18 +146,6 @@ function IconList(props: { className?: string }) {
   );
 }
 
-function IconGrid(props: { className?: string }) {
-  return (
-    <SvgIcon {...props}>
-      <rect x="4.5" y="4.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="13.5" y="4.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="4.5" y="13.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="13.5" y="13.5" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
-    </SvgIcon>
-  );
-}
-
-
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
 type AchievementSummary =
@@ -850,32 +838,6 @@ function formatActivityDate(dateValue: string) {
 }
 
 
-
-function GameEmblem({ game, unlocked }: { game: BibliotecaGame; unlocked: boolean }) {
-  const slug = readText(game.slug, "");
-  if (!slug) return null;
-
-  return (
-    <span
-      className="relative flex h-[132px] w-[132px] shrink-0 items-center justify-center overflow-hidden"
-      title={unlocked ? "Emblema conquistado" : "Emblema bloqueado"}
-    >
-      <img
-        src={`/images/games/${slug}/emblem.png`}
-        alt=""
-        className={`h-full w-full object-contain ${
-          unlocked ? "" : "scale-[1.03] blur-[3px] opacity-35 grayscale"
-        }`}
-      />
-      {!unlocked ? (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/25 text-[13px] text-white/75">
-          🔒
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
 function GameRow({
   game,
   activitySummary,
@@ -915,21 +877,17 @@ function GameRow({
   return (
     <Link
       href={`/games/${gameSlug}`}
-      className="group/row block border-b border-white/[0.07] px-4 py-4 transition hover:bg-white/[0.025]"
+      className="group/row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025]"
     >
-      <div className="grid min-h-[132px] grid-cols-[72px_minmax(0,1fr)_132px] items-center gap-4 lg:grid-cols-[72px_minmax(0,1fr)_132px]">
-        <div className="h-[92px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+      <div className="grid grid-cols-[78px_minmax(0,1fr)_82px] items-start gap-4 lg:grid-cols-[78px_minmax(0,1fr)_92px]">
+        <div className="h-[100px] w-[78px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
           <GameCoverImage src={cardImage} title={gameTitle} />
         </div>
 
-        <div className="flex min-w-0 flex-col justify-center">
+        <div className="min-w-0 pt-0.5">
           <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
             <h2
-              className={`min-w-0 ${
-                isCompleted && gameTitle.length >= 34
-                  ? "max-w-[54%] sm:max-w-[56%]"
-                  : "max-w-[72%]"
-              } shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"`}
+              className="min-w-0 max-w-[72%] shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
               title={gameTitle}
             >
               {gameTitle}
@@ -986,8 +944,31 @@ function GameRow({
           </div>
         </div>
 
-        <div className="flex h-[132px] w-[132px] items-center justify-end">
-          <GameEmblem game={game} unlocked={isCompleted} />
+        <div className="flex items-start justify-end gap-3 pt-1.5">
+          <button
+            type="button"
+            aria-label={`Notificações de ${gameTitle}`}
+            onClick={(event) => event.preventDefault()}
+            className="text-white/45 transition hover:text-white/80"
+          >
+            <IconBell className="h-[17px] w-[17px]" />
+          </button>
+          <button
+            type="button"
+            aria-label={`Conquistas de ${gameTitle}`}
+            onClick={(event) => event.preventDefault()}
+            className="text-white/45 transition hover:text-white/80"
+          >
+            <IconTrophy className="h-[17px] w-[17px]" />
+          </button>
+          <button
+            type="button"
+            aria-label={`Detalhes de ${gameTitle}`}
+            onClick={(event) => event.preventDefault()}
+            className="text-white/45 transition hover:text-white/80"
+          >
+            <IconList className="h-[17px] w-[17px]" />
+          </button>
         </div>
       </div>
     </Link>
@@ -1334,26 +1315,16 @@ export default function BibliotecaPage() {
             </header>
 
             <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
-              <div className="border-b border-white/[0.08] px-3 pt-3 pb-3">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <button
-                      type="button"
-                      aria-label="Opções de visualização dos jogos"
-                      title="Visualização"
-                      className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/25 text-white/45 transition hover:border-white/20 hover:bg-white/[0.04] hover:text-white"
-                    >
-                      <IconGrid className="h-[19px] w-[19px]" />
-                    </button>
-                    <div className="relative min-w-0 flex-1">
-                      <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
-                      <input
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                        placeholder="Buscar por nome do jogo..."
-                        className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
-                      />
-                    </div>
+              <div className="border-b border-white/[0.08] px-3 pt-3">
+                <div className="flex flex-col gap-3 lg:flex-row">
+                  <div className="relative min-w-0 flex-1">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Buscar por nome do jogo..."
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
+                    />
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {filters.map((filter) => {
@@ -1378,7 +1349,7 @@ export default function BibliotecaPage() {
                 </div>
               </div>
 
-              <div className="px-3 pt-1 sm:px-4">
+              <div className="px-3 sm:px-4">
                 {!isLoaded ? (
                   <div className="py-10 text-center text-sm text-white/40">Carregando biblioteca...</div>
                 ) : filteredGames.length === 0 ? (
