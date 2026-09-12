@@ -706,12 +706,49 @@ function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
   return <span className="text-lg">{mastery.icon || "💎"}</span>;
 }
 
+function getGameEmblem(game: BibliotecaGame) {
+  const gameWithEmblem = game as BibliotecaGame & {
+    emblem?: { title?: string; image?: string };
+    gameEmblem?: { title?: string; image?: string };
+  };
+
+  const slug = readText(game.slug, "");
+  const baseGame = (baseGames as unknown as Record<string, {
+    emblem?: { title?: string; image?: string };
+    gameEmblem?: { title?: string; image?: string };
+  }>)[slug];
+
+  const image =
+    readText(gameWithEmblem.emblem?.image, "") ||
+    readText(gameWithEmblem.gameEmblem?.image, "") ||
+    readText(baseGame?.emblem?.image, "") ||
+    readText(baseGame?.gameEmblem?.image, "");
+
+  const title =
+    readText(gameWithEmblem.emblem?.title, "") ||
+    readText(gameWithEmblem.gameEmblem?.title, "") ||
+    readText(baseGame?.emblem?.title, "") ||
+    readText(baseGame?.gameEmblem?.title, "") ||
+    `${readText(game.title, "Jogo")} — Emblema`;
+
+  return { image, title };
+}
+
 function GameEmblem({ game }: { game: BibliotecaGame }) {
-  const mastery = getFinalMastery(game);
+  const emblem = getGameEmblem(game);
 
   return (
-    <div className="h-[100px] w-[78px] shrink-0 overflow-hidden">
-      <MasteryVisual mastery={mastery} />
+    <div className="flex h-[100px] w-[78px] shrink-0 items-center justify-center overflow-hidden">
+      {emblem.image ? (
+        <img
+          src={emblem.image}
+          alt={emblem.title}
+          className="h-[100px] w-[78px] object-contain"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+      ) : null}
     </div>
   );
 }
