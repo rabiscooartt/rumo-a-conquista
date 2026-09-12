@@ -25,8 +25,7 @@ function SvgIcon({
 function IconGamepad(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
-      <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
-      <path d="M7 11V15M5 13H9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="2.15" strokeLinejoin="round" />
     </SvgIcon>
   );
 }
@@ -778,7 +777,7 @@ function getGameRating(game: BibliotecaGame) {
 function GameRating({ rating }: { rating: number }) {
   return (
     <span
-      className="relative top-[1px] inline-flex h-[20px] items-center gap-1 text-[17px] leading-none"
+      className="relative top-[1px] inline-flex h-[21px] shrink-0 items-center gap-0.5 text-[18px] font-black leading-none tracking-[-0.03em]"
       aria-label={`Nota ${rating} de 5 estrelas`}
       title={`Nota ${rating} de 5`}
     >
@@ -886,14 +885,17 @@ function GameRow({
         </div>
 
         <div className="min-w-0 pt-0.5">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <h2 className="truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]">
+          <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
+            <h2
+              className="min-w-0 max-w-[72%] shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
+              title={gameTitle}
+            >
               {gameTitle}
             </h2>
 
             {isCompleted ? <GameRating rating={rating} /> : null}
 
-            <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
+            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
               {statusLabel}
             </span>
           </div>
