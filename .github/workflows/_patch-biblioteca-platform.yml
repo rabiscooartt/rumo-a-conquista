@@ -1,0 +1,46 @@
+name: Patch biblioteca platform fallback
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Apply platform fallback
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app/biblioteca/page.tsx')
+          s = p.read_text(encoding='utf-8')
+          old = 'const normalizedPlatform = normalizeText(platform);'
+          new = 'const normalizedPlatform = normalizeText(platform || "Steam");'
+          if old in s:
+              s = s.replace(old, new, 1)
+          old_label = '''function getPlatformLabel(game: BibliotecaGame) {\n  const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();\n  if (value) return value;\n  return "Plataforma não definida";\n}'''
+          new_label = '''function getPlatformLabel(game: BibliotecaGame) {\n  const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();\n  return value || "Steam";\n}'''
+          if old_label in s:
+              s = s.replace(old_label, new_label, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          if git diff --quiet -- app/biblioteca/page.tsx; then
+            echo 'No changes needed.'
+            exit 0
+          fi
+      - name: Commit and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/biblioteca/page.tsx .github/workflows/_patch-biblioteca-platform.yml
+          git commit -m 'fix: use Steam icon as default platform in library'
+          git push
