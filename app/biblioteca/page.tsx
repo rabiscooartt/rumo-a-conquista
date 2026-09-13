@@ -845,18 +845,6 @@ function GameRating({ rating }: { rating: number }) {
   );
 }
 
-function getSourceLabel(game: BibliotecaGame) {
-  const source = (game as BibliotecaGame & { source?: unknown; sources?: unknown }).source;
-  if (typeof source === "string" && source.trim()) return source.trim();
-
-  const sources = (game as BibliotecaGame & { sources?: unknown }).sources;
-  if (Array.isArray(sources)) {
-    const first = sources.find((item) => typeof item === "string" && item.trim());
-    if (typeof first === "string") return first.trim();
-  }
-
-  return "Rumo à Conquista";
-}
 
 function getPlatformLabel(game: BibliotecaGame) {
   const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();
@@ -1091,8 +1079,7 @@ export default function BibliotecaPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const [platformFilter, setPlatformFilter] = useState("all");
-  const [filterMenu, setFilterMenu] = useState<"status" | "source" | "platform" | "sort" | null>(null);
-  const [sourceFilter, setSourceFilter] = useState("all");
+  const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
 
   useEffect(() => {
@@ -1196,14 +1183,7 @@ export default function BibliotecaPage() {
     return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [bibliotecaGames]);
 
-  const sourceOptions = useMemo(() => {
-    const values = new Set<string>();
-    bibliotecaGames.forEach((game) => {
-      const source = getSourceLabel(game);
-      if (source) values.add(source);
-    });
-    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [bibliotecaGames]);
+
 
   const filteredGames = useMemo(() => {
     const term = normalizeText(search);
@@ -1218,10 +1198,6 @@ export default function BibliotecaPage() {
       if (activeFilter === "backlog" && !isBacklogGame(game)) return false;
 
       if (platformFilter !== "all" && normalizeText(getPlatformLabel(game)) !== normalizeText(platformFilter)) {
-        return false;
-      }
-
-      if (sourceFilter !== "all" && normalizeText(getSourceLabel(game)) !== normalizeText(sourceFilter)) {
         return false;
       }
 
@@ -1247,7 +1223,7 @@ export default function BibliotecaPage() {
 
       return compareDateValues(aActivity?.lastDate ?? a.updatedAt ?? a.createdAt, bActivity?.lastDate ?? b.updatedAt ?? b.createdAt, true);
     });
-  }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sourceFilter, sortMode]);
+  }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sortMode]);
 
   const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
   const totalAchievementStats = useMemo(() => {
@@ -1463,22 +1439,6 @@ export default function BibliotecaPage() {
                             <span>{filter.label}</span>
                             <span className="text-white/25">{filter.value === "all" ? bibliotecaGames.length : filter.value === "progress" ? progressGames.length : filter.value === "backlog" ? backlogGames.length : completedGames.length}</span>
                           </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="relative">
-                    <button type="button" onClick={() => setFilterMenu(filterMenu === "source" ? null : "source")} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${sourceFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}>
-                      <IconGrid className="h-3.5 w-3.5" />
-                      Fontes
-                      <span className="text-white/30">⌄</span>
-                    </button>
-                    {filterMenu === "source" ? (
-                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[205px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
-                        <button type="button" onClick={() => { setSourceFilter("all"); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${sourceFilter === "all" ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>Todas as fontes</button>
-                        {sourceOptions.map((source) => (
-                          <button key={source} type="button" onClick={() => { setSourceFilter(source); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${sourceFilter === source ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>{source}</button>
                         ))}
                       </div>
                     ) : null}
