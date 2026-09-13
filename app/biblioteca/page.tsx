@@ -1182,6 +1182,23 @@ function compareDateValues(a: unknown, b: unknown, descending = false) {
   return descending ? bTime - aTime : aTime - bTime;
 }
 
+function getAchievementEarnedTimestamp(
+  game: BibliotecaGame,
+  achievement: AchievementLike,
+  index: number
+) {
+  const directDate = parseDateTimestamp(achievement.earnedDate);
+  if (!Number.isNaN(directDate)) return directDate;
+
+  const title = getAchievementTitle(achievement, index);
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    `rumo-a-conquista-achievements-${game.slug}`,
+    {}
+  );
+
+  return parseDateTimestamp(manualStates[title]?.date);
+}
+
 function getLatestAchievementDate(game: BibliotecaGame) {
   const achievements = Array.isArray(game.achievementsList)
     ? game.achievementsList
@@ -1189,13 +1206,14 @@ function getLatestAchievementDate(game: BibliotecaGame) {
 
   let latest = Number.NaN;
 
-  for (const achievement of achievements) {
-    const earnedDate = parseDateTimestamp(achievement.earnedDate);
-    if (Number.isNaN(earnedDate)) continue;
+  achievements.forEach((achievement, index) => {
+    const earnedDate = getAchievementEarnedTimestamp(game, achievement, index);
+    if (Number.isNaN(earnedDate)) return;
+
     if (Number.isNaN(latest) || earnedDate > latest) {
       latest = earnedDate;
     }
-  }
+  });
 
   return latest;
 }
@@ -1420,6 +1438,99 @@ export default function BibliotecaPage() {
   const overallAchievementProgress = totalAchievementStats.total
     ? Math.round((totalAchievementStats.completed / totalAchievementStats.total) * 100)
     : 0;
+
+  const annualYear = new Date().getFullYear();
+
+  const annualJourneyEntries = useMemo(() => {
+    return journeyEntries.filter((entry) => {
+      const timestamp = parseDateTimestamp(entry.date);
+      if (Number.isNaN(timestamp)) return false;
+      return new Date(timestamp).getFullYear() === annualYear;
+    });
+  }, [annualYear, journeyEntries]);
+
+  const annualGameSlugs = useMemo(() => {
+    const slugs = new Set<string>();
+
+    for (const entry of annualJourneyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      if (slug) slugs.add(slug);
+    }
+
+    for (const game of bibliotecaGames) {
+      const latestAchievement = getLatestAchievementDate(game);
+      if (Number.isNaN(latestAchievement)) continue;
+      if (new Date(latestAchievement).getFullYear() === annualYear) {
+        slugs.add(readText(game.slug, "").trim());
+      }
+    }
+
+    return slugs;
+  }, [annualJourneyEntries, annualYear, bibliotecaGames]);
+
+  const annualGamesCount = annualGameSlugs.size;
+
+  const annualAchievementsCount = useMemo(() => {
+    let count = 0;
+
+    for (const game of bibliotecaGames) {
+      const achievements = Array.isArray(game.achievementsList)
+        ? game.achievementsList
+        : [];
+
+      achievements.forEach((achievement, index) => {
+        const status = normalizeAchievementStatus(achievement.status);
+        if (status !== "completed") return;
+
+        const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
+        if (Number.isNaN(earnedTimestamp)) return;
+
+        if (new Date(earnedTimestamp).getFullYear() === annualYear) {
+          count += 1;
+        }
+      });
+    }
+
+    return count;
+  }, [annualYear, bibliotecaGames, refreshKey]);
+
+  const annualCompletedGamesCount = useMemo(() => {
+    let count = 0;
+
+    for (const game of bibliotecaGames) {
+      if (!isCompletedGame(game)) continue;
+
+      const latestAchievement = getLatestAchievementDate(game);
+      const activity = activitySummaryByGame.get(readText(game.slug, ""));
+      const candidates = [
+        latestAchievement,
+        parseDateTimestamp(activity?.lastDate),
+        parseDateTimestamp(game.updatedAt),
+      ].filter((value) => !Number.isNaN(value));
+
+      if (candidates.length === 0) continue;
+
+      const completionTimestamp = Math.max(...candidates);
+      if (new Date(completionTimestamp).getFullYear() === annualYear) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }, [activitySummaryByGame, annualYear, bibliotecaGames]);
+
+  const annualPlayedMinutes = useMemo(() => {
+    return annualJourneyEntries.reduce(
+      (total, entry) => total + Math.max(0, readNumber(entry.playedMinutes, 0)),
+      0
+    );
+  }, [annualJourneyEntries]);
+
+  const annualHours = useMemo(() => {
+    const hours = Math.floor(annualPlayedMinutes / 60);
+    const minutes = annualPlayedMinutes % 60;
+    return minutes ? `${hours}h ${minutes}min` : `${hours}h`;
+  }, [annualPlayedMinutes]);
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -1677,14 +1788,14 @@ export default function BibliotecaPage() {
               <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
                 <div className="flex items-center justify-center gap-2">
                   <IconCalendar className="h-4 w-4 text-red-500" />
-                  <span className="text-[20px] font-black tracking-tight text-white">{new Date().getFullYear()}</span>
+                  <span className="text-[20px] font-black tracking-tight text-white">{annualYear}</span>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2.5">
                   <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
                     <IconGamepad className="h-4 w-4 shrink-0 text-red-500" />
                     <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{bibliotecaGames.length}</div>
+                      <div className="text-[16px] font-black leading-none text-white">{annualGamesCount}</div>
                       <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Jogos</div>
                     </div>
                   </div>
@@ -1692,7 +1803,7 @@ export default function BibliotecaPage() {
                   <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
                     <IconTrophy className="h-4 w-4 shrink-0 text-red-500" />
                     <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{totalAchievementStats.completed}</div>
+                      <div className="text-[16px] font-black leading-none text-white">{annualAchievementsCount}</div>
                       <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Conquistas</div>
                     </div>
                   </div>
@@ -1700,7 +1811,7 @@ export default function BibliotecaPage() {
                   <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
                     <IconTarget className="h-4 w-4 shrink-0 text-red-500" />
                     <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{completedGames.length}</div>
+                      <div className="text-[16px] font-black leading-none text-white">{annualCompletedGamesCount}</div>
                       <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Finalizados</div>
                     </div>
                   </div>
@@ -1708,7 +1819,7 @@ export default function BibliotecaPage() {
                   <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
                     <IconClock className="h-4 w-4 shrink-0 text-red-500" />
                     <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{totalHours}</div>
+                      <div className="text-[16px] font-black leading-none text-white">{annualHours}</div>
                       <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Tempo</div>
                     </div>
                   </div>
