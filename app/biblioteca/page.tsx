@@ -1674,47 +1674,48 @@ export default function BibliotecaPage() {
 
             <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="rounded-[18px] border border-white/[0.04] bg-[#07080c] px-4 py-4">
-                <div className="flex items-center justify-center gap-2 text-center">
-                  <IconCalendar className="h-4 w-4 text-pink-500" />
-                  <span className="text-[17px] font-black tracking-tight">{new Date().getFullYear()}</span>
+              <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
+                <div className="flex items-center justify-center gap-2">
+                  <IconCalendar className="h-4 w-4 text-red-500" />
+                  <span className="text-[20px] font-black tracking-tight text-white">{new Date().getFullYear()}</span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <IconGamepad className="h-3.5 w-3.5 shrink-0 text-pink-500" />
-                    <div className="min-w-0 leading-none">
-                      <strong className="text-sm font-black text-white">{bibliotecaGames.length}</strong>
-                      <span className="ml-1.5 text-[10px] font-bold text-white/45">Jogos</span>
+                <div className="mt-4 grid grid-cols-2 gap-2.5">
+                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
+                    <IconGamepad className="h-4 w-4 shrink-0 text-red-500" />
+                    <div className="min-w-0">
+                      <div className="text-[16px] font-black leading-none text-white">{bibliotecaGames.length}</div>
+                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Jogos</div>
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2">
-                    <IconTrophy className="h-3.5 w-3.5 shrink-0 text-pink-500" />
-                    <div className="min-w-0 leading-none">
-                      <strong className="text-sm font-black text-white">{totalAchievementStats.completed}</strong>
-                      <span className="ml-1.5 text-[10px] font-bold text-white/45">Conquistas</span>
+                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
+                    <IconTrophy className="h-4 w-4 shrink-0 text-red-500" />
+                    <div className="min-w-0">
+                      <div className="text-[16px] font-black leading-none text-white">{totalAchievementStats.completed}</div>
+                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Conquistas</div>
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2">
-                    <IconTarget className="h-3.5 w-3.5 shrink-0 text-pink-500" />
-                    <div className="min-w-0 leading-none">
-                      <strong className="text-sm font-black text-white">{completedGames.length}</strong>
-                      <span className="ml-1.5 text-[10px] font-bold text-white/45">Finalizados</span>
+                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
+                    <IconTarget className="h-4 w-4 shrink-0 text-red-500" />
+                    <div className="min-w-0">
+                      <div className="text-[16px] font-black leading-none text-white">{completedGames.length}</div>
+                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Finalizados</div>
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2">
-                    <IconClock className="h-3.5 w-3.5 shrink-0 text-pink-500" />
-                    <div className="min-w-0 leading-none">
-                      <strong className="text-sm font-black text-white">{totalHours}</strong>
+                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
+                    <IconClock className="h-4 w-4 shrink-0 text-red-500" />
+                    <div className="min-w-0">
+                      <div className="text-[16px] font-black leading-none text-white">{totalHours}</div>
+                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Tempo</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex justify-center border-t border-white/[0.04] pt-2 text-white/40">
-                  <span className="text-sm leading-none">⌄</span>
+                <div className="mt-3 flex justify-center border-t border-white/[0.06] pt-2.5 text-white/45">
+                  <span className="text-[14px] leading-none">⌄</span>
                 </div>
               </div>
             </section>
