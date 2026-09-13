@@ -1500,24 +1500,71 @@ export default function BibliotecaPage() {
     for (const game of bibliotecaGames) {
       if (!isCompletedGame(game)) continue;
 
-      const latestAchievement = getLatestAchievementDate(game);
-      const activity = activitySummaryByGame.get(readText(game.slug, ""));
-      const candidates = [
-        latestAchievement,
-        parseDateTimestamp(activity?.lastDate),
-        parseDateTimestamp(game.updatedAt),
-      ].filter((value) => !Number.isNaN(value));
+      const achievements = Array.isArray(game.achievementsList)
+        ? game.achievementsList
+        : [];
+      const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+        `rumo-a-conquista-achievements-${game.slug}`,
+        {}
+      );
 
-      if (candidates.length === 0) continue;
+      let completionTimestamp = Number.NaN;
 
-      const completionTimestamp = Math.max(...candidates);
-      if (new Date(completionTimestamp).getFullYear() === annualYear) {
+      achievements.forEach((achievement, index) => {
+        const title = getAchievementTitle(achievement, index);
+        const manualState = manualStates[title];
+        const status = normalizeAchievementStatus(
+          manualState?.status ?? achievement.status
+        );
+
+        if (status !== "completed" || !isMasteryAchievement(achievement, manualState)) {
+          return;
+        }
+
+        const earnedTimestamp = getAchievementEarnedTimestamp(
+          game,
+          {
+            ...achievement,
+            earnedDate: manualState?.date ?? achievement.earnedDate,
+          },
+          index
+        );
+
+        if (Number.isNaN(earnedTimestamp)) return;
+
+        if (
+          Number.isNaN(completionTimestamp) ||
+          earnedTimestamp > completionTimestamp
+        ) {
+          completionTimestamp = earnedTimestamp;
+        }
+      });
+
+      if (Number.isNaN(completionTimestamp)) {
+        const completionJourneyEntry = annualJourneyEntries.find((entry) => {
+          const slug = readText(entry.gameSlug, "").trim();
+          const status = normalizeText(entry.status);
+          return (
+            slug === readText(game.slug, "").trim() &&
+            (status.includes("finaliz") ||
+              status.includes("conclu") ||
+              status.includes("master"))
+          );
+        });
+
+        completionTimestamp = parseDateTimestamp(completionJourneyEntry?.date);
+      }
+
+      if (
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear
+      ) {
         count += 1;
       }
     }
 
     return count;
-  }, [activitySummaryByGame, annualYear, bibliotecaGames]);
+  }, [annualJourneyEntries, annualYear, bibliotecaGames, refreshKey]);
 
   const annualPlayedMinutes = useMemo(() => {
     return annualJourneyEntries.reduce(
@@ -1787,45 +1834,33 @@ export default function BibliotecaPage() {
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
                 <div className="flex items-center justify-center gap-2">
-                  <IconCalendar className="h-4 w-4 text-red-500" />
-                  <span className="text-[20px] font-black tracking-tight text-white">{annualYear}</span>
+                  <IconCalendar className="h-[15px] w-[15px] text-red-500" />
+                  <span className="text-[19px] font-black leading-none tracking-tight text-white">{annualYear}</span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
-                    <IconGamepad className="h-4 w-4 shrink-0 text-red-500" />
-                    <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{annualGamesCount}</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Jogos</div>
-                    </div>
+                <div className="mt-4 grid grid-cols-4 items-center">
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconGamepad className="h-[14px] w-[14px] shrink-0 text-red-500" />
+                    <span className="text-[15px] font-black leading-none text-white">{annualGamesCount}</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
-                    <IconTrophy className="h-4 w-4 shrink-0 text-red-500" />
-                    <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{annualAchievementsCount}</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Conquistas</div>
-                    </div>
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconTrophy className="h-[14px] w-[14px] shrink-0 text-red-500" />
+                    <span className="text-[15px] font-black leading-none text-white">{annualAchievementsCount}</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
-                    <IconTarget className="h-4 w-4 shrink-0 text-red-500" />
-                    <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{annualCompletedGamesCount}</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Finalizados</div>
-                    </div>
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconTarget className="h-[14px] w-[14px] shrink-0 text-red-500" />
+                    <span className="text-[15px] font-black leading-none text-white">{annualCompletedGamesCount}</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 rounded-[10px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5">
-                    <IconClock className="h-4 w-4 shrink-0 text-red-500" />
-                    <div className="min-w-0">
-                      <div className="text-[16px] font-black leading-none text-white">{annualHours}</div>
-                      <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.04em] text-white/50">Tempo</div>
-                    </div>
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconClock className="h-[14px] w-[14px] shrink-0 text-red-500" />
+                    <span className="truncate text-[15px] font-black leading-none text-white">{annualHours}</span>
                   </div>
                 </div>
 
-                <div className="mt-3 flex justify-center border-t border-white/[0.06] pt-2.5 text-white/45">
+                <div className="mt-3 flex justify-center border-t border-white/[0.06] pt-2 text-white/45">
                   <span className="text-[14px] leading-none">⌄</span>
                 </div>
               </div>
