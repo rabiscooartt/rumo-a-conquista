@@ -1063,13 +1063,66 @@ function parsePlaytimeMinutes(value: unknown) {
   return (h ? Number(h[1]) : 0) * 60 + (m ? Number(m[1]) : 0);
 }
 
+function parseDateTimestamp(value: unknown) {
+  const text = readText(value, "").trim();
+  if (!text) return Number.NaN;
+
+  const brazilianDate = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (brazilianDate) {
+    const [, day, month, year] = brazilianDate;
+    return new Date(`${year}-${month}-${day}T23:59:59`).getTime();
+  }
+
+  return Date.parse(text);
+}
+
 function compareDateValues(a: unknown, b: unknown, descending = false) {
-  const aTime = Date.parse(readText(a, ""));
-  const bTime = Date.parse(readText(b, ""));
+  const aTime = parseDateTimestamp(a);
+  const bTime = parseDateTimestamp(b);
   if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
   if (Number.isNaN(aTime)) return 1;
   if (Number.isNaN(bTime)) return -1;
   return descending ? bTime - aTime : aTime - bTime;
+}
+
+function getLatestAchievementDate(game: BibliotecaGame) {
+  const achievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  let latest = Number.NaN;
+
+  for (const achievement of achievements) {
+    const earnedDate = parseDateTimestamp(achievement.earnedDate);
+    if (Number.isNaN(earnedDate)) continue;
+    if (Number.isNaN(latest) || earnedDate > latest) {
+      latest = earnedDate;
+    }
+  }
+
+  return latest;
+}
+
+function getRecentTimestamp(
+  game: BibliotecaGame,
+  activitySummary?: ActivitySummary
+) {
+  const candidates: number[] = [];
+
+  const lastActivity = parseDateTimestamp(activitySummary?.lastDate);
+  if (!Number.isNaN(lastActivity)) candidates.push(lastActivity);
+
+  // "Recentes" representa atividade/conclusão do jogo.
+  // A data de desbloqueio do emblema não participa desta ordenação.
+  const latestAchievement = getLatestAchievementDate(game);
+  if (!Number.isNaN(latestAchievement)) candidates.push(latestAchievement);
+
+  if (candidates.length > 0) {
+    return Math.max(...candidates);
+  }
+
+  const fallback = parseDateTimestamp(game.updatedAt ?? game.createdAt);
+  return fallback;
 }
 
 export default function BibliotecaPage() {
@@ -1221,7 +1274,14 @@ export default function BibliotecaPage() {
       if (sortMode === "startDate") return compareDateValues(aActivity?.firstDate ?? a.createdAt, bActivity?.firstDate ?? b.createdAt, true);
       if (sortMode === "completionDate") return compareDateValues(a.updatedAt ?? a.createdAt, b.updatedAt ?? b.createdAt, true);
 
-      return compareDateValues(aActivity?.lastDate ?? a.updatedAt ?? a.createdAt, bActivity?.lastDate ?? b.updatedAt ?? b.createdAt, true);
+      const aRecent = getRecentTimestamp(a, aActivity);
+      const bRecent = getRecentTimestamp(b, bActivity);
+
+      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) return 0;
+      if (Number.isNaN(aRecent)) return 1;
+      if (Number.isNaN(bRecent)) return -1;
+
+      return bRecent - aRecent;
     });
   }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sortMode]);
 
