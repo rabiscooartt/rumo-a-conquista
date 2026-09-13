@@ -1674,26 +1674,47 @@ export default function BibliotecaPage() {
 
             <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400">Biblioteca</p>
-                  <h2 className="mt-1 text-lg font-black">Resumo da Jornada</h2>
+              <div className="rounded-[18px] border border-white/[0.04] bg-[#07080c] px-4 py-4">
+                <div className="flex items-center justify-center gap-2 text-center">
+                  <IconCalendar className="h-4 w-4 text-pink-500" />
+                  <span className="text-[17px] font-black tracking-tight">{new Date().getFullYear()}</span>
                 </div>
-                <span className="text-lg text-red-400">◈</span>
-              </div>
 
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Tempo total</span>
-                  <strong className="text-sm text-white">{totalHours}</strong>
+                <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <IconGamepad className="h-3.5 w-3.5 shrink-0 text-pink-500" />
+                    <div className="min-w-0 leading-none">
+                      <strong className="text-sm font-black text-white">{bibliotecaGames.length}</strong>
+                      <span className="ml-1.5 text-[10px] font-bold text-white/45">Jogos</span>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-0 items-center gap-2">
+                    <IconTrophy className="h-3.5 w-3.5 shrink-0 text-pink-500" />
+                    <div className="min-w-0 leading-none">
+                      <strong className="text-sm font-black text-white">{totalAchievementStats.completed}</strong>
+                      <span className="ml-1.5 text-[10px] font-bold text-white/45">Conquistas</span>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-0 items-center gap-2">
+                    <IconTarget className="h-3.5 w-3.5 shrink-0 text-pink-500" />
+                    <div className="min-w-0 leading-none">
+                      <strong className="text-sm font-black text-white">{completedGames.length}</strong>
+                      <span className="ml-1.5 text-[10px] font-bold text-white/45">Finalizados</span>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-0 items-center gap-2">
+                    <IconClock className="h-3.5 w-3.5 shrink-0 text-pink-500" />
+                    <div className="min-w-0 leading-none">
+                      <strong className="text-sm font-black text-white">{totalHours}</strong>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Conquistas</span>
-                  <strong className="text-sm text-white">{totalAchievementStats.completed}/{totalAchievementStats.total}</strong>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                  <span className="text-xs text-white/45">Progresso geral</span>
-                  <strong className="text-sm text-pink-400">{overallAchievementProgress}%</strong>
+
+                <div className="mt-3 flex justify-center border-t border-white/[0.04] pt-2 text-white/40">
+                  <span className="text-sm leading-none">⌄</span>
                 </div>
               </div>
             </section>
