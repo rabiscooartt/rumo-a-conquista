@@ -1064,18 +1064,18 @@ function GameGridCard({
         <span className={`absolute bottom-2 left-2 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[0.06em] backdrop-blur-sm ${statusClass}`}>
           {statusLabel}
         </span>
-      </div>
-
-      <div className="flex min-h-[82px] min-w-0 flex-1 flex-col pt-2.5">
-        <h3 className="truncate text-[13px] font-black leading-tight text-white" title={gameTitle}>
-          {gameTitle}
-        </h3>
 
         {isCompleted ? (
-          <div className="mt-0.5">
+          <div className="absolute bottom-1.5 right-2 z-10 rounded-md bg-black/65 px-1.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.45)] backdrop-blur-[2px]">
             <GameRating rating={rating} />
           </div>
         ) : null}
+      </div>
+
+      <div className="flex min-h-[60px] min-w-0 flex-1 flex-col pt-2.5">
+        <h3 className="truncate text-[13px] font-black leading-tight text-white" title={gameTitle}>
+          {gameTitle}
+        </h3>
 
         <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-semibold text-white/45">
           <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
