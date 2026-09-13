@@ -1008,6 +1008,103 @@ function GameRow({
   );
 }
 
+function GameGridCard({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const isCompleted = isCompletedGame(game);
+  const hasActivity = Boolean(activitySummary);
+  const isProgress = isProgressGame(game, hasActivity);
+  const isBacklog = isBacklogGame(game) && !isProgress;
+  const statusLabel = isCompleted
+    ? "Finalizado"
+    : isProgress
+    ? "Em progresso"
+    : isBacklog
+    ? "Na fila"
+    : readText(game.status, "Não definido");
+  const rating = getGameRating(game);
+  const platform = getPlatformLabel(game);
+  const playedTime = isBacklog
+    ? "—"
+    : isProgress && activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+
+  const statusClass = isCompleted
+    ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+    : isBacklog
+    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-300"
+    : "border-red-500/25 bg-red-500/10 text-red-300";
+
+  const progressClass = isCompleted
+    ? "bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
+    : "bg-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]";
+
+  return (
+    <Link
+      href={`/games/${gameSlug}`}
+      className="group/card block min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.015] p-2.5 transition duration-300 hover:border-white/15 hover:bg-white/[0.035]"
+    >
+      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
+        <GameCoverImage src={cardImage} title={gameTitle} />
+
+        <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
+          <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
+        </div>
+
+        <span className={`absolute bottom-2 left-2 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[0.06em] backdrop-blur-sm ${statusClass}`}>
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="min-w-0 pt-2.5">
+        <h3 className="truncate text-[13px] font-black leading-tight text-white" title={gameTitle}>
+          {gameTitle}
+        </h3>
+
+        {isCompleted ? (
+          <div className="mt-0.5">
+            <GameRating rating={rating} />
+          </div>
+        ) : null}
+
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-semibold text-white/45">
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconTrophy
+              className="h-3.5 w-3.5 text-amber-400"
+              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
+            />
+            {achievementStats.completed}/{achievementStats.total}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap">
+            <IconClock className="h-3.5 w-3.5 text-sky-400" />
+            {playedTime}
+          </span>
+        </div>
+
+        <div className="mt-1.5 flex items-center gap-2">
+          <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
+          </div>
+          <span className={`w-8 shrink-0 text-right text-[9px] font-black ${isCompleted ? "text-emerald-300" : "text-white/50"}`}>
+            {progress}%
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function GameSection({
   eyebrow,
   title,
@@ -1134,6 +1231,7 @@ export default function BibliotecaPage() {
   const [platformFilter, setPlatformFilter] = useState("all");
   const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1462,6 +1560,16 @@ export default function BibliotecaPage() {
             <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
               <div className="border-b border-white/[0.08] px-3 py-3">
                 <div className="flex min-w-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode((current) => (current === "list" ? "grid" : "list"))}
+                    aria-label={viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
+                    title={viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition ${viewMode === "grid" ? "border-red-500/35 bg-red-500/10 text-red-300" : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"}`}
+                  >
+                    <IconGrid className="h-[18px] w-[18px]" />
+                  </button>
+
                   <div className="relative min-w-0 flex-1">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
                     <input
@@ -1471,14 +1579,6 @@ export default function BibliotecaPage() {
                       className="h-11 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-red-500/40 focus:bg-white/[0.04]"
                     />
                   </div>
-
-                  <button
-                    type="button"
-                    aria-label="Visualização em grade"
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] text-white/45 transition hover:border-white/20 hover:text-white"
-                  >
-                    <IconGrid className="h-[18px] w-[18px]" />
-                  </button>
                 </div>
 
                 <div className="mt-2.5 flex items-center gap-2">
@@ -1547,13 +1647,25 @@ export default function BibliotecaPage() {
                 ) : filteredGames.length === 0 ? (
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
-                  filteredGames.map((game) => (
-                    <GameRow
-                      key={game.slug}
-                      game={game}
-                      activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
-                    />
-                  ))
+                  viewMode === "grid" ? (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {filteredGames.map((game) => (
+                        <GameGridCard
+                          key={game.slug}
+                          game={game}
+                          activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    filteredGames.map((game) => (
+                      <GameRow
+                        key={game.slug}
+                        game={game}
+                        activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                      />
+                    ))
+                  )
                 )}
               </div>
             </section>
