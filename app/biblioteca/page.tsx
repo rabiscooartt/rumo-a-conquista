@@ -1052,7 +1052,7 @@ function GameGridCard({
   return (
     <Link
       href={`/games/${gameSlug}`}
-      className="group/card block min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.015] p-2.5 transition duration-300 hover:border-white/15 hover:bg-white/[0.035]"
+      className="group/card flex h-full min-w-0 flex-col rounded-xl border border-white/[0.08] bg-white/[0.015] p-2.5 transition duration-300 hover:border-white/15 hover:bg-white/[0.035]"
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
@@ -1066,7 +1066,7 @@ function GameGridCard({
         </span>
       </div>
 
-      <div className="min-w-0 pt-2.5">
+      <div className="flex min-h-[82px] min-w-0 flex-1 flex-col pt-2.5">
         <h3 className="truncate text-[13px] font-black leading-tight text-white" title={gameTitle}>
           {gameTitle}
         </h3>
@@ -1092,7 +1092,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="mt-auto pt-1.5 flex items-center gap-2">
           <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
             <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
           </div>
