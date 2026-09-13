@@ -1579,6 +1579,7 @@ export default function BibliotecaPage() {
                       className="h-11 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-red-500/40 focus:bg-white/[0.04]"
                     />
                   </div>
+
                 </div>
 
                 <div className="mt-2.5 flex items-center gap-2">
