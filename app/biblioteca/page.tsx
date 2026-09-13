@@ -140,6 +140,7 @@ function IconPlatform({
 }
 
 type FilterType = "all" | "progress" | "mastery" | "backlog";
+type SortMode = "recent" | "alphabetical" | "playtime" | "rating" | "progress" | "startDate" | "completionDate";
 
 type AchievementSummary =
   | string
@@ -844,6 +845,19 @@ function GameRating({ rating }: { rating: number }) {
   );
 }
 
+function getSourceLabel(game: BibliotecaGame) {
+  const source = (game as BibliotecaGame & { source?: unknown; sources?: unknown }).source;
+  if (typeof source === "string" && source.trim()) return source.trim();
+
+  const sources = (game as BibliotecaGame & { sources?: unknown }).sources;
+  if (Array.isArray(sources)) {
+    const first = sources.find((item) => typeof item === "string" && item.trim());
+    if (typeof first === "string") return first.trim();
+  }
+
+  return "Rumo à Conquista";
+}
+
 function getPlatformLabel(game: BibliotecaGame) {
   const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();
   return value || "Steam";
@@ -1054,6 +1068,22 @@ function GameSection({
   );
 }
 
+function parsePlaytimeMinutes(value: unknown) {
+  const text = readText(value, "").toLowerCase();
+  const h = text.match(/(\d+)\s*h/);
+  const m = text.match(/(\d+)\s*m/);
+  return (h ? Number(h[1]) : 0) * 60 + (m ? Number(m[1]) : 0);
+}
+
+function compareDateValues(a: unknown, b: unknown, descending = false) {
+  const aTime = Date.parse(readText(a, ""));
+  const bTime = Date.parse(readText(b, ""));
+  if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+  if (Number.isNaN(aTime)) return 1;
+  if (Number.isNaN(bTime)) return -1;
+  return descending ? bTime - aTime : aTime - bTime;
+}
+
 export default function BibliotecaPage() {
   const { gamesList, isLoaded } = useSiteGames();
   const { entries: journeyEntries } = useJourneyEntries();
@@ -1061,8 +1091,9 @@ export default function BibliotecaPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const [platformFilter, setPlatformFilter] = useState("all");
-  const [filterMenu, setFilterMenu] = useState<"status" | "platform" | null>(null);
-  const [sortRecent, setSortRecent] = useState(true);
+  const [filterMenu, setFilterMenu] = useState<"status" | "source" | "platform" | "sort" | null>(null);
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1165,6 +1196,15 @@ export default function BibliotecaPage() {
     return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [bibliotecaGames]);
 
+  const sourceOptions = useMemo(() => {
+    const values = new Set<string>();
+    bibliotecaGames.forEach((game) => {
+      const source = getSourceLabel(game);
+      if (source) values.add(source);
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [bibliotecaGames]);
+
   const filteredGames = useMemo(() => {
     const term = normalizeText(search);
 
@@ -1181,22 +1221,33 @@ export default function BibliotecaPage() {
         return false;
       }
 
+      if (sourceFilter !== "all" && normalizeText(getSourceLabel(game)) !== normalizeText(sourceFilter)) {
+        return false;
+      }
+
       if (!term) return true;
 
       return normalizeText(readText(game.title, "")).includes(term);
     }).sort((a, b) => {
-      if (!sortRecent) return 0;
+      const aActivity = activitySummaryByGame.get(readText(a.slug, ""));
+      const bActivity = activitySummaryByGame.get(readText(b.slug, ""));
+      const aTitle = normalizeText(readText(a.title, ""));
+      const bTitle = normalizeText(readText(b.title, ""));
 
-      const aDate = activitySummaryByGame.get(readText(a.slug, ""))?.lastDate ?? "";
-      const bDate = activitySummaryByGame.get(readText(b.slug, ""))?.lastDate ?? "";
-      const aTime = Date.parse(aDate);
-      const bTime = Date.parse(bDate);
-      if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
-      if (Number.isNaN(aTime)) return 1;
-      if (Number.isNaN(bTime)) return -1;
-      return bTime - aTime;
+      if (sortMode === "alphabetical") return aTitle.localeCompare(bTitle, "pt-BR");
+      if (sortMode === "playtime") {
+        const aMinutes = aActivity?.totalMinutes ?? parsePlaytimeMinutes(a.hours);
+        const bMinutes = bActivity?.totalMinutes ?? parsePlaytimeMinutes(b.hours);
+        return bMinutes - aMinutes;
+      }
+      if (sortMode === "rating") return getGameRating(b) - getGameRating(a);
+      if (sortMode === "progress") return getProgressPercent(b, getAchievementStats(b)) - getProgressPercent(a, getAchievementStats(a));
+      if (sortMode === "startDate") return compareDateValues(aActivity?.firstDate ?? a.createdAt, bActivity?.firstDate ?? b.createdAt, true);
+      if (sortMode === "completionDate") return compareDateValues(a.updatedAt ?? a.createdAt, b.updatedAt ?? b.createdAt, true);
+
+      return compareDateValues(aActivity?.lastDate ?? a.updatedAt ?? a.createdAt, bActivity?.lastDate ?? b.updatedAt ?? b.createdAt, true);
     });
-  }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sortRecent]);
+  }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sourceFilter, sortMode]);
 
   const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
   const totalAchievementStats = useMemo(() => {
@@ -1406,14 +1457,9 @@ export default function BibliotecaPage() {
                       <span className="text-white/30">⌄</span>
                     </button>
                     {filterMenu === "status" ? (
-                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[155px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[170px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
                         {filters.map((filter) => (
-                          <button
-                            key={filter.value}
-                            type="button"
-                            onClick={() => { handleFilterChange(filter.value); setFilterMenu(null); }}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${activeFilter === filter.value ? "bg-red-500/10 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}
-                          >
+                          <button key={filter.value} type="button" onClick={() => { handleFilterChange(filter.value); setFilterMenu(null); }} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${activeFilter === filter.value ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>
                             <span>{filter.label}</span>
                             <span className="text-white/25">{filter.value === "all" ? bibliotecaGames.length : filter.value === "progress" ? progressGames.length : filter.value === "backlog" ? backlogGames.length : completedGames.length}</span>
                           </button>
@@ -1423,47 +1469,55 @@ export default function BibliotecaPage() {
                   </div>
 
                   <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setFilterMenu(filterMenu === "platform" ? null : "platform")}
-                      className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${platformFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
-                    >
-                      <IconGamepad className="h-3.5 w-3.5" />
-                      Plataformas
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "source" ? null : "source")} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${sourceFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}>
+                      <IconGrid className="h-3.5 w-3.5" />
+                      Fontes
                       <span className="text-white/30">⌄</span>
                     </button>
-                    {filterMenu === "platform" ? (
-                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
-                        <button
-                          type="button"
-                          onClick={() => { setPlatformFilter("all"); setFilterMenu(null); }}
-                          className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === "all" ? "bg-red-500/10 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}
-                        >
-                          Todas as plataformas
-                        </button>
-                        {platformOptions.map((platform) => (
-                          <button
-                            key={platform}
-                            type="button"
-                            onClick={() => { setPlatformFilter(platform); setFilterMenu(null); }}
-                            className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === platform ? "bg-red-500/10 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}
-                          >
-                            {platform}
-                          </button>
+                    {filterMenu === "source" ? (
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[205px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        <button type="button" onClick={() => { setSourceFilter("all"); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${sourceFilter === "all" ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>Todas as fontes</button>
+                        {sourceOptions.map((source) => (
+                          <button key={source} type="button" onClick={() => { setSourceFilter(source); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${sourceFilter === source ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>{source}</button>
                         ))}
                       </div>
                     ) : null}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setSortRecent((current) => !current)}
-                    className={`ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${sortRecent ? "border-white/10 bg-white/[0.02] text-white/65" : "border-white/10 bg-white/[0.02] text-white/35"}`}
-                  >
-                    <IconTrend className="h-3.5 w-3.5" />
-                    Recentes
-                    <span className="text-white/30">⌄</span>
-                  </button>
+                  <div className="relative">
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "platform" ? null : "platform")} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${platformFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}>
+                      <IconGamepad className="h-3.5 w-3.5" />
+                      Plataformas
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "platform" ? (
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[190px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        <button type="button" onClick={() => { setPlatformFilter("all"); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === "all" ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>Todas as plataformas</button>
+                        {platformOptions.map((platform) => (
+                          <button key={platform} type="button" onClick={() => { setPlatformFilter(platform); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === platform ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>{platform}</button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="relative ml-auto">
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "sort" ? null : "sort")} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-[10px] font-black text-white/65 transition hover:border-white/20 hover:text-white">
+                      <IconTrend className="h-3.5 w-3.5" />
+                      {sortMode === "recent" ? "Recentes" : sortMode === "alphabetical" ? "Alfabético" : sortMode === "playtime" ? "Tempo de Jogo" : sortMode === "rating" ? "Avaliação" : sortMode === "progress" ? "Progresso" : sortMode === "startDate" ? "Data de Início" : "Data de Conclusão"}
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "sort" ? (
+                      <div className="absolute right-0 top-full z-50 mt-2 min-w-[175px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        {([
+                          ["recent", "Recentes"], ["alphabetical", "Alfabético"], ["playtime", "Tempo de Jogo"], ["rating", "Avaliação"], ["progress", "Progresso"], ["startDate", "Data de Início"], ["completionDate", "Data de Conclusão"],
+                        ] as [SortMode, string][]).map(([value, label]) => (
+                          <button key={value} type="button" onClick={() => { setSortMode(value); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${sortMode === value ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
