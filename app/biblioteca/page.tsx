@@ -84,6 +84,17 @@ function IconClock(props: { className?: string }) {
   );
 }
 
+function IconGrid(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="4" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="14" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="4" y="14" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="14" y="14" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+    </SvgIcon>
+  );
+}
+
 function IconPlatform({
   platform,
   className = "h-4 w-4",
@@ -127,7 +138,6 @@ function IconPlatform({
     </SvgIcon>
   );
 }
-
 
 type FilterType = "all" | "progress" | "mastery" | "backlog";
 
@@ -727,7 +737,7 @@ function GameEmblem({ game }: { game: BibliotecaGame }) {
       <div
         className={`relative h-full w-full transition duration-300 ${
           isUnlocked
-            ? "translate-x-[5px] scale-[1.35]"
+            ? "scale-[1.30]"
             : "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
         }`}
       >
@@ -1050,6 +1060,9 @@ export default function BibliotecaPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
+  const [platformFilter, setPlatformFilter] = useState("all");
+  const [filterMenu, setFilterMenu] = useState<"status" | "platform" | null>(null);
+  const [sortRecent, setSortRecent] = useState(true);
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1143,6 +1156,15 @@ export default function BibliotecaPage() {
   );
   const completedGames = useMemo(() => bibliotecaGames.filter((game) => isCompletedGame(game)), [bibliotecaGames]);
 
+  const platformOptions = useMemo(() => {
+    const values = new Set<string>();
+    bibliotecaGames.forEach((game) => {
+      const platform = getPlatformLabel(game);
+      if (platform) values.add(platform);
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [bibliotecaGames]);
+
   const filteredGames = useMemo(() => {
     const term = normalizeText(search);
 
@@ -1155,11 +1177,26 @@ export default function BibliotecaPage() {
       if (activeFilter === "mastery" && !isCompletedGame(game)) return false;
       if (activeFilter === "backlog" && !isBacklogGame(game)) return false;
 
+      if (platformFilter !== "all" && normalizeText(getPlatformLabel(game)) !== normalizeText(platformFilter)) {
+        return false;
+      }
+
       if (!term) return true;
 
       return normalizeText(readText(game.title, "")).includes(term);
+    }).sort((a, b) => {
+      if (!sortRecent) return 0;
+
+      const aDate = activitySummaryByGame.get(readText(a.slug, ""))?.lastDate ?? "";
+      const bDate = activitySummaryByGame.get(readText(b.slug, ""))?.lastDate ?? "";
+      const aTime = Date.parse(aDate);
+      const bTime = Date.parse(bDate);
+      if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return bTime - aTime;
     });
-  }, [activeFilter, activitySummaryByGame, bibliotecaGames, search]);
+  }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sortRecent]);
 
   const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
   const totalAchievementStats = useMemo(() => {
@@ -1336,37 +1373,97 @@ export default function BibliotecaPage() {
             </header>
 
             <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
-              <div className="border-b border-white/[0.08] px-3 pt-3">
-                <div className="flex flex-col gap-3 lg:flex-row">
+              <div className="border-b border-white/[0.08] px-3 py-3">
+                <div className="flex min-w-0 items-center gap-2">
                   <div className="relative min-w-0 flex-1">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
                     <input
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por nome do jogo..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/40 focus:bg-white/[0.04]"
+                      className="h-11 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-red-500/40 focus:bg-white/[0.04]"
                     />
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.map((filter) => {
-                      const isActive = activeFilter === filter.value;
-                      const count = filter.value === "all" ? bibliotecaGames.length : filter.value === "progress" ? progressGames.length : filter.value === "backlog" ? backlogGames.length : completedGames.length;
-                      return (
-                        <button
-                          key={filter.value}
-                          type="button"
-                          onClick={() => handleFilterChange(filter.value)}
-                          className={`rounded-xl border px-4 py-3 text-[11px] font-black transition ${
-                            isActive
-                              ? "border-red-500/45 bg-red-500/12 text-white"
-                              : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"
-                          }`}
-                        >
-                          {filter.label} <span className="ml-1 text-white/25">{count}</span>
-                        </button>
-                      );
-                    })}
+
+                  <button
+                    type="button"
+                    aria-label="Visualização em grade"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] text-white/45 transition hover:border-white/20 hover:text-white"
+                  >
+                    <IconGrid className="h-[18px] w-[18px]" />
+                  </button>
+                </div>
+
+                <div className="mt-2.5 flex items-center gap-2">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setFilterMenu(filterMenu === "status" ? null : "status")}
+                      className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${activeFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
+                    >
+                      <IconTarget className="h-3.5 w-3.5" />
+                      Status
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "status" ? (
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[155px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        {filters.map((filter) => (
+                          <button
+                            key={filter.value}
+                            type="button"
+                            onClick={() => { handleFilterChange(filter.value); setFilterMenu(null); }}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${activeFilter === filter.value ? "bg-red-500/10 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}
+                          >
+                            <span>{filter.label}</span>
+                            <span className="text-white/25">{filter.value === "all" ? bibliotecaGames.length : filter.value === "progress" ? progressGames.length : filter.value === "backlog" ? backlogGames.length : completedGames.length}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setFilterMenu(filterMenu === "platform" ? null : "platform")}
+                      className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${platformFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
+                    >
+                      <IconGamepad className="h-3.5 w-3.5" />
+                      Plataformas
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "platform" ? (
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        <button
+                          type="button"
+                          onClick={() => { setPlatformFilter("all"); setFilterMenu(null); }}
+                          className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === "all" ? "bg-red-500/10 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}
+                        >
+                          Todas as plataformas
+                        </button>
+                        {platformOptions.map((platform) => (
+                          <button
+                            key={platform}
+                            type="button"
+                            onClick={() => { setPlatformFilter(platform); setFilterMenu(null); }}
+                            className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === platform ? "bg-red-500/10 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}
+                          >
+                            {platform}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSortRecent((current) => !current)}
+                    className={`ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${sortRecent ? "border-white/10 bg-white/[0.02] text-white/65" : "border-white/10 bg-white/[0.02] text-white/35"}`}
+                  >
+                    <IconTrend className="h-3.5 w-3.5" />
+                    Recentes
+                    <span className="text-white/30">⌄</span>
+                  </button>
                 </div>
               </div>
 
