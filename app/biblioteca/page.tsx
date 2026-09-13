@@ -1864,9 +1864,9 @@ export default function BibliotecaPage() {
 
             <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="mb-3 px-1">
-                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] text-white">Resumo do Ano</h2>
-                <div className="mt-2 h-px w-full bg-red-500/70" />
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <IconCalendar className="h-[15px] w-[15px] shrink-0 text-red-500" />
+                <h2 className="text-[14px] font-semibold leading-none text-white">Resumo do Ano</h2>
               </div>
 
               <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
