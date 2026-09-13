@@ -1441,6 +1441,14 @@ export default function BibliotecaPage() {
 
   const annualYear = new Date().getFullYear();
 
+  const getGameCompletionTimestamp = (game: BibliotecaGame) => {
+    if (!isCompletedGame(game)) return Number.NaN;
+
+    const formattedDate = formatGameDate(game);
+    const completionText = formattedDate.split("→")[1]?.trim() || formattedDate.trim();
+    return parseDateTimestamp(completionText);
+  };
+
   const annualJourneyEntries = useMemo(() => {
     return journeyEntries.filter((entry) => {
       const timestamp = parseDateTimestamp(entry.date);
@@ -1448,6 +1456,21 @@ export default function BibliotecaPage() {
       return new Date(timestamp).getFullYear() === annualYear;
     });
   }, [annualYear, journeyEntries]);
+
+  const annualJourneyByGame = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const entry of annualJourneyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      if (!slug) continue;
+      map.set(
+        slug,
+        (map.get(slug) ?? 0) + Math.max(0, readNumber(entry.playedMinutes, 0))
+      );
+    }
+
+    return map;
+  }, [annualJourneyEntries]);
 
   const annualGameSlugs = useMemo(() => {
     const slugs = new Set<string>();
@@ -1458,10 +1481,13 @@ export default function BibliotecaPage() {
     }
 
     for (const game of bibliotecaGames) {
-      const latestAchievement = getLatestAchievementDate(game);
-      if (Number.isNaN(latestAchievement)) continue;
-      if (new Date(latestAchievement).getFullYear() === annualYear) {
-        slugs.add(readText(game.slug, "").trim());
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      if (
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear
+      ) {
+        const slug = readText(game.slug, "").trim();
+        if (slug) slugs.add(slug);
       }
     }
 
@@ -1478,105 +1504,111 @@ export default function BibliotecaPage() {
         ? game.achievementsList
         : [];
 
+      let datedCompletedCount = 0;
+
       achievements.forEach((achievement, index) => {
-        const status = normalizeAchievementStatus(achievement.status);
-        if (status !== "completed") return;
+        if (normalizeAchievementStatus(achievement.status) !== "completed") return;
 
         const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
-        if (Number.isNaN(earnedTimestamp)) return;
-
-        if (new Date(earnedTimestamp).getFullYear() === annualYear) {
-          count += 1;
+        if (
+          !Number.isNaN(earnedTimestamp) &&
+          new Date(earnedTimestamp).getFullYear() === annualYear
+        ) {
+          datedCompletedCount += 1;
         }
       });
+
+      if (datedCompletedCount > 0) {
+        count += datedCompletedCount;
+        continue;
+      }
+
+      // Hogwarts Legacy, Crisol e outros jogos concluídos no ano podem ter
+      // a lista de conquistas completa sem earnedDate individual. Nesses casos,
+      // a conclusão do próprio jogo é a referência temporal e contamos as
+      // conquistas realmente concluídas desse jogo.
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      if (
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear
+      ) {
+        count += getAchievementStats(game).completed;
+      }
     }
 
     return count;
   }, [annualYear, bibliotecaGames, refreshKey]);
 
-  const annualCompletedGamesCount = useMemo(() => {
+  const annualEmblemsCount = useMemo(() => {
     let count = 0;
 
     for (const game of bibliotecaGames) {
       if (!isCompletedGame(game)) continue;
 
-      const achievements = Array.isArray(game.achievementsList)
-        ? game.achievementsList
-        : [];
-      const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
-        `rumo-a-conquista-achievements-${game.slug}`,
-        {}
-      );
+      const gameWithEmblem = game as BibliotecaGame & {
+        emblem?: { unlockedAt?: string; image?: string };
+        gameEmblem?: { unlockedAt?: string; image?: string };
+      };
 
-      let completionTimestamp = Number.NaN;
+      const slug = readText(game.slug, "");
+      const baseGame = (baseGames as unknown as Record<string, {
+        emblem?: { unlockedAt?: string; image?: string };
+        gameEmblem?: { unlockedAt?: string; image?: string };
+      }>)[slug];
 
-      achievements.forEach((achievement, index) => {
-        const title = getAchievementTitle(achievement, index);
-        const manualState = manualStates[title];
-        const status = normalizeAchievementStatus(
-          manualState?.status ?? achievement.status
-        );
+      const unlockedAt =
+        readText(gameWithEmblem.emblem?.unlockedAt, "") ||
+        readText(gameWithEmblem.gameEmblem?.unlockedAt, "") ||
+        readText(baseGame?.emblem?.unlockedAt, "") ||
+        readText(baseGame?.gameEmblem?.unlockedAt, "");
 
-        if (status !== "completed" || !isMasteryAchievement(achievement, manualState)) {
-          return;
-        }
-
-        const earnedTimestamp = getAchievementEarnedTimestamp(
-          game,
-          {
-            ...achievement,
-            earnedDate: manualState?.date ?? achievement.earnedDate,
-          },
-          index
-        );
-
-        if (Number.isNaN(earnedTimestamp)) return;
-
-        if (
-          Number.isNaN(completionTimestamp) ||
-          earnedTimestamp > completionTimestamp
-        ) {
-          completionTimestamp = earnedTimestamp;
-        }
-      });
-
-      if (Number.isNaN(completionTimestamp)) {
-        const completionJourneyEntry = annualJourneyEntries.find((entry) => {
-          const slug = readText(entry.gameSlug, "").trim();
-          const status = normalizeText(entry.status);
-          return (
-            slug === readText(game.slug, "").trim() &&
-            (status.includes("finaliz") ||
-              status.includes("conclu") ||
-              status.includes("master"))
-          );
-        });
-
-        completionTimestamp = parseDateTimestamp(completionJourneyEntry?.date);
-      }
+      const emblemTimestamp = parseDateTimestamp(unlockedAt);
+      const fallbackTimestamp = getGameCompletionTimestamp(game);
+      const timestamp = !Number.isNaN(emblemTimestamp)
+        ? emblemTimestamp
+        : fallbackTimestamp;
 
       if (
-        !Number.isNaN(completionTimestamp) &&
-        new Date(completionTimestamp).getFullYear() === annualYear
+        !Number.isNaN(timestamp) &&
+        new Date(timestamp).getFullYear() === annualYear
       ) {
         count += 1;
       }
     }
 
     return count;
-  }, [annualJourneyEntries, annualYear, bibliotecaGames, refreshKey]);
+  }, [annualYear, bibliotecaGames, refreshKey]);
 
   const annualPlayedMinutes = useMemo(() => {
-    return annualJourneyEntries.reduce(
-      (total, entry) => total + Math.max(0, readNumber(entry.playedMinutes, 0)),
-      0
-    );
-  }, [annualJourneyEntries]);
+    let minutes = 0;
+
+    for (const game of bibliotecaGames) {
+      const slug = readText(game.slug, "").trim();
+      if (!annualGameSlugs.has(slug)) continue;
+
+      const annualJourneyMinutes = annualJourneyByGame.get(slug) ?? 0;
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      const completedThisYear =
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear;
+
+      // Para jogos concluídos no próprio ano, o campo hours representa o
+      // tempo total real da jornada. Para jogos ainda em progresso, usamos
+      // somente o tempo registrado na Jornada durante o ano.
+      if (completedThisYear) {
+        const gameMinutes = parsePlaytimeMinutes(game.hours);
+        minutes += gameMinutes > 0 ? gameMinutes : annualJourneyMinutes;
+        continue;
+      }
+
+      minutes += annualJourneyMinutes;
+    }
+
+    return minutes;
+  }, [annualGameSlugs, annualJourneyByGame, annualYear, bibliotecaGames]);
 
   const annualHours = useMemo(() => {
-    const hours = Math.floor(annualPlayedMinutes / 60);
-    const minutes = annualPlayedMinutes % 60;
-    return minutes ? `${hours}h ${minutes}min` : `${hours}h`;
+    return formatMinutesAsGameTime(annualPlayedMinutes);
   }, [annualPlayedMinutes]);
 
   return (
@@ -1838,7 +1870,7 @@ export default function BibliotecaPage() {
                   <span className="text-[19px] font-black leading-none tracking-tight text-white">{annualYear}</span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-4 items-center">
+                <div className="mt-4 flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
                     <IconGamepad className="h-[14px] w-[14px] shrink-0 text-red-500" />
                     <span className="text-[15px] font-black leading-none text-white">{annualGamesCount}</span>
@@ -1851,12 +1883,12 @@ export default function BibliotecaPage() {
 
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
                     <IconTarget className="h-[14px] w-[14px] shrink-0 text-red-500" />
-                    <span className="text-[15px] font-black leading-none text-white">{annualCompletedGamesCount}</span>
+                    <span className="text-[15px] font-black leading-none text-white">{annualEmblemsCount}</span>
                   </div>
 
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
                     <IconClock className="h-[14px] w-[14px] shrink-0 text-red-500" />
-                    <span className="truncate text-[15px] font-black leading-none text-white">{annualHours}</span>
+                    <span className="whitespace-nowrap text-[14px] font-black leading-none text-white">{annualHours}</span>
                   </div>
                 </div>
 
