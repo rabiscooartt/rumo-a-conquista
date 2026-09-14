@@ -214,14 +214,26 @@ export async function GET() {
     const genresBySlug: Record<string, string[]> = {};
     const sourceBySlug: Record<string, string> = {};
 
-    for (const game of rows) {
-      let genres = Array.isArray(game.genres) ? game.genres.filter(Boolean) : [];
-      let source = genres.length > 0 ? "saved" : "none";
+    const savedRows = rows.filter((game) => Array.isArray(game.genres));
+    const pendingRows = rows.filter((game) => game.genres === null);
 
-      if (game.genres === null) {
-        const detected = await detectGenres(game.title);
-        genres = detected.genres;
-        source = detected.source;
+    for (const game of savedRows) {
+      genresBySlug[game.slug] = game.genres!.filter(Boolean);
+      sourceBySlug[game.slug] = "saved";
+    }
+
+    await Promise.all(
+      pendingRows.map(async (game) => {
+        let genres: string[] = [];
+        let source: GenreResult["source"] = "none";
+
+        try {
+          const detected = await detectGenres(game.title);
+          genres = detected.genres;
+          source = detected.source;
+        } catch (error) {
+          console.warn(`[Genres] Não foi possível identificar ${game.slug}:`, error);
+        }
 
         if (genres.length > 0) {
           const { error: updateError } = await client
@@ -233,11 +245,11 @@ export async function GET() {
             console.warn(`[Genres] Não foi possível salvar ${game.slug}:`, updateError);
           }
         }
-      }
 
-      genresBySlug[game.slug] = genres;
-      sourceBySlug[game.slug] = source;
-    }
+        genresBySlug[game.slug] = genres;
+        sourceBySlug[game.slug] = source;
+      })
+    );
 
     return NextResponse.json({ ok: true, genresBySlug, sourceBySlug });
   } catch (error) {
