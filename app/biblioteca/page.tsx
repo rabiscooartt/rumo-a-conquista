@@ -1154,6 +1154,76 @@ function GameSection({
 }
 
 
+function PlayingGameItem({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const platform = getPlatformLabel(game);
+  const playedTime = activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+
+  return (
+    <Link
+      href={`/games/${gameSlug}`}
+      className="group/playing flex min-w-0 gap-2.5 border-b border-white/[0.06] py-2.5 last:border-b-0"
+    >
+      <div className="h-[54px] w-[40px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black">
+        <GameCoverImage src={cardImage} title={gameTitle} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <h3
+          className="truncate text-[12px] font-black leading-tight text-white"
+          title={gameTitle}
+        >
+          {gameTitle}
+        </h3>
+
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[9px] font-semibold text-white/45">
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconPlatform platform={platform} className="h-3 w-3 text-white/60" />
+            {platform}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconTrophy
+              className="h-3 w-3 text-amber-400"
+              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
+            />
+            {achievementStats.completed}/{achievementStats.total}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconClock className="h-3 w-3 text-sky-400" />
+            {playedTime}
+          </span>
+        </div>
+
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div
+              className="h-full rounded-full bg-cyan-400"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="shrink-0 text-[8px] font-black text-white/35">
+            {progress}%
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function AnnualRecentGame({
   game,
   activitySummary,
@@ -1420,6 +1490,16 @@ export default function BibliotecaPage() {
       ),
     [activitySummaryByGame, bibliotecaGames]
   );
+  const playingGames = useMemo(() => {
+    return [...progressGames].sort((a, b) => {
+      const aTime = getRecentTimestamp(a, activitySummaryByGame.get(readText(a.slug, "")));
+      const bTime = getRecentTimestamp(b, activitySummaryByGame.get(readText(b.slug, "")));
+      if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return bTime - aTime;
+    });
+  }, [activitySummaryByGame, progressGames]);
   const backlogGames = useMemo(
     () =>
       bibliotecaGames.filter(
@@ -1531,6 +1611,7 @@ export default function BibliotecaPage() {
   const currentAnnualYear = new Date().getFullYear();
   const [selectedAnnualYear, setSelectedAnnualYear] = useState(currentAnnualYear);
   const [showAnnualRecentGames, setShowAnnualRecentGames] = useState(false);
+  const [showPlayingGames, setShowPlayingGames] = useState(false);
 
   const getGameCompletionTimestamp = (game: BibliotecaGame) => {
     if (!isCompletedGame(game)) return Number.NaN;
@@ -2128,28 +2209,51 @@ export default function BibliotecaPage() {
             </section>
 
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[16px] font-black uppercase tracking-[0.01em]">Status dos Jogos</h2>
-                <span className="text-red-400">◉</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => playingGames.length > 1 && setShowPlayingGames((current) => !current)}
+                aria-expanded={playingGames.length > 1 ? showPlayingGames : undefined}
+                className={`flex w-full items-center justify-between text-left ${playingGames.length > 1 ? "cursor-pointer" : "cursor-default"}`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Estou Jogando</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-black text-red-400">{playingGames.length}</span>
+                  {playingGames.length > 1 ? (
+                    <span
+                      className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${showPlayingGames ? "translate-y-[1px] rotate-[225deg]" : "-translate-y-[1px] rotate-45"}`}
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                </div>
+              </button>
 
-              <div className="mt-5 space-y-4">
-                {[
-                  { label: "Em progresso", value: progressGames.length, total: bibliotecaGames.length, className: "bg-red-500" },
-                  { label: "Finalizados", value: completedGames.length, total: bibliotecaGames.length, className: "bg-emerald-400" },
-                  { label: "Na fila", value: backlogGames.length, total: bibliotecaGames.length, className: "bg-cyan-400" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="mb-2 flex items-center justify-between text-[11px]">
-                      <span className="text-white/50">{item.label}</span>
-                      <strong className="text-white/80">{item.value}</strong>
+              {playingGames.length > 0 ? (
+                <div className="mt-2">
+                  <PlayingGameItem
+                    game={playingGames[0]}
+                    activitySummary={activitySummaryByGame.get(readText(playingGames[0].slug, ""))}
+                  />
+
+                  {showPlayingGames && playingGames.length > 1 ? (
+                    <div className="mt-0 border-t border-white/[0.04]">
+                      {playingGames.slice(1).map((game) => (
+                        <PlayingGameItem
+                          key={readText(game.slug, game.title)}
+                          game={game}
+                          activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                        />
+                      ))}
                     </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                      <div className={`h-full rounded-full ${item.className}`} style={{ width: `${item.total ? (item.value / item.total) * 100 : 0}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="mt-4 py-2 text-center text-[9px] font-semibold text-white/35">
+                  Nenhum jogo em andamento.
+                </p>
+              )}
             </section>
 
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
