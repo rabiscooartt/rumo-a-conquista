@@ -1270,9 +1270,9 @@ function GenresRadar({
     <div className="flex justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[205px] w-full max-w-[250px]"
+        className="h-[220px] w-full max-w-[260px]"
         role="img"
-        aria-label="Gráfico dos principais gêneros da biblioteca"
+        aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
         {[0.25, 0.5, 0.75, 1].map((scale) => (
           <polygon
@@ -1324,7 +1324,7 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 24;
+          const labelDistance = radius + 28;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -1335,9 +1335,12 @@ function GenresRadar({
               y={y}
               textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
               dominantBaseline="middle"
-              fill="rgba(255,255,255,0.70)"
-              fontSize="9"
-              fontWeight="700"
+              fill="rgba(255,255,255,0.88)"
+              fontSize="10"
+              fontWeight="800"
+              stroke="#090b0f"
+              strokeWidth="2"
+              paintOrder="stroke"
             >
               {label}
             </text>
@@ -2509,7 +2512,7 @@ export default function BibliotecaPage() {
               <div className="mb-2 flex items-center gap-2 px-1">
                 <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                 <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                  Principais Gêneros
+                  Perfil de Gêneros
                 </h2>
               </div>
 
