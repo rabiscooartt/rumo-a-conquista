@@ -1439,7 +1439,8 @@ export default function BibliotecaPage() {
     ? Math.round((totalAchievementStats.completed / totalAchievementStats.total) * 100)
     : 0;
 
-  const annualYear = new Date().getFullYear();
+  const currentAnnualYear = new Date().getFullYear();
+  const [selectedAnnualYear, setSelectedAnnualYear] = useState(currentAnnualYear);
 
   const getGameCompletionTimestamp = (game: BibliotecaGame) => {
     if (!isCompletedGame(game)) return Number.NaN;
@@ -1448,6 +1449,43 @@ export default function BibliotecaPage() {
     const completionText = formattedDate.split("→")[1]?.trim() || formattedDate.trim();
     return parseDateTimestamp(completionText);
   };
+
+  const availableAnnualYears = useMemo(() => {
+    const years = new Set<number>([currentAnnualYear]);
+
+    for (const entry of journeyEntries) {
+      const timestamp = parseDateTimestamp(entry.date);
+      if (!Number.isNaN(timestamp)) years.add(new Date(timestamp).getFullYear());
+    }
+
+    for (const game of bibliotecaGames) {
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      if (!Number.isNaN(completionTimestamp)) {
+        years.add(new Date(completionTimestamp).getFullYear());
+      }
+
+      const achievements = Array.isArray(game.achievementsList)
+        ? game.achievementsList
+        : [];
+
+      achievements.forEach((achievement, index) => {
+        const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
+        if (!Number.isNaN(earnedTimestamp)) {
+          years.add(new Date(earnedTimestamp).getFullYear());
+        }
+      });
+    }
+
+    return Array.from(years).sort((a, b) => b - a);
+  }, [bibliotecaGames, currentAnnualYear, journeyEntries, refreshKey]);
+
+  useEffect(() => {
+    if (!availableAnnualYears.includes(selectedAnnualYear)) {
+      setSelectedAnnualYear(availableAnnualYears[0] ?? currentAnnualYear);
+    }
+  }, [availableAnnualYears, currentAnnualYear, selectedAnnualYear]);
+
+  const annualYear = selectedAnnualYear;
 
   const annualJourneyEntries = useMemo(() => {
     return journeyEntries.filter((entry) => {
@@ -1872,7 +1910,21 @@ export default function BibliotecaPage() {
               <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
                 <div className="flex items-center justify-center gap-2">
                   <IconCalendar className="h-[15px] w-[15px] text-red-500" />
-                  <span className="text-[19px] font-black leading-none tracking-tight text-white">{annualYear}</span>
+                  <div className="relative flex items-center">
+                    <select
+                      value={selectedAnnualYear}
+                      onChange={(event) => setSelectedAnnualYear(Number(event.target.value))}
+                      aria-label="Selecionar ano do resumo"
+                      className="appearance-none bg-transparent pr-4 text-[19px] font-black leading-none tracking-tight text-white outline-none cursor-pointer"
+                    >
+                      {availableAnnualYears.map((year) => (
+                        <option key={year} value={year} className="bg-[#090b0f] text-white">
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-0 top-1/2 h-[5px] w-[5px] -translate-y-[65%] rotate-45 border-b border-r border-white/45" aria-hidden="true" />
+                  </div>
                 </div>
 
                 <div className="mt-4 flex items-center justify-between gap-2">
