@@ -1236,9 +1236,9 @@ function GenresRadar({
     );
   }
 
-  const size = 300;
-  const center = 150;
-  const radius = 82;
+  const size = 200;
+  const center = 100;
+  const radius = 60;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
 
@@ -1270,7 +1270,7 @@ function GenresRadar({
     <div className="flex justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[245px] w-full max-w-[300px]"
+        className="h-[200px] w-full max-w-[240px]"
         role="img"
         aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
@@ -1324,7 +1324,7 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 16;
+          const labelDistance = radius + 7;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -1336,7 +1336,7 @@ function GenresRadar({
               textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
               dominantBaseline="middle"
               fill="rgba(255,255,255,0.88)"
-              fontSize="11"
+              fontSize="10"
               fontWeight="800"
               stroke="#090b0f"
               strokeWidth="2"
