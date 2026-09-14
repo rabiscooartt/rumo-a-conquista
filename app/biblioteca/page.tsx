@@ -1154,6 +1154,199 @@ function GameSection({
 }
 
 
+function GenresRadar({
+  games,
+}: {
+  games: BibliotecaGame[];
+}) {
+  const genreData = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    const addGenre = (value: unknown) => {
+      if (typeof value !== "string") return;
+      value
+        .split(/[,;/|]+/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .forEach((genre) => {
+          const normalized = normalizeText(genre);
+          if (!normalized) return;
+
+          const label =
+            normalized === "rpg"
+              ? "RPG"
+              : normalized === "acao" || normalized === "action"
+                ? "Ação"
+                : normalized === "aventura" || normalized === "adventure"
+                  ? "Aventura"
+                  : normalized === "plataforma" || normalized === "platformer"
+                    ? "Plataforma"
+                    : normalized === "estrategia" || normalized === "strategy"
+                      ? "Estratégia"
+                      : normalized === "puzzle"
+                        ? "Puzzle"
+                        : normalized === "indie"
+                          ? "Indie"
+                          : genre;
+
+          counts.set(label, (counts.get(label) ?? 0) + 1);
+        });
+    };
+
+    for (const game of games) {
+      const source = game as BibliotecaGame & {
+        genre?: unknown;
+        genres?: unknown;
+        tags?: unknown;
+        category?: unknown;
+        categories?: unknown;
+      };
+
+      if (Array.isArray(source.genres)) {
+        source.genres.forEach(addGenre);
+      } else {
+        addGenre(source.genres);
+      }
+
+      addGenre(source.genre);
+      addGenre(source.category);
+
+      if (Array.isArray(source.categories)) {
+        source.categories.forEach(addGenre);
+      } else {
+        addGenre(source.categories);
+      }
+
+      if (Array.isArray(source.tags)) {
+        source.tags.forEach(addGenre);
+      }
+    }
+
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt-BR"))
+      .slice(0, 5);
+  }, [games]);
+
+  if (genreData.length === 0) {
+    return (
+      <p className="py-4 text-center text-[9px] font-semibold text-white/30">
+        Ainda não há gêneros registrados.
+      </p>
+    );
+  }
+
+  const size = 230;
+  const center = 115;
+  const radius = 67;
+  const maxValue = genreData[0]?.[1] ?? 1;
+  const angleStep = (Math.PI * 2) / genreData.length;
+
+  const pointFor = (index: number, value: number) => {
+    const angle = -Math.PI / 2 + index * angleStep;
+    const distance = radius * (value / maxValue);
+    return {
+      x: center + Math.cos(angle) * distance,
+      y: center + Math.sin(angle) * distance,
+    };
+  };
+
+  const polygonPoints = (scale: number) =>
+    genreData
+      .map((_, index) => {
+        const point = pointFor(index, maxValue * scale);
+        return `${point.x},${point.y}`;
+      })
+      .join(" ");
+
+  const valuePoints = genreData
+    .map(([, value], index) => {
+      const point = pointFor(index, value);
+      return `${point.x},${point.y}`;
+    })
+    .join(" ");
+
+  return (
+    <div className="flex justify-center">
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className="h-[205px] w-full max-w-[250px]"
+        role="img"
+        aria-label="Gráfico dos principais gêneros da biblioteca"
+      >
+        {[0.25, 0.5, 0.75, 1].map((scale) => (
+          <polygon
+            key={scale}
+            points={polygonPoints(scale)}
+            fill="none"
+            stroke="rgba(255,255,255,0.13)"
+            strokeWidth="1"
+          />
+        ))}
+
+        {genreData.map((_, index) => {
+          const outer = pointFor(index, maxValue);
+          return (
+            <line
+              key={`axis-${index}`}
+              x1={center}
+              y1={center}
+              x2={outer.x}
+              y2={outer.y}
+              stroke="rgba(255,255,255,0.10)"
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        <polygon
+          points={valuePoints}
+          fill="rgba(239,68,68,0.14)"
+          stroke="rgb(239,68,68)"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+
+        {genreData.map(([, value], index) => {
+          const point = pointFor(index, value);
+          return (
+            <circle
+              key={`point-${index}`}
+              cx={point.x}
+              cy={point.y}
+              r="3.2"
+              fill="rgb(239,68,68)"
+              stroke="#090b0f"
+              strokeWidth="1.5"
+            />
+          );
+        })}
+
+        {genreData.map(([label], index) => {
+          const angle = -Math.PI / 2 + index * angleStep;
+          const labelDistance = radius + 24;
+          const x = center + Math.cos(angle) * labelDistance;
+          const y = center + Math.sin(angle) * labelDistance;
+
+          return (
+            <text
+              key={`label-${label}`}
+              x={x}
+              y={y}
+              textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
+              dominantBaseline="middle"
+              fill="rgba(255,255,255,0.70)"
+              fontSize="9"
+              fontWeight="700"
+            >
+              {label}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 function PlayingNowGame({
   game,
   activitySummary,
@@ -2263,6 +2456,17 @@ export default function BibliotecaPage() {
                   Nenhum jogo em andamento.
                 </p>
               )}
+            </section>
+
+            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-2 flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                  Principais Gêneros
+                </h2>
+              </div>
+
+              <GenresRadar games={bibliotecaGames} />
             </section>
 
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
