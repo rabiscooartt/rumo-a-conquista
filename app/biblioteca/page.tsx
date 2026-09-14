@@ -1877,28 +1877,28 @@ export default function BibliotecaPage() {
 
                 <div className="mt-4 flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconGamepad className="h-[14px] w-[14px] shrink-0 text-red-500" />
-                    <span className="text-[15px] font-black leading-none text-white">{annualGamesCount}</span>
+                    <IconGamepad className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="text-[16px] font-black leading-none text-white">{annualGamesCount}</span>
                   </div>
 
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconTrophy className="h-[14px] w-[14px] shrink-0 text-red-500" />
-                    <span className="text-[15px] font-black leading-none text-white">{annualAchievementsCount}</span>
+                    <IconTrophy className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="text-[16px] font-black leading-none text-white">{annualAchievementsCount}</span>
                   </div>
 
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconTarget className="h-[14px] w-[14px] shrink-0 text-red-500" />
-                    <span className="text-[15px] font-black leading-none text-white">{annualEmblemsCount}</span>
+                    <IconTarget className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="text-[16px] font-black leading-none text-white">{annualEmblemsCount}</span>
                   </div>
 
                   <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconClock className="h-[14px] w-[14px] shrink-0 text-red-500" />
-                    <span className="whitespace-nowrap text-[14px] font-black leading-none text-white">{annualHours}</span>
+                    <IconClock className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="whitespace-nowrap text-[15px] font-black leading-none text-white">{annualHours}</span>
                   </div>
                 </div>
 
                 <div className="mt-3 flex justify-center border-t border-white/[0.06] pt-2 text-white/45">
-                  <span className="text-[14px] leading-none">⌄</span>
+                  <span className="block h-[7px] w-[7px] rotate-45 border-b-[1.5px] border-r-[1.5px] border-white/35" aria-hidden="true" />
                 </div>
               </div>
             </section>
