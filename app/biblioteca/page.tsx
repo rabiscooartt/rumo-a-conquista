@@ -174,6 +174,7 @@ type AchievementLike = {
 };
 
 type BibliotecaGame = SiteGame & {
+  genres?: string[];
   mastery?: string;
   isInBacklog?: boolean;
   nextMission?: string;
@@ -1600,6 +1601,7 @@ export default function BibliotecaPage() {
   const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1635,12 +1637,57 @@ export default function BibliotecaPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadGenres() {
+      try {
+        const response = await fetch("/api/admin/games/genres", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          ok?: boolean;
+          genresBySlug?: Record<string, string[]>;
+        };
+
+        if (!cancelled && payload.ok && payload.genresBySlug) {
+          setGenresBySlug(payload.genresBySlug);
+        }
+      } catch (error) {
+        console.warn("[Biblioteca] Não foi possível carregar os gêneros:", error);
+      }
+    }
+
+    loadGenres();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function handleFilterChange(filter: FilterType) {
     setActiveFilter(filter);
     updateUrlFilter(filter);
   }
 
-  const bibliotecaGames = useMemo(() => gamesList as BibliotecaGame[], [gamesList, refreshKey]);
+  const bibliotecaGames = useMemo(() => {
+    return (gamesList as BibliotecaGame[]).map((game) => {
+      const slug = readText(game.slug, "");
+      const detectedGenres = genresBySlug[slug];
+
+      if (!detectedGenres || detectedGenres.length === 0) {
+        return game;
+      }
+
+      return {
+        ...game,
+        genres: detectedGenres,
+      };
+    });
+  }, [gamesList, genresBySlug, refreshKey]);
 
   const activitySummaryByGame = useMemo(() => {
     const summary = new Map<string, ActivitySummary>();
