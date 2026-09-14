@@ -1153,6 +1153,95 @@ function GameSection({
   );
 }
 
+
+function AnnualRecentGame({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const isCompleted = isCompletedGame(game);
+  const isProgress = isProgressGame(game, Boolean(activitySummary));
+  const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Jogando" : "Na fila";
+  const statusClass = isCompleted
+    ? "border-purple-500/20 bg-purple-500/10 text-purple-300"
+    : isProgress
+    ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-300"
+    : "border-white/10 bg-white/[0.05] text-white/50";
+  const playedTime = isProgress && activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+  const platform = getPlatformLabel(game);
+  const rating = getGameRating(game);
+
+  return (
+    <Link
+      href={`/games/${gameSlug}`}
+      className="group/recent flex min-w-0 gap-2.5 border-b border-white/[0.06] py-2.5 last:border-b-0"
+    >
+      <div className="h-[54px] w-[40px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black">
+        <GameCoverImage src={cardImage} title={gameTitle} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3
+            className="min-w-0 flex-1 truncate text-[12px] font-black leading-tight text-white group-hover/recent:text-white"
+            title={gameTitle}
+          >
+            {gameTitle}
+          </h3>
+          {isCompleted && rating > 0 ? (
+            <span className="shrink-0 text-[9px] leading-none" aria-label={`Avaliação ${rating} de 5`}>
+              <GameRating rating={rating} />
+            </span>
+          ) : null}
+        </div>
+
+        <span className={`mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.05em] ${statusClass}`}>
+          {statusLabel}
+        </span>
+
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[9px] font-semibold text-white/45">
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconPlatform platform={platform} className="h-3 w-3 text-white/60" />
+            {platform}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconTrophy
+              className="h-3 w-3 text-amber-400"
+              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
+            />
+            {achievementStats.completed}/{achievementStats.total}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap">
+            <IconClock className="h-3 w-3 text-sky-400" />
+            {playedTime}
+          </span>
+        </div>
+
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div
+              className={`h-full rounded-full ${isCompleted ? "bg-emerald-400" : "bg-cyan-400"}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="w-7 shrink-0 text-right text-[8px] font-black text-white/40">{progress}%</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function parsePlaytimeMinutes(value: unknown) {
   const text = readText(value, "").toLowerCase();
   const h = text.match(/(\d+)\s*h/);
@@ -1441,6 +1530,7 @@ export default function BibliotecaPage() {
 
   const currentAnnualYear = new Date().getFullYear();
   const [selectedAnnualYear, setSelectedAnnualYear] = useState(currentAnnualYear);
+  const [showAnnualRecentGames, setShowAnnualRecentGames] = useState(false);
 
   const getGameCompletionTimestamp = (game: BibliotecaGame) => {
     if (!isCompletedGame(game)) return Number.NaN;
@@ -1648,6 +1738,55 @@ export default function BibliotecaPage() {
   const annualHours = useMemo(() => {
     return `${Math.floor(annualPlayedMinutes / 60)}h`;
   }, [annualPlayedMinutes]);
+
+  const annualRecentGames = useMemo(() => {
+    const annualLastActivityByGame = new Map<string, number>();
+
+    for (const entry of annualJourneyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      const timestamp = parseDateTimestamp(entry.date);
+      if (!slug || Number.isNaN(timestamp)) continue;
+
+      const current = annualLastActivityByGame.get(slug) ?? Number.NaN;
+      if (Number.isNaN(current) || timestamp > current) {
+        annualLastActivityByGame.set(slug, timestamp);
+      }
+    }
+
+    return bibliotecaGames
+      .filter((game) => annualGameSlugs.has(readText(game.slug, "").trim()))
+      .map((game) => {
+        const slug = readText(game.slug, "").trim();
+        const candidates: number[] = [];
+        const activityTimestamp = annualLastActivityByGame.get(slug);
+        if (activityTimestamp !== undefined && !Number.isNaN(activityTimestamp)) {
+          candidates.push(activityTimestamp);
+        }
+
+        const completionTimestamp = getGameCompletionTimestamp(game);
+        if (!Number.isNaN(completionTimestamp) && new Date(completionTimestamp).getFullYear() === annualYear) {
+          candidates.push(completionTimestamp);
+        }
+
+        const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
+        achievements.forEach((achievement, index) => {
+          const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
+          if (!Number.isNaN(earnedTimestamp) && new Date(earnedTimestamp).getFullYear() === annualYear) {
+            candidates.push(earnedTimestamp);
+          }
+        });
+
+        const recentTimestamp = candidates.length > 0 ? Math.max(...candidates) : getRecentTimestamp(game, activitySummaryByGame.get(slug));
+        return { game, recentTimestamp };
+      })
+      .sort((a, b) => {
+        if (Number.isNaN(a.recentTimestamp) && Number.isNaN(b.recentTimestamp)) return 0;
+        if (Number.isNaN(a.recentTimestamp)) return 1;
+        if (Number.isNaN(b.recentTimestamp)) return -1;
+        return b.recentTimestamp - a.recentTimestamp;
+      })
+      .slice(0, 3);
+  }, [annualGameSlugs, annualJourneyEntries, annualYear, activitySummaryByGame, bibliotecaGames, refreshKey]);
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -1949,9 +2088,42 @@ export default function BibliotecaPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex justify-center border-t border-white/[0.06] pt-2 text-white/45">
-                  <span className="block h-[7px] w-[7px] rotate-45 border-b-[1.5px] border-r-[1.5px] border-white/35" aria-hidden="true" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAnnualRecentGames((current) => !current)}
+                  aria-expanded={showAnnualRecentGames}
+                  aria-label={showAnnualRecentGames ? "Ocultar jogos mais recentes" : "Mostrar jogos mais recentes"}
+                  className="mt-3 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/40 transition hover:text-white/70"
+                >
+                  <span
+                    className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${showAnnualRecentGames ? "translate-y-[1px] rotate-[225deg]" : "-translate-y-[1px] rotate-45"}`}
+                    aria-hidden="true"
+                  />
+                </button>
+
+                {showAnnualRecentGames ? (
+                  <div className="mt-1 border-t border-white/[0.04] pt-1">
+                    {annualRecentGames.length > 0 ? (
+                      annualRecentGames.map(({ game }) => (
+                        <AnnualRecentGame
+                          key={readText(game.slug, game.title)}
+                          game={game}
+                          activitySummary={annualJourneyByGame.has(readText(game.slug, "").trim())
+                            ? {
+                                totalMinutes: annualJourneyByGame.get(readText(game.slug, "").trim()) ?? 0,
+                                firstDate: "",
+                                lastDate: "",
+                              }
+                            : undefined}
+                        />
+                      ))
+                    ) : (
+                      <p className="py-3 text-center text-[9px] font-semibold text-white/35">
+                        Nenhum jogo registrado neste ano.
+                      </p>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </section>
 
