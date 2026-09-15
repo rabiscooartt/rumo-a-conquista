@@ -1237,14 +1237,15 @@ function GenresRadar({
     );
   }
 
-  // Layout inspirado diretamente no bloco de gêneros da referência:
-  // gráfico compacto, centralizado e com bastante respiro entre os rótulos.
-  const size = 240;
-  const center = 120;
-  const radius = 68;
+  // Geometria calibrada para reproduzir o bloco compacto da referência:
+  // o radar ocupa a área útil da caixa, com pouco espaço vazio acima/abaixo
+  // e margem suficiente para manter “Estratégia” inteira e legível.
+  const size = 280;
+  const center = 140;
+  const radius = 79;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
-  const labelDistance = 83;
+  const labelDistance = 106;
 
   const pointFor = (index: number, value: number) => {
     const angle = -Math.PI / 2 + index * angleStep;
@@ -1272,10 +1273,10 @@ function GenresRadar({
     .join(" ");
 
   return (
-    <div className="flex translate-x-[7px] justify-center pt-0.5">
+    <div className="flex translate-x-[12px] justify-center -mt-1">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[190px] w-[210px] max-w-full"
+        className="h-[205px] w-[225px] max-w-full"
         role="img"
         aria-label="Gráfico dos principais gêneros da biblioteca"
       >
@@ -2534,9 +2535,6 @@ export default function BibliotecaPage() {
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
                     Mapa de Gêneros
                   </h2>
-                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/45">
-                    Veja quais gêneros você mais joga na sua jornada
-                  </p>
                 </div>
               </div>
 
