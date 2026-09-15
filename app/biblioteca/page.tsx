@@ -1274,7 +1274,7 @@ function GenresRadar({
     .join(" ");
 
   return (
-    <div className="mt-[8px] mb-[8px] flex h-[174px] w-full justify-center px-[12px]">
+    <div className="mt-[8px] mb-[8px] flex h-[174px] w-full translate-y-[2px] justify-center px-[12px]">
       <svg
         viewBox={`0 0 ${size} 174`}
         className="h-[174px] w-full max-w-[232px]"
