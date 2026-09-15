@@ -8,6 +8,62 @@ import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 
 
+type BacklogOrderItem = {
+  slug?: string;
+  order?: number;
+};
+
+const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
+const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
+
+const DEFAULT_BACKLOG_SLUGS = [
+  "mouse-p-i-for-hire",
+  "song-of-nunu",
+  "hollow-knight",
+  "metro-last-light",
+  "the-surge",
+  "tom-clancy-s-the-division",
+  "hollow-knight-silksong",
+  "hades",
+  "tom-clancy-s-the-division-2",
+  "hades2",
+  "metro-2033-redux",
+  "metro-exodus",
+];
+
+function readBacklogOrderFromStorage() {
+  if (typeof window === "undefined") {
+    return DEFAULT_BACKLOG_SLUGS;
+  }
+
+  const savedData = window.localStorage.getItem(BACKLOG_STORAGE_KEY);
+
+  if (!savedData) {
+    return DEFAULT_BACKLOG_SLUGS;
+  }
+
+  try {
+    const parsed = JSON.parse(savedData) as BacklogOrderItem[];
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return DEFAULT_BACKLOG_SLUGS;
+    }
+
+    const ordered = parsed
+      .map((item, index) => ({
+        slug: typeof item?.slug === "string" ? item.slug : "",
+        order: Number(item?.order ?? index + 1),
+      }))
+      .filter((item) => item.slug)
+      .sort((a, b) => a.order - b.order)
+      .map((item) => item.slug);
+
+    return ordered.length > 0 ? ordered : DEFAULT_BACKLOG_SLUGS;
+  } catch {
+    return DEFAULT_BACKLOG_SLUGS;
+  }
+}
+
 function SvgIcon({
   children,
   className = "h-4 w-4",
@@ -1619,6 +1675,7 @@ export default function BibliotecaPage() {
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>({});
+  const [backlogOrder, setBacklogOrder] = useState<string[]>(DEFAULT_BACKLOG_SLUGS);
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1685,6 +1742,23 @@ export default function BibliotecaPage() {
     };
   }, [refreshKey]);
 
+  useEffect(() => {
+    function refreshBacklogOrder() {
+      setBacklogOrder(readBacklogOrderFromStorage());
+    }
+
+    refreshBacklogOrder();
+    window.addEventListener(BACKLOG_UPDATED_EVENT, refreshBacklogOrder);
+    window.addEventListener("storage", refreshBacklogOrder);
+    window.addEventListener("focus", refreshBacklogOrder);
+
+    return () => {
+      window.removeEventListener(BACKLOG_UPDATED_EVENT, refreshBacklogOrder);
+      window.removeEventListener("storage", refreshBacklogOrder);
+      window.removeEventListener("focus", refreshBacklogOrder);
+    };
+  }, []);
+
   function handleFilterChange(filter: FilterType) {
     setActiveFilter(filter);
     updateUrlFilter(filter);
@@ -1745,16 +1819,32 @@ export default function BibliotecaPage() {
       ),
     [activitySummaryByGame, bibliotecaGames]
   );
-  const backlogGames = useMemo(
-    () =>
-      bibliotecaGames.filter(
-        (game) =>
-          isBacklogGame(game) &&
-          !isProgressGame(game, activitySummaryByGame.has(readText(game.slug, ""))) &&
-          !isCompletedGame(game)
-      ),
-    [activitySummaryByGame, bibliotecaGames]
-  );
+  const backlogGames = useMemo(() => {
+    const orderMap = new Map(backlogOrder.map((slug, index) => [slug, index]));
+
+    const backlogCandidates = bibliotecaGames.filter(
+      (game) =>
+        orderMap.has(readText(game.slug, "")) &&
+        isBacklogGame(game) &&
+        !isProgressGame(game, activitySummaryByGame.has(readText(game.slug, ""))) &&
+        !isCompletedGame(game)
+    );
+
+    return [...backlogCandidates].sort((a, b) => {
+      const aSlug = readText(a.slug, "");
+      const bSlug = readText(b.slug, "");
+      const aOrder = orderMap.get(aSlug);
+      const bOrder = orderMap.get(bSlug);
+
+      if (aOrder !== undefined && bOrder !== undefined) {
+        return aOrder - bOrder;
+      }
+      if (aOrder !== undefined) return -1;
+      if (bOrder !== undefined) return 1;
+
+      return 1;
+    });
+  }, [activitySummaryByGame, backlogOrder, bibliotecaGames]);
   const completedGames = useMemo(() => bibliotecaGames.filter((game) => isCompletedGame(game)), [bibliotecaGames]);
 
   const platformOptions = useMemo(() => {
@@ -2546,7 +2636,7 @@ export default function BibliotecaPage() {
               <GenresRadar games={bibliotecaGames} />
             </section>
 
-            <section className="h-[280px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="h-[390px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
@@ -2556,7 +2646,7 @@ export default function BibliotecaPage() {
               </div>
 
               <div className="mt-3 space-y-2">
-                {backlogGames.slice(0, 2).map((game) => (
+                {backlogGames.slice(0, 3).map((game) => (
                   <PlayingNowGame
                     key={readText(game.slug, game.title)}
                     game={game}
@@ -2565,16 +2655,6 @@ export default function BibliotecaPage() {
                 ))}
                 {backlogGames.length === 0 ? <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p> : null}
               </div>
-            </section>
-
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[16px] font-black uppercase tracking-[0.01em]">Primeira Run</h2>
-                <span className="text-red-400">✦</span>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-white/35">
-                A preparação da Primeira Run ficará vinculada diretamente a cada jogo. Aqui teremos o ponto de entrada quando esse sistema estiver pronto.
-              </p>
             </section>
             </aside>
           </div>
