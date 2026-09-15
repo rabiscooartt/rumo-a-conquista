@@ -2636,7 +2636,7 @@ export default function BibliotecaPage() {
               <GenresRadar games={bibliotecaGames} />
             </section>
 
-            <section className="h-[390px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="h-[320px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
@@ -2646,7 +2646,7 @@ export default function BibliotecaPage() {
               </div>
 
               <div className="mt-3 space-y-2">
-                {backlogGames.slice(0, 3).map((game) => (
+                {backlogGames.slice(0, 2).map((game) => (
                   <PlayingNowGame
                     key={readText(game.slug, game.title)}
                     game={game}
