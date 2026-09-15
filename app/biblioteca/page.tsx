@@ -1237,23 +1237,24 @@ function GenresRadar({
     );
   }
 
-  // Geometria calibrada para reproduzir o bloco compacto da referência:
-  // o radar ocupa a área útil da caixa, com pouco espaço vazio acima/abaixo
-  // e margem suficiente para manter “Estratégia” inteira e legível.
-  const size = 280;
-  const center = 140;
-  const radius = 79;
+  // Área do gráfico calibrada para manter os espaçamentos visuais da referência:
+  // 8px no topo e na base e 12px nas laterais da área útil.
+  // A geometria foi ajustada para manter “Estratégia” inteira e legível.
+  const size = 232;
+  const centerX = 132;
+  const centerY = 95;
+  const radius = 70;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
-  const labelDistance = 106;
+  const labelDistance = 87;
 
   const pointFor = (index: number, value: number) => {
     const angle = -Math.PI / 2 + index * angleStep;
     const distance = radius * (value / maxValue);
 
     return {
-      x: center + Math.cos(angle) * distance,
-      y: center + Math.sin(angle) * distance,
+      x: centerX + Math.cos(angle) * distance,
+      y: centerY + Math.sin(angle) * distance,
     };
   };
 
@@ -1273,10 +1274,10 @@ function GenresRadar({
     .join(" ");
 
   return (
-    <div className="flex translate-x-[12px] justify-center -mt-1">
+    <div className="mt-[8px] mb-[8px] flex h-[174px] w-full justify-center px-[12px]">
       <svg
-        viewBox={`0 0 ${size} ${size}`}
-        className="h-[205px] w-[225px] max-w-full"
+        viewBox={`0 0 ${size} 174`}
+        className="h-[174px] w-full max-w-[232px]"
         role="img"
         aria-label="Gráfico dos principais gêneros da biblioteca"
       >
@@ -1296,8 +1297,8 @@ function GenresRadar({
           return (
             <line
               key={`axis-${index}`}
-              x1={center}
-              y1={center}
+              x1={centerX}
+              y1={centerY}
               x2={outer.x}
               y2={outer.y}
               stroke="rgba(255,255,255,0.11)"
@@ -1332,8 +1333,8 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const x = center + Math.cos(angle) * labelDistance;
-          const y = center + Math.sin(angle) * labelDistance;
+          const x = centerX + Math.cos(angle) * labelDistance;
+          const y = centerY + Math.sin(angle) * labelDistance;
           const isTopOrBottom = Math.abs(Math.cos(angle)) < 0.2;
           const isLeft = Math.cos(angle) < 0;
 
@@ -1345,7 +1346,7 @@ function GenresRadar({
               textAnchor={isTopOrBottom ? "middle" : isLeft ? "end" : "start"}
               dominantBaseline="middle"
               fill="rgba(255,255,255,0.92)"
-              fontSize="11"
+              fontSize="10.5"
               fontWeight="800"
               stroke="#090b0f"
               strokeWidth="2"
