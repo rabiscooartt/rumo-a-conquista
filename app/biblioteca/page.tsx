@@ -1333,10 +1333,14 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const x = centerX + Math.cos(angle) * labelDistance;
-          const y = centerY + Math.sin(angle) * labelDistance;
           const isTopOrBottom = Math.abs(Math.cos(angle)) < 0.2;
           const isLeft = Math.cos(angle) < 0;
+          const horizontalInset = 10;
+          const x =
+            centerX +
+            Math.cos(angle) * labelDistance +
+            (isTopOrBottom ? 0 : isLeft ? horizontalInset : -horizontalInset);
+          const y = centerY + Math.sin(angle) * labelDistance;
 
           return (
             <text
