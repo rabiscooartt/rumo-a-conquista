@@ -1236,9 +1236,9 @@ function GenresRadar({
     );
   }
 
-  const size = 300;
-  const center = 150;
-  const radius = 105;
+  const size = 320;
+  const center = 160;
+  const radius = 112;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
 
@@ -1267,10 +1267,10 @@ function GenresRadar({
     .join(" ");
 
   return (
-    <div className="flex translate-x-[8px] justify-center">
+    <div className="flex translate-x-[14px] justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[260px] w-full max-w-[310px]"
+        className="h-[275px] w-full max-w-[320px]"
         role="img"
         aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
@@ -1323,8 +1323,10 @@ function GenresRadar({
         })}
 
         {genreData.map(([label], index) => {
+          const visibleLabel =
+            normalizeText(label) === "estrategia" ? "Estratégia" : label;
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 12;
+          const labelDistance = radius + 13;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -1336,13 +1338,13 @@ function GenresRadar({
               textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
               dominantBaseline="middle"
               fill="rgba(255,255,255,0.88)"
-              fontSize="11.5"
+              fontSize="12"
               fontWeight="800"
               stroke="#090b0f"
               strokeWidth="2"
               paintOrder="stroke"
             >
-              {label}
+              {visibleLabel}
             </text>
           );
         })}
