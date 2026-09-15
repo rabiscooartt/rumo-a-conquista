@@ -1236,9 +1236,9 @@ function GenresRadar({
     );
   }
 
-  const size = 240;
-  const center = 120;
-  const radius = 68;
+  const size = 280;
+  const center = 140;
+  const radius = 92;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
 
@@ -1267,10 +1267,10 @@ function GenresRadar({
     .join(" ");
 
   return (
-    <div className="flex justify-center">
+    <div className="flex translate-x-[8px] justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[185px] w-full max-w-[230px]"
+        className="h-[205px] w-full max-w-[250px]"
         role="img"
         aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
@@ -1324,7 +1324,7 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 13;
+          const labelDistance = radius + 10;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -2521,9 +2521,9 @@ export default function BibliotecaPage() {
 
             <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="mb-2 flex items-center gap-2 px-1">
-                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <IconTrend className="h-[18px] w-[18px] shrink-0 text-red-500" />
                 <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                  Perfil de Gêneros
+                  Mapa de Gêneros
                 </h2>
               </div>
 
