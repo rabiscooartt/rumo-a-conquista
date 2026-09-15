@@ -2538,7 +2538,7 @@ export default function BibliotecaPage() {
                 <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                 <div className="min-w-0">
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                    Mapa de Gêneros
+                    Mapa de Estilos
                   </h2>
                 </div>
               </div>
