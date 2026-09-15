@@ -217,7 +217,6 @@ const filters: { label: string; value: FilterType }[] = [
 
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
-const GENRES_CACHE_KEY = "rumo-a-conquista-genres-cache-v1";
 
 function isValidFilter(value: string | null): value is FilterType {
   return (
@@ -1237,9 +1236,9 @@ function GenresRadar({
     );
   }
 
-  const size = 280;
-  const center = 140;
-  const radius = 105;
+  const size = 300;
+  const center = 150;
+  const radius = 82;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
 
@@ -1271,7 +1270,7 @@ function GenresRadar({
     <div className="flex justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[205px] w-full max-w-[280px]"
+        className="h-[245px] w-full max-w-[300px]"
         role="img"
         aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
@@ -1325,7 +1324,7 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 11;
+          const labelDistance = radius + 16;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -1337,7 +1336,7 @@ function GenresRadar({
               textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
               dominantBaseline="middle"
               fill="rgba(255,255,255,0.88)"
-              fontSize="12.5"
+              fontSize="11"
               fontWeight="800"
               stroke="#090b0f"
               strokeWidth="2"
@@ -1605,9 +1604,7 @@ export default function BibliotecaPage() {
   const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>(() =>
-    readLocalJson<Record<string, string[]>>(GENRES_CACHE_KEY, {})
-  );
+  const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1661,14 +1658,6 @@ export default function BibliotecaPage() {
 
         if (!cancelled && payload.ok && payload.genresBySlug) {
           setGenresBySlug(payload.genresBySlug);
-          try {
-            localStorage.setItem(
-              GENRES_CACHE_KEY,
-              JSON.stringify(payload.genresBySlug)
-            );
-          } catch {
-            // Cache local é apenas uma otimização; falha de storage não impede a página.
-          }
         }
       } catch (error) {
         console.warn("[Biblioteca] Não foi possível carregar os gêneros:", error);
@@ -2377,7 +2366,21 @@ export default function BibliotecaPage() {
             </div>
 
             <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section
+              className="cursor-pointer rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5"
+              onClick={() => setShowAnnualRecentGames((current) => !current)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setShowAnnualRecentGames((current) => !current);
+                }
+              }}
+              aria-expanded={showAnnualRecentGames}
+              aria-label={showAnnualRecentGames ? "Ocultar jogos mais recentes do ano" : "Mostrar jogos mais recentes do ano"}
+            >
               <div className="mb-3 flex items-center gap-2 px-1">
                 <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                 <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Resumo do Ano</h2>
@@ -2389,6 +2392,7 @@ export default function BibliotecaPage() {
                   <div className="relative flex items-center">
                     <select
                       value={selectedAnnualYear}
+                      onClick={(event) => event.stopPropagation()}
                       onChange={(event) => setSelectedAnnualYear(Number(event.target.value))}
                       aria-label="Selecionar ano do resumo"
                       className="appearance-none bg-transparent pr-4 text-[19px] font-black leading-none tracking-tight text-white outline-none cursor-pointer"
@@ -2425,21 +2429,17 @@ export default function BibliotecaPage() {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowAnnualRecentGames((current) => !current)}
-                  aria-expanded={showAnnualRecentGames}
-                  aria-label={showAnnualRecentGames ? "Ocultar jogos mais recentes" : "Mostrar jogos mais recentes"}
-                  className="mt-3 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/40 transition hover:text-white/70"
-                >
+                <div className="mt-3 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/40 transition-colors duration-200" aria-hidden="true">
                   <span
                     className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${showAnnualRecentGames ? "translate-y-[1px] rotate-[225deg]" : "-translate-y-[1px] rotate-45"}`}
-                    aria-hidden="true"
                   />
-                </button>
+                </div>
 
                 {showAnnualRecentGames ? (
-                  <div className="mt-1 border-t border-white/[0.04] pt-1">
+                  <div
+                    className="mt-1 border-t border-white/[0.04] pt-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     {annualRecentGames.length > 0 ? (
                       annualRecentGames.map(({ game }) => (
                         <AnnualRecentGame
