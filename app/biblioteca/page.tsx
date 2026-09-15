@@ -1165,6 +1165,7 @@ function GenresRadar({
 
     const addGenre = (value: unknown) => {
       if (typeof value !== "string") return;
+
       value
         .split(/[,;/|]+/)
         .map((item) => item.trim())
@@ -1236,15 +1237,19 @@ function GenresRadar({
     );
   }
 
-  const size = 320;
-  const center = 160;
-  const radius = 112;
+  // Layout inspirado diretamente no bloco de gêneros da referência:
+  // gráfico compacto, centralizado e com bastante respiro entre os rótulos.
+  const size = 240;
+  const center = 120;
+  const radius = 68;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
+  const labelDistance = 83;
 
   const pointFor = (index: number, value: number) => {
     const angle = -Math.PI / 2 + index * angleStep;
     const distance = radius * (value / maxValue);
+
     return {
       x: center + Math.cos(angle) * distance,
       y: center + Math.sin(angle) * distance,
@@ -1267,25 +1272,26 @@ function GenresRadar({
     .join(" ");
 
   return (
-    <div className="flex translate-x-[14px] justify-center">
+    <div className="flex translate-x-[7px] justify-center pt-0.5">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[275px] w-full max-w-[320px]"
+        className="h-[190px] w-[210px] max-w-full"
         role="img"
-        aria-label="Gráfico do perfil de gêneros da biblioteca"
+        aria-label="Gráfico dos principais gêneros da biblioteca"
       >
         {[0.25, 0.5, 0.75, 1].map((scale) => (
           <polygon
             key={scale}
             points={polygonPoints(scale)}
             fill="none"
-            stroke="rgba(255,255,255,0.13)"
+            stroke="rgba(255,255,255,0.14)"
             strokeWidth="1"
           />
         ))}
 
         {genreData.map((_, index) => {
           const outer = pointFor(index, maxValue);
+
           return (
             <line
               key={`axis-${index}`}
@@ -1293,7 +1299,7 @@ function GenresRadar({
               y1={center}
               x2={outer.x}
               y2={outer.y}
-              stroke="rgba(255,255,255,0.10)"
+              stroke="rgba(255,255,255,0.11)"
               strokeWidth="1"
             />
           );
@@ -1301,7 +1307,7 @@ function GenresRadar({
 
         <polygon
           points={valuePoints}
-          fill="rgba(239,68,68,0.14)"
+          fill="rgba(239,68,68,0.16)"
           stroke="rgb(239,68,68)"
           strokeWidth="2"
           strokeLinejoin="round"
@@ -1309,6 +1315,7 @@ function GenresRadar({
 
         {genreData.map(([, value], index) => {
           const point = pointFor(index, value);
+
           return (
             <circle
               key={`point-${index}`}
@@ -1323,28 +1330,27 @@ function GenresRadar({
         })}
 
         {genreData.map(([label], index) => {
-          const visibleLabel =
-            normalizeText(label) === "estrategia" ? "Estratégia" : label;
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 13;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
+          const isTopOrBottom = Math.abs(Math.cos(angle)) < 0.2;
+          const isLeft = Math.cos(angle) < 0;
 
           return (
             <text
               key={`label-${label}`}
               x={x}
               y={y}
-              textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
+              textAnchor={isTopOrBottom ? "middle" : isLeft ? "end" : "start"}
               dominantBaseline="middle"
-              fill="rgba(255,255,255,0.88)"
-              fontSize="12"
+              fill="rgba(255,255,255,0.92)"
+              fontSize="11"
               fontWeight="800"
               stroke="#090b0f"
               strokeWidth="2"
               paintOrder="stroke"
             >
-              {visibleLabel}
+              {label}
             </text>
           );
         })}
@@ -2521,7 +2527,7 @@ export default function BibliotecaPage() {
               )}
             </section>
 
-            <section className="h-[325px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="h-[240px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="mb-1 flex items-center gap-2 px-1">
                 <IconTrend className="h-[18px] w-[18px] shrink-0 text-red-500" />
                 <div className="min-w-0">
