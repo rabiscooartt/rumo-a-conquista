@@ -2546,23 +2546,22 @@ export default function BibliotecaPage() {
               <GenresRadar games={bibliotecaGames} />
             </section>
 
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
-                <h2 className="text-[16px] font-black uppercase tracking-[0.01em]">Próximos na Fila</h2>
+            <section className="h-[280px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Próximos na Fila</h2>
+                </div>
                 <Link href="/backlog" className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 hover:text-red-300">Ver fila</Link>
               </div>
 
-              <div className="mt-4 space-y-3">
-                {backlogGames.slice(0, 4).map((game) => (
-                  <Link key={game.slug} href={`/games/${game.slug}`} className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/[0.035]">
-                    <div className="h-12 w-9 shrink-0 overflow-hidden rounded border border-white/10">
-                      <GameCoverImage src={readText(game.cardImage, "") || readText(game.image, "")} title={game.title} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-black text-white">{game.title}</p>
-                      <p className="mt-1 truncate text-[10px] text-white/30">{getObjective(game)}</p>
-                    </div>
-                  </Link>
+              <div className="mt-3 space-y-2">
+                {backlogGames.slice(0, 2).map((game) => (
+                  <PlayingNowGame
+                    key={readText(game.slug, game.title)}
+                    game={game}
+                    activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                  />
                 ))}
                 {backlogGames.length === 0 ? <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p> : null}
               </div>
