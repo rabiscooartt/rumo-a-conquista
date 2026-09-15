@@ -1236,9 +1236,9 @@ function GenresRadar({
     );
   }
 
-  const size = 280;
-  const center = 140;
-  const radius = 92;
+  const size = 300;
+  const center = 150;
+  const radius = 105;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
 
@@ -1270,7 +1270,7 @@ function GenresRadar({
     <div className="flex translate-x-[8px] justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[205px] w-full max-w-[250px]"
+        className="h-[260px] w-full max-w-[310px]"
         role="img"
         aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
@@ -1324,7 +1324,7 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 10;
+          const labelDistance = radius + 12;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -2519,12 +2519,17 @@ export default function BibliotecaPage() {
               )}
             </section>
 
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="mb-2 flex items-center gap-2 px-1">
+            <section className="h-[325px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-1 flex items-center gap-2 px-1">
                 <IconTrend className="h-[18px] w-[18px] shrink-0 text-red-500" />
-                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                  Mapa de Gêneros
-                </h2>
+                <div className="min-w-0">
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                    Mapa de Gêneros
+                  </h2>
+                  <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/45">
+                    Veja quais gêneros você mais joga na sua jornada
+                  </p>
+                </div>
               </div>
 
               <GenresRadar games={bibliotecaGames} />
