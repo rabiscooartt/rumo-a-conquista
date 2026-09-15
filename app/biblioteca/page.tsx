@@ -217,6 +217,7 @@ const filters: { label: string; value: FilterType }[] = [
 
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
+const GENRES_CACHE_KEY = "rumo-a-conquista-genres-cache-v1";
 
 function isValidFilter(value: string | null): value is FilterType {
   return (
@@ -1236,9 +1237,9 @@ function GenresRadar({
     );
   }
 
-  const size = 200;
-  const center = 100;
-  const radius = 60;
+  const size = 280;
+  const center = 140;
+  const radius = 105;
   const maxValue = genreData[0]?.[1] ?? 1;
   const angleStep = (Math.PI * 2) / genreData.length;
 
@@ -1270,7 +1271,7 @@ function GenresRadar({
     <div className="flex justify-center">
       <svg
         viewBox={`0 0 ${size} ${size}`}
-        className="h-[200px] w-full max-w-[240px]"
+        className="h-[205px] w-full max-w-[280px]"
         role="img"
         aria-label="Gráfico do perfil de gêneros da biblioteca"
       >
@@ -1324,7 +1325,7 @@ function GenresRadar({
 
         {genreData.map(([label], index) => {
           const angle = -Math.PI / 2 + index * angleStep;
-          const labelDistance = radius + 7;
+          const labelDistance = radius + 11;
           const x = center + Math.cos(angle) * labelDistance;
           const y = center + Math.sin(angle) * labelDistance;
 
@@ -1336,7 +1337,7 @@ function GenresRadar({
               textAnchor={Math.abs(x - center) < 12 ? "middle" : x < center ? "end" : "start"}
               dominantBaseline="middle"
               fill="rgba(255,255,255,0.88)"
-              fontSize="10"
+              fontSize="12.5"
               fontWeight="800"
               stroke="#090b0f"
               strokeWidth="2"
@@ -1604,7 +1605,9 @@ export default function BibliotecaPage() {
   const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>({});
+  const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>(() =>
+    readLocalJson<Record<string, string[]>>(GENRES_CACHE_KEY, {})
+  );
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1658,6 +1661,14 @@ export default function BibliotecaPage() {
 
         if (!cancelled && payload.ok && payload.genresBySlug) {
           setGenresBySlug(payload.genresBySlug);
+          try {
+            localStorage.setItem(
+              GENRES_CACHE_KEY,
+              JSON.stringify(payload.genresBySlug)
+            );
+          } catch {
+            // Cache local é apenas uma otimização; falha de storage não impede a página.
+          }
         }
       } catch (error) {
         console.warn("[Biblioteca] Não foi possível carregar os gêneros:", error);
