@@ -1894,16 +1894,42 @@ export default function BibliotecaPage() {
       if (sortMode === "startDate") return compareDateValues(aActivity?.firstDate ?? a.createdAt, bActivity?.firstDate ?? b.createdAt, true);
       if (sortMode === "completionDate") return compareDateValues(a.updatedAt ?? a.createdAt, b.updatedAt ?? b.createdAt, true);
 
+      // Na abertura padrão da Biblioteca, os jogos ficam organizados por estado:
+      // Em progresso → Na fila → Finalizados. Dentro de cada grupo, mantemos
+      // uma ordem útil e automática para evitar uma lista visualmente misturada.
+      const getStatusOrder = (game: BibliotecaGame) => {
+        if (isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))) return 0;
+        if (isBacklogGame(game)) return 1;
+        if (isCompletedGame(game)) return 2;
+        return 3;
+      };
+
+      const aStatusOrder = getStatusOrder(a);
+      const bStatusOrder = getStatusOrder(b);
+
+      if (aStatusOrder !== bStatusOrder) return aStatusOrder - bStatusOrder;
+
+      if (aStatusOrder === 1) {
+        const aSlug = readText(a.slug, "");
+        const bSlug = readText(b.slug, "");
+        const aQueueOrder = backlogOrder.indexOf(aSlug);
+        const bQueueOrder = backlogOrder.indexOf(bSlug);
+
+        if (aQueueOrder !== -1 && bQueueOrder !== -1) return aQueueOrder - bQueueOrder;
+        if (aQueueOrder !== -1) return -1;
+        if (bQueueOrder !== -1) return 1;
+      }
+
       const aRecent = getRecentTimestamp(a, aActivity);
       const bRecent = getRecentTimestamp(b, bActivity);
 
-      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) return 0;
+      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) return aTitle.localeCompare(bTitle, "pt-BR");
       if (Number.isNaN(aRecent)) return 1;
       if (Number.isNaN(bRecent)) return -1;
 
       return bRecent - aRecent;
     });
-  }, [activeFilter, activitySummaryByGame, bibliotecaGames, platformFilter, search, sortMode]);
+  }, [activeFilter, activitySummaryByGame, backlogOrder, bibliotecaGames, platformFilter, search, sortMode]);
 
   const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
 
