@@ -2244,6 +2244,18 @@ export default function BibliotecaPage() {
       .slice(0, 3);
   }, [annualGameSlugs, annualJourneyEntries, annualYear, activitySummaryByGame, bibliotecaGames, refreshKey]);
 
+  const latestCompletedGame = useMemo(() => {
+    return [...completedGames].sort((a, b) => {
+      const aTime = getGameCompletionTimestamp(a);
+      const bTime = getGameCompletionTimestamp(b);
+
+      if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return bTime - aTime;
+    })[0] ?? null;
+  }, [completedGames]);
+
   return (
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
@@ -2294,6 +2306,40 @@ export default function BibliotecaPage() {
                 <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/35">
                   Acompanhe seus jogos, progresso, conquistas e caminho até a Maestria.
                 </p>
+              </div>
+
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">ÚLTIMO EMBLEMA</h2>
+                </div>
+
+                {latestCompletedGame ? (
+                  <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
+                    <div className="flex items-center justify-center overflow-visible py-1">
+                      <div className="h-[118px] w-[118px]">
+                        <GameEmblem game={latestCompletedGame} />
+                      </div>
+                    </div>
+
+                    <p className="mt-1 truncate text-[12px] font-black leading-tight text-white" title={readText(latestCompletedGame.title, "Jogo")}>
+                      {readText(latestCompletedGame.title, "Jogo")}
+                    </p>
+
+                    <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                      <span className="shrink-0 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">
+                        Finalizado
+                      </span>
+                      <span className="truncate text-[9px] font-semibold text-white/35">
+                        {formatGameDate(latestCompletedGame).split("→")[1]?.trim() || formatGameDate(latestCompletedGame)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/30">
+                    Nenhum jogo finalizado ainda.
+                  </p>
+                )}
               </div>
 
               <div className="mt-6 border-t border-white/[0.08] pt-5">
