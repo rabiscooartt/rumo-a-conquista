@@ -2315,7 +2315,7 @@ export default function BibliotecaPage() {
                         index > 0 ? "border-t border-white/[0.05]" : ""
                       }`}
                     >
-                      <div className="flex h-5 w-5 shrink-0 items-center justify-center text-cyan-400">
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center text-red-500">
                         {item.icon === "gpu" ? (
                           <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                             <rect x="3.5" y="5" width="17" height="14" rx="2" />
