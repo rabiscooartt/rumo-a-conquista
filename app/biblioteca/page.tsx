@@ -785,13 +785,13 @@ function getGameEmblem(game: BibliotecaGame) {
   return { image, title };
 }
 
-function GameEmblem({ game }: { game: BibliotecaGame }) {
+function GameEmblem({ game, className }: { game: BibliotecaGame; className?: string }) {
   const emblem = getGameEmblem(game);
   const isUnlocked = isCompletedGame(game);
   const emblemImage = emblem.image || "/images/games/emblem.png";
 
   return (
-    <div className="relative flex h-[100px] w-[78px] shrink-0 items-center justify-center overflow-visible">
+    <div className={`relative flex shrink-0 items-center justify-center overflow-visible ${className ?? "h-[100px] w-[78px]"}`}>
       <div
         className={`relative h-full w-full transition duration-300 ${
           isUnlocked
@@ -2265,76 +2265,41 @@ export default function BibliotecaPage() {
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
-              <div className="border-t border-white/[0.08] pt-5">
+              <div className="border-t border-white/[0.08] border-b border-white/[0.08] pb-5 pt-5">
                 <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
                   <IconGamepad className="h-4 w-4 text-red-400" />
                   Jogos
                 </div>
-                <p className="mt-2 text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Biblioteca</p>
               </div>
 
-              <nav className="mt-6 space-y-1">
-                {[
-                  ["Todos os jogos", "all"],
-                  ["Em progresso", "progress"],
-                  ["Na fila", "backlog"],
-                  ["Finalizados", "mastery"],
-                ].map(([label, filter]) => {
-                  const isActive = activeFilter === filter;
-                  return (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => handleFilterChange(filter as FilterType)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left text-[11px] font-bold transition ${
-                        isActive
-                          ? "bg-red-500/10 text-red-300"
-                          : "text-white/50 hover:bg-white/[0.03] hover:text-white"
-                      }`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-red-400" : "bg-white/20"}`} />
-                      {label}
-                    </button>
-                  );
-                })}
-              </nav>
-
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/25">
-                  Sua biblioteca
-                </p>
-                <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/35">
-                  Acompanhe seus jogos, progresso, conquistas e caminho até a Maestria.
-                </p>
-              </div>
-
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
+              <div className="mt-6 border-b border-white/[0.08] pb-6">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">ÚLTIMO EMBLEMA</h2>
                 </div>
 
                 {latestCompletedGame ? (
-                  <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2.5">
-                    <div className="flex items-center justify-center overflow-visible py-1">
-                      <div className="h-[118px] w-[118px]">
-                        <GameEmblem game={latestCompletedGame} />
-                      </div>
+                  <>
+                    <div className="mt-3 flex items-center justify-center overflow-visible">
+                      <GameEmblem game={latestCompletedGame} className="h-[150px] w-[118px]" />
                     </div>
 
-                    <p className="mt-1 truncate text-[12px] font-black leading-tight text-white" title={readText(latestCompletedGame.title, "Jogo")}>
+                    <p
+                      className="mt-2 truncate text-center text-[12px] font-black leading-tight text-white"
+                      title={readText(latestCompletedGame.title, "Jogo")}
+                    >
                       {readText(latestCompletedGame.title, "Jogo")}
                     </p>
 
-                    <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                    <div className="mt-1.5 flex items-center justify-center gap-1.5">
                       <span className="shrink-0 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">
                         Finalizado
                       </span>
-                      <span className="truncate text-[9px] font-semibold text-white/35">
+                      <span className="shrink-0 text-[9px] font-semibold text-white/35">
                         {formatGameDate(latestCompletedGame).split("→")[1]?.trim() || formatGameDate(latestCompletedGame)}
                       </span>
                     </div>
-                  </div>
+                  </>
                 ) : (
                   <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/30">
                     Nenhum jogo finalizado ainda.
@@ -2342,7 +2307,7 @@ export default function BibliotecaPage() {
                 )}
               </div>
 
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
+              <div className="mt-6">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">SETUP</h2>
