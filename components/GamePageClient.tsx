@@ -467,9 +467,7 @@ function GameEmblemBlock({ emblem }: { emblem: GameEmblemData }) {
                 return (
                   <span
                     key={`${tag}-${index}`}
-                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wider ${
-                      styles[index % styles.length]
-                    }`}
+                    className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wider ${styles[index % styles.length]}`}
                   >
                     {tag}
                   </span>
@@ -716,7 +714,6 @@ export default function GamePageClient({ slug, game }: Props) {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)_270px]">
-          {/* SIDEBAR ESQUERDA */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 rounded-2xl border border-white/10 bg-zinc-950/90 p-4">
               <p className="px-3 pb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
@@ -724,318 +721,112 @@ export default function GamePageClient({ slug, game }: Props) {
               </p>
 
               <nav className="space-y-1">
-                <a
-                  href="#game-header"
-                  className="flex items-center gap-3 rounded-xl bg-red-500/10 px-3 py-3 text-xs font-black uppercase tracking-wide text-red-300"
-                >
-                  <span className="text-sm">▣</span>
-                  Visão geral
-                </a>
-
-                <a
-                  href="#achievements"
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/55 transition hover:bg-white/[0.04] hover:text-white"
-                >
-                  <span className="text-sm">🏆</span>
-                  Conquistas
-                </a>
-
-                <a
-                  href="#first-run"
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"
-                >
-                  <span className="text-sm">▶</span>
-                  First Run
-                </a>
-
-                <a
-                  href="#mastery"
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"
-                >
-                  <span className="text-sm">◆</span>
-                  Maestria
-                </a>
-
-                <a
-                  href="#review-section"
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"
-                >
-                  <span className="text-sm">✦</span>
-                  Review
-                </a>
-
-                <a
-                  href="#gallery"
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"
-                >
-                  <span className="text-sm">▦</span>
-                  Galeria
-                </a>
+                <a href="#game-header" className="flex items-center gap-3 rounded-xl bg-red-500/10 px-3 py-3 text-xs font-black uppercase tracking-wide text-red-300"><span className="text-sm">▣</span>Visão geral</a>
+                <a href="#achievements" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/55 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">🏆</span>Conquistas</a>
+                <a href="#first-run" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">▶</span>First Run</a>
+                <a href="#mastery" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">◆</span>Maestria</a>
+                <a href="#review-section" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">✦</span>Review</a>
+                <a href="#gallery" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">▦</span>Galeria</a>
               </nav>
             </div>
           </aside>
 
-          {/* CONTEÚDO CENTRAL */}
           <div className="min-w-0">
-            <section
-              id="game-header"
-              className="relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl"
-            >
-              <div className="relative min-h-[240px] overflow-hidden md:min-h-[240px]">
+            <section id="game-header" className="relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl">
+              <div className="relative min-h-[200px] overflow-hidden md:min-h-[200px]">
                 {bannerImage ? (
-                  <img
-                    src={bannerImage}
-                    alt={game.title}
-                    className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.72] contrast-110"
-                  />
+                  <img src={bannerImage} alt={game.title} className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.72] contrast-110" />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 text-sm font-black text-white/25">
-                    Sem imagem
-                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 text-sm font-black text-white/25">Sem imagem</div>
                 )}
 
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/20" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent" />
 
-                <div className="relative z-10 flex min-h-[240px] items-end p-6 md:min-h-[240px] md:p-8 lg:p-10">
+                <div className="relative z-10 flex min-h-[200px] items-end p-6 md:min-h-[200px] md:p-8 lg:p-10">
                   <div className="max-w-[760px]">
                     <div className="mb-4 flex flex-wrap items-center gap-2">
-                      <span
-                        className={`rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${
-                          isJourneyCompleted
-                            ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
-                            : "border-red-500/30 bg-red-500/10 text-red-300"
-                        }`}
-                      >
+                      <span className={`rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${isJourneyCompleted ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300" : "border-red-500/30 bg-red-500/10 text-red-300"}`}>
                         {isJourneyCompleted ? "Finalizado" : getStatusLabel(game.status)}
                       </span>
-
-                      <span className="rounded-md border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/45">
-                        {completedCount}/{totalAchievements} conquistas
-                      </span>
+                      <span className="rounded-md border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/45">{completedCount}/{totalAchievements} conquistas</span>
                     </div>
 
-                    <h1 className="text-4xl font-black leading-none tracking-tight text-white md:text-5xl lg:text-6xl">
-                      {game.title}
-                    </h1>
-
-                    <p className="mt-3 text-lg font-bold text-white/55 md:text-xl">
-                      {game.subtitle}
-                    </p>
+                    <h1 className="text-4xl font-black leading-none tracking-tight text-white md:text-5xl lg:text-6xl">{game.title}</h1>
+                    <p className="mt-3 text-lg font-bold text-white/55 md:text-xl">{game.subtitle}</p>
 
                     <div className="mt-7 max-w-[620px]">
                       <div className="mb-2 flex items-center justify-between text-xs">
-                        <span className="font-black uppercase tracking-[0.18em] text-white/45">
-                          Progresso
-                        </span>
-
-                        <span
-                          className={`font-black ${
-                            isJourneyCompleted ? "text-emerald-300" : "text-red-400"
-                          }`}
-                        >
-                          {progressPercent}%
-                        </span>
+                        <span className="font-black uppercase tracking-[0.18em] text-white/45">Progresso</span>
+                        <span className={`font-black ${isJourneyCompleted ? "text-emerald-300" : "text-red-400"}`}>{progressPercent}%</span>
                       </div>
-
-                      <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                        <div
-                          className={`h-full rounded-full ${progressBarClass}`}
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full ${progressBarClass}`} style={{ width: `${progressPercent}%` }} /></div>
                     </div>
                   </div>
                 </div>
               </div>
             </section>
 
-            <section
-              id="achievements"
-              className="relative mt-6 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/80 p-5 md:p-6"
-            >
+            <section id="achievements" className="relative mt-6 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/80 p-5 md:p-6">
               <div className="mb-5 flex items-center gap-3">
                 <span className="h-7 w-0.5 bg-red-500" />
                 <div>
-                  <h2 className="text-xl font-black uppercase tracking-tight text-white md:text-2xl">
-                    Conquistas
-                  </h2>
-                  <p className="mt-1 text-xs text-white/35">
-                    Área principal do progresso deste jogo.
-                  </p>
+                  <h2 className="text-xl font-black uppercase tracking-tight text-white md:text-2xl">Conquistas</h2>
+                  <p className="mt-1 text-xs text-white/35">Área principal do progresso deste jogo.</p>
                 </div>
               </div>
-
-              <GameAchievementsPanel
-                slug={slug}
-                achievements={achievements}
-                onStatesChange={setManualStates}
-              />
+              <GameAchievementsPanel slug={slug} achievements={achievements} onStatesChange={setManualStates} />
             </section>
 
-            <section
-              id="first-run"
-              className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className="h-7 w-0.5 bg-red-500" />
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
-                    Próximo módulo
-                  </p>
-                  <h2 className="mt-1 text-xl font-black text-white">First Run</h2>
-                  <p className="mt-1 text-sm text-white/35">
-                    Estrutura preparada para a próxima etapa.
-                  </p>
-                </div>
-              </div>
+            <section id="first-run" className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-6">
+              <div className="flex items-center gap-3"><span className="h-7 w-0.5 bg-red-500" /><div><p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">Próximo módulo</p><h2 className="mt-1 text-xl font-black text-white">First Run</h2><p className="mt-1 text-sm text-white/35">Estrutura preparada para a próxima etapa.</p></div></div>
             </section>
 
-            <section
-              id="mastery"
-              className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className="h-7 w-0.5 bg-red-500" />
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
-                    Próximo módulo
-                  </p>
-                  <h2 className="mt-1 text-xl font-black text-white">Maestria</h2>
-                  <p className="mt-1 text-sm text-white/35">
-                    Estrutura preparada para a próxima etapa.
-                  </p>
-                </div>
-              </div>
+            <section id="mastery" className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-6">
+              <div className="flex items-center gap-3"><span className="h-7 w-0.5 bg-red-500" /><div><p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">Próximo módulo</p><h2 className="mt-1 text-xl font-black text-white">Maestria</h2><p className="mt-1 text-sm text-white/35">Estrutura preparada para a próxima etapa.</p></div></div>
             </section>
 
-            <div
-              id="review-section"
-              ref={reviewSectionRef}
-              className="mt-6 scroll-mt-28"
-            >
-              <GameReviewPanel
-                slug={slug}
-                review={manualReview}
-                isUnlocked={reviewUnlocked}
-                achievementsCompleted={completedCount}
-                achievementsTotal={totalAchievements}
-              />
+            <div id="review-section" ref={reviewSectionRef} className="mt-6 scroll-mt-28">
+              <GameReviewPanel slug={slug} review={manualReview} isUnlocked={reviewUnlocked} achievementsCompleted={completedCount} achievementsTotal={totalAchievements} />
             </div>
 
-            <section
-              id="gallery"
-              className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className="h-7 w-0.5 bg-red-500" />
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
-                    Próximo módulo
-                  </p>
-                  <h2 className="mt-1 text-xl font-black text-white">Galeria</h2>
-                  <p className="mt-1 text-sm text-white/35">
-                    Estrutura preparada para a próxima etapa.
-                  </p>
-                </div>
-              </div>
+            <section id="gallery" className="mt-6 rounded-2xl border border-dashed border-white/10 bg-zinc-950/50 p-6">
+              <div className="flex items-center gap-3"><span className="h-7 w-0.5 bg-red-500" /><div><p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">Próximo módulo</p><h2 className="mt-1 text-xl font-black text-white">Galeria</h2><p className="mt-1 text-sm text-white/35">Estrutura preparada para a próxima etapa.</p></div></div>
             </section>
           </div>
 
-          {/* SIDEBAR DIREITA */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-4">
               <section className="rounded-2xl border border-white/10 bg-zinc-950/90 p-5">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="h-6 w-0.5 bg-red-500" />
-                  <h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">
-                    Resumo
-                  </h2>
-                </div>
-
+                <div className="mb-4 flex items-center gap-3"><span className="h-6 w-0.5 bg-red-500" /><h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">Resumo</h2></div>
                 <div className="space-y-3">
-                  <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30">
-                      Progresso
-                    </p>
-                    <p className="mt-1 text-2xl font-black text-white">
-                      {progressPercent}%
-                    </p>
-                  </div>
-
+                  <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30">Progresso</p><p className="mt-1 text-2xl font-black text-white">{progressPercent}%</p></div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3">
-                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/30">
-                        Conquistas
-                      </p>
-                      <p className="mt-1 text-lg font-black text-white">
-                        {completedCount}/{totalAchievements}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3">
-                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/30">
-                        Horas
-                      </p>
-                      <p className="mt-1 text-lg font-black text-white">{game.hours}</p>
-                    </div>
+                    <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/30">Conquistas</p><p className="mt-1 text-lg font-black text-white">{completedCount}/{totalAchievements}</p></div>
+                    <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/30">Horas</p><p className="mt-1 text-lg font-black text-white">{game.hours}</p></div>
                   </div>
                 </div>
               </section>
 
               <section className="rounded-2xl border border-white/10 bg-zinc-950/90 p-5">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="h-6 w-0.5 bg-red-500" />
-                  <h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">
-                    Objetivo atual
-                  </h2>
-                </div>
-
+                <div className="mb-4 flex items-center gap-3"><span className="h-6 w-0.5 bg-red-500" /><h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">Objetivo atual</h2></div>
                 <div className="rounded-xl border border-red-500/15 bg-red-500/[0.04] p-4">
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-red-500/20 bg-black/30">
-                    {isJourneyCompleted ? (
-                      <FinalBadgeVisual
-                        badge={finalBadge}
-                        imageClassName="h-full w-full object-cover"
-                        fallbackClassName="text-lg"
-                      />
-                    ) : (
-                      "🎯"
-                    )}
-                  </div>
-
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
-                    {objectiveLabel}
-                  </p>
-
-                  <p className="mt-2 text-sm font-black leading-snug text-white">
-                    {objectiveTitle}
-                  </p>
+                  <div className="mb-3 flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-red-500/20 bg-black/30">{isJourneyCompleted ? <FinalBadgeVisual badge={finalBadge} imageClassName="h-full w-full object-cover" fallbackClassName="text-lg" /> : "🎯"}</div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">{objectiveLabel}</p>
+                  <p className="mt-2 text-sm font-black leading-snug text-white">{objectiveTitle}</p>
                 </div>
               </section>
 
               <section className="rounded-2xl border border-white/10 bg-zinc-950/90 p-5">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="h-6 w-0.5 bg-red-500" />
-                  <h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">
-                    Status
-                  </h2>
-                </div>
-
+                <div className="mb-4 flex items-center gap-3"><span className="h-6 w-0.5 bg-red-500" /><h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">Status</h2></div>
                 <p className="text-2xl font-black text-white">{dynamicStatus}</p>
-                <p className="mt-1 text-xs text-white/35">
-                  {isJourneyCompleted ? "Jornada concluída" : "Jornada em andamento"}
-                </p>
+                <p className="mt-1 text-xs text-white/35">{isJourneyCompleted ? "Jornada concluída" : "Jornada em andamento"}</p>
               </section>
             </div>
           </aside>
         </div>
 
-        {emblemData && isCompletedByAchievements && (
-          <div className="mt-6">
-            <GameEmblemBlock emblem={emblemData} />
-          </div>
-        )}
+        {emblemData && isCompletedByAchievements && <div className="mt-6"><GameEmblemBlock emblem={emblemData} /></div>}
       </section>
     </main>
   );
