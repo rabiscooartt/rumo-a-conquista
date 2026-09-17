@@ -2273,38 +2273,40 @@ export default function BibliotecaPage() {
               </div>
 
               <div className="mt-6 border-b border-white/[0.08] pb-6">
-                <div className="flex items-center gap-2">
-                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">ÚLTIMO EMBLEMA</h2>
-                </div>
+                <Link href="/sagas" className="block">
+                  <div className="flex items-center gap-2">
+                    <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                    <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">ÚLTIMO EMBLEMA</h2>
+                  </div>
 
-                {latestCompletedGame ? (
-                  <>
-                    <div className="mt-3 flex items-center justify-center overflow-visible">
-                      <GameEmblem game={latestCompletedGame} className="h-[150px] w-[118px]" />
-                    </div>
+                  {latestCompletedGame ? (
+                    <>
+                      <div className="mt-3 flex items-center justify-center overflow-visible">
+                        <GameEmblem game={latestCompletedGame} className="h-[150px] w-[118px]" />
+                      </div>
 
-                    <p
-                      className="mt-2 truncate text-center text-[12px] font-black leading-tight text-white"
-                      title={readText(latestCompletedGame.title, "Jogo")}
-                    >
-                      {readText(latestCompletedGame.title, "Jogo")}
+                      <p
+                        className="mt-2 truncate text-center text-[12px] font-black leading-tight text-white"
+                        title={readText(latestCompletedGame.title, "Jogo")}
+                      >
+                        {readText(latestCompletedGame.title, "Jogo")}
+                      </p>
+
+                      <div className="mt-1.5 flex items-center justify-center gap-1.5">
+                        <span className="shrink-0 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">
+                          Finalizado
+                        </span>
+                        <span className="shrink-0 text-[9px] font-semibold text-white/35">
+                          {formatGameDate(latestCompletedGame).split("→")[1]?.trim() || formatGameDate(latestCompletedGame)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/30">
+                      Nenhum jogo finalizado ainda.
                     </p>
-
-                    <div className="mt-1.5 flex items-center justify-center gap-1.5">
-                      <span className="shrink-0 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">
-                        Finalizado
-                      </span>
-                      <span className="shrink-0 text-[9px] font-semibold text-white/35">
-                        {formatGameDate(latestCompletedGame).split("→")[1]?.trim() || formatGameDate(latestCompletedGame)}
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/30">
-                    Nenhum jogo finalizado ainda.
-                  </p>
-                )}
+                  )}
+                </Link>
               </div>
 
               <div className="mt-6">
