@@ -121,7 +121,6 @@ export default function GamePageShell({ slug, game }: Props) {
   const statusLabel = getStatusLabel(game.status);
   const objective = game.currentObjective || game.objective || "Definir próximo objetivo";
   const cover = game.cardImage || game.image || `/images/games/${slug}/cover.jpg`;
-  const banner = game.image || cover;
   const genres = Array.isArray(game.genres) ? game.genres.filter(Boolean) : [];
 
   return (
@@ -189,58 +188,44 @@ export default function GamePageShell({ slug, game }: Props) {
           </aside>
 
           <section className="min-w-0">
-            <div className="overflow-hidden rounded-[16px] border border-white/[0.10] bg-[#090909] shadow-[0_20px_60px_rgba(0,0,0,0.32)]">
-              <div className="relative min-h-[310px] overflow-hidden sm:min-h-[350px] lg:min-h-[385px]">
-                {banner ? (
-                  <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.72] contrast-110" />
-                ) : (
-                  <div className="absolute inset-0 bg-[#090909]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/20" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/15" />
-
-                <div className="relative z-10 flex min-h-[310px] items-end p-6 sm:min-h-[350px] sm:p-8 lg:min-h-[385px] lg:p-10">
-                  <div className="max-w-[760px]">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-red-500/30 bg-red-500/[0.10] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-red-300">
-                        {statusLabel}
+            <div className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
+              <div className="flex min-h-[168px] flex-col justify-between p-5 sm:p-6">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-red-500/30 bg-red-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-red-300">
+                      {statusLabel}
+                    </span>
+                    {game.platform && (
+                      <span className="rounded-full border border-white/[0.10] bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/45">
+                        {game.platform}
                       </span>
-                      {game.platform && (
-                        <span className="rounded-full border border-white/[0.12] bg-black/30 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/60">
-                          {game.platform}
+                    )}
+                    {genres.length > 0 &&
+                      genres.slice(0, 4).map((genre) => (
+                        <span key={genre} className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-white/30">
+                          {genre}
                         </span>
-                      )}
-                    </div>
+                      ))}
+                  </div>
 
-                    <h1 className="mt-4 text-4xl font-black leading-[0.95] tracking-[-0.035em] text-white sm:text-5xl lg:text-6xl">
-                      {game.title}
-                    </h1>
+                  <h1 className="mt-3 text-2xl font-black leading-none tracking-[-0.025em] text-white sm:text-3xl">
+                    {game.title}
+                  </h1>
 
-                    {game.subtitle && (
-                      <p className="mt-3 max-w-[650px] text-sm font-medium leading-relaxed text-white/55 sm:text-base">
-                        {game.subtitle}
-                      </p>
-                    )}
+                  {game.subtitle && (
+                    <p className="mt-2 max-w-[700px] text-[11px] font-medium leading-relaxed text-white/40 sm:text-xs">
+                      {game.subtitle}
+                    </p>
+                  )}
+                </div>
 
-                    {genres.length > 0 && (
-                      <div className="mt-4 flex flex-wrap gap-1.5">
-                        {genres.slice(0, 5).map((genre) => (
-                          <span key={genre} className="rounded-full border border-white/[0.10] bg-white/[0.04] px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-white/50">
-                            {genre}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-6 max-w-[650px]">
-                      <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.12em]">
-                        <span className="text-white/40">Progresso da jornada</span>
-                        <span className={status === "completed" ? "text-emerald-300" : "text-red-300"}>{progress}%</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-white/[0.08]">
-                        <div className={`h-full rounded-full ${status === "completed" ? "bg-emerald-400" : "bg-red-500"}`} style={{ width: `${progress}%` }} />
-                      </div>
-                    </div>
+                <div className="mt-5">
+                  <div className="mb-1.5 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.12em]">
+                    <span className="text-white/30">Progresso da jornada</span>
+                    <span className={status === "completed" ? "text-emerald-300" : "text-red-300"}>{progress}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                    <div className={`h-full rounded-full ${status === "completed" ? "bg-emerald-400" : "bg-red-500"}`} style={{ width: `${progress}%` }} />
                   </div>
                 </div>
               </div>
