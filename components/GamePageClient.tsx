@@ -514,16 +514,57 @@ export default function GamePageClient({ slug, game }: Props) {
         <div className="mb-5"><Link href="/" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-white/45 transition hover:text-red-400">← Voltar</Link></div>
         <div className="grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)_270px]">
           <aside className="hidden xl:block">
-            <div className="sticky top-24 rounded-2xl border border-white/10 bg-zinc-950/90 p-4">
-              <p className="px-3 pb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Jogo</p>
-              <nav className="space-y-1">
-                <a href="#game-header" className="flex items-center gap-3 rounded-xl bg-red-500/10 px-3 py-3 text-xs font-black uppercase tracking-wide text-red-300"><span className="text-sm">▣</span>Visão geral</a>
-                <a href="#achievements" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/55 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">🏆</span>Conquistas</a>
-                <a href="#first-run" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">▶</span>First Run</a>
-                <a href="#mastery" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">◆</span>Maestria</a>
-                <a href="#review-section" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">✦</span>Review</a>
-                <a href="#gallery" className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-black uppercase tracking-wide text-white/35 transition hover:bg-white/[0.04] hover:text-white"><span className="text-sm">▦</span>Galeria</a>
-              </nav>
+            <div className="sticky top-24 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90 shadow-xl">
+              <div className="aspect-[3/4] w-full overflow-hidden bg-black">
+                {coverImage ? (
+                  <img src={coverImage} alt={game.title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs font-black uppercase tracking-widest text-white/25">Sem capa</div>
+                )}
+              </div>
+              <div className="p-5">
+                <span className={`inline-flex rounded-md border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${
+                  isJourneyCompleted ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300" : "border-red-500/30 bg-red-500/10 text-red-300"
+                }`}>
+                  {isJourneyCompleted ? "Finalizado" : getStatusLabel(game.status)}
+                </span>
+                <h1 className="mt-3 text-xl font-black leading-tight tracking-tight text-white">{game.title}</h1>
+                <p className="mt-2 text-xs font-bold leading-relaxed text-white/40">{game.subtitle}</p>
+
+                <div className="mt-5 border-t border-white/10 pt-5">
+                  <div className="flex items-end justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30">Progresso</span>
+                    <span className={`text-lg font-black ${isJourneyCompleted ? "text-emerald-300" : "text-red-400"}`}>{progressPercent}%</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className={`h-full rounded-full ${progressBarClass}`} style={{ width: `${progressPercent}%` }} />
+                  </div>
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3">
+                    <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/30">Conquistas</p>
+                    <p className="mt-1 text-lg font-black text-white">{completedCount}<span className="text-white/25">/{totalAchievements}</span></p>
+                  </div>
+                  <div className="rounded-xl border border-white/5 bg-white/[0.025] p-3">
+                    <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/30">Horas</p>
+                    <p className="mt-1 text-lg font-black text-white">{game.hours}</p>
+                  </div>
+                </div>
+
+                <div className="mt-2 rounded-xl border border-white/5 bg-white/[0.025] p-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/30">Maestria</p>
+                  <p className="mt-1 text-sm font-black text-white">{dynamicMastery}</p>
+                </div>
+
+                <nav className="mt-5 space-y-1 border-t border-white/10 pt-4">
+                  <a href="#achievements" className="flex items-center gap-3 rounded-xl bg-red-500/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-wide text-red-300"><span>🏆</span>Conquistas</a>
+                  <a href="#first-run" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-wide text-white/30 transition hover:bg-white/[0.04] hover:text-white"><span>▶</span>Primeira Run</a>
+                  <a href="#mastery" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-wide text-white/30 transition hover:bg-white/[0.04] hover:text-white"><span>◆</span>Maestria</a>
+                  <a href="#review-section" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-wide text-white/30 transition hover:bg-white/[0.04] hover:text-white"><span>✦</span>Review</a>
+                  <a href="#gallery" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-wide text-white/30 transition hover:bg-white/[0.04] hover:text-white"><span>▦</span>Galeria</a>
+                </nav>
+              </div>
             </div>
           </aside>
 
