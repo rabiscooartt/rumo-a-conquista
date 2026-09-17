@@ -781,7 +781,7 @@ export default function GamePageClient({ slug, game }: Props) {
               id="game-header"
               className="relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl"
             >
-              <div className="relative min-h-[360px] overflow-hidden md:min-h-[400px]">
+              <div className="relative min-h-[240px] overflow-hidden md:min-h-[240px]">
                 {bannerImage ? (
                   <img
                     src={bannerImage}
@@ -797,7 +797,7 @@ export default function GamePageClient({ slug, game }: Props) {
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/20" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent" />
 
-                <div className="relative z-10 flex min-h-[360px] items-end p-6 md:min-h-[400px] md:p-8 lg:p-10">
+                <div className="relative z-10 flex min-h-[240px] items-end p-6 md:min-h-[240px] md:p-8 lg:p-10">
                   <div className="max-w-[760px]">
                     <div className="mb-4 flex flex-wrap items-center gap-2">
                       <span
