@@ -60,6 +60,38 @@ function clamp(value: number) {
   return Math.min(100, Math.max(0, Number(value) || 0));
 }
 
+type TrophyRank = "Diamante" | "Ouro" | "Prata" | "Bronze";
+
+function getTrophyRank(achievement: AchievementInput): TrophyRank {
+  const difficulty = normalizeText(achievement.difficulty);
+
+  if (difficulty === "extrema" || difficulty === "diamante") return "Diamante";
+  if (difficulty === "dificil" || difficulty === "ouro") return "Ouro";
+  if (difficulty === "media" || difficulty === "prata") return "Prata";
+
+  if (achievement.trophy?.includes("💎") || achievement.icon?.includes("💎")) return "Diamante";
+  if (
+    achievement.trophy?.includes("🥇") ||
+    achievement.trophy?.includes("🏆") ||
+    achievement.icon?.includes("🥇") ||
+    achievement.icon?.includes("🏆")
+  ) return "Ouro";
+  if (achievement.trophy?.includes("🥈") || achievement.icon?.includes("🥈")) return "Prata";
+
+  return "Bronze";
+}
+
+const TROPHY_META: Array<{
+  rank: TrophyRank;
+  icon: string;
+  label: string;
+}> = [
+  { rank: "Diamante", icon: "💎", label: "Diamante" },
+  { rank: "Ouro", icon: "🥇", label: "Ouro" },
+  { rank: "Prata", icon: "🥈", label: "Prata" },
+  { rank: "Bronze", icon: "🥉", label: "Bronze" },
+];
+
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
@@ -153,6 +185,40 @@ export default function GamePageShell({ slug, game }: Props) {
                     {statusLabel}
                   </span>
                   {game.platform && <span className="text-[9px] font-semibold text-white/35">{game.platform}</span>}
+                </div>
+              </div>
+
+              <div className="border-b border-white/[0.08] pb-5">
+                <div className="mb-3">
+                  <SectionTitle>Troféus / Conquistas</SectionTitle>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1.5">
+                  {TROPHY_META.map(({ rank, icon, label }) => {
+                    const total = achievements.filter(
+                      (achievement) => getTrophyRank(achievement) === rank
+                    ).length;
+                    const completed = achievements.filter(
+                      (achievement) =>
+                        getTrophyRank(achievement) === rank &&
+                        ["completed", "concluido", "concluida"].includes(
+                          normalizeText(achievement.status)
+                        )
+                    ).length;
+
+                    return (
+                      <div
+                        key={rank}
+                        title={label}
+                        className="flex min-w-0 flex-col items-center rounded-[8px] border border-white/[0.06] bg-white/[0.015] px-1 py-2"
+                      >
+                        <span className="text-[20px] leading-none">{icon}</span>
+                        <span className="mt-1 text-[9px] font-black tabular-nums text-white/70">
+                          {completed}/{total}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
