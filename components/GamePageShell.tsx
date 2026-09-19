@@ -73,6 +73,12 @@ function normalizeGameKey(value?: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function formatDeveloperName(value?: string) {
+  const name = String(value || "").trim();
+  if (!name) return "—";
+  return name.split(/[,/&]|\s{2,}/)[0].trim().split(/\s+/)[0] || "—";
+}
+
 function formatPlayedTime(minutes: number) {
   const safe = Math.max(0, Math.round(Number(minutes) || 0));
   const hours = Math.floor(safe / 60);
@@ -317,36 +323,42 @@ export default function GamePageShell({ slug, game }: Props) {
                   <SectionTitle>Sobre o Jogo</SectionTitle>
 
                   <div className="mt-4 space-y-4">
-                    <div className="flex items-center gap-2.5">
-                      <IconGamepad className="h-5 w-5 shrink-0 text-white/80" />
-                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Gênero</span>
-                      <span className="min-w-0 text-right text-[16px] font-black leading-tight text-white/95">
+                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                      <IconGamepad className="h-5 w-5 text-white/80" />
+                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "—"}>
                         {genres.length > 0 ? genres.join(", ") : "—"}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <IconGamepad className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Plataforma</span>
-                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{game.platform || "—"}</span>
+                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                      <IconGamepad className="h-4 w-4 text-white/70" />
+                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.platform || "—"}>
+                        {game.platform || "—"}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <IconClock className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Tempo de jogo</span>
-                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{playedTime}</span>
+                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                      <IconClock className="h-4 w-4 text-white/70" />
+                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <IconTrophy className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Desenvolvedora</span>
-                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{game.developer || "—"}</span>
+                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                      <IconTrophy className="h-4 w-4 text-white/70" />
+                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.developer || "—"}>
+                        {formatDeveloperName(game.developer)}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <IconCalendar className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Lançamento</span>
-                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{game.releaseYear || "—"}</span>
+                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                      <IconCalendar className="h-4 w-4 text-white/70" />
+                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.releaseYear || "—"}>
+                        {game.releaseYear || "—"}
+                      </span>
                     </div>
                   </div>
                 </div>
