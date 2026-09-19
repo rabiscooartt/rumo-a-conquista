@@ -188,31 +188,6 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </div>
 
-              <nav className="border-b border-white/[0.08] pb-5">
-                <div className="space-y-1">
-                  <a href="#conquistas" className="flex items-center gap-2 rounded-[8px] border-l-2 border-red-500 bg-red-500/[0.10] px-3 py-2 text-[10px] font-black text-white">
-                    <IconTrophy className="h-3.5 w-3.5 text-red-400" />
-                    Conquistas
-                  </a>
-                  <a href="#primeira-run" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
-                    <IconCalendar className="h-3.5 w-3.5" />
-                    Primeira Run
-                  </a>
-                  <a href="#maestria" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
-                    <IconGamepad className="h-3.5 w-3.5" />
-                    Maestria
-                  </a>
-                  <a href="#notas" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
-                    <span className="text-[12px]">▤</span>
-                    Notas
-                  </a>
-                  <a href="#galeria" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
-                    <span className="text-[12px]">▧</span>
-                    Galeria
-                  </a>
-                </div>
-              </nav>
-
               <div className="border-b border-white/[0.08] pb-5">
                 <div className="mb-3">
                   <SectionTitle>Troféus / Conquistas</SectionTitle>
