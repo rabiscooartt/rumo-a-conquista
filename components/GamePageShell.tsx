@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import { useJourneyEntries } from "@/lib/useJourneyEntries";
 import GameAchievementsPanel, {
   type AchievementInput,
   type ManualAchievementState,
@@ -60,6 +61,27 @@ function getStatusLabel(value?: string) {
 
 function clamp(value: number) {
   return Math.min(100, Math.max(0, Number(value) || 0));
+}
+
+function normalizeGameKey(value?: string) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function formatPlayedTime(minutes: number) {
+  const safe = Math.max(0, Math.round(Number(minutes) || 0));
+  const hours = Math.floor(safe / 60);
+  const mins = safe % 60;
+
+  if (hours <= 0 && mins <= 0) return "0h";
+  if (mins <= 0) return `${hours}h`;
+  if (hours <= 0) return `${mins}min`;
+  return `${hours}h ${mins}min`;
 }
 
 type TrophyRank = "Ouro" | "Prata" | "Bronze";
@@ -136,6 +158,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function GamePageShell({ slug, game }: Props) {
+  const { entries: activityEntries } = useJourneyEntries();
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
 
   const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
@@ -150,6 +173,27 @@ export default function GamePageShell({ slug, game }: Props) {
   const objective = game.currentObjective || game.objective || "Definir próximo objetivo";
   const cover = game.cardImage || game.image || `/images/games/${slug}/cover.jpg`;
   const genres = Array.isArray(game.genres) ? game.genres.filter(Boolean) : [];
+
+  const activityPlayedMinutes = useMemo(() => {
+    const targetSlug = normalizeGameKey(slug);
+    const targetTitle = normalizeGameKey(game.title);
+
+    return activityEntries.reduce((total, entry) => {
+      const entrySlug = normalizeGameKey(entry.gameSlug);
+      const entryTitle = normalizeGameKey(entry.gameTitle);
+
+      const matches =
+        (entrySlug && entrySlug === targetSlug) ||
+        (!entrySlug && entryTitle === targetTitle) ||
+        (entryTitle && entryTitle === targetTitle);
+
+      return matches
+        ? total + Math.max(0, Number(entry.playedMinutes) || 0)
+        : total;
+    }, 0);
+  }, [activityEntries, game.title, slug]);
+
+  const playedTime = formatPlayedTime(activityPlayedMinutes);
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -277,7 +321,7 @@ export default function GamePageShell({ slug, game }: Props) {
                   </div>
                   <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
                     <IconClock className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{game.hours || "0h"}</p>
+                    <p className="mt-2 text-lg font-black text-white">{playedTime}</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Tempo</p>
                   </div>
                   <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
@@ -329,7 +373,7 @@ export default function GamePageShell({ slug, game }: Props) {
                     <div className="flex items-center gap-2.5">
                       <IconClock className="h-4 w-4 shrink-0 text-white/70" />
                       <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Tempo de jogo</span>
-                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.hours || "0h"}</span>
+                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{playedTime}</span>
                     </div>
 
                     <div className="flex items-center gap-2.5">
