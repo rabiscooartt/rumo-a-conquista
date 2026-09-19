@@ -254,7 +254,7 @@ export default function GamePageShell({ slug, game }: Props) {
           </aside>
 
           <section className="min-w-0">
-            <div id="conquistas" className="mt-5 scroll-mt-24">
+            <div id="conquistas" className="mt-0 scroll-mt-24">
               <div className="mb-3 flex items-center justify-between">
                 <SectionTitle>Conquistas</SectionTitle>
                 <span className="text-[10px] font-black text-white/35">{completedCount}/{totalCount}</span>
