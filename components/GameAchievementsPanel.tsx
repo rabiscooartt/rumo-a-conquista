@@ -905,50 +905,37 @@ export default function GameAchievementsPanel(
   }, [filteredAchievements, manualStates, sortDirection, sortMode]);
 
   return (
-    <section className="mt-10 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/85 shadow-[0_0_55px_rgba(0,0,0,0.45)]">
-      <div className="relative border-b border-white/10 p-7">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%)]" />
-
-        <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-red-400">
-              Conquistas
-            </p>
-
-            <h2 className="mt-3 text-4xl font-black text-white">
-              Jornada de {gameTitle}
-            </h2>
-
-            <p className="mt-2 text-sm text-white/45">
-              {completedCount}/{allAchievements.length} conquistas únicas desbloqueadas
-            </p>
+    <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
+      <div className="border-b border-white/[0.08] p-4 sm:p-5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-red-400">
+                Conquistas
+              </p>
+              <h2 className="mt-1.5 text-xl font-black tracking-[-0.02em] text-white">
+                Jornada de {gameTitle}
+              </h2>
+            </div>
+            <span className="text-[10px] font-black text-white/35">
+              {completedCount}/{allAchievements.length}
+            </span>
           </div>
 
-          <div className="w-full max-w-[520px]">
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-white/45">Progresso geral</span>
-
-              <span
-                className={`font-black ${
-                  progress >= 100 ? "text-emerald-300" : "text-red-400"
-                }`}
-              >
-                {progress}%
-              </span>
-            </div>
-
-            <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
-              <div
-                className={`h-full rounded-full ${
-                  progress >= 100
-                    ? "bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.65)]"
-                    : "bg-red-500 shadow-[0_0_18px_rgba(239,68,68,0.55)]"
-                }`}
-                style={{ width: `${progress}%` }}
+          <div className="flex flex-col gap-2 lg:flex-row">
+            <div className="relative min-w-0 flex-1">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/25">⌕</span>
+              <input
+                type="search"
+                value={achievementSearch}
+                onChange={(event) => handleAchievementSearchChange(event.target.value)}
+                placeholder="Buscar conquista..."
+                aria-label="Buscar conquista"
+                className="w-full rounded-[9px] border border-white/[0.08] bg-black/30 px-9 py-2.5 text-[10px] font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/35"
               />
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex gap-2">
               {SORT_OPTIONS.map((option) => (
                 <SortButton
                   key={option.value}
@@ -959,9 +946,19 @@ export default function GameAchievementsPanel(
                 />
               ))}
             </div>
+          </div>
+
+              <span
+                className={`font-black ${
+                  progress >= 100 ? "text-emerald-300" : "text-red-400"
+                }`}
+              >
+                {progress}%
+              </span>
+            </div>
 
             {isEditMode && (
-              <div className="mt-5 rounded-2xl border border-red-500/20 bg-black/25 p-4">
+              <div className="mt-4 rounded-2xl border border-red-500/20 bg-black/25 p-4">
                 <label className="block">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
                   Buscar conquista
@@ -1173,16 +1170,16 @@ export default function GameAchievementsPanel(
             return (
               <article
                 key={achievement.id ?? achievement.title}
-                className={`relative border-l-4 transition ${
+                className={`relative border-l-2 border-b border-white/[0.06] transition ${
                   isLocked
                     ? "border-l-white/10 bg-black/20 opacity-55 grayscale"
                     : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
                 }`}
               >
-                <div className="p-6">
-                  <div className="grid gap-5 md:grid-cols-[76px_1fr]">
+                <div className="p-3 sm:p-4">
+                  <div className="grid gap-3 md:grid-cols-[52px_1fr]">
                     <div
-                      className={`h-[76px] w-[76px] overflow-hidden rounded-2xl border bg-black/45 ${
+                      className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
                         isLocked ? "border-white/10" : theme.border
                       }`}
                     >
@@ -1195,24 +1192,24 @@ export default function GameAchievementsPanel(
 
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-2xl font-black uppercase tracking-[-0.02em] text-white">
+                        <h3 className="text-sm font-black tracking-[-0.01em] text-white sm:text-[15px]">
                           {achievement.title}
                         </h3>
 
                         <span
-                          className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${
+                          className={`rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] ${
                             isLocked ? "border-white/10 text-white/35" : theme.pill
                           }`}
                         >
                           {rankTrophy[rank]} {rank}
                         </span>
 
-                        <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/40">
+                        <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
                           {rankDifficulty[rank]}
                         </span>
                       </div>
 
-                      <p className="mt-2 max-w-[900px] text-sm leading-relaxed text-white/56">
+                      <p className="mt-1 max-w-[760px] text-[10px] leading-relaxed text-white/40 sm:text-[11px]">
                         {achievement.description ||
                           "Descrição ainda não definida."}
                       </p>
