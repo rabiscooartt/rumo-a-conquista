@@ -305,7 +305,7 @@ export default function GamePageShell({ slug, game }: Props) {
 
           <aside className="min-w-0">
             <div className="space-y-5 lg:sticky lg:top-24">
-              <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5 min-h-[310px]">
+              <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                 <img
                   src={cover}
                   alt=""
@@ -316,11 +316,11 @@ export default function GamePageShell({ slug, game }: Props) {
                 <div className="relative">
                   <SectionTitle>Sobre o Jogo</SectionTitle>
 
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 space-y-4">
                     <div className="flex items-center gap-2.5">
-                      <IconGamepad className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Gênero</span>
-                      <span className="min-w-0 text-right text-[10px] font-black leading-tight text-white/90">
+                      <IconGamepad className="h-5 w-5 shrink-0 text-white/80" />
+                      <span className="w-[82px] shrink-0 text-[10px] font-bold text-white/55">Gênero</span>
+                      <span className="min-w-0 text-right text-[12px] font-black leading-tight text-white/95">
                         {genres.length > 0 ? genres.join(", ") : "—"}
                       </span>
                     </div>
@@ -328,7 +328,7 @@ export default function GamePageShell({ slug, game }: Props) {
                     <div className="flex items-center gap-2.5">
                       <IconGamepad className="h-4 w-4 shrink-0 text-white/70" />
                       <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Plataforma</span>
-                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.platform || "—"}</span>
+                      <span className="min-w-0 text-right text-[12px] font-black text-white/95">{game.platform || "—"}</span>
                     </div>
 
                     <div className="flex items-center gap-2.5">
