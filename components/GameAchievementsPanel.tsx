@@ -917,9 +917,17 @@ export default function GameAchievementsPanel(
                 Jornada de {gameTitle}
               </h2>
             </div>
-            <span className="text-[10px] font-black text-white/35">
-              {completedCount}/{allAchievements.length}
-            </span>
+            <div className="flex shrink-0 flex-col items-center justify-end">
+              <img
+                src="/images/trophies/todos.png"
+                alt=""
+                aria-hidden="true"
+                className="h-9 w-9 object-contain"
+              />
+              <span className="mt-0.5 text-sm font-black leading-none text-white">
+                {completedCount}/{allAchievements.length}
+              </span>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 lg:flex-row">
