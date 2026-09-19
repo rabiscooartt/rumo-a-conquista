@@ -188,6 +188,31 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </div>
 
+              <nav className="border-b border-white/[0.08] pb-5">
+                <div className="space-y-1">
+                  <a href="#conquistas" className="flex items-center gap-2 rounded-[8px] border-l-2 border-red-500 bg-red-500/[0.10] px-3 py-2 text-[10px] font-black text-white">
+                    <IconTrophy className="h-3.5 w-3.5 text-red-400" />
+                    Conquistas
+                  </a>
+                  <a href="#primeira-run" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
+                    <IconCalendar className="h-3.5 w-3.5" />
+                    Primeira Run
+                  </a>
+                  <a href="#maestria" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
+                    <IconGamepad className="h-3.5 w-3.5" />
+                    Maestria
+                  </a>
+                  <a href="#notas" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
+                    <span className="text-[12px]">▤</span>
+                    Notas
+                  </a>
+                  <a href="#galeria" className="flex items-center gap-2 rounded-[8px] border-l-2 border-transparent px-3 py-2 text-[10px] font-black text-white/40 transition hover:bg-white/[0.03] hover:text-white">
+                    <span className="text-[12px]">▧</span>
+                    Galeria
+                  </a>
+                </div>
+              </nav>
+
               <div className="border-b border-white/[0.08] pb-5">
                 <div className="mb-3">
                   <SectionTitle>Troféus / Conquistas</SectionTitle>
@@ -255,7 +280,7 @@ export default function GamePageShell({ slug, game }: Props) {
 
           <section className="min-w-0">
             <div className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
-              <div className="flex min-h-[168px] flex-col justify-between p-5 sm:p-6">
+              <div className="flex min-h-[190px] flex-col justify-between p-5 sm:p-6">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-red-500/30 bg-red-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-red-300">
@@ -279,10 +304,29 @@ export default function GamePageShell({ slug, game }: Props) {
                   </h1>
 
                   {game.subtitle && (
-                    <p className="mt-2 max-w-[700px] text-[11px] font-medium leading-relaxed text-white/40 sm:text-xs">
+                    <p className="mt-2 max-w-[760px] text-[11px] font-medium leading-relaxed text-white/40 sm:text-xs">
                       {game.subtitle}
                     </p>
                   )}
+
+                  <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/[0.07] pt-4 sm:grid-cols-4">
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Plataforma</p>
+                      <p className="mt-1 text-[10px] font-black text-white/70">{game.platform || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Gênero</p>
+                      <p className="mt-1 truncate text-[10px] font-black text-white/70">{genres.slice(0, 2).join(", ") || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Tempo de jogo</p>
+                      <p className="mt-1 text-[10px] font-black text-white/70">{game.hours || "0h"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Status</p>
+                      <p className="mt-1 text-[10px] font-black text-white/70">{statusLabel}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-5">
@@ -313,7 +357,7 @@ export default function GamePageShell({ slug, game }: Props) {
               </nav>
             </div>
 
-            <div className="mt-5">
+            <div id="conquistas" className="mt-5 scroll-mt-24">
               <div className="mb-3 flex items-center justify-between">
                 <SectionTitle>Conquistas</SectionTitle>
                 <span className="text-[10px] font-black text-white/35">{completedCount}/{totalCount}</span>
@@ -358,7 +402,7 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+              <section id="maestria" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Maestria</SectionTitle>
                 <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
                   <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-300">Objetivo atual</p>
@@ -370,7 +414,7 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+              <section id="primeira-run" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Primeira Run</SectionTitle>
                 <div className="mt-4 border-l-2 border-white/[0.08] pl-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.10em] text-white/55">Registro da primeira jornada</p>
