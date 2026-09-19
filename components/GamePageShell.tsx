@@ -184,7 +184,19 @@ export default function GamePageShell({ slug, game }: Props) {
                   <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-300"}`}>
                     {statusLabel}
                   </span>
-                  {game.platform && <span className="text-[9px] font-semibold text-white/35">{game.platform}</span>}
+                  {game.platform && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white/40">
+                      {normalizeText(game.platform) === "steam" ? (
+                        <img
+                          src="/images/platforms/steam.png"
+                          alt=""
+                          aria-hidden="true"
+                          className="h-3 w-3 shrink-0 object-contain"
+                        />
+                      ) : null}
+                      {game.platform}
+                    </span>
+                  )}
                 </div>
               </div>
 
