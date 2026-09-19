@@ -13,6 +13,7 @@ type GameEmblemInput = {
   image?: string;
   description?: string;
   tags?: string[] | string;
+  unlockedAt?: string;
 };
 
 type FinalBadgeInput = {
@@ -173,6 +174,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       image: readText(savedEmblem.image, ""),
       description: readText(savedEmblem.description, ""),
       tags: readStringList(savedEmblem.tags),
+      unlockedAt: readText(savedEmblem.unlockedAt, ""),
     };
   }
 
@@ -182,6 +184,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       image: readText(game.gameEmblem.image, ""),
       description: readText(game.gameEmblem.description, ""),
       tags: readStringList(game.gameEmblem.tags),
+      unlockedAt: readText(game.gameEmblem.unlockedAt, ""),
     };
   }
 
@@ -191,6 +194,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       image: readText(game.emblemImage, ""),
       description: readText(game.emblemDescription, ""),
       tags: readStringList(game.emblemTags),
+      unlockedAt: readText(game.emblemUnlockedAt, ""),
     };
   }
 
@@ -248,7 +252,29 @@ export default function GamePage() {
       achievementsList,
       review: normalizeReview(game.review),
       finalBadge: getFinalBadge(game),
-      emblem: getGameEmblem(game, slug),
+      emblem: (() => {
+        const emblem = getGameEmblem(game, slug);
+        if (!emblem) return undefined;
+
+        const masteryAchievement = achievementsList.find((achievement) => {
+          const title = readText(achievement.title, "").toLowerCase();
+          const rank = readText(achievement.difficulty, "").toLowerCase();
+          return (
+            achievement.status === "completed" &&
+            (rank.includes("diamante") ||
+              title.includes("maestria") ||
+              title.includes("final") ||
+              title.includes("caso encerrado"))
+          );
+        });
+
+        return {
+          ...emblem,
+          unlockedAt:
+            readText(emblem.unlockedAt, "") ||
+            readText(masteryAchievement?.earnedDate, ""),
+        };
+      })(),
       platform: readText((game as { platform?: unknown }).platform, "Steam") || "Steam",
       genres: Array.isArray((game as { genres?: unknown }).genres)
         ? ((game as { genres?: unknown[] }).genres || []).map((genre) => readText(genre, "")).filter(Boolean)
