@@ -914,7 +914,7 @@ export default function GameAchievementsPanel(
                 Conquistas
               </p>
               <h2 className="mt-1.5 text-xl font-black tracking-[-0.02em] text-white">
-                Jornada de {gameTitle}
+                Progressão
               </h2>
             </div>
             <div className="flex shrink-0 flex-col items-center justify-end">
