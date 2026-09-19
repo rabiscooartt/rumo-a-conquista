@@ -253,21 +253,12 @@ export default function GamePageShell({ slug, game }: Props) {
             </div>
           </aside>
 
-          <section className="min-w-0">
-            <div id="conquistas" className="mt-0 scroll-mt-24">
-              <div className="mb-3 flex items-center justify-between">
-                <SectionTitle>Conquistas</SectionTitle>
-                <span className="text-[10px] font-black text-white/35">{completedCount}/{totalCount}</span>
-              </div>
-
-              <div className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
-                <GameAchievementsPanel
-                  slug={slug}
-                  achievements={achievements}
-                  onStatesChange={setManualStates}
-                />
-              </div>
-            </div>
+          <section id="conquistas" className="min-w-0 scroll-mt-24">
+            <GameAchievementsPanel
+              slug={slug}
+              achievements={achievements}
+              onStatesChange={setManualStates}
+            />
           </section>
 
           <aside className="min-w-0">
