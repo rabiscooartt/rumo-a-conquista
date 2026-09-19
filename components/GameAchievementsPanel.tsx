@@ -922,7 +922,7 @@ export default function GameAchievementsPanel(
                 src="/images/trophies/todos.png"
                 alt=""
                 aria-hidden="true"
-                className="h-9 w-9 object-contain"
+                className="h-12 w-12 object-contain"
               />
               <span className="mt-0.5 text-sm font-black leading-none text-white">
                 {completedCount}/{allAchievements.length}
