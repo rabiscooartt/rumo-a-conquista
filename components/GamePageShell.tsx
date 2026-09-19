@@ -305,53 +305,14 @@ export default function GamePageShell({ slug, game }: Props) {
 
           <aside className="min-w-0">
             <div className="space-y-5 lg:sticky lg:top-24">
-              <section className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                <SectionTitle>Resumo do Jogo</SectionTitle>
-
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconTrophy className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{completedCount}/{totalCount}</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Conquistas</p>
-                  </div>
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconGamepad className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{progress}%</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Progresso</p>
-                  </div>
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconClock className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{playedTime}</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Tempo</p>
-                  </div>
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconCalendar className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-sm font-black text-white">—</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Jornada</p>
-                  </div>
-                </div>
-              </section>
-
-              <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                <SectionTitle>Próxima Conquista</SectionTitle>
-                <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">Objetivo atual</p>
-                  <p className="mt-2 text-sm font-black leading-tight text-white">{objective}</p>
-                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                    <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
-                  </div>
-                  <p className="mt-1.5 text-right text-[8px] font-black text-white/30">{progress}%</p>
-                </div>
-              </section>
-
-              <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+              <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5 min-h-[310px]">
                 <img
                   src={cover}
                   alt=""
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.13]"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.24]"
                 />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/95 via-[#090909]/90 to-[#090909]/65" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/82 via-[#090909]/62 to-[#090909]/28" />
                 <div className="relative">
                   <SectionTitle>Sobre o Jogo</SectionTitle>
 
@@ -388,6 +349,45 @@ export default function GamePageShell({ slug, game }: Props) {
                       <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.releaseYear || "—"}</span>
                     </div>
                   </div>
+                </div>
+              </section>
+
+              <section className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+                <SectionTitle>Resumo do Jogo</SectionTitle>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
+                    <IconTrophy className="h-4 w-4 text-red-500" />
+                    <p className="mt-2 text-lg font-black text-white">{completedCount}/{totalCount}</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Conquistas</p>
+                  </div>
+                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
+                    <IconGamepad className="h-4 w-4 text-red-500" />
+                    <p className="mt-2 text-lg font-black text-white">{progress}%</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Progresso</p>
+                  </div>
+                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
+                    <IconClock className="h-4 w-4 text-red-500" />
+                    <p className="mt-2 text-lg font-black text-white">{playedTime}</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Tempo</p>
+                  </div>
+                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
+                    <IconCalendar className="h-4 w-4 text-red-500" />
+                    <p className="mt-2 text-sm font-black text-white">—</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Jornada</p>
+                  </div>
+                </div>
+              </section>
+
+              <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+                <SectionTitle>Próxima Conquista</SectionTitle>
+                <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">Objetivo atual</p>
+                  <p className="mt-2 text-sm font-black leading-tight text-white">{objective}</p>
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                    <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
+                  </div>
+                  <p className="mt-1.5 text-right text-[8px] font-black text-white/30">{progress}%</p>
                 </div>
               </section>
 
