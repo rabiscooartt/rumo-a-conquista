@@ -319,34 +319,34 @@ export default function GamePageShell({ slug, game }: Props) {
                   <div className="mt-4 space-y-4">
                     <div className="flex items-center gap-2.5">
                       <IconGamepad className="h-5 w-5 shrink-0 text-white/80" />
-                      <span className="w-[82px] shrink-0 text-[10px] font-bold text-white/55">Gênero</span>
-                      <span className="min-w-0 text-right text-[12px] font-black leading-tight text-white/95">
+                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Gênero</span>
+                      <span className="min-w-0 text-right text-[16px] font-black leading-tight text-white/95">
                         {genres.length > 0 ? genres.join(", ") : "—"}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2.5">
                       <IconGamepad className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Plataforma</span>
-                      <span className="min-w-0 text-right text-[12px] font-black text-white/95">{game.platform || "—"}</span>
+                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Plataforma</span>
+                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{game.platform || "—"}</span>
                     </div>
 
                     <div className="flex items-center gap-2.5">
                       <IconClock className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Tempo de jogo</span>
-                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{playedTime}</span>
+                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Tempo de jogo</span>
+                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{playedTime}</span>
                     </div>
 
                     <div className="flex items-center gap-2.5">
                       <IconTrophy className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Desenvolvedora</span>
-                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.developer || "—"}</span>
+                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Desenvolvedora</span>
+                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{game.developer || "—"}</span>
                     </div>
 
                     <div className="flex items-center gap-2.5">
                       <IconCalendar className="h-4 w-4 shrink-0 text-white/70" />
-                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Lançamento</span>
-                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.releaseYear || "—"}</span>
+                      <span className="w-[82px] shrink-0 text-[12px] font-bold text-white/55">Lançamento</span>
+                      <span className="min-w-0 text-right text-[16px] font-black text-white/95">{game.releaseYear || "—"}</span>
                     </div>
                   </div>
                 </div>
