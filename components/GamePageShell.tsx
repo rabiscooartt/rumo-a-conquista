@@ -243,31 +243,6 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </div>
 
-              <div className="border-b border-white/[0.08] pb-6">
-                <SectionTitle>Jornada</SectionTitle>
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.10em] text-white/35">
-                      <span>Progresso</span>
-                      <span className="text-red-500">{progress}%</span>
-                    </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                      <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="flex items-center gap-1.5 text-white/40"><IconTrophy className="h-3.5 w-3.5 text-red-500" /> Conquistas</span>
-                    <span className="font-black text-white/75">{completedCount}/{totalCount}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="flex items-center gap-1.5 text-white/40"><IconClock className="h-3.5 w-3.5 text-red-500" /> Tempo</span>
-                    <span className="font-black text-white/75">{game.hours || "0h"}</span>
-                  </div>
-                </div>
-              </div>
-
               <Link href="/biblioteca" className="inline-flex text-[9px] font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-500">
                 ← Voltar para Biblioteca
               </Link>
