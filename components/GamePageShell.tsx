@@ -254,68 +254,6 @@ export default function GamePageShell({ slug, game }: Props) {
           </aside>
 
           <section className="min-w-0">
-            <div className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
-              <div className="flex min-h-[190px] flex-col justify-between p-5 sm:p-6">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-red-500/30 bg-red-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-red-300">
-                      {statusLabel}
-                    </span>
-                    {game.platform && (
-                      <span className="rounded-full border border-white/[0.10] bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/45">
-                        {game.platform}
-                      </span>
-                    )}
-                    {genres.length > 0 &&
-                      genres.slice(0, 4).map((genre) => (
-                        <span key={genre} className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-white/30">
-                          {genre}
-                        </span>
-                      ))}
-                  </div>
-
-                  <h1 className="mt-3 text-2xl font-black leading-none tracking-[-0.025em] text-white sm:text-3xl">
-                    {game.title}
-                  </h1>
-
-                  {game.subtitle && (
-                    <p className="mt-2 max-w-[760px] text-[11px] font-medium leading-relaxed text-white/40 sm:text-xs">
-                      {game.subtitle}
-                    </p>
-                  )}
-
-                  <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/[0.07] pt-4 sm:grid-cols-4">
-                    <div>
-                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Plataforma</p>
-                      <p className="mt-1 text-[10px] font-black text-white/70">{game.platform || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Gênero</p>
-                      <p className="mt-1 truncate text-[10px] font-black text-white/70">{genres.slice(0, 2).join(", ") || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Tempo de jogo</p>
-                      <p className="mt-1 text-[10px] font-black text-white/70">{game.hours || "0h"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/25">Status</p>
-                      <p className="mt-1 text-[10px] font-black text-white/70">{statusLabel}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <div className="mb-1.5 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.12em]">
-                    <span className="text-white/30">Progresso da jornada</span>
-                    <span className={status === "completed" ? "text-emerald-300" : "text-red-300"}>{progress}%</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                    <div className={`h-full rounded-full ${status === "completed" ? "bg-emerald-400" : "bg-red-500"}`} style={{ width: `${progress}%` }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div className="mt-4 overflow-x-auto rounded-[12px] border border-white/[0.08] bg-[#090909]">
               <nav className="flex min-w-max items-center">
                 {[
