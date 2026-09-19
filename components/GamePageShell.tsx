@@ -23,6 +23,8 @@ export type GamePageShellInput = {
   achievementsList: AchievementInput[];
   platform?: string;
   genres?: string[];
+  developer?: string;
+  releaseYear?: string;
 };
 
 type Props = {
@@ -286,15 +288,62 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section id="maestria" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                <SectionTitle>Maestria</SectionTitle>
+              <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+                <SectionTitle>Próxima Conquista</SectionTitle>
                 <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
                   <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">Objetivo atual</p>
-                  <p className="mt-2 text-sm font-black leading-tight text-white">{game.mastery || objective}</p>
+                  <p className="mt-2 text-sm font-black leading-tight text-white">{objective}</p>
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
                     <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
                   </div>
                   <p className="mt-1.5 text-right text-[8px] font-black text-white/30">{progress}%</p>
+                </div>
+              </section>
+
+              <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+                <img
+                  src={cover}
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.13]"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/95 via-[#090909]/90 to-[#090909]/65" />
+                <div className="relative">
+                  <SectionTitle>Sobre o Jogo</SectionTitle>
+
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <IconGamepad className="h-4 w-4 shrink-0 text-white/70" />
+                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Gênero</span>
+                      <span className="min-w-0 text-right text-[10px] font-black leading-tight text-white/90">
+                        {genres.length > 0 ? genres.join(", ") : "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <IconGamepad className="h-4 w-4 shrink-0 text-white/70" />
+                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Plataforma</span>
+                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.platform || "—"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <IconClock className="h-4 w-4 shrink-0 text-white/70" />
+                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Tempo de jogo</span>
+                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.hours || "0h"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <IconTrophy className="h-4 w-4 shrink-0 text-white/70" />
+                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Desenvolvedora</span>
+                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.developer || "—"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <IconCalendar className="h-4 w-4 shrink-0 text-white/70" />
+                      <span className="w-[72px] shrink-0 text-[9px] font-bold text-white/45">Lançamento</span>
+                      <span className="min-w-0 text-right text-[10px] font-black text-white/90">{game.releaseYear || "—"}</span>
+                    </div>
+                  </div>
                 </div>
               </section>
 
