@@ -231,13 +231,10 @@ export default function GamePageShell({ slug, game }: Props) {
                             }
                             alt=""
                             aria-hidden="true"
-                            className="h-10 w-10 object-contain"
+                            className="h-11 w-11 object-contain"
                           />
                         </div>
-                        <span className="mt-1.5 text-[7px] font-black uppercase tracking-[0.035em] text-white/50">
-                          {label}
-                        </span>
-                        <span className="mt-0.5 text-[10px] font-black tabular-nums text-white/90">
+                        <span className="mt-2 text-[14px] font-black tabular-nums leading-none text-white/95">
                           {completed}/{total}
                         </span>
                       </div>
