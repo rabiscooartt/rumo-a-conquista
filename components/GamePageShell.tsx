@@ -175,7 +175,7 @@ export default function GamePageShell({ slug, game }: Props) {
                 </p>
 
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-300"}`}>
+                  <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-500"}`}>
                     {statusLabel}
                   </span>
                   {game.platform && (
@@ -249,7 +249,7 @@ export default function GamePageShell({ slug, game }: Props) {
                   <div>
                     <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.10em] text-white/35">
                       <span>Progresso</span>
-                      <span className="text-red-300">{progress}%</span>
+                      <span className="text-red-500">{progress}%</span>
                     </div>
                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
                       <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
@@ -257,18 +257,18 @@ export default function GamePageShell({ slug, game }: Props) {
                   </div>
 
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="flex items-center gap-1.5 text-white/40"><IconTrophy className="h-3.5 w-3.5 text-red-400" /> Conquistas</span>
+                    <span className="flex items-center gap-1.5 text-white/40"><IconTrophy className="h-3.5 w-3.5 text-red-500" /> Conquistas</span>
                     <span className="font-black text-white/75">{completedCount}/{totalCount}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="flex items-center gap-1.5 text-white/40"><IconClock className="h-3.5 w-3.5 text-red-400" /> Tempo</span>
+                    <span className="flex items-center gap-1.5 text-white/40"><IconClock className="h-3.5 w-3.5 text-red-500" /> Tempo</span>
                     <span className="font-black text-white/75">{game.hours || "0h"}</span>
                   </div>
                 </div>
               </div>
 
-              <Link href="/biblioteca" className="inline-flex text-[9px] font-black uppercase tracking-[0.12em] text-red-400 transition hover:text-red-300">
+              <Link href="/biblioteca" className="inline-flex text-[9px] font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-500">
                 ← Voltar para Biblioteca
               </Link>
             </div>
@@ -289,22 +289,22 @@ export default function GamePageShell({ slug, game }: Props) {
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconTrophy className="h-4 w-4 text-red-400" />
+                    <IconTrophy className="h-4 w-4 text-red-500" />
                     <p className="mt-2 text-lg font-black text-white">{completedCount}/{totalCount}</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Conquistas</p>
                   </div>
                   <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconGamepad className="h-4 w-4 text-red-400" />
+                    <IconGamepad className="h-4 w-4 text-red-500" />
                     <p className="mt-2 text-lg font-black text-white">{progress}%</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Progresso</p>
                   </div>
                   <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconClock className="h-4 w-4 text-red-400" />
+                    <IconClock className="h-4 w-4 text-red-500" />
                     <p className="mt-2 text-lg font-black text-white">{game.hours || "0h"}</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Tempo</p>
                   </div>
                   <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconCalendar className="h-4 w-4 text-red-400" />
+                    <IconCalendar className="h-4 w-4 text-red-500" />
                     <p className="mt-2 text-sm font-black text-white">—</p>
                     <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Jornada</p>
                   </div>
@@ -314,7 +314,7 @@ export default function GamePageShell({ slug, game }: Props) {
               <section id="maestria" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Maestria</SectionTitle>
                 <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-300">Objetivo atual</p>
+                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">Objetivo atual</p>
                   <p className="mt-2 text-sm font-black leading-tight text-white">{game.mastery || objective}</p>
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
                     <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
