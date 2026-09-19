@@ -254,22 +254,6 @@ export default function GamePageShell({ slug, game }: Props) {
           </aside>
 
           <section className="min-w-0">
-            <div className="mt-4 overflow-x-auto rounded-[12px] border border-white/[0.08] bg-[#090909]">
-              <nav className="flex min-w-max items-center">
-                {[
-                  ["Conquistas", true],
-                  ["Primeira Run", false],
-                  ["Maestria", false],
-                  ["Notas", false],
-                  ["Galeria", false],
-                ].map(([label, active]) => (
-                  <span key={String(label)} className={`border-b-2 px-4 py-3 text-[10px] font-black uppercase tracking-[0.12em] sm:px-5 ${active ? "border-red-500 text-white" : "border-transparent text-white/30"}`}>
-                    {label}
-                  </span>
-                ))}
-              </nav>
-            </div>
-
             <div id="conquistas" className="mt-5 scroll-mt-24">
               <div className="mb-3 flex items-center justify-between">
                 <SectionTitle>Conquistas</SectionTitle>
