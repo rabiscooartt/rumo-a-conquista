@@ -935,7 +935,7 @@ export default function GameAchievementsPanel(
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto">
               {SORT_OPTIONS.map((option) => (
                 <SortButton
                   key={option.value}
@@ -948,52 +948,26 @@ export default function GameAchievementsPanel(
             </div>
           </div>
 
-              <span
-                className={`font-black ${
-                  progress >= 100 ? "text-emerald-300" : "text-red-400"
-                }`}
-              >
-                {progress}%
-              </span>
+          <div className="flex items-center gap-3">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+              <div
+                className={`h-full rounded-full ${progress >= 100 ? "bg-emerald-400" : "bg-red-500"}`}
+                style={{ width: `${progress}%` }}
+              />
             </div>
-
-            {isEditMode && (
-              <div className="mt-4 rounded-2xl border border-red-500/20 bg-black/25 p-4">
-                <label className="block">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">
-                  Buscar conquista
-                </span>
-
-                <div className="relative mt-2">
-                  <input
-                    type="search"
-                    value={achievementSearch}
-                    onChange={(event) => handleAchievementSearchChange(event.target.value)}
-                    placeholder="Digite o nome da conquista..."
-                    aria-label="Buscar conquista pelo nome"
-                    className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 pr-24 text-sm font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20"
-                  />
-
-                  {achievementSearch && (
-                    <button
-                      type="button"
-                      onClick={() => handleAchievementSearchChange("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white/50 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200"
-                    >
-                      Limpar
-                    </button>
-                  )}
-                </div>
-              </label>
-
-              <p className="mt-2 text-[11px] font-bold text-white/30">
-                {achievementSearch.trim()
-                  ? `${filteredAchievements.length} conquista${filteredAchievements.length === 1 ? "" : "s"} encontrada${filteredAchievements.length === 1 ? "" : "s"}`
-                  : `${allAchievements.length} conquistas cadastradas`}
-                </p>
-              </div>
-            )}
+            <span className="text-[9px] font-black text-white/35">{progress}%</span>
           </div>
+
+          {isEditMode && (
+            <div className="mt-1 rounded-[10px] border border-red-500/15 bg-black/20 p-3">
+              <p className="text-[9px] font-black uppercase tracking-[0.14em] text-red-300">
+                Modo de edição
+              </p>
+              <p className="mt-1 text-[9px] text-white/30">
+                Use a área de edição abaixo para alterar ou salvar conquistas.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
