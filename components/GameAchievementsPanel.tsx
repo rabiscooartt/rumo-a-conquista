@@ -906,7 +906,7 @@ export default function GameAchievementsPanel(
 
   return (
     <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
-      <div className="border-b border-white/[0.08] p-4 sm:p-5">
+      <div className="border-b border-white/[0.08] px-4 pb-4 pt-2.5 sm:px-5 sm:pb-5 sm:pt-3">
         <div className="flex flex-col gap-4">
           <div className="flex items-end justify-between gap-4">
             <div>
