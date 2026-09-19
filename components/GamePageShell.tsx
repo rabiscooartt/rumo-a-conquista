@@ -60,37 +60,61 @@ function clamp(value: number) {
   return Math.min(100, Math.max(0, Number(value) || 0));
 }
 
-type TrophyRank = "Diamante" | "Ouro" | "Prata" | "Bronze";
+type TrophyRank = "Ouro" | "Prata" | "Bronze";
 
 function getTrophyRank(achievement: AchievementInput): TrophyRank {
   const difficulty = normalizeText(achievement.difficulty);
 
-  if (difficulty === "extrema" || difficulty === "diamante") return "Diamante";
-  if (difficulty === "dificil" || difficulty === "ouro") return "Ouro";
+  if (difficulty === "extrema" || difficulty === "diamante" || difficulty === "ouro") return "Ouro";
   if (difficulty === "media" || difficulty === "prata") return "Prata";
 
-  if (achievement.trophy?.includes("💎") || achievement.icon?.includes("💎")) return "Diamante";
-  if (
-    achievement.trophy?.includes("🥇") ||
-    achievement.trophy?.includes("🏆") ||
-    achievement.icon?.includes("🥇") ||
-    achievement.icon?.includes("🏆")
-  ) return "Ouro";
+  if (achievement.trophy?.includes("🥇") || achievement.trophy?.includes("🏆") || achievement.icon?.includes("🥇") || achievement.icon?.includes("🏆")) {
+    return "Ouro";
+  }
   if (achievement.trophy?.includes("🥈") || achievement.icon?.includes("🥈")) return "Prata";
 
   return "Bronze";
 }
 
 const TROPHY_META: Array<{
-  rank: TrophyRank;
-  icon: string;
+  rank: TrophyRank | "Maestria";
   label: string;
 }> = [
-  { rank: "Diamante", icon: "💎", label: "Diamante" },
-  { rank: "Ouro", icon: "🥇", label: "Ouro" },
-  { rank: "Prata", icon: "🥈", label: "Prata" },
-  { rank: "Bronze", icon: "🥉", label: "Bronze" },
+  { rank: "Bronze", label: "Bronze" },
+  { rank: "Prata", label: "Prata" },
+  { rank: "Ouro", label: "Ouro" },
+  { rank: "Maestria", label: "Maestria" },
 ];
+
+function TrophyIcon({ rank, className = "h-6 w-6" }: { rank: TrophyRank; className?: string }) {
+  const fill =
+    rank === "Ouro" ? "#F4B942" :
+    rank === "Prata" ? "#C9D0D8" :
+    "#C8784A";
+  const highlight =
+    rank === "Ouro" ? "#FFE49A" :
+    rank === "Prata" ? "#F5F7FA" :
+    "#F0B08B";
+
+  return (
+    <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
+      <path d="M10 5.5H22V12C22 16.1 19.8 18.9 16 18.9C12.2 18.9 10 16.1 10 12V5.5Z" fill={fill} />
+      <path d="M10 7.5H6.8C5.1 7.5 4.5 8.8 5 10.5C5.7 13.1 7.4 14.6 10.1 14.8M22 7.5H25.2C26.9 7.5 27.5 8.8 27 10.5C26.3 13.1 24.6 14.6 21.9 14.8" stroke={fill} strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M16 18.8V23.2M11.5 26H20.5" stroke={fill} strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M12.2 7.2H19.8" stroke={highlight} strokeWidth="1.5" strokeLinecap="round" opacity=".9" />
+    </svg>
+  );
+}
+
+function MasteryIcon({ className = "h-7 w-7" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
+      <path d="M16 3.5L27 7.2V14.6C27 21.3 22.5 26.2 16 28.5C9.5 26.2 5 21.3 5 14.6V7.2L16 3.5Z" fill="#141414" stroke="#D89B32" strokeWidth="1.8" />
+      <path d="M16 8.2L17.9 12.1L22.2 12.7L19.1 15.7L19.8 20L16 18L12.2 20L12.9 15.7L9.8 12.7L14.1 12.1L16 8.2Z" fill="#F0B83D" />
+      <path d="M9 23.3L5.7 27.2M23 23.3L26.3 27.2" stroke="#B96C35" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -206,26 +230,35 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
 
                 <div className="grid grid-cols-4 gap-1.5">
-                  {TROPHY_META.map(({ rank, icon, label }) => {
-                    const total = achievements.filter(
-                      (achievement) => getTrophyRank(achievement) === rank
-                    ).length;
-                    const completed = achievements.filter(
-                      (achievement) =>
-                        getTrophyRank(achievement) === rank &&
-                        ["completed", "concluido", "concluida"].includes(
-                          normalizeText(achievement.status)
-                        )
-                    ).length;
+                  {TROPHY_META.map(({ rank, label }) => {
+                    const total = rank === "Maestria"
+                      ? 0
+                      : achievements.filter((achievement) => getTrophyRank(achievement) === rank).length;
+                    const completed = rank === "Maestria"
+                      ? 0
+                      : achievements.filter(
+                          (achievement) =>
+                            getTrophyRank(achievement) === rank &&
+                            ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status))
+                        ).length;
 
                     return (
                       <div
                         key={rank}
                         title={label}
-                        className="flex min-w-0 flex-col items-center rounded-[8px] border border-white/[0.06] bg-white/[0.015] px-1 py-2"
+                        className="flex min-w-0 flex-col items-center justify-center rounded-[9px] border border-white/[0.07] bg-white/[0.015] px-1 py-2.5"
                       >
-                        <span className="text-[20px] leading-none">{icon}</span>
-                        <span className="mt-1 text-[9px] font-black tabular-nums text-white/70">
+                        <div className="flex h-7 items-center justify-center">
+                          {rank === "Maestria" ? (
+                            <MasteryIcon className="h-7 w-7" />
+                          ) : (
+                            <TrophyIcon rank={rank} className="h-6 w-6" />
+                          )}
+                        </div>
+                        <span className="mt-1.5 text-[8px] font-black uppercase tracking-[0.04em] text-white/45">
+                          {label}
+                        </span>
+                        <span className="mt-0.5 text-[10px] font-black tabular-nums text-white/85">
                           {completed}/{total}
                         </span>
                       </div>
