@@ -86,62 +86,6 @@ const TROPHY_META: Array<{
   { rank: "Maestria", label: "Maestria" },
 ];
 
-function TrophyIcon({ rank, className = "h-8 w-8" }: { rank: TrophyRank; className?: string }) {
-  const palette = {
-    Ouro: { top: "#FFF0A8", mid: "#F4B942", bottom: "#A85B08", edge: "#FFD86A", shine: "#FFF8D7" },
-    Prata: { top: "#FFFFFF", mid: "#C9D0D8", bottom: "#68727C", edge: "#E9EEF3", shine: "#FFFFFF" },
-    Bronze: { top: "#FFD0A8", mid: "#C8784A", bottom: "#7B351E", edge: "#F0A77A", shine: "#FFF0E2" },
-  }[rank];
-
-  const id = `trophy-${rank.toLowerCase()}`;
-
-  return (
-    <svg viewBox="0 0 40 40" fill="none" className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id={id} x1="10" y1="4" x2="28" y2="31" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor={palette.top} />
-          <stop offset="0.42" stopColor={palette.mid} />
-          <stop offset="1" stopColor={palette.bottom} />
-        </linearGradient>
-        <filter id={`${id}-glow`} x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="1.6" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      <g filter={`url(#${id}-glow)`}>
-        <path d="M12 7H28V14.2C28 19.3 25.3 23.2 20 24.3C14.7 23.2 12 19.3 12 14.2V7Z" fill={`url(#${id})`} stroke={palette.edge} strokeWidth="1.1" />
-        <path d="M12 9H7.8C6.2 9 5.8 10.3 6.3 12.2C7.1 15.1 9 17 12.7 17.2M28 9H32.2C33.8 9 34.2 10.3 33.7 12.2C32.9 15.1 31 17 27.3 17.2" stroke={palette.edge} strokeWidth="2" strokeLinecap="round" />
-        <path d="M20 24V29M14.5 32H25.5" stroke={palette.edge} strokeWidth="2.3" strokeLinecap="round" />
-        <path d="M14.8 9H25.2" stroke={palette.shine} strokeWidth="1.5" strokeLinecap="round" opacity=".95" />
-        <path d="M16 12C16.7 14.8 18.1 17.1 20 18.6C21.9 17.1 23.3 14.8 24 12" stroke={palette.shine} strokeWidth="1" strokeLinecap="round" opacity=".65" />
-      </g>
-    </svg>
-  );
-}
-
-function MasteryIcon({ className = "h-8 w-8" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" fill="none" className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id="mastery-shield" x1="9" y1="4" x2="31" y2="34" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#FFE89A" />
-          <stop offset=".42" stopColor="#D89B32" />
-          <stop offset="1" stopColor="#6D3B0E" />
-        </linearGradient>
-        <filter id="mastery-glow" x="-70%" y="-70%" width="240%" height="240%">
-          <feGaussianBlur stdDeviation="1.7" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      <g filter="url(#mastery-glow)">
-        <path d="M20 3.5L32 7.6V16C32 24 26.8 30.2 20 33C13.2 30.2 8 24 8 16V7.6L20 3.5Z" fill="#101010" stroke="url(#mastery-shield)" strokeWidth="2" />
-        <path d="M20 9L22.4 13.8L27.7 14.6L23.8 18.3L24.7 23.6L20 21.1L15.3 23.6L16.2 18.3L12.3 14.6L17.6 13.8L20 9Z" fill="#F4C548" stroke="#FFF0AE" strokeWidth=".7" />
-        <path d="M11.5 26.7L7.5 31.2M28.5 26.7L32.5 31.2" stroke="#B96C35" strokeWidth="2" strokeLinecap="round" />
-      </g>
-    </svg>
-  );
-}
-
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
@@ -274,12 +218,21 @@ export default function GamePageShell({ slug, game }: Props) {
                         title={label}
                         className="flex min-w-0 flex-col items-center justify-center rounded-[10px] border border-white/[0.08] bg-white/[0.02] px-1 py-3"
                       >
-                        <div className="flex h-9 items-center justify-center">
-                          {rank === "Maestria" ? (
-                            <MasteryIcon className="h-8 w-8" />
-                          ) : (
-                            <TrophyIcon rank={rank} className="h-8 w-8" />
-                          )}
+                        <div className="flex h-10 w-full items-center justify-center">
+                          <img
+                            src={
+                              rank === "Bronze"
+                                ? "/images/trophies/bronze.png"
+                                : rank === "Prata"
+                                  ? "/images/trophies/prata.png"
+                                  : rank === "Ouro"
+                                    ? "/images/trophies/ouro.png"
+                                    : "/images/trophies/maestria.png"
+                            }
+                            alt=""
+                            aria-hidden="true"
+                            className="h-10 w-10 object-contain"
+                          />
                         </div>
                         <span className="mt-1.5 text-[7px] font-black uppercase tracking-[0.035em] text-white/50">
                           {label}
