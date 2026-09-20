@@ -12,7 +12,7 @@ type GameEmblemInput = {
   title?: string;
   image?: string;
   description?: string;
-  tags?: string[] | string;
+  tags?: string[];
   unlockedAt?: string;
 };
 
