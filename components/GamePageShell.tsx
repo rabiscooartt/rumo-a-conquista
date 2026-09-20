@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
@@ -173,6 +173,57 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export default function GamePageShell({ slug, game }: Props) {
   const { entries: activityEntries } = useJourneyEntries();
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
+  const [automaticMetadata, setAutomaticMetadata] = useState<{
+    genres: string[];
+    platforms: string[];
+    developer: string;
+    releaseYear: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAutomaticMetadata() {
+      try {
+        const query = new URLSearchParams({
+          title: game.title,
+          platform: game.platform || "",
+        });
+
+        const response = await fetch(`/api/games/metadata?${query.toString()}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          metadata?: {
+            genres?: string[];
+            platforms?: string[];
+            developer?: string;
+            releaseYear?: string;
+          };
+        };
+
+        if (!cancelled && payload.metadata) {
+          setAutomaticMetadata({
+            genres: Array.isArray(payload.metadata.genres) ? payload.metadata.genres : [],
+            platforms: Array.isArray(payload.metadata.platforms) ? payload.metadata.platforms : [],
+            developer: String(payload.metadata.developer || "").trim(),
+            releaseYear: String(payload.metadata.releaseYear || "").trim(),
+          });
+        }
+      } catch {
+        // Mantém os dados cadastrados caso a fonte externa esteja indisponível.
+      }
+    }
+
+    loadAutomaticMetadata();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [game.title, game.platform]);
 
   const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
   const completedCount = useMemo(
@@ -185,7 +236,15 @@ export default function GamePageShell({ slug, game }: Props) {
   const statusLabel = getStatusLabel(game.status);
   const objective = game.currentObjective || game.objective || "Definir próximo objetivo";
   const cover = game.cardImage || game.image || `/images/games/${slug}/cover.jpg`;
-  const genres = Array.isArray(game.genres) ? game.genres.filter(Boolean) : [];
+  const genres = automaticMetadata?.genres.length
+    ? automaticMetadata.genres
+    : Array.isArray(game.genres)
+      ? game.genres.filter(Boolean)
+      : [];
+  const automaticPlatform = automaticMetadata?.platforms?.[0] || "";
+  const platform = automaticPlatform || game.platform || "—";
+  const developer = automaticMetadata?.developer || game.developer || "—";
+  const releaseYear = automaticMetadata?.releaseYear || game.releaseYear || "—";
   const emblem = game.emblem;
   const emblemUnlocked = status === "completed" || progress >= 100 || Boolean(emblem?.unlockedAt);
   const emblemDate = emblem?.unlockedAt
@@ -350,7 +409,7 @@ export default function GamePageShell({ slug, game }: Props) {
                     <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
                       <IconGamepad className="h-4 w-4 text-white/70" />
                       <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.platform || "—"}>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
                         {game.platform || "—"}
                       </span>
                     </div>
@@ -365,14 +424,14 @@ export default function GamePageShell({ slug, game }: Props) {
                       <IconTrophy className="h-4 w-4 text-white/70" />
                       <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
                       <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.developer || "—"}>
-                        {formatDeveloperName(game.developer)}
+                        {formatDeveloperName(developer)}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
                       <IconCalendar className="h-4 w-4 text-white/70" />
                       <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.releaseYear || "—"}>
+                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear}>
                         {game.releaseYear || "—"}
                       </span>
                     </div>
