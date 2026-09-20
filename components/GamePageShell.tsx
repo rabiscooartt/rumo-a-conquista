@@ -460,253 +460,255 @@ export default function GamePageShell({ slug, game }: Props) {
             </section>
           </div>
         )}
-        <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-5">
-              <div className="border-b border-white/[0.08] pb-5">
-                <SectionTitle>Jogo</SectionTitle>
-              </div>
-
-              <div className="border-b border-white/[0.08] pb-6">
-                <div className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090909] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
-                  {cover ? (
-                    <img src={cover} alt={game.title} className="aspect-[3/4] w-full object-cover" />
-                  ) : (
-                    <div className="flex aspect-[3/4] items-center justify-center text-[10px] font-black uppercase text-white/25">Sem capa</div>
-                  )}
-                </div>
-
-                <p className="mt-3 line-clamp-3 text-[12px] font-black leading-tight text-white" title={game.title}>
-                  {game.title}
-                </p>
-
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-500"}`}>
-                    {statusLabel}
-                  </span>
-                  {game.platform && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white/40">
-                      {normalizeText(game.platform) === "steam" ? (
-                        <img
-                          src="/images/platforms/steam.png"
-                          alt=""
-                          aria-hidden="true"
-                          className="h-3 w-3 shrink-0 object-contain"
-                        />
-                      ) : null}
-                      {game.platform}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-b border-white/[0.08] pb-5">
-                <div className="mb-3">
-                  <SectionTitle>Troféus / Conquistas</SectionTitle>
-                </div>
-
-                <div className="grid grid-cols-4 gap-1.5">
-                  {TROPHY_META.map(({ rank, label }) => {
-                    const total = rank === "Maestria"
-                      ? 0
-                      : achievements.filter((achievement) => getTrophyRank(achievement) === rank).length;
-                    const completed = rank === "Maestria"
-                      ? 0
-                      : achievements.filter(
-                          (achievement) =>
-                            getTrophyRank(achievement) === rank &&
-                            ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status))
-                        ).length;
-
-                    return (
-                      <div
-                        key={rank}
-                        title={label}
-                        className="flex min-w-0 flex-col items-center justify-center rounded-[10px] border border-white/[0.08] bg-white/[0.02] px-1 py-3"
-                      >
-                        <div className="flex h-10 w-full items-center justify-center">
-                          <img
-                            src={
-                              rank === "Bronze"
-                                ? "/images/trophies/bronze.png"
-                                : rank === "Prata"
-                                  ? "/images/trophies/prata.png"
-                                  : rank === "Ouro"
-                                    ? "/images/trophies/ouro.png"
-                                    : "/images/trophies/maestria.png"
-                            }
-                            alt=""
-                            aria-hidden="true"
-                            className="h-11 w-11 object-contain"
-                          />
+        {!showFirstJourneyPreview && (
+                  <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
+                    <aside className="hidden lg:block">
+                      <div className="sticky top-24 space-y-5">
+                        <div className="border-b border-white/[0.08] pb-5">
+                          <SectionTitle>Jogo</SectionTitle>
                         </div>
-                        <span className="mt-2 text-[14px] font-black tabular-nums leading-none text-white/95">
-                          {completed}/{total}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Link href="/biblioteca" className="inline-flex text-[9px] font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-500">
-                ← Voltar para Biblioteca
-              </Link>
-            </div>
-          </aside>
-
-          <section id="conquistas" className="min-w-0 scroll-mt-24">
-            <GameAchievementsPanel
-              slug={slug}
-              achievements={achievements}
-              onStatesChange={setManualStates}
-            />
-          </section>
-
-          <aside className="min-w-0">
-            <div className="space-y-5 lg:sticky lg:top-24">
-              <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
-                <img
-                  src={cover}
-                  alt=""
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.24]"
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/82 via-[#090909]/62 to-[#090909]/28" />
-                <div className="relative">
-                  <SectionTitle>Sobre o Jogo</SectionTitle>
-
-                  <div className="mt-4 space-y-4">
-                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
-                      <IconGamepad className="h-5 w-5 text-white/80" />
-                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "—"}>
-                        {genres.length > 0 ? genres.join(", ") : "—"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
-                      <IconGamepad className="h-4 w-4 text-white/70" />
-                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
-                        {game.platform || "—"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
-                      <IconClock className="h-4 w-4 text-white/70" />
-                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
-                    </div>
-
-                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
-                      <IconTrophy className="h-4 w-4 text-white/70" />
-                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.developer || "—"}>
-                        {formatDeveloperName(developer)}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
-                      <IconCalendar className="h-4 w-4 text-white/70" />
-                      <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
-                      <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear}>
-                        {releaseYear || "—"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-
-
-
-
-              <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
-                <SectionTitle>Emblema</SectionTitle>
-
-                <div className="mt-3 flex min-h-[220px] flex-col items-center justify-center p-2 text-center">
-                  {emblem?.image ? (
-                    <div className="relative flex h-[170px] w-[170px] items-center justify-center">
-                      <img
-                        src={emblem.image}
-                        alt={emblem.title || "Emblema"}
-                        className={`h-full w-full object-contain transition-all ${emblemUnlocked ? "" : "scale-95 blur-[7px] opacity-45 grayscale"}`}
-                      />
-                      {!emblemUnlocked && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
-                            🔒
+          
+                        <div className="border-b border-white/[0.08] pb-6">
+                          <div className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090909] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+                            {cover ? (
+                              <img src={cover} alt={game.title} className="aspect-[3/4] w-full object-cover" />
+                            ) : (
+                              <div className="flex aspect-[3/4] items-center justify-center text-[10px] font-black uppercase text-white/25">Sem capa</div>
+                            )}
+                          </div>
+          
+                          <p className="mt-3 line-clamp-3 text-[12px] font-black leading-tight text-white" title={game.title}>
+                            {game.title}
+                          </p>
+          
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-500"}`}>
+                              {statusLabel}
+                            </span>
+                            {game.platform && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white/40">
+                                {normalizeText(game.platform) === "steam" ? (
+                                  <img
+                                    src="/images/platforms/steam.png"
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="h-3 w-3 shrink-0 object-contain"
+                                  />
+                                ) : null}
+                                {game.platform}
+                              </span>
+                            )}
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex h-[170px] w-[170px] items-center justify-center text-5xl opacity-45">
-                      🏆
-                    </div>
-                  )}
-
-                  <p className={`mt-2 text-[11px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
-                    {emblemUnlocked ? "Conquistado" : "Bloqueado"}
-                  </p>
-
-                  {emblemUnlocked ? (
-                    <p className="mt-1 text-[10px] font-bold text-white/45">
-                      {emblemDate ? `Conquistado em ${emblemDate}` : "Conquista registrada"}
-                    </p>
-                  ) : (
-                    <p className="mt-1 max-w-[180px] text-[9px] leading-relaxed text-white/30">
-                      Conquiste a maestria para desbloquear
-                    </p>
-                  )}
-                </div>
-              </section>
-
-              <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                  <h2 className="text-[13px] font-black uppercase tracking-[0.12em] text-white">
-                    Próxima Conquista
-                  </h2>
-                </div>
-
-                <div className="mt-4 flex items-center gap-3.5 rounded-[10px] border border-white/[0.08] bg-[#0b0b0b] p-3">
-                  <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
-                    {nextAchievementImage ? (
-                      <img
-                        src={nextAchievementImage}
-                        alt={nextAchievement?.title || objective}
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">
-                        🏆
+          
+                        <div className="border-b border-white/[0.08] pb-5">
+                          <div className="mb-3">
+                            <SectionTitle>Troféus / Conquistas</SectionTitle>
+                          </div>
+          
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {TROPHY_META.map(({ rank, label }) => {
+                              const total = rank === "Maestria"
+                                ? 0
+                                : achievements.filter((achievement) => getTrophyRank(achievement) === rank).length;
+                              const completed = rank === "Maestria"
+                                ? 0
+                                : achievements.filter(
+                                    (achievement) =>
+                                      getTrophyRank(achievement) === rank &&
+                                      ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status))
+                                  ).length;
+          
+                              return (
+                                <div
+                                  key={rank}
+                                  title={label}
+                                  className="flex min-w-0 flex-col items-center justify-center rounded-[10px] border border-white/[0.08] bg-white/[0.02] px-1 py-3"
+                                >
+                                  <div className="flex h-10 w-full items-center justify-center">
+                                    <img
+                                      src={
+                                        rank === "Bronze"
+                                          ? "/images/trophies/bronze.png"
+                                          : rank === "Prata"
+                                            ? "/images/trophies/prata.png"
+                                            : rank === "Ouro"
+                                              ? "/images/trophies/ouro.png"
+                                              : "/images/trophies/maestria.png"
+                                      }
+                                      alt=""
+                                      aria-hidden="true"
+                                      className="h-11 w-11 object-contain"
+                                    />
+                                  </div>
+                                  <span className="mt-2 text-[14px] font-black tabular-nums leading-none text-white/95">
+                                    {completed}/{total}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+          
+                        <Link href="/biblioteca" className="inline-flex text-[9px] font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-500">
+                          ← Voltar para Biblioteca
+                        </Link>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
-                      Objetivo atual
-                    </p>
-                    <p className="mt-1 truncate text-[13px] font-black leading-tight text-white">
-                      {nextAchievement?.title || objective}
-                    </p>
-
-                    {nextAchievement?.description ? (
-                      <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-white/40">
-                        {nextAchievement.description}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </section>
-
-
-            </div>
-          </aside>
-        </div>
+                    </aside>
+          
+                    <section id="conquistas" className="min-w-0 scroll-mt-24">
+                      <GameAchievementsPanel
+                        slug={slug}
+                        achievements={achievements}
+                        onStatesChange={setManualStates}
+                      />
+                    </section>
+          
+                    <aside className="min-w-0">
+                      <div className="space-y-5 lg:sticky lg:top-24">
+                        <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
+                          <img
+                            src={cover}
+                            alt=""
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.24]"
+                          />
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/82 via-[#090909]/62 to-[#090909]/28" />
+                          <div className="relative">
+                            <SectionTitle>Sobre o Jogo</SectionTitle>
+          
+                            <div className="mt-4 space-y-4">
+                              <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                                <IconGamepad className="h-5 w-5 text-white/80" />
+                                <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
+                                <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "—"}>
+                                  {genres.length > 0 ? genres.join(", ") : "—"}
+                                </span>
+                              </div>
+          
+                              <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                                <IconGamepad className="h-4 w-4 text-white/70" />
+                                <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
+                                <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
+                                  {game.platform || "—"}
+                                </span>
+                              </div>
+          
+                              <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                                <IconClock className="h-4 w-4 text-white/70" />
+                                <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
+                                <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
+                              </div>
+          
+                              <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                                <IconTrophy className="h-4 w-4 text-white/70" />
+                                <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
+                                <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.developer || "—"}>
+                                  {formatDeveloperName(developer)}
+                                </span>
+                              </div>
+          
+                              <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                                <IconCalendar className="h-4 w-4 text-white/70" />
+                                <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
+                                <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear}>
+                                  {releaseYear || "—"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </section>
+          
+          
+          
+          
+          
+                        <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
+                          <SectionTitle>Emblema</SectionTitle>
+          
+                          <div className="mt-3 flex min-h-[220px] flex-col items-center justify-center p-2 text-center">
+                            {emblem?.image ? (
+                              <div className="relative flex h-[170px] w-[170px] items-center justify-center">
+                                <img
+                                  src={emblem.image}
+                                  alt={emblem.title || "Emblema"}
+                                  className={`h-full w-full object-contain transition-all ${emblemUnlocked ? "" : "scale-95 blur-[7px] opacity-45 grayscale"}`}
+                                />
+                                {!emblemUnlocked && (
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
+                                      🔒
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex h-[170px] w-[170px] items-center justify-center text-5xl opacity-45">
+                                🏆
+                              </div>
+                            )}
+          
+                            <p className={`mt-2 text-[11px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
+                              {emblemUnlocked ? "Conquistado" : "Bloqueado"}
+                            </p>
+          
+                            {emblemUnlocked ? (
+                              <p className="mt-1 text-[10px] font-bold text-white/45">
+                                {emblemDate ? `Conquistado em ${emblemDate}` : "Conquista registrada"}
+                              </p>
+                            ) : (
+                              <p className="mt-1 max-w-[180px] text-[9px] leading-relaxed text-white/30">
+                                Conquiste a maestria para desbloquear
+                              </p>
+                            )}
+                          </div>
+                        </section>
+          
+                        <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                            <h2 className="text-[13px] font-black uppercase tracking-[0.12em] text-white">
+                              Próxima Conquista
+                            </h2>
+                          </div>
+          
+                          <div className="mt-4 flex items-center gap-3.5 rounded-[10px] border border-white/[0.08] bg-[#0b0b0b] p-3">
+                            <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
+                              {nextAchievementImage ? (
+                                <img
+                                  src={nextAchievementImage}
+                                  alt={nextAchievement?.title || objective}
+                                  className="h-full w-full object-contain"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">
+                                  🏆
+                                </div>
+                              )}
+                            </div>
+          
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
+                                Objetivo atual
+                              </p>
+                              <p className="mt-1 truncate text-[13px] font-black leading-tight text-white">
+                                {nextAchievement?.title || objective}
+                              </p>
+          
+                              {nextAchievement?.description ? (
+                                <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-white/40">
+                                  {nextAchievement.description}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                        </section>
+          
+          
+                      </div>
+                    </aside>
+          
+        )}        </div>
       </div>
     </main>
   );
