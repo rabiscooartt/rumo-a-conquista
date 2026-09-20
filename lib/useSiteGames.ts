@@ -430,7 +430,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const finalSlug = readText(game.slug, slug);
   const title = readText(game.title, "Jogo sem nome");
   const subtitle = readText(game.subtitle, "");
-  const status = normalizeStatus(readText(game.status, "progress"));
+  const rawStatus = normalizeStatus(readText(game.status, "progress"));
   const hours = game.hours ?? "0h";
 
   const currentObjective =
@@ -471,9 +471,16 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const firstJourney =
     game.firstJourney && typeof game.firstJourney === "object"
       ? (game.firstJourney as FirstJourneyState)
-      : status === "completed"
+      : rawStatus === "completed"
         ? { status: "completed" as const }
-        : { status: "in_progress" as const };
+        : { status: "not_started" as const };
+
+  // Uma Jornada de Estreia ativa implica que o jogo já está em progresso.
+  // Isso mantém Biblioteca, página do jogo e Admin coerentes.
+  const status =
+    firstJourney.status === "in_progress"
+      ? "progress"
+      : rawStatus;
 
   return {
     ...game,
