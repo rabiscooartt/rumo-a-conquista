@@ -26,6 +26,7 @@ export type GamePageShellInput = {
   genres?: string[];
   developer?: string;
   releaseYear?: string;
+  manualTotalPlayedMinutes?: number | null;
   emblem?: {
     title?: string;
     image?: string;
@@ -274,7 +275,17 @@ export default function GamePageShell({ slug, game }: Props) {
     }, 0);
   }, [activityEntries, game.title, slug]);
 
-  const playedTime = formatPlayedTime(activityPlayedMinutes);
+  const storedPlayedMinutes = Math.max(
+    0,
+    Number(game.manualTotalPlayedMinutes) || 0
+  );
+
+  const playedTimeMinutes =
+    activityPlayedMinutes > 0
+      ? activityPlayedMinutes
+      : storedPlayedMinutes;
+
+  const playedTime = formatPlayedTime(playedTimeMinutes);
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
