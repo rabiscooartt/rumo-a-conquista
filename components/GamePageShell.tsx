@@ -380,73 +380,9 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
-                <SectionTitle>Emblema</SectionTitle>
 
-                <div className="mt-4 flex min-h-[205px] flex-col items-center justify-center rounded-[12px] border border-white/[0.07] bg-white/[0.02] p-4 text-center">
-                  {emblem?.image ? (
-                    <div className="relative flex h-[132px] w-[132px] items-center justify-center">
-                      <img
-                        src={emblem.image}
-                        alt={emblem.title || "Emblema"}
-                        className={`h-full w-full object-contain transition-all ${emblemUnlocked ? "" : "scale-95 blur-[7px] opacity-45 grayscale"}`}
-                      />
-                      {!emblemUnlocked && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-                            🔒
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex h-[132px] w-[132px] items-center justify-center rounded-full border border-white/[0.08] text-3xl opacity-40">
-                      🏆
-                    </div>
-                  )}
 
-                  <p className={`mt-3 text-[11px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
-                    {emblemUnlocked ? "Conquistado" : "Bloqueado"}
-                  </p>
 
-                  {emblemUnlocked ? (
-                    <p className="mt-1 text-[10px] font-bold text-white/45">
-                      {emblemDate ? `Conquistado em ${emblemDate}` : "Conquista registrada"}
-                    </p>
-                  ) : (
-                    <p className="mt-1 max-w-[180px] text-[9px] leading-relaxed text-white/30">
-                      Conquiste a maestria para desbloquear
-                    </p>
-                  )}
-                </div>
-              </section>
-
-              <section className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                <SectionTitle>Resumo do Jogo</SectionTitle>
-
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconTrophy className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{completedCount}/{totalCount}</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Conquistas</p>
-                  </div>
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconGamepad className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{progress}%</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Progresso</p>
-                  </div>
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconClock className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-lg font-black text-white">{playedTime}</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Tempo</p>
-                  </div>
-                  <div className="rounded-[10px] border border-white/[0.07] bg-white/[0.02] p-3">
-                    <IconCalendar className="h-4 w-4 text-red-500" />
-                    <p className="mt-2 text-sm font-black text-white">—</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.10em] text-white/30">Jornada</p>
-                  </div>
-                </div>
-              </section>
 
               <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Próxima Conquista</SectionTitle>
