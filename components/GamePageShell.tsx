@@ -558,31 +558,24 @@ export default function GamePageShell({ slug, game }: Props) {
               <section id="proxima-conquista" className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Próxima Conquista</SectionTitle>
 
-                <div className="mt-4 overflow-hidden rounded-[12px] border border-red-500/15 bg-[#0b0b0b]">
-                  <div className="relative h-[90px] overflow-hidden bg-black">
-                    {nextAchievementImage ? (
-                      <>
+                <div className="mt-4 rounded-[12px] border border-red-500/15 bg-[#0b0b0b] p-3">
+                  <div className="flex justify-center">
+                    <div className="relative flex h-[112px] w-[112px] items-center justify-center overflow-hidden rounded-[10px] border border-white/[0.08] bg-black/40">
+                      {nextAchievementImage ? (
                         <img
                           src={nextAchievementImage}
                           alt={nextAchievement?.title || objective}
-                          className="h-full w-full object-contain p-2"
+                          className="h-full w-full object-contain p-1"
                         />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-transparent to-black/15" />
-                      </>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-5xl opacity-35">
-                        🏆
-                      </div>
-                    )}
-
-                    <div className="absolute left-3 top-3 rounded-full border border-red-500/25 bg-black/70 px-2 py-1 text-[7px] font-black uppercase tracking-[0.14em] text-red-400 backdrop-blur-sm">
-                      Objetivo atual
+                      ) : (
+                        <div className="text-5xl opacity-35">🏆</div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="p-3">
-                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-white/35">
-                      Próximo passo
+                  <div className="mt-3">
+                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
+                      Objetivo atual
                     </p>
                     <p className="mt-1.5 text-[14px] font-black leading-tight text-white">
                       {nextAchievement?.title || objective}
@@ -593,8 +586,6 @@ export default function GamePageShell({ slug, game }: Props) {
                         {nextAchievement.description}
                       </p>
                     ) : null}
-
-
                   </div>
                 </div>
               </section>
