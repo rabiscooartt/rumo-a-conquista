@@ -26,6 +26,11 @@ export type GameEmblemInput = {
   unlockedAt?: string;
 };
 
+export type FirstJourneyState = {
+  status: "not_started" | "in_progress" | "completed";
+  completedAt?: string;
+};
+
 export type SiteGame = {
   slug: string;
   title: string;
@@ -44,6 +49,7 @@ export type SiteGame = {
   createdAt?: string;
   updatedAt?: string;
   manualTotalPlayedMinutes?: number | null;
+  firstJourney?: FirstJourneyState;
   finalBadge?: {
     title: string;
     icon: string;
@@ -459,6 +465,12 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   );
 
   const emblem = normalizeEmblem(game.emblem);
+  const firstJourney =
+    game.firstJourney && typeof game.firstJourney === "object"
+      ? (game.firstJourney as FirstJourneyState)
+      : status === "progress"
+        ? { status: "in_progress" as const }
+        : { status: "not_started" as const };
 
   return {
     ...game,
@@ -532,6 +544,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         image: game.image ?? "",
         manualTotalPlayedMinutes:
           game.manual_total_played_minutes ?? null,
+        firstJourney: (game as DatabaseGame).first_journey as FirstJourneyState | undefined,
         cardImage: game.card_image ?? "",
         platform: game.platform ?? "Steam",
         achievementsList: Array.isArray(game.achievementsList)
@@ -607,6 +620,7 @@ async function saveGameToSupabase(
     trophies: game.trophies,
     manualTotalPlayedMinutes:
       game.manualTotalPlayedMinutes ?? null,
+    firstJourney: game.firstJourney,
     isHidden: options?.isHidden === true,
     isDeleted: options?.isDeleted === true,
   });
