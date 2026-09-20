@@ -559,7 +559,7 @@ export default function GamePageShell({ slug, game }: Props) {
                 <SectionTitle>Próxima Conquista</SectionTitle>
 
                 <div className="mt-4 overflow-hidden rounded-[12px] border border-red-500/15 bg-[#0b0b0b]">
-                  <div className="relative h-[126px] overflow-hidden bg-black">
+                  <div className="relative h-[90px] overflow-hidden bg-black">
                     {nextAchievementImage ? (
                       <>
                         <img
@@ -594,17 +594,7 @@ export default function GamePageShell({ slug, game }: Props) {
                       </p>
                     ) : null}
 
-                    <div className="mt-3 flex items-center gap-2">
-                      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
-                        <div
-                          className="h-full rounded-full bg-red-500"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <span className="text-[8px] font-black text-white/35">
-                        {progress}%
-                      </span>
-                    </div>
+
                   </div>
                 </div>
               </section>
