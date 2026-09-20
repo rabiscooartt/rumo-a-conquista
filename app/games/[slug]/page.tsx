@@ -251,6 +251,13 @@ export default function GamePage() {
       currentObjective: readText(game.currentObjective, ""),
       objective: readText(game.objective, ""),
       achievementsList,
+      firstJourney:
+        game.firstJourney && typeof game.firstJourney === "object"
+          ? {
+              status: game.firstJourney.status,
+              completedAt: readText(game.firstJourney.completedAt, "") || undefined,
+            }
+          : undefined,
       review: normalizeReview(game.review),
       finalBadge: getFinalBadge(game),
       emblem: (() => {
