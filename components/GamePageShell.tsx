@@ -76,7 +76,7 @@ function normalizeGameKey(value?: string) {
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
@@ -264,10 +264,16 @@ export default function GamePageShell({ slug, game }: Props) {
       const entrySlug = normalizeGameKey(entry.gameSlug);
       const entryTitle = normalizeGameKey(entry.gameTitle);
 
-      const matches =
-        (entrySlug && entrySlug === targetSlug) ||
-        (!entrySlug && entryTitle === targetTitle) ||
-        (entryTitle && entryTitle === targetTitle);
+      const titleMatches =
+        entryTitle === targetTitle ||
+        (entryTitle.length > 0 &&
+          targetTitle.length > 0 &&
+          (entryTitle.includes(targetTitle) || targetTitle.includes(entryTitle)));
+
+      const slugMatches =
+        entrySlug === targetSlug && targetSlug.length > 0;
+
+      const matches = slugMatches || titleMatches;
 
       return matches
         ? total + Math.max(0, Number(entry.playedMinutes) || 0)
