@@ -114,6 +114,7 @@ type DatabaseGame = {
   updated_at: string;
   manual_total_played_minutes: number | null;
   first_journey?: FirstJourneyState;
+  firstJourney?: FirstJourneyState;
   achievementsList?: FlexibleAchievementInput[];
 };
 
@@ -546,7 +547,9 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         image: game.image ?? "",
         manualTotalPlayedMinutes:
           game.manual_total_played_minutes ?? null,
-        firstJourney: (game as DatabaseGame).first_journey as FirstJourneyState | undefined,
+        firstJourney:
+          (game as DatabaseGame).firstJourney ??
+          (game as DatabaseGame).first_journey,
         cardImage: game.card_image ?? "",
         platform: game.platform ?? "Steam",
         achievementsList: Array.isArray(game.achievementsList)
