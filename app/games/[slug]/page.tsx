@@ -165,6 +165,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
     emblemImage?: string;
     emblemDescription?: string;
     emblemTags?: string[] | string;
+    emblemUnlockedAt?: string;
   };
 
   const savedEmblem = game.emblem;
