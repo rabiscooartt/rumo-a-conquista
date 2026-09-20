@@ -71,10 +71,15 @@ export default function NewGamesAdminPage() {
     if (!selectedGame) return;
     setSaving(true);
     try {
+      const activating = !journeyActive(selectedGame);
+
       await updateGame(selectedGame.slug, {
         firstJourney: {
-          status: journeyActive(selectedGame) ? "completed" : "in_progress",
+          status: activating ? "in_progress" : "completed",
         },
+        ...(activating
+          ? { status: "progress" }
+          : {}),
       });
     } finally {
       setSaving(false);
