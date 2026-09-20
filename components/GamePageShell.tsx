@@ -384,6 +384,47 @@ export default function GamePageShell({ slug, game }: Props) {
 
 
 
+              <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
+                <SectionTitle>Emblema</SectionTitle>
+
+                <div className="mt-4 flex min-h-[205px] flex-col items-center justify-center rounded-[12px] border border-white/[0.07] bg-white/[0.02] p-4 text-center">
+                  {emblem?.image ? (
+                    <div className="relative flex h-[132px] w-[132px] items-center justify-center">
+                      <img
+                        src={emblem.image}
+                        alt={emblem.title || "Emblema"}
+                        className={`h-full w-full object-contain transition-all ${emblemUnlocked ? "" : "scale-95 blur-[7px] opacity-45 grayscale"}`}
+                      />
+                      {!emblemUnlocked && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
+                            🔒
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex h-[132px] w-[132px] items-center justify-center rounded-full border border-white/[0.08] bg-black/20 text-4xl opacity-45">
+                      🏆
+                    </div>
+                  )}
+
+                  <p className={`mt-3 text-[11px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
+                    {emblemUnlocked ? "Conquistado" : "Bloqueado"}
+                  </p>
+
+                  {emblemUnlocked ? (
+                    <p className="mt-1 text-[10px] font-bold text-white/45">
+                      {emblemDate ? `Conquistado em ${emblemDate}` : "Conquista registrada"}
+                    </p>
+                  ) : (
+                    <p className="mt-1 max-w-[180px] text-[9px] leading-relaxed text-white/30">
+                      Conquiste a maestria para desbloquear
+                    </p>
+                  )}
+                </div>
+              </section>
+
               <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Próxima Conquista</SectionTitle>
                 <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
