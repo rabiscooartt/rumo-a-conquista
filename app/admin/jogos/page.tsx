@@ -841,9 +841,26 @@ function handleCopyAchievementNames() {
           className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
           aria-label={`Expandir editor de ${form.title || game.title}`}
         >
-          <p className="min-w-0 truncate text-lg font-black text-white">
-            {form.title || game.title}
-          </p>
+          <div className="min-w-0">
+            <p className="truncate text-lg font-black text-white">
+              {form.title || game.title}
+            </p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/40">
+                {statusLabel}
+              </span>
+
+              <span
+                className={form.firstJourneyEnabled
+                  ? "rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-red-200"
+                  : "rounded-full border border-emerald-400/20 bg-emerald-500/[0.06] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-200"
+                }
+              >
+                Jornada de Estreia: {form.firstJourneyEnabled ? "Ativa" : "Desativada"}
+              </span>
+            </div>
+          </div>
 
           <span className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black text-white/60 transition hover:border-white/20 hover:text-white">
             ＋ Expandir
