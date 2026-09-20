@@ -286,10 +286,32 @@ export default function GamePageShell({ slug, game }: Props) {
     Number(game.manualTotalPlayedMinutes) || 0
   );
 
+  const hoursText = String(game.hours ?? "").trim();
+  const hoursMatch = hoursText.match(/(\d+(?:[.,]\d+)?)\s*h/i);
+  const minutesMatch = hoursText.match(/(\d+(?:[.,]\d+)?)\s*(?:min|m)\b/i);
+
+  const hoursFallbackMinutes =
+    hoursMatch || minutesMatch
+      ? Math.max(
+          0,
+          Math.round(
+            (hoursMatch
+              ? Number(String(hoursMatch[1]).replace(",", "."))
+              : 0) *
+              60 +
+              (minutesMatch
+                ? Number(String(minutesMatch[1]).replace(",", "."))
+                : 0)
+          )
+        )
+      : 0;
+
   const playedTimeMinutes =
     activityPlayedMinutes > 0
       ? activityPlayedMinutes
-      : storedPlayedMinutes;
+      : storedPlayedMinutes > 0
+        ? storedPlayedMinutes
+        : hoursFallbackMinutes;
 
   const playedTime = formatPlayedTime(playedTimeMinutes);
 
