@@ -193,8 +193,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function GamePageShell({ slug, game }: Props) {
-  const showFirstJourneyPreview =
-    game.firstJourney?.status === "in_progress";
+  const [publicFirstJourney, setPublicFirstJourney] = useState<GamePageShellInput["firstJourney"] | null>(null);
   const { entries: activityEntries } = useJourneyEntries();
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
   const [automaticMetadata, setAutomaticMetadata] = useState<{
@@ -203,6 +202,37 @@ export default function GamePageShell({ slug, game }: Props) {
     developer: string;
     releaseYear: string;
   } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPublicFirstJourney() {
+      try {
+        const query = new URLSearchParams({ slug });
+        const response = await fetch(`/api/games/journey?${query.toString()}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          firstJourney?: GamePageShellInput["firstJourney"];
+        };
+
+        if (!cancelled) {
+          setPublicFirstJourney(payload.firstJourney ?? null);
+        }
+      } catch {
+        // Mantém o estado recebido pelo objeto do jogo como fallback.
+      }
+    }
+
+    loadPublicFirstJourney();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
 
   useEffect(() => {
     let cancelled = false;
@@ -352,6 +382,8 @@ export default function GamePageShell({ slug, game }: Props) {
         : hoursFallbackMinutes;
 
   const playedTime = formatPlayedTime(playedTimeMinutes);
+  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const showFirstJourneyPreview = resolvedFirstJourney?.status === "in_progress";
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
