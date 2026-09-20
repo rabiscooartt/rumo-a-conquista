@@ -471,7 +471,7 @@ export default function GamePageShell({ slug, game }: Props) {
                       <IconCalendar className="h-4 w-4 text-white/70" />
                       <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
                       <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear}>
-                        {game.releaseYear || "—"}
+                        {releaseYear || "—"}
                       </span>
                     </div>
                   </div>
