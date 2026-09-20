@@ -208,6 +208,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Título do jogo é obrigatório." }, { status: 400 });
   }
 
+  const platformHint = request.nextUrl.searchParams.get("platform")?.trim() ?? "";
+  const preferSteam = /steam/i.test(platformHint);
+
+  if (preferSteam) {
+    try {
+      const steam = await fromSteam(title);
+      if (steam) {
+        return NextResponse.json({
+          ok: true,
+          metadata: { ...steam, platforms: ["Steam"] },
+        });
+      }
+    } catch (error) {
+      console.warn("[Game Metadata] Steam falhou:", error);
+    }
+  }
+
   try {
     const igdb = await fromIgdb(title);
     if (igdb && (igdb.genres.length || igdb.platforms.length || igdb.developer || igdb.releaseYear)) {
@@ -217,13 +234,15 @@ export async function GET(request: NextRequest) {
     console.warn("[Game Metadata] IGDB falhou:", error);
   }
 
-  try {
-    const steam = await fromSteam(title);
-    if (steam) {
-      return NextResponse.json({ ok: true, metadata: steam });
+  if (!preferSteam) {
+    try {
+      const steam = await fromSteam(title);
+      if (steam) {
+        return NextResponse.json({ ok: true, metadata: steam });
+      }
+    } catch (error) {
+      console.warn("[Game Metadata] Steam falhou:", error);
     }
-  } catch (error) {
-    console.warn("[Game Metadata] Steam falhou:", error);
   }
 
   return NextResponse.json({
