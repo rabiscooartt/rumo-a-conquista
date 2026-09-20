@@ -113,6 +113,7 @@ type DatabaseGame = {
   created_at: string;
   updated_at: string;
   manual_total_played_minutes: number | null;
+  first_journey?: FirstJourneyState;
   achievementsList?: FlexibleAchievementInput[];
 };
 
@@ -490,6 +491,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     achievementsTotal: progressStats.total,
     finalBadge,
     emblem,
+    firstJourney,
     createdAt: readText(game.createdAt, new Date().toISOString()),
     updatedAt: readText(game.updatedAt, ""),
   };
