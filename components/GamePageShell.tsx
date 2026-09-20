@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 import GameAchievementsPanel, {
@@ -194,9 +193,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function GamePageShell({ slug, game }: Props) {
-  const searchParams = useSearchParams();
   const showFirstJourneyPreview =
-    searchParams.get("jornada") === "estreia" ||
     game.firstJourney?.status === "in_progress";
   const { entries: activityEntries } = useJourneyEntries();
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
