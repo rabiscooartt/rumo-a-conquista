@@ -28,6 +28,10 @@ export type GamePageShellInput = {
   developer?: string;
   releaseYear?: string;
   manualTotalPlayedMinutes?: number | null;
+  firstJourney?: {
+    status: "not_started" | "in_progress" | "completed";
+    completedAt?: string;
+  };
   emblem?: {
     title?: string;
     image?: string;
@@ -191,7 +195,9 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export default function GamePageShell({ slug, game }: Props) {
   const searchParams = useSearchParams();
-  const showFirstJourneyPreview = searchParams.get("jornada") === "estreia";
+  const showFirstJourneyPreview =
+    searchParams.get("jornada") === "estreia" ||
+    game.firstJourney?.status === "in_progress";
   const { entries: activityEntries } = useJourneyEntries();
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
   const [automaticMetadata, setAutomaticMetadata] = useState<{
