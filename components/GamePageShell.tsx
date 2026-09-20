@@ -707,8 +707,8 @@ export default function GamePageShell({ slug, game }: Props) {
           
                       </div>
                     </aside>
-          
-        )}        </div>
+                  </div>
+        )}
       </div>
     </main>
   );
