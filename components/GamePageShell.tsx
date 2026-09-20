@@ -98,6 +98,23 @@ function formatPlayedTime(minutes: number) {
   return `${hours}h ${mins}min`;
 }
 
+function achievementImagePath(gameSlug: string, achievement?: AchievementInput) {
+  if (!achievement) return "";
+  if (achievement.image?.trim()) return achievement.image.trim();
+
+  const title = String(achievement.title || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return title
+    ? "/images/games/" + gameSlug + "/achievements/" + title + ".png"
+    : "";
+}
+
 type TrophyRank = "Ouro" | "Prata" | "Bronze";
 
 function getTrophyRank(achievement: AchievementInput): TrophyRank {
@@ -237,6 +254,21 @@ export default function GamePageShell({ slug, game }: Props) {
   const statusLabel = getStatusLabel(game.status);
   const objective = game.currentObjective || game.objective || "Definir próximo objetivo";
   const cover = game.cardImage || game.image || `/images/games/${slug}/cover.jpg`;
+
+  const objectiveKey = normalizeGameKey(objective);
+  const nextAchievement =
+    achievements.find(
+      (achievement) =>
+        objectiveKey &&
+        normalizeGameKey(achievement.title) === objectiveKey
+    ) ??
+    achievements.find(
+      (achievement) =>
+        !["completed", "concluido", "concluida"].includes(
+          normalizeText(achievement.status)
+        )
+    );
+  const nextAchievementImage = achievementImagePath(slug, nextAchievement);
   const genres = automaticMetadata?.genres.length
     ? automaticMetadata.genres
     : Array.isArray(game.genres)
@@ -523,15 +555,57 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+              <section id="proxima-conquista" className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Próxima Conquista</SectionTitle>
-                <div className="mt-4 rounded-[10px] border border-red-500/15 bg-red-500/[0.04] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">Objetivo atual</p>
-                  <p className="mt-2 text-sm font-black leading-tight text-white">{objective}</p>
-                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                    <div className="h-full rounded-full bg-red-500" style={{ width: `${progress}%` }} />
+
+                <div className="mt-4 overflow-hidden rounded-[12px] border border-red-500/15 bg-[#0b0b0b]">
+                  <div className="relative h-[126px] overflow-hidden bg-black">
+                    {nextAchievementImage ? (
+                      <>
+                        <img
+                          src={nextAchievementImage}
+                          alt={nextAchievement?.title || objective}
+                          className="h-full w-full object-contain p-2"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-transparent to-black/15" />
+                      </>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-5xl opacity-35">
+                        🏆
+                      </div>
+                    )}
+
+                    <div className="absolute left-3 top-3 rounded-full border border-red-500/25 bg-black/70 px-2 py-1 text-[7px] font-black uppercase tracking-[0.14em] text-red-400 backdrop-blur-sm">
+                      Objetivo atual
+                    </div>
                   </div>
-                  <p className="mt-1.5 text-right text-[8px] font-black text-white/30">{progress}%</p>
+
+                  <div className="p-3">
+                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-white/35">
+                      Próximo passo
+                    </p>
+                    <p className="mt-1.5 text-[14px] font-black leading-tight text-white">
+                      {nextAchievement?.title || objective}
+                    </p>
+
+                    {nextAchievement?.description ? (
+                      <p className="mt-1.5 line-clamp-2 text-[9px] leading-relaxed text-white/35">
+                        {nextAchievement.description}
+                      </p>
+                    ) : null}
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+                        <div
+                          className="h-full rounded-full bg-red-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <span className="text-[8px] font-black text-white/35">
+                        {progress}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </section>
 
