@@ -559,6 +559,7 @@ export default function GamePageShell({ slug, game }: Props) {
                     <GameAchievementsPanel
                       slug={slug}
                       achievements={achievements}
+                      journeyPreview={showFirstJourneyPreview}
                       onStatesChange={setManualStates}
                     />
                   </section>
