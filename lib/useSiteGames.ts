@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { games as baseGames } from "@/data/games";
+import { loadAchievementsForGame } from "@/lib/achievements/repository";
 
 export type FlexibleAchievementInput = {
   id?: string;
@@ -678,6 +679,56 @@ export function useSiteGames() {
     try {
       const supabaseGames = await loadGamesFromSupabase();
 
+      if (Object.keys(supabaseGames).length > 0) {
+        setCustomGames(supabaseGames);
+        setHiddenGameSlugs(
+          Object.values(supabaseGames)
+            .filter((game) => game.isHidden === true)
+            .map((game) => game.slug)
+        );
+        setDeletedGameSlugs([]);
+        setIsLoaded(true);
+        return;
+      }
+
+      // O endpoint administrativo pode não estar disponível para visitantes
+      // públicos. Nesse caso, usamos o mesmo repositório público de conquistas
+      // usado pela página normal do jogo, para não voltar aos dados antigos da
+      // data/games.ts (por exemplo, 11 conquistas em vez das 165 salvas).
+      const fallbackEntries = await Promise.all(
+        Object.values(baseGamesMap).map(async (baseGame) => {
+          try {
+            const result = await loadAchievementsForGame(
+              baseGame.slug,
+              (baseGame.achievementsList ?? []) as Parameters<
+                typeof loadAchievementsForGame
+              >[1]
+            );
+
+            return [
+              baseGame.slug,
+              normalizeGame(baseGame.slug, {
+                ...baseGame,
+                achievementsList: result.achievements,
+              }),
+            ] as const;
+          } catch {
+            return [baseGame.slug, baseGame] as const;
+          }
+        })
+      );
+
+      const fallbackGames = Object.fromEntries(fallbackEntries);
+      setCustomGames(fallbackGames);
+      setHiddenGameSlugs(
+        Object.values(fallbackGames)
+          .filter((game) => game.isHidden === true)
+          .map((game) => game.slug)
+      );
+      setDeletedGameSlugs([]);
+      setIsLoaded(true);
+      return;
+
       // Supabase é a fonte oficial. Mesmo que a resposta venha vazia,
       // não reativamos dados antigos do localStorage.
       setCustomGames(supabaseGames);
@@ -690,7 +741,34 @@ export function useSiteGames() {
       setIsLoaded(true);
     } catch (error) {
       console.error("[Games] Falha ao sincronizar com a API:", error);
-      setCustomGames({});
+
+      // Mesmo quando a API administrativa falhar, a área pública continua
+      // carregando as conquistas diretamente pelo repositório público.
+      const fallbackEntries = await Promise.all(
+        Object.values(baseGamesMap).map(async (baseGame) => {
+          try {
+            const result = await loadAchievementsForGame(
+              baseGame.slug,
+              (baseGame.achievementsList ?? []) as Parameters<
+                typeof loadAchievementsForGame
+              >[1]
+            );
+
+            return [
+              baseGame.slug,
+              normalizeGame(baseGame.slug, {
+                ...baseGame,
+                achievementsList: result.achievements,
+              }),
+            ] as const;
+          } catch {
+            return [baseGame.slug, baseGame] as const;
+          }
+        })
+      );
+
+      const fallbackGames = Object.fromEntries(fallbackEntries);
+      setCustomGames(fallbackGames);
       setHiddenGameSlugs([]);
       setDeletedGameSlugs([]);
       setIsLoaded(true);
