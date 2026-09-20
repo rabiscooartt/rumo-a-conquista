@@ -43,6 +43,7 @@ type GameEditorForm = {
   emblemDescription: string;
   emblemTags: string;
   emblemUnlockedAt: string;
+  firstJourneyEnabled: boolean;
 };
 
 type ReviewStatus = "bloqueada" | "em-andamento" | "liberada";
@@ -480,6 +481,7 @@ function GameEditorCard({
     emblemDescription: String(game.emblem?.description || ""),
     emblemTags: readArrayAsLines(game.emblem?.tags),
     emblemUnlockedAt: String(game.emblem?.unlockedAt || ""),
+    firstJourneyEnabled: game.firstJourney?.status === "in_progress",
   });
 
   const [achievements, setAchievements] = useState<EditableAchievement[]>(
@@ -586,6 +588,7 @@ function GameEditorCard({
       emblemDescription: String(game.emblem?.description || ""),
       emblemTags: readArrayAsLines(game.emblem?.tags),
       emblemUnlockedAt: String(game.emblem?.unlockedAt || ""),
+      firstJourneyEnabled: game.firstJourney?.status === "in_progress",
     });
 
     const normalizedGameAchievements = normalizeAchievements(game.achievementsList, game.slug);
@@ -722,6 +725,9 @@ function handleCopyAchievementNames() {
       cardImage: form.cardImage.trim() || getImagePath(game.slug, "cover.jpg"),
       platform: form.platform.trim() || "Steam",
       emblem: createEmblemPayload(form),
+      firstJourney: {
+        status: form.firstJourneyEnabled ? "in_progress" : "completed",
+      },
       achievementsList: normalizeAchievementsForSave(nextAchievements),
       review: normalizedReview,
     };
@@ -1078,6 +1084,76 @@ function handleCopyAchievementNames() {
             </label>
           </div>
 
+          <section className="mt-8 rounded-[24px] border border-red-500/20 bg-red-500/[0.04] p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-red-400">
+                  Jornada de Estreia
+                </p>
+
+                <h4 className="mt-2 text-2xl font-black text-white">
+                  Aviso de primeira jornada
+                </h4>
+
+                <p className="mt-1 max-w-[760px] text-sm leading-relaxed text-white/45">
+                  Quando estiver ativa, a página do jogo mostra o aviso de
+                  &quot;Estamos jogando&quot; e mantém a progressão das conquistas
+                  escondida. Quando desativada, a página normal do jogo volta a aparecer.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((current) => ({
+                    ...current,
+                    firstJourneyEnabled: !current.firstJourneyEnabled,
+                  }))
+                }
+                aria-pressed={form.firstJourneyEnabled}
+                className={form.firstJourneyEnabled
+                  ? "relative flex min-w-[220px] items-center justify-between gap-4 rounded-2xl border border-red-500/35 bg-red-500/10 px-4 py-3 text-left transition"
+                  : "relative flex min-w-[220px] items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition"
+                }
+              >
+                <span>
+                  <span className="block text-[9px] font-black uppercase tracking-[0.16em] text-white/35">
+                    Status
+                  </span>
+                  <span
+                    className={form.firstJourneyEnabled
+                      ? "mt-1 block text-sm font-black text-red-100"
+                      : "mt-1 block text-sm font-black text-white/65"
+                    }
+                  >
+                    {form.firstJourneyEnabled ? "Ativa" : "Desativada"}
+                  </span>
+                </span>
+
+                <span
+                  className={form.firstJourneyEnabled
+                    ? "relative h-7 w-12 rounded-full border border-red-400/45 bg-red-500/25 transition"
+                    : "relative h-7 w-12 rounded-full border border-white/10 bg-black/30 transition"
+                  }
+                >
+                  <span
+                    className={form.firstJourneyEnabled
+                      ? "absolute left-6 top-1 h-5 w-5 rounded-full bg-red-400 shadow-[0_0_14px_rgba(239,68,68,0.35)] transition"
+                      : "absolute left-1 top-1 h-5 w-5 rounded-full bg-white/35 transition"
+                    }
+                  />
+                </span>
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3">
+              <p className="text-[10px] font-bold leading-relaxed text-white/35">
+                Ativa = mostra &quot;Jornada de Estreia / Estamos jogando&quot;.
+                Desativada = libera a página normal do jogo. Use &quot;Salvar jogo&quot;
+                para aplicar a alteração.
+              </p>
+            </div>
+          </section>
           <section className="mt-8 rounded-[24px] border border-violet-400/20 bg-violet-500/[0.05] p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
