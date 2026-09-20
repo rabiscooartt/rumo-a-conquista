@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 import GameAchievementsPanel, {
@@ -189,6 +190,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function GamePageShell({ slug, game }: Props) {
+  const searchParams = useSearchParams();
+  const showFirstJourneyPreview = searchParams.get("jornada") === "estreia";
   const { entries: activityEntries } = useJourneyEntries();
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
   const [automaticMetadata, setAutomaticMetadata] = useState<{
@@ -352,6 +355,76 @@ export default function GamePageShell({ slug, game }: Props) {
       <Navbar />
 
       <div className="mx-auto w-full max-w-[1500px] px-5 py-6 lg:px-8 lg:py-8">
+        {showFirstJourneyPreview && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 px-5 py-6 backdrop-blur-[3px]">
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="first-journey-title"
+              className="w-full max-w-[650px] overflow-hidden rounded-[20px] border border-white/[0.10] bg-[#090909] shadow-[0_30px_100px_rgba(0,0,0,0.75)]"
+            >
+              <div className="h-1 w-full bg-red-500" />
+
+              <div className="grid gap-0 sm:grid-cols-[150px_minmax(0,1fr)]">
+                <div className="relative hidden min-h-[260px] overflow-hidden bg-black sm:block">
+                  <img
+                    src={cover}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full object-cover opacity-55"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/30 to-[#090909]" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                      Jogo
+                    </p>
+                    <p className="mt-1 text-[13px] font-black leading-tight text-white">
+                      {game.title}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex min-h-[300px] flex-col justify-center p-6 sm:p-7">
+                  <div className="flex items-center gap-2">
+                    <span className="h-[20px] w-[2px] bg-red-500" />
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white">
+                      Jornada de Estreia
+                    </p>
+                  </div>
+
+                  <div className="mt-7">
+                    <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-red-400">
+                      Conquistas em definição
+                    </div>
+
+                    <h1
+                      id="first-journey-title"
+                      className="mt-3 text-[26px] font-black leading-none tracking-[-0.03em] text-white"
+                    >
+                      Estamos jogando.
+                    </h1>
+
+                    <p className="mt-4 text-[12px] leading-relaxed text-white/55">
+                      Este jogo está sendo jogado pela primeira vez. As conquistas
+                      que serão buscadas ainda estão sendo definidas.
+                    </p>
+
+                    <p className="mt-3 text-[11px] leading-relaxed text-white/30">
+                      Assim que a Jornada de Estreia terminar, a lista de
+                      conquistas será liberada para acompanhamento e progressão.
+                    </p>
+                  </div>
+
+                  <div className="mt-7 border-t border-white/[0.07] pt-4">
+                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
+                      Rumo à Conquista
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
         <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-5">
