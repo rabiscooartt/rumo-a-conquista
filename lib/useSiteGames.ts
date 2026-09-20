@@ -470,9 +470,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const firstJourney =
     game.firstJourney && typeof game.firstJourney === "object"
       ? (game.firstJourney as FirstJourneyState)
-      : status === "progress"
-        ? { status: "in_progress" as const }
-        : { status: "not_started" as const };
+      : { status: "not_started" as const };
 
   return {
     ...game,
