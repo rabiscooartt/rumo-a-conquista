@@ -555,34 +555,34 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section id="proxima-conquista" className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+              <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                 <SectionTitle>Próxima Conquista</SectionTitle>
 
-                <div className="mt-4 rounded-[12px] border border-red-500/15 bg-[#0b0b0b] p-3">
-                  <div className="flex justify-center">
-                    <div className="relative flex h-[112px] w-[112px] items-center justify-center overflow-hidden rounded-[10px] border border-white/[0.08] bg-black/40">
-                      {nextAchievementImage ? (
-                        <img
-                          src={nextAchievementImage}
-                          alt={nextAchievement?.title || objective}
-                          className="h-full w-full object-contain p-1"
-                        />
-                      ) : (
-                        <div className="text-5xl opacity-35">🏆</div>
-                      )}
-                    </div>
+                <div className="mt-4 flex items-center gap-3 rounded-[10px] border border-white/[0.08] bg-[#0b0b0b] p-2.5">
+                  <div className="relative h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
+                    {nextAchievementImage ? (
+                      <img
+                        src={nextAchievementImage}
+                        alt={nextAchievement?.title || objective}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">
+                        🏆
+                      </div>
+                    )}
                   </div>
 
-                  <div className="mt-3">
-                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[7px] font-black uppercase tracking-[0.14em] text-red-500">
                       Objetivo atual
                     </p>
-                    <p className="mt-1.5 text-[14px] font-black leading-tight text-white">
+                    <p className="mt-1 truncate text-[12px] font-black leading-tight text-white">
                       {nextAchievement?.title || objective}
                     </p>
 
                     {nextAchievement?.description ? (
-                      <p className="mt-1.5 line-clamp-2 text-[9px] leading-relaxed text-white/35">
+                      <p className="mt-1 line-clamp-2 text-[8px] leading-relaxed text-white/35">
                         {nextAchievement.description}
                       </p>
                     ) : null}
