@@ -411,10 +411,10 @@ export default function GameAchievementsPanel(
     legacyBaseAchievements as SiteAchievement[]
   );
 
-  // Enquanto o banco ainda não possuir registros, o fluxo local existente é
-  // mantido integralmente. Quando houver dados no Supabase, ele vira a fonte.
+  // O Supabase é a fonte quando realmente possui conquistas para este jogo.
+  // Se a consulta voltar vazia, preservamos as conquistas que já vieram do jogo.
   const baseAchievements =
-    achievementsSource === "supabase"
+    achievementsSource === "supabase" && persistedAchievements.length > 0
       ? (persistedAchievements as AchievementInput[])
       : legacyBaseAchievements;
 
