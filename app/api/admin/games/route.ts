@@ -782,7 +782,30 @@ export async function POST(request: NextRequest) {
     }
 
     const client = createAdminSupabaseClient();
-    const game = buildGameData(body);
+
+    // A Jornada de Estreia fica armazenada dentro de review para preservar o
+    // schema atual. Quando outro módulo salva o jogo sem enviar firstJourney,
+    // nunca devemos apagar esse estado por acidente.
+    let existingReview: unknown = undefined;
+
+    if (body.firstJourney === undefined || body.review === undefined) {
+      const { data: existingGame, error: existingGameError } = await client
+        .from("games")
+        .select("review")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existingGameError) throw existingGameError;
+      existingReview = existingGame?.review;
+    }
+
+    const game = buildGameData({
+      ...body,
+      review:
+        body.review !== undefined
+          ? body.review
+          : existingReview,
+    });
 
     const { error: gameError } = await client
       .from("games")
@@ -835,7 +858,27 @@ export async function PUT(request: NextRequest) {
     }
 
     const client = createAdminSupabaseClient();
-    const updateData = buildGameData(body);
+
+    let existingReview: unknown = undefined;
+
+    if (body.firstJourney === undefined || body.review === undefined) {
+      const { data: existingGame, error: existingGameError } = await client
+        .from("games")
+        .select("review")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existingGameError) throw existingGameError;
+      existingReview = existingGame?.review;
+    }
+
+    const updateData = buildGameData({
+      ...body,
+      review:
+        body.review !== undefined
+          ? body.review
+          : existingReview,
+    });
 
     delete (updateData as Partial<typeof updateData>).slug;
 
