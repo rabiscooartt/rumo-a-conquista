@@ -595,15 +595,7 @@ export default function GamePageShell({ slug, game }: Props) {
                 </div>
               </section>
 
-              <section id="primeira-run" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                <SectionTitle>Primeira Run</SectionTitle>
-                <div className="mt-4 border-l-2 border-white/[0.08] pl-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.10em] text-white/55">Registro da primeira jornada</p>
-                  <p className="mt-1.5 text-[9px] leading-relaxed text-white/30">
-                    Aqui ficará o histórico da primeira vez que este jogo foi jogado, com datas, tempo e progresso.
-                  </p>
-                </div>
-              </section>
+
             </div>
           </aside>
         </div>
