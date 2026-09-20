@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
+import NewGameAchievementsEditor from "@/components/admin/NewGameAchievementsEditor";
 
 function statusLabel(status?: string) {
   const value = String(status || "").toLowerCase();
@@ -183,12 +184,30 @@ export default function NewGamesAdminPage() {
                   </div>
                 </section>
 
-                <div className="grid gap-5 md:grid-cols-2">
-                  <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">03</p><h3 className="mt-1 text-xl font-black">Conquistas</h3><p className="mt-2 text-xs text-white/35">{selectedGame.achievementsList?.length ?? 0} conquistas cadastradas. O editor completo será migrado para este módulo.</p></section>
-                  <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">04</p><h3 className="mt-1 text-xl font-black">Emblema</h3><p className="mt-2 text-xs text-white/35">{selectedGame.emblem?.image ? "Emblema configurado." : "Emblema pendente."} O editor completo será migrado para este módulo.</p></section>
-                </div>
+                <NewGameAchievementsEditor
+                  key={selectedGame.slug}
+                  game={selectedGame}
+                  onSave={(update) => updateGame(selectedGame.slug, update)}
+                />
 
-                <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">05</p><h3 className="mt-1 text-xl font-black">Review</h3><p className="mt-2 text-xs text-white/35">Status, nota e conteúdo da review serão migrados para este módulo.</p></section>
+                <div className="grid gap-5 md:grid-cols-2">
+                  <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">04</p>
+                    <h3 className="mt-1 text-xl font-black">Emblema</h3>
+                    <p className="mt-2 text-xs text-white/35">
+                      {selectedGame.emblem?.image ? "Emblema configurado." : "Emblema pendente."}
+                      {" "}O editor completo será migrado para este módulo.
+                    </p>
+                  </section>
+
+                  <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">05</p>
+                    <h3 className="mt-1 text-xl font-black">Review</h3>
+                    <p className="mt-2 text-xs text-white/35">
+                      Status, nota e conteúdo da review serão migrados para este módulo.
+                    </p>
+                  </section>
+                </div>
               </>
             )}
           </section>
