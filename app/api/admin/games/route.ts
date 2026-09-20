@@ -92,6 +92,11 @@ type DatabaseAchievementProgressRow = {
   image_override: string | null;
 };
 
+type FirstJourneyState = {
+  status?: "not_started" | "in_progress" | "completed";
+  completedAt?: string;
+};
+
 type GamePayload = {
   slug?: string;
   title?: string;
@@ -108,11 +113,61 @@ type GamePayload = {
   emblem?: unknown;
   trophies?: unknown;
   review?: unknown;
+  firstJourney?: FirstJourneyState;
   manualTotalPlayedMinutes?: number | null;
   achievementsList?: IncomingAchievement[];
   isHidden?: boolean;
   isDeleted?: boolean;
 };
+
+function normalizeFirstJourney(
+  value?: FirstJourneyState
+): FirstJourneyState | null {
+  if (!value || !["not_started", "in_progress", "completed"].includes(String(value.status))) {
+    return null;
+  }
+
+  return {
+    status: value.status as FirstJourneyState["status"],
+    completedAt:
+      typeof value.completedAt === "string" && value.completedAt.trim()
+        ? value.completedAt.trim()
+        : undefined,
+  };
+}
+
+function withFirstJourneyInReview(
+  review: unknown,
+  firstJourney?: FirstJourneyState
+) {
+  const normalized = normalizeFirstJourney(firstJourney);
+  if (!normalized) return review ?? null;
+
+  if (review && typeof review === "object" && !Array.isArray(review)) {
+    return {
+      ...(review as Record<string, unknown>),
+      __firstJourney: normalized,
+    };
+  }
+
+  return {
+    __firstJourney: normalized,
+    value: review ?? null,
+  };
+}
+
+function extractFirstJourney(review: unknown): FirstJourneyState | undefined {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return undefined;
+  }
+
+  const value = (review as Record<string, unknown>).__firstJourney;
+  return normalizeFirstJourney(
+    value && typeof value === "object"
+      ? (value as FirstJourneyState)
+      : undefined
+  ) ?? undefined;
+}
 
 function buildGameData(game: GamePayload) {
   const slug = normalizeSlug(game.slug);
@@ -155,7 +210,7 @@ function buildGameData(game: GamePayload) {
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
-    review: game.review ?? null,
+    review: withFirstJourneyInReview(game.review, game.firstJourney),
     ...(manualTimeProvided
       ? { manual_total_played_minutes: manualTotalPlayedMinutes }
       : {}),
@@ -525,6 +580,7 @@ async function fetchEnrichedGame(
 
   return {
     ...game,
+    firstJourney: extractFirstJourney(game.review),
     achievementsList: achievementRows.map((achievement) =>
       normalizeAchievementFromDatabase(
         achievement,
@@ -674,6 +730,7 @@ export async function GET() {
 
     const enrichedGames = gameRows.map((game) => ({
       ...game,
+      firstJourney: extractFirstJourney(game.review),
       achievementsList:
         achievementsByGameSlug.get(game.slug) ?? [],
     }));
