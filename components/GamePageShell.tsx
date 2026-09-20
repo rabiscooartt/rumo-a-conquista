@@ -286,8 +286,17 @@ export default function GamePageShell({ slug, game }: Props) {
   );
   const totalCount = achievements.length;
   const progress = clamp(game.progress);
-  const status = normalizeStatus(game.status);
-  const statusLabel = getStatusLabel(game.status);
+  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const status =
+    resolvedFirstJourney?.status === "in_progress"
+      ? "progress"
+      : normalizeStatus(game.status);
+  const statusLabel =
+    status === "completed"
+      ? "Finalizado"
+      : status === "planned"
+        ? "Na fila"
+        : "Em progresso";
   const objective = game.currentObjective || game.objective || "Definir próximo objetivo";
   const cover = game.cardImage || game.image || `/images/games/${slug}/cover.jpg`;
 
@@ -382,9 +391,8 @@ export default function GamePageShell({ slug, game }: Props) {
         : hoursFallbackMinutes;
 
   const playedTime = formatPlayedTime(playedTimeMinutes);
-  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
   const showFirstJourneyPreview =
-    status === "progress" && resolvedFirstJourney?.status === "in_progress";
+    resolvedFirstJourney?.status === "in_progress";
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
