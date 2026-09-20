@@ -45,6 +45,7 @@ type GameAchievementsPanelProps = {
   achievements?: AchievementInput[];
   achievementsList?: AchievementInput[];
   onStatesChange?: (states: Record<string, ManualAchievementState>) => void;
+  journeyPreview?: boolean;
   game?: {
     slug?: string;
     title?: string;
@@ -419,6 +420,7 @@ export default function GameAchievementsPanel(
       : legacyBaseAchievements;
 
   const onStatesChange = props.onStatesChange;
+  const journeyPreview = props.journeyPreview === true;
 
   const [manualStates, setManualStates] = useState<
     Record<string, ManualAchievementState>
@@ -875,8 +877,11 @@ export default function GameAchievementsPanel(
     return state?.status === "completed";
   }).length;
 
-  const progress =
-    allAchievements.length > 0
+  const displayCompletedCount = journeyPreview ? 0 : completedCount;
+  const displayTotalCount = journeyPreview ? 0 : allAchievements.length;
+  const progress = journeyPreview
+    ? 0
+    : allAchievements.length > 0
       ? Math.round((completedCount / allAchievements.length) * 100)
       : 0;
 
@@ -925,7 +930,7 @@ export default function GameAchievementsPanel(
                 className="h-12 w-12 object-contain"
               />
               <span className="mt-0.5 text-sm font-black leading-none text-white">
-                {completedCount}/{allAchievements.length}
+                {displayCompletedCount}/{displayTotalCount}
               </span>
             </div>
           </div>
@@ -1136,7 +1141,11 @@ export default function GameAchievementsPanel(
       )}
 
       <div className="divide-y divide-white/10">
-        {sortedAchievements.length > 0 ? (
+        {journeyPreview ? (
+          <div className="p-8 text-sm text-white/45">
+            Nenhuma conquista cadastrada ainda.
+          </div>
+        ) : sortedAchievements.length > 0 ? (
           sortedAchievements.map((achievement) => {
             const state =
               manualStates[achievement.title] ??
