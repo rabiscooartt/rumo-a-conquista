@@ -429,7 +429,7 @@ export default function GamePageShell({ slug, game }: Props) {
 
                   <div className="mt-7">
                     <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-red-400">
-                      Conquistas em definição
+                      Jornada em andamento
                     </div>
 
                     <h1
@@ -440,13 +440,13 @@ export default function GamePageShell({ slug, game }: Props) {
                     </h1>
 
                     <p className="mt-4 text-[12px] leading-relaxed text-white/55">
-                      Este jogo está sendo jogado pela primeira vez. As conquistas
-                      que serão buscadas ainda estão sendo definidas.
+                      Toda jornada começa com uma primeira vez. Aqui começa a primeira
+                      jornada deste jogo no Rumo à Conquista.
                     </p>
 
                     <p className="mt-3 text-[11px] leading-relaxed text-white/30">
-                      Assim que a Jornada de Estreia terminar, a lista de
-                      conquistas será liberada para acompanhamento e progressão.
+                      As conquistas ainda estão sendo definidas. Quando a Jornada de
+                      Estreia terminar, a progressão será liberada.
                     </p>
                   </div>
 
