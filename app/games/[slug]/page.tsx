@@ -279,17 +279,9 @@ export default function GamePage() {
       platform: readText((game as { platform?: unknown }).platform, "Steam") || "Steam",
       genres: Array.isArray((game as { genres?: unknown }).genres)
         ? ((game as { genres?: unknown[] }).genres || []).map((genre) => readText(genre, "")).filter(Boolean)
-        : slug === "mouse-p-i-for-hire"
-          ? ["Ação", "Indie"]
-          : readText(game.subtitle, "") ? [readText(game.subtitle, "")] : [],
-      developer: readText(
-        (game as { developer?: unknown }).developer,
-        slug === "mouse-p-i-for-hire" ? "Fumi Games" : "—"
-      ),
-      releaseYear: readText(
-        (game as { releaseYear?: unknown }).releaseYear,
-        slug === "mouse-p-i-for-hire" ? "2026" : "—"
-      ),
+        : [],
+      developer: readText((game as { developer?: unknown }).developer, ""),
+      releaseYear: readText((game as { releaseYear?: unknown }).releaseYear, ""),
     };
   }, [game, slug]);
 
