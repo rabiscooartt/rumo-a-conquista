@@ -282,6 +282,10 @@ export default function GamePage() {
         : [],
       developer: readText((game as { developer?: unknown }).developer, ""),
       releaseYear: readText((game as { releaseYear?: unknown }).releaseYear, ""),
+      manualTotalPlayedMinutes: readNumber(
+        (game as { manualTotalPlayedMinutes?: unknown }).manualTotalPlayedMinutes,
+        0
+      ),
     };
   }, [game, slug]);
 
