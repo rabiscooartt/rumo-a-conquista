@@ -94,9 +94,7 @@ function normalizeAchievement(
   };
 }
 
-function normalizeLegacyAchievement(
-  achievement: DatabaseAchievementWithProgressRow | Record<string, unknown>
-) {
+function normalizeLegacyAchievement(achievement: Record<string, unknown>) {
   return {
     id: readText(achievement.legacy_id) || readText(achievement.id),
     title: readText(achievement.title),
@@ -143,8 +141,6 @@ export async function GET(request: NextRequest) {
   try {
     const client = createAdminSupabaseClient();
 
-    // O jogo e suas conquistas são independentes; carregamos os dois em
-    // paralelo para cortar uma ida e volta desnecessária ao Supabase.
     const [
       { data: game, error: gameError },
       { data: achievements, error: achievementsError },
@@ -181,10 +177,6 @@ export async function GET(request: NextRequest) {
     const achievementRows =
       (achievements ?? []) as unknown as DatabaseAchievementWithProgressRow[];
 
-    // Alguns jogos finalizados ainda têm suas conquistas históricas na fonte
-    // legada data/games.ts e não na tabela achievements. Nesse caso, usamos
-    // essa lista somente quando o banco não retornou nenhuma conquista, sem
-    // alterar o fluxo normal dos jogos já migrados para o Supabase.
     const legacyAchievements =
       achievementRows.length === 0
         ? ((legacyGames as Record<string, { achievementsList?: unknown[] }>)[slug]
