@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
@@ -222,36 +223,53 @@ export async function GET() {
       sourceBySlug[game.slug] = "saved";
     }
 
-    await Promise.all(
-      pendingRows.map(async (game) => {
-        let genres: string[] = [];
-        let source: GenreResult["source"] = "none";
+    // Os gêneros já salvos são suficientes para montar o mapa imediatamente.
+    // Os jogos sem gênero ficam para enriquecimento em segundo plano, sem bloquear
+    // a resposta da Biblioteca.
+    if (pendingRows.length > 0) {
+      after(async () => {
+        await Promise.all(
+          pendingRows.map(async (game) => {
+            try {
+              const detected = await detectGenres(game.title);
 
-        try {
-          const detected = await detectGenres(game.title);
-          genres = detected.genres;
-          source = detected.source;
-        } catch (error) {
-          console.warn(`[Genres] Não foi possível identificar ${game.slug}:`, error);
-        }
+              if (detected.genres.length > 0) {
+                const { error: updateError } = await client
+                  .from("games")
+                  .update({ genres: detected.genres })
+                  .eq("slug", game.slug);
 
-        if (genres.length > 0) {
-          const { error: updateError } = await client
-            .from("games")
-            .update({ genres })
-            .eq("slug", game.slug);
+                if (updateError) {
+                  console.warn(
+                    `[Genres] Não foi possível salvar ${game.slug}:`,
+                    updateError
+                  );
+                }
+              }
+            } catch (error) {
+              console.warn(
+                `[Genres] Não foi possível identificar ${game.slug}:`,
+                error
+              );
+            }
+          })
+        );
+      });
+    }
 
-          if (updateError) {
-            console.warn(`[Genres] Não foi possível salvar ${game.slug}:`, updateError);
-          }
-        }
-
-        genresBySlug[game.slug] = genres;
-        sourceBySlug[game.slug] = source;
-      })
+    return NextResponse.json(
+      {
+        ok: true,
+        genresBySlug,
+        sourceBySlug,
+        pendingSlugs: pendingRows.map((game) => game.slug),
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
     );
-
-    return NextResponse.json({ ok: true, genresBySlug, sourceBySlug });
   } catch (error) {
     console.error("[Genres] Erro:", error);
     return NextResponse.json(
