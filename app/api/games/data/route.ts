@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { games as legacyGames } from "@/data/games";
 
 const OWNER_KEY = "default";
 
@@ -93,6 +94,42 @@ function normalizeAchievement(
   };
 }
 
+function normalizeLegacyAchievement(
+  achievement: DatabaseAchievementWithProgressRow | Record<string, unknown>
+) {
+  return {
+    id: readText(achievement.legacy_id) || readText(achievement.id),
+    title: readText(achievement.title),
+    description: readText(achievement.description),
+    trophy: readText(achievement.trophy) || readText(achievement.icon),
+    icon:
+      readText(achievement.trophy) ||
+      readText(achievement.icon),
+    rank:
+      readText(achievement.rank) ||
+      readText(achievement.difficulty) ||
+      "Bronze",
+    difficulty:
+      readText(achievement.difficulty) ||
+      readText(achievement.rank) ||
+      "Bronze",
+    status: readText(achievement.status, "locked"),
+    earnedDate: readText(achievement.earnedDate),
+    image: readText(achievement.image),
+    isCustom: Boolean(achievement.is_custom ?? achievement.isCustom ?? true),
+    isHidden: Boolean(achievement.is_hidden ?? achievement.isHidden ?? false),
+    source: readText(achievement.source, "manual"),
+    externalId:
+      readText(achievement.external_id) ||
+      readText(achievement.externalId) ||
+      undefined,
+    officialImage:
+      readText(achievement.official_image) ||
+      readText(achievement.officialImage) ||
+      undefined,
+  };
+}
+
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug")?.trim();
 
@@ -108,26 +145,28 @@ export async function GET(request: NextRequest) {
 
     // O jogo e suas conquistas são independentes; carregamos os dois em
     // paralelo para cortar uma ida e volta desnecessária ao Supabase.
-    const [{ data: game, error: gameError }, { data: achievements, error: achievementsError }] =
-      await Promise.all([
-        client
-          .from("games")
-          .select(
-            "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted"
-          )
-          .eq("slug", slug)
-          .eq("is_deleted", false)
-          .eq("is_hidden", false)
-          .maybeSingle(),
-        client
-          .from("achievements")
-          .select(
-            "id, game_slug, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, source, external_id, official_image, achievement_progress(achievement_id, owner_key, status, earned_at, rank_override, image_override)"
-          )
-          .eq("game_slug", slug)
-          .eq("is_hidden", false)
-          .order("sort_order", { ascending: true }),
-      ]);
+    const [
+      { data: game, error: gameError },
+      { data: achievements, error: achievementsError },
+    ] = await Promise.all([
+      client
+        .from("games")
+        .select(
+          "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted"
+        )
+        .eq("slug", slug)
+        .eq("is_deleted", false)
+        .eq("is_hidden", false)
+        .maybeSingle(),
+      client
+        .from("achievements")
+        .select(
+          "id, game_slug, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, source, external_id, official_image, achievement_progress(achievement_id, owner_key, status, earned_at, rank_override, image_override)"
+        )
+        .eq("game_slug", slug)
+        .eq("is_hidden", false)
+        .order("sort_order", { ascending: true }),
+    ]);
 
     if (gameError) throw gameError;
     if (achievementsError) throw achievementsError;
@@ -141,6 +180,30 @@ export async function GET(request: NextRequest) {
 
     const achievementRows =
       (achievements ?? []) as unknown as DatabaseAchievementWithProgressRow[];
+
+    // Alguns jogos finalizados ainda têm suas conquistas históricas na fonte
+    // legada data/games.ts e não na tabela achievements. Nesse caso, usamos
+    // essa lista somente quando o banco não retornou nenhuma conquista, sem
+    // alterar o fluxo normal dos jogos já migrados para o Supabase.
+    const legacyAchievements =
+      achievementRows.length === 0
+        ? ((legacyGames as Record<string, { achievementsList?: unknown[] }>)[slug]
+            ?.achievementsList ?? [])
+        : [];
+
+    const achievementsList =
+      achievementRows.length > 0
+        ? achievementRows.map((achievement) =>
+            normalizeAchievement(
+              achievement,
+              (achievement.achievement_progress ?? []).find(
+                (progress) => progress.owner_key === OWNER_KEY
+              )
+            )
+          )
+        : legacyAchievements.map((achievement) =>
+            normalizeLegacyAchievement(achievement as Record<string, unknown>)
+          );
 
     return NextResponse.json(
       {
@@ -163,14 +226,7 @@ export async function GET(request: NextRequest) {
           review: game.review ?? undefined,
           firstJourney: extractFirstJourney(game.review),
           manualTotalPlayedMinutes: game.manual_total_played_minutes ?? null,
-          achievementsList: achievementRows.map((achievement) =>
-            normalizeAchievement(
-              achievement,
-              (achievement.achievement_progress ?? []).find(
-                (progress) => progress.owner_key === OWNER_KEY
-              )
-            )
-          ),
+          achievementsList,
         },
       },
       {
