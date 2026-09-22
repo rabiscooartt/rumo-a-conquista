@@ -394,7 +394,7 @@ export default function GamePageShell({ slug, game }: Props) {
   const showFirstJourneyPreview =
     resolvedFirstJourney?.status === "in_progress";
   const showQueuePreview =
-    status === "planned" && !showFirstJourneyPreview;
+    normalizeStatus(game.status) === "planned" && !showFirstJourneyPreview;
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
