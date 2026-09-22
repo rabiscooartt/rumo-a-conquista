@@ -401,9 +401,6 @@ export default function GamePageShell({ slug, game }: Props) {
       <Navbar />
 
       <div className="mx-auto w-full max-w-[1500px] px-5 py-6 lg:px-8 lg:py-8">
-        {showFirstJourneyPreview && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-5 py-6 backdrop-blur-[9px]">
-
         {showQueuePreview && (
           <div className="fixed inset-0 z-[80] overflow-auto bg-black/52 px-5 py-8 backdrop-blur-[8px]">
             <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[980px] items-center">
@@ -486,6 +483,9 @@ export default function GamePageShell({ slug, game }: Props) {
             </div>
           </div>
         )}
+        {showFirstJourneyPreview && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-5 py-6 backdrop-blur-[9px]">
+
             <section
               role="dialog"
               aria-modal="true"
