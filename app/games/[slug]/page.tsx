@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useSiteGames, type FlexibleAchievementInput } from "@/lib/useSiteGames";
+import {
+  type FlexibleAchievementInput,
+  type SiteGame,
+} from "@/lib/useSiteGames";
 import { type AchievementInput } from "@/components/GameAchievementsPanel";
 import { type ReviewInput } from "@/components/GameReviewPanel";
 import GamePageShell from "@/components/GamePageShell";
@@ -224,8 +227,63 @@ function getFinalBadge(rawGame: unknown): FinalBadgeInput | undefined {
 export default function GamePage() {
   const params = useParams();
   const slug = String(params?.slug || "");
-  const { gamesMap, isLoaded } = useSiteGames();
-  const game = gamesMap[slug];
+  const [game, setGame] = useState<SiteGame | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPublicGame() {
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const query = new URLSearchParams({ slug });
+        const response = await fetch(`/api/games/data?${query.toString()}`, {
+          cache: "no-store",
+        });
+
+        const payload = (await response.json().catch(() => null)) as {
+          game?: SiteGame;
+          error?: string;
+        } | null;
+
+        if (!response.ok || !payload?.game) {
+          throw new Error(
+            payload?.error || "Não foi possível carregar o jogo."
+          );
+        }
+
+        if (!cancelled) {
+          setGame(payload.game);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setGame(null);
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível carregar o jogo."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    if (slug) {
+      void loadPublicGame();
+    } else {
+      setIsLoading(false);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
 
   const formattedGame = useMemo(() => {
     if (!game) return null;
@@ -296,11 +354,13 @@ export default function GamePage() {
     };
   }, [game, slug]);
 
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <main className="min-h-screen bg-[#050505] text-white">
         <section className="mx-auto w-full max-w-[1500px] px-8 py-10">
-          <div className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-8 text-white/50">Carregando jogo...</div>
+          <div className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-8 text-white/50">
+            Carregando jogo...
+          </div>
         </section>
       </main>
     );
@@ -316,7 +376,9 @@ export default function GamePage() {
           <div className="mt-8 rounded-[28px] border border-red-500/20 bg-red-500/5 p-8">
             <p className="text-xs font-black uppercase tracking-[0.3em] text-red-300">Jogo não encontrado</p>
             <h1 className="mt-3 text-4xl font-black text-white">Esse jogo não existe ou foi removido</h1>
-            <p className="mt-3 max-w-[720px] text-sm leading-relaxed text-white/50">O slug procurado foi: <span className="font-black text-red-200">{slug}</span>.</p>
+            <p className="mt-3 max-w-[720px] text-sm leading-relaxed text-white/50">
+              {loadError || <>O slug procurado foi: <span className="font-black text-red-200">{slug}</span>.</>}
+            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/admin/jogos" className="rounded-xl border border-red-500/35 bg-red-500/15 px-5 py-3 text-sm font-black text-red-100 transition hover:bg-red-500/25">Ir para Admin Jogos</Link>
               <Link href="/biblioteca" className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-black text-white/65 transition hover:border-white/20 hover:text-white">Ver Biblioteca</Link>
