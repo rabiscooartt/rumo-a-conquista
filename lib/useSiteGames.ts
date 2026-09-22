@@ -809,8 +809,14 @@ export function useSiteGames() {
   }
 
   const gamesMap = useMemo(() => {
+    // Enquanto os dados oficiais ainda estão carregando, não mostramos a cópia
+    // inicial de data/games.ts. Isso evita o efeito de "aparece uma versão,
+    // depois corrige para outra" na Biblioteca e nas páginas públicas.
+    if (!isLoaded) {
+      return {};
+    }
+
     const mergedGames: Record<string, SiteGame> = {
-      ...baseGamesMap,
       ...customGames,
     };
 
@@ -829,7 +835,7 @@ export function useSiteGames() {
       },
       {}
     );
-  }, [baseGamesMap, customGames, hiddenGameSlugs, deletedGameSlugs]);
+  }, [customGames, hiddenGameSlugs, deletedGameSlugs, isLoaded]);
 
   const gamesList = useMemo(() => {
     return Object.values(gamesMap).sort((a, b) => {
@@ -844,8 +850,11 @@ export function useSiteGames() {
     });
   }, [gamesMap]);
 const allGamesMap = useMemo(() => {
+  if (!isLoaded) {
+    return {};
+  }
+
   const mergedGames: Record<string, SiteGame> = {
-    ...baseGamesMap,
     ...customGames,
   };
 
@@ -860,7 +869,7 @@ const allGamesMap = useMemo(() => {
     },
     {}
   );
-}, [baseGamesMap, customGames, deletedGameSlugs]);
+}, [customGames, deletedGameSlugs, isLoaded]);
 
 const allGamesList = useMemo(() => {
   return Object.values(allGamesMap).sort((a, b) => {
