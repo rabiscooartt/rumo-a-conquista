@@ -1713,8 +1713,9 @@ export default function BibliotecaPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const timers: number[] = [];
 
-    async function loadGenres() {
+    async function loadGenres(attempt = 0) {
       try {
         const response = await fetch("/api/admin/games/genres", {
           cache: "no-store",
@@ -1725,20 +1726,35 @@ export default function BibliotecaPage() {
         const payload = (await response.json()) as {
           ok?: boolean;
           genresBySlug?: Record<string, string[]>;
+          pendingSlugs?: string[];
         };
 
-        if (!cancelled && payload.ok && payload.genresBySlug) {
+        if (cancelled) return;
+
+        if (payload.ok && payload.genresBySlug) {
           setGenresBySlug(payload.genresBySlug);
+        }
+
+        // O endpoint agora entrega os gêneros já salvos imediatamente e
+        // enriquece os pendentes em segundo plano. Fazemos até duas tentativas
+        // curtas para capturar esses resultados sem segurar a Biblioteca.
+        if ((payload.pendingSlugs?.length ?? 0) > 0 && attempt < 2) {
+          const timer = window.setTimeout(() => {
+            void loadGenres(attempt + 1);
+          }, attempt === 0 ? 1200 : 2400);
+
+          timers.push(timer);
         }
       } catch (error) {
         console.warn("[Biblioteca] Não foi possível carregar os gêneros:", error);
       }
     }
 
-    loadGenres();
+    void loadGenres();
 
     return () => {
       cancelled = true;
+      timers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [refreshKey]);
 
