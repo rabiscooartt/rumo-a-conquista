@@ -720,9 +720,9 @@ export default function GamePageShell({ slug, game }: Props) {
                       <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <SectionTitle>Emblema</SectionTitle>
         
-                        <div className="mt-3 flex min-h-[220px] flex-col items-center justify-center p-2 text-center">
+                        <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
                           {emblem?.image ? (
-                            <div className="relative flex h-[170px] w-[170px] items-center justify-center">
+                            <div className="relative flex h-[210px] w-[210px] items-center justify-center">
                               <img
                                 src={emblem.image}
                                 alt={emblem.title || "Emblema"}
@@ -737,21 +737,21 @@ export default function GamePageShell({ slug, game }: Props) {
                               )}
                             </div>
                           ) : (
-                            <div className="flex h-[170px] w-[170px] items-center justify-center text-5xl opacity-45">
+                            <div className="flex h-[210px] w-[210px] items-center justify-center text-5xl opacity-45">
                               🏆
                             </div>
                           )}
         
-                          <p className={`mt-2 text-[11px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
+                          <p className={`mt-3 text-[12px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
                             {emblemUnlocked ? "Conquistado" : "Bloqueado"}
                           </p>
         
                           {emblemUnlocked ? (
-                            <p className="mt-1 text-[10px] font-bold text-white/45">
+                            <p className="mt-1 text-[11px] font-bold text-white/55">
                               {emblemDate ? `Conquistado em ${emblemDate}` : "Conquista registrada"}
                             </p>
                           ) : (
-                            <p className="mt-1 max-w-[180px] text-[9px] leading-relaxed text-white/30">
+                            <p className="mt-1 max-w-[200px] text-[10px] leading-relaxed text-white/35">
                               Conquiste a maestria para desbloquear
                             </p>
                           )}
