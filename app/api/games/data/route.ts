@@ -29,6 +29,10 @@ type DatabaseAchievementProgressRow = {
   image_override: string | null;
 };
 
+type DatabaseAchievementWithProgressRow = DatabaseAchievementRow & {
+  achievement_progress?: DatabaseAchievementProgressRow[];
+};
+
 function readText(value: unknown, fallback = "") {
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);
@@ -102,17 +106,31 @@ export async function GET(request: NextRequest) {
   try {
     const client = createAdminSupabaseClient();
 
-    const { data: game, error: gameError } = await client
-      .from("games")
-      .select(
-        "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted"
-      )
-      .eq("slug", slug)
-      .eq("is_deleted", false)
-      .eq("is_hidden", false)
-      .maybeSingle();
+    // O jogo e suas conquistas são independentes; carregamos os dois em
+    // paralelo para cortar uma ida e volta desnecessária ao Supabase.
+    const [{ data: game, error: gameError }, { data: achievements, error: achievementsError }] =
+      await Promise.all([
+        client
+          .from("games")
+          .select(
+            "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted"
+          )
+          .eq("slug", slug)
+          .eq("is_deleted", false)
+          .eq("is_hidden", false)
+          .maybeSingle(),
+        client
+          .from("achievements")
+          .select(
+            "id, game_slug, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, source, external_id, official_image, achievement_progress(achievement_id, owner_key, status, earned_at, rank_override, image_override)"
+          )
+          .eq("game_slug", slug)
+          .eq("is_hidden", false)
+          .order("sort_order", { ascending: true }),
+      ]);
 
     if (gameError) throw gameError;
+    if (achievementsError) throw achievementsError;
 
     if (!game) {
       return NextResponse.json(
@@ -121,39 +139,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: achievements, error: achievementsError } = await client
-      .from("achievements")
-      .select(
-        "id, game_slug, legacy_id, title, description, trophy, rank, image, sort_order, is_custom, is_hidden, source, external_id, official_image"
-      )
-      .eq("game_slug", slug)
-      .eq("is_hidden", false)
-      .order("sort_order", { ascending: true });
-
-    if (achievementsError) throw achievementsError;
-
-    const achievementRows = (achievements ?? []) as DatabaseAchievementRow[];
-    const achievementIds = achievementRows.map((achievement) => achievement.id);
-
-    let progressRows: DatabaseAchievementProgressRow[] = [];
-
-    if (achievementIds.length > 0) {
-      const { data: progress, error: progressError } = await client
-        .from("achievement_progress")
-        .select(
-          "achievement_id, owner_key, status, earned_at, rank_override, image_override"
-        )
-        .eq("owner_key", OWNER_KEY)
-        .in("achievement_id", achievementIds);
-
-      if (progressError) throw progressError;
-
-      progressRows = (progress ?? []) as DatabaseAchievementProgressRow[];
-    }
-
-    const progressByAchievementId = new Map(
-      progressRows.map((progress) => [progress.achievement_id, progress])
-    );
+    const achievementRows =
+      (achievements ?? []) as unknown as DatabaseAchievementWithProgressRow[];
 
     return NextResponse.json(
       {
@@ -179,14 +166,16 @@ export async function GET(request: NextRequest) {
           achievementsList: achievementRows.map((achievement) =>
             normalizeAchievement(
               achievement,
-              progressByAchievementId.get(achievement.id)
+              (achievement.achievement_progress ?? []).find(
+                (progress) => progress.owner_key === OWNER_KEY
+              )
             )
           ),
         },
       },
       {
         headers: {
-          "Cache-Control": "no-store",
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
         },
       }
     );
