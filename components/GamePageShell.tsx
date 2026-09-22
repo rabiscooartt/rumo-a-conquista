@@ -758,45 +758,47 @@ export default function GamePageShell({ slug, game }: Props) {
                         </div>
                       </section>
         
-                      <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                          <h2 className="text-[13px] font-black uppercase tracking-[0.12em] text-white">
-                            Próxima Conquista
-                          </h2>
-                        </div>
-        
-                        <div className="mt-4 flex items-center gap-3.5 rounded-[10px] border border-white/[0.08] bg-[#0b0b0b] p-3">
-                          <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
-                            {nextAchievementImage ? (
-                              <img
-                                src={nextAchievementImage}
-                                alt={nextAchievement?.title || objective}
-                                className="h-full w-full object-contain"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">
-                                🏆
-                              </div>
-                            )}
+                      {status !== "completed" && progress < 100 ? (
+                        <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                            <h2 className="text-[13px] font-black uppercase tracking-[0.12em] text-white">
+                              Próxima Conquista
+                            </h2>
                           </div>
         
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
-                              Objetivo atual
-                            </p>
-                            <p className="mt-1 truncate text-[13px] font-black leading-tight text-white">
-                              {nextAchievement?.title || objective}
-                            </p>
+                          <div className="mt-4 flex items-center gap-3.5 rounded-[10px] border border-white/[0.08] bg-[#0b0b0b] p-3">
+                            <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
+                              {nextAchievementImage ? (
+                                <img
+                                  src={nextAchievementImage}
+                                  alt={nextAchievement?.title || objective}
+                                  className="h-full w-full object-contain"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">
+                                  🏆
+                                </div>
+                              )}
+                            </div>
         
-                            {nextAchievement?.description ? (
-                              <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-white/40">
-                                {nextAchievement.description}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
+                                Objetivo atual
                               </p>
-                            ) : null}
+                              <p className="mt-1 truncate text-[13px] font-black leading-tight text-white">
+                                {nextAchievement?.title || objective}
+                              </p>
+        
+                              {nextAchievement?.description ? (
+                                <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-white/40">
+                                  {nextAchievement.description}
+                                </p>
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                      </section>
+                        </section>
+                      ) : null}
         
         
                     </div>
