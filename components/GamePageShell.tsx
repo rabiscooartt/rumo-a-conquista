@@ -393,6 +393,8 @@ export default function GamePageShell({ slug, game }: Props) {
   const playedTime = formatPlayedTime(playedTimeMinutes);
   const showFirstJourneyPreview =
     resolvedFirstJourney?.status === "in_progress";
+  const showQueuePreview =
+    status === "planned" && !showFirstJourneyPreview;
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -401,6 +403,89 @@ export default function GamePageShell({ slug, game }: Props) {
       <div className="mx-auto w-full max-w-[1500px] px-5 py-6 lg:px-8 lg:py-8">
         {showFirstJourneyPreview && (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-5 py-6 backdrop-blur-[9px]">
+
+        {showQueuePreview && (
+          <div className="fixed inset-0 z-[80] overflow-auto bg-black/52 px-5 py-8 backdrop-blur-[8px]">
+            <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[980px] items-center">
+              <section
+                aria-labelledby="queue-title"
+                className="relative grid w-full items-center gap-10 overflow-hidden px-2 py-6 sm:grid-cols-[minmax(0,1fr)_360px] sm:px-6 lg:grid-cols-[minmax(0,1fr)_430px] lg:px-8"
+              >
+                <div className="relative z-10 max-w-[560px]">
+                  <div className="flex items-center gap-2">
+                    <span className="h-[20px] w-[2px] bg-red-500" />
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white">
+                      Próxima Maestria
+                    </p>
+                  </div>
+
+                  <div className="mt-7 inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-red-400">
+                    Na fila
+                  </div>
+
+                  <h1
+                    id="queue-title"
+                    className="mt-4 text-[34px] font-black leading-none tracking-[-0.04em] text-white sm:text-[42px]"
+                  >
+                    Aguardando sua vez.
+                  </h1>
+
+                  <p className="mt-5 max-w-[520px] text-[13px] leading-relaxed text-white/60">
+                    Este jogo está na fila da sua jornada. Quando chegar a hora,
+                    ele será iniciado e sua Jornada de Estreia começará.
+                  </p>
+
+                  <div className="mt-8 flex items-center gap-4 border-t border-white/[0.08] pt-5">
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">
+                        Próximo passo
+                      </p>
+                      <p className="mt-1 text-[11px] font-black uppercase tracking-[0.10em] text-white/65">
+                        Iniciar a jornada
+                      </p>
+                    </div>
+
+                    <div className="h-8 w-px bg-white/[0.08]" />
+
+                    <div className="min-w-0">
+                      <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">
+                        Jogo
+                      </p>
+                      <p className="mt-1 truncate text-[12px] font-black text-white/75">
+                        {game.title}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-10 text-[8px] font-black uppercase tracking-[0.14em] text-white/20">
+                    Rumo à Conquista
+                  </p>
+                </div>
+
+                <div className="relative mx-auto flex h-[360px] w-full max-w-[430px] items-center justify-center sm:h-[430px]">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.12),transparent_62%)]" />
+                  <div className="absolute inset-x-6 bottom-8 h-24 rounded-full bg-black/60 blur-2xl" />
+                  <div className="relative h-[330px] w-[245px] rotate-[3deg] overflow-hidden rounded-[16px] border border-white/[0.10] bg-[#090909] shadow-[0_30px_90px_rgba(0,0,0,0.65)] sm:h-[400px] sm:w-[295px]">
+                    <img
+                      src={cover}
+                      alt={game.title}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+                    <div className="absolute bottom-5 left-5 right-5">
+                      <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                        Jogo
+                      </p>
+                      <p className="mt-1 text-[15px] font-black leading-tight text-white">
+                        {game.title}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
             <section
               role="dialog"
               aria-modal="true"
