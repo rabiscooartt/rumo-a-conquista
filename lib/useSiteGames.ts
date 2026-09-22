@@ -444,13 +444,30 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
 
   const platform = readText(game.platform, "Steam").trim() || "Steam";
 
-  // A lista de conquistas e o progresso vindo da API/Supabase são a fonte
-  // oficial. Nenhum estado local do navegador é aplicado por cima desses dados.
-  const achievementsList = Array.isArray(game.achievementsList)
-    ? game.achievementsList.map((achievement, index) =>
-        normalizeAchievement(achievement, index, finalSlug)
-      )
+  // A lista vinda do Supabase é a fonte oficial quando existe.
+  // Jogos finalizados históricos, porém, podem ainda não ter suas conquistas
+  // migradas para a tabela achievements. Nesses casos, preservamos a lista
+  // legada de data/games.ts para que a Biblioteca continue mostrando o
+  // contador real (ex.: 4/4 em Hogwarts Legacy), em vez de cair no fallback
+  // artificial de 1/1 baseado apenas no progresso 100%.
+  const suppliedAchievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList
     : [];
+
+  const legacyGame = (
+    baseGames as unknown as Record<string, Partial<SiteGame>>
+  )[finalSlug];
+
+  const achievementsSource =
+    suppliedAchievements.length > 0
+      ? suppliedAchievements
+      : rawStatus === "completed" && Array.isArray(legacyGame?.achievementsList)
+        ? legacyGame.achievementsList
+        : [];
+
+  const achievementsList = achievementsSource.map((achievement, index) =>
+    normalizeAchievement(achievement, index, finalSlug)
+  );
 
   const activeAchievementsForBadge = achievementsList.filter((achievement) => {
     return readText(achievement.title, "").trim().length > 0;
