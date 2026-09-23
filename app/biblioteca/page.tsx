@@ -985,7 +985,7 @@ function GameRow({
 
   const progressClass = isCompleted
     ? "bg-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.55)]"
-    : "bg-pink-500 shadow-[0_0_14px_rgba(236,72,153,0.45)]";
+    : "bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.45)]";
 
   return (
     <Link
@@ -1104,7 +1104,7 @@ function GameGridCard({
 
   const progressClass = isCompleted
     ? "bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
-    : "bg-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]";
+    : "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.35)]";
 
   return (
     <Link
