@@ -221,11 +221,11 @@ function toInputDate(date?: string) {
 function getRankTheme(rank: Rank) {
   if (rank === "Diamante") {
     return {
-      border: "border-cyan-400/35",
-      rowBorder: "border-l-cyan-400/70",
-      bg: "bg-cyan-500/[0.055]",
-      pill: "border-cyan-300/35 bg-cyan-500/15 text-cyan-100",
-      glow: "shadow-[0_0_32px_rgba(34,211,238,0.12)]",
+      border: "border-amber-400/35",
+      rowBorder: "border-l-amber-400/70",
+      bg: "bg-amber-500/[0.055]",
+      pill: "border-amber-300/35 bg-amber-500/15 text-amber-100",
+      glow: "shadow-[0_0_32px_rgba(245,158,11,0.12)]",
     };
   }
 
@@ -1196,7 +1196,16 @@ export default function GameAchievementsPanel(
                             isLocked ? "border-white/10 text-white/35" : theme.pill
                           }`}
                         >
-                          {rankTrophy[rank]} {rankLabel(rank)}
+                          {rank === "Diamante" ? (
+                            <img
+                              src="/images/trophies/maestria.png"
+                              alt=""
+                              aria-hidden="true"
+                              className="inline-block h-3 w-3 object-contain align-[-2px]"
+                            />
+                          ) : (
+                            rankTrophy[rank]
+                          )} {rankLabel(rank)}
                         </span>
 
                         <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
