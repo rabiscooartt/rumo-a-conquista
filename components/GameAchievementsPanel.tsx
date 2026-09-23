@@ -1295,7 +1295,7 @@ export default function GameAchievementsPanel(
                           >
                             {RANK_OPTIONS.map((rankOption) => (
                               <option key={rankOption} value={rankOption}>
-                                {rankOption}
+                                    {rankLabel(rankOption)}
                               </option>
                             ))}
                           </select>
