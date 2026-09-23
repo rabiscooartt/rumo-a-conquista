@@ -218,6 +218,24 @@ export default function NewGameAchievementsEditor({
     }
   }
 
+  async function changeAchievementRank(
+    id: string,
+    rank: AchievementRank
+  ) {
+    const next = achievements.map((achievement) =>
+      achievement.id === id
+        ? {
+            ...achievement,
+            difficulty: rank,
+            trophy: rankToTrophy(rank),
+          }
+        : achievement
+    );
+
+    setAchievements(next);
+    await saveAchievements(next);
+  }
+
   function addAchievement() {
     const newAchievement: EditableAchievement = {
       id: `${game.slug}-achievement-${crypto.randomUUID()}`,
@@ -435,7 +453,7 @@ export default function NewGameAchievementsEditor({
                       </label>
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
-                        <select value={achievement.difficulty} onChange={(event) => { const rank = event.target.value as AchievementRank; updateAchievement(achievement.id, { difficulty: rank, trophy: rankToTrophy(rank) }); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40">
+                        <select value={achievement.difficulty} disabled={saving} onChange={(event) => { void changeAchievementRank(achievement.id, event.target.value as AchievementRank); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-50">
                           {(["Bronze", "Prata", "Ouro", "Diamante"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
                         </select>
                       </label>
