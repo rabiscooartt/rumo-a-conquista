@@ -119,14 +119,20 @@ function achievementImagePath(gameSlug: string, achievement?: AchievementInput) 
     : "";
 }
 
-type TrophyRank = "Ouro" | "Prata" | "Bronze";
+type TrophyRank = "Ouro" | "Prata" | "Bronze" | "Maestria";
 
 function getTrophyRank(achievement: AchievementInput): TrophyRank {
   const difficulty = normalizeText(achievement.difficulty);
 
-  if (difficulty === "extrema" || difficulty === "diamante" || difficulty === "ouro") return "Ouro";
+  // Diamante representa a Maestria Final e não deve entrar na contagem
+  // de Ouro. Assim, a sidebar separa corretamente Ouro de Maestria.
+  if (difficulty === "extrema" || difficulty === "diamante") return "Maestria";
+  if (difficulty === "ouro") return "Ouro";
   if (difficulty === "media" || difficulty === "prata") return "Prata";
 
+  if (achievement.trophy?.includes("💎") || achievement.icon?.includes("💎")) {
+    return "Maestria";
+  }
   if (achievement.trophy?.includes("🥇") || achievement.trophy?.includes("🏆") || achievement.icon?.includes("🥇") || achievement.icon?.includes("🏆")) {
     return "Ouro";
   }
@@ -136,7 +142,7 @@ function getTrophyRank(achievement: AchievementInput): TrophyRank {
 }
 
 const TROPHY_META: Array<{
-  rank: TrophyRank | "Maestria";
+  rank: TrophyRank;
   label: string;
 }> = [
   { rank: "Bronze", label: "Bronze" },
