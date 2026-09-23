@@ -48,6 +48,10 @@ function readBoolean(value: unknown, fallback = false) {
   return fallback;
 }
 
+function rankLabel(rank: AchievementRank) {
+  return rank === "Diamante" ? "Maestria" : rank;
+}
+
 function rankToTrophy(rank: AchievementRank) {
   if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
@@ -432,7 +436,7 @@ export default function NewGameAchievementsEditor({
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
                         <select value={achievement.difficulty} onChange={(event) => { const rank = event.target.value as AchievementRank; updateAchievement(achievement.id, { difficulty: rank, trophy: rankToTrophy(rank) }); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40">
-                          {(["Bronze", "Prata", "Ouro", "Diamante"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rank}</option>)}
+                          {(["Bronze", "Prata", "Ouro", "Diamante"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
                         </select>
                       </label>
                       <label>
