@@ -56,6 +56,10 @@ type GameAchievementsPanelProps = {
 
 const RANK_OPTIONS: Rank[] = ["Bronze", "Prata", "Ouro", "Diamante"];
 
+function rankLabel(rank: Rank) {
+  return rank === "Diamante" ? "Maestria" : rank;
+}
+
 const STATUS_OPTIONS: { label: string; value: AchievementStatus }[] = [
   { label: "Travada", value: "locked" },
   { label: "Em progresso", value: "progress" },
@@ -1058,7 +1062,7 @@ export default function GameAchievementsPanel(
               >
                 {RANK_OPTIONS.map((rank) => (
                   <option key={rank} value={rank}>
-                    {rank}
+                    {rankLabel(rank)}
                   </option>
                 ))}
               </select>
@@ -1192,7 +1196,7 @@ export default function GameAchievementsPanel(
                             isLocked ? "border-white/10 text-white/35" : theme.pill
                           }`}
                         >
-                          {rankTrophy[rank]} {rank}
+                          {rankTrophy[rank]} {rankLabel(rank)}
                         </span>
 
                         <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
