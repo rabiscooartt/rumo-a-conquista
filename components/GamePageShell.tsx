@@ -607,16 +607,16 @@ export default function GamePageShell({ slug, game }: Props) {
         
                         <div className="grid grid-cols-4 gap-1.5">
                           {TROPHY_META.map(({ rank, label }) => {
-                            const total = rank === "Maestria"
-                              ? 0
-                              : achievements.filter((achievement) => getTrophyRank(achievement) === rank).length;
-                            const completed = rank === "Maestria"
-                              ? 0
-                              : achievements.filter(
-                                  (achievement) =>
-                                    getTrophyRank(achievement) === rank &&
-                                    ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status))
-                                ).length;
+                            const total = achievements.filter(
+                              (achievement) => getTrophyRank(achievement) === rank
+                            ).length;
+                            const completed = achievements.filter(
+                              (achievement) =>
+                                getTrophyRank(achievement) === rank &&
+                                ["completed", "concluido", "concluida"].includes(
+                                  normalizeText(achievement.status)
+                                )
+                            ).length;
         
                             return (
                               <div
