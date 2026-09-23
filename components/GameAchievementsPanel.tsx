@@ -221,11 +221,11 @@ function toInputDate(date?: string) {
 function getRankTheme(rank: Rank) {
   if (rank === "Diamante") {
     return {
-      border: "border-amber-400/35",
-      rowBorder: "border-l-amber-400/70",
-      bg: "bg-amber-500/[0.055]",
-      pill: "border-amber-300/35 bg-amber-500/15 text-amber-100",
-      glow: "shadow-[0_0_32px_rgba(245,158,11,0.12)]",
+      border: "border-rose-400/45",
+      rowBorder: "border-l-rose-400/80",
+      bg: "bg-rose-500/[0.07]",
+      pill: "border-rose-300/45 bg-rose-500/18 text-rose-100",
+      glow: "shadow-[0_0_32px_rgba(244,63,94,0.14)]",
     };
   }
 
