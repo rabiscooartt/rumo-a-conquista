@@ -648,6 +648,7 @@ async function saveGameToSupabase(
     finalBadge: game.finalBadge,
     emblem: game.emblem,
     trophies: game.trophies,
+    achievementsList: game.achievementsList,
     manualTotalPlayedMinutes:
       game.manualTotalPlayedMinutes ?? null,
     firstJourney: game.firstJourney,
