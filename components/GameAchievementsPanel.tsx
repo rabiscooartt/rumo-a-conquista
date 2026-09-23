@@ -436,7 +436,7 @@ export default function GameAchievementsPanel(
 
   const [hiddenAchievementIds, setHiddenAchievementIds] = useState<string[]>([]);
 
-  const [sortMode, setSortMode] = useState<SortMode>("status");
+  const [sortMode, setSortMode] = useState<SortMode>("rarity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [savedAchievementTitle, setSavedAchievementTitle] = useState("");
   const [achievementSearch, setAchievementSearch] = useState(() =>
