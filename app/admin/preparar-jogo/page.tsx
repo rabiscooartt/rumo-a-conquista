@@ -21,6 +21,10 @@ type R = {
     source: string;
     slug?: string;
     registered?: boolean;
+    exophase?: {
+      found: boolean;
+      url: string | null;
+    };
   };
   achievements: A[];
   warnings?: string[];
@@ -273,6 +277,33 @@ export default function Page() {
                   • {warning}
                 </p>
               ))}
+
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-violet-400/10 bg-violet-400/[.03] p-3">
+                <span className="text-[9px] font-black uppercase tracking-[.12em] text-violet-200/50">
+                  Exophase
+                </span>
+                <span
+                  className={
+                    result.game.exophase?.found
+                      ? "rounded-full border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-1.5 text-[8px] font-black text-emerald-200"
+                      : "rounded-full border border-yellow-400/20 bg-yellow-400/[.05] px-3 py-1.5 text-[8px] font-black text-yellow-100/70"
+                  }
+                >
+                  {result.game.exophase?.found
+                    ? "Jogo encontrado"
+                    : "Jogo não localizado"}
+                </span>
+                {result.game.exophase?.url && (
+                  <a
+                    href={result.game.exophase.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[9px] font-black uppercase text-violet-200/70 underline underline-offset-4"
+                  >
+                    Abrir no Exophase
+                  </a>
+                )}
+              </div>
             </section>
 
             <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
