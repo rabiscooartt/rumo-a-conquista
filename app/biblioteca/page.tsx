@@ -1023,7 +1023,7 @@ function GameRow({
 
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
               <IconTrophy className="h-[18px] w-[18px] text-amber-400" filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total} />
-              {achievementStats.completed}/{achievementStats.total}
+              {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}
             </span>
 
             <span className="hidden h-4 w-px bg-white/15 sm:block" />
@@ -1140,7 +1140,7 @@ function GameGridCard({
               className="h-3.5 w-3.5 text-amber-400"
               filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
             />
-            {achievementStats.completed}/{achievementStats.total}
+            {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}
           </span>
           <span className="h-3 w-px shrink-0 bg-white/10" />
           <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap">
@@ -1482,7 +1482,7 @@ function PlayingNowGame({
         </div>
 
         <p className="mt-1.5 text-[9px] font-semibold text-white/30">
-          {achievementStats.completed}/{achievementStats.total} conquistas
+          {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`} conquistas
         </p>
       </div>
     </Link>
@@ -1554,7 +1554,7 @@ function AnnualRecentGame({
               className="h-3 w-3 text-amber-400"
               filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
             />
-            {achievementStats.completed}/{achievementStats.total}
+            {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}
           </span>
           <span className="h-3 w-px shrink-0 bg-white/10" />
           <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap">
@@ -2770,4 +2770,3 @@ export default function BibliotecaPage() {
     </main>
   );
 }
-
