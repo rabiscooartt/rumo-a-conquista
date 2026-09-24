@@ -17,7 +17,7 @@ function normalize(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\.[^.]+$/, "").replace(/^\d+[-_\s]*/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-export default function ImportArtBatch({ achievements }: { achievements: PreparedAchievement[] }) {
+export default function ImportArtBatch({ achievements, gameSlug }: { achievements: PreparedAchievement[]; gameSlug: string }) {
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
 
