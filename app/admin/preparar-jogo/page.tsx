@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import ImportArtBatch from "./ImportArtBatch";
 
 type A = {
   id: string;
@@ -150,6 +151,7 @@ export default function Page() {
             <div className="mt-4 grid gap-3 md:grid-cols-2"><div><p className="text-[8px] uppercase text-white/25">Descrição</p><p className="mt-1 text-xs text-white/55">{a.description || "Sem descrição disponível."}</p></div><div><p className="text-[8px] uppercase text-white/25">Arquivo</p><p className="mt-1 text-xs font-bold text-white/70">{a.filename}</p></div><div><p className="text-[8px] uppercase text-white/25">Jornada de Estreia</p><p className="mt-1 text-xs font-bold text-red-100">SIM</p></div><div><p className="text-[8px] uppercase text-white/25">Exophase</p><p className="mt-1 text-xs font-bold text-white/70">{a.exophase === "sim" ? "SIM" : a.exophase === "nao" ? "NÃO" : "NÃO VERIFICADO"}</p></div></div>
             <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3"><p className="text-[8px] uppercase text-white/25">Conceito visual</p><p className="mt-1 text-xs leading-relaxed text-white/50">{a.visualConcept}</p></div></div>)}</div>
           </section>}
+          {selected.length > 0 && <ImportArtBatch achievements={selected.map((a) => ({ name: a.name, filename: a.filename, rank: a.rank }))} />}
         </>}
       </div>
     </main>
