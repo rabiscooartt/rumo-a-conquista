@@ -45,9 +45,26 @@ export default function NewGamesAdminPage() {
           status: selectedGame.status || "progress",
           platform: selectedGame.platform || "Steam",
           hours: String(selectedGame.hours || "0h"),
-          objective: selectedGame.currentObjective || selectedGame.objective || "",
+          nextAchievement: selectedGame.currentObjective || selectedGame.objective || "",
+          nextAchievementMode:
+            selectedGame.currentObjective || selectedGame.objective
+              ? "manual"
+              : "automatic",
         }
     : null;
+
+  const nextAchievementOptions = useMemo(() => {
+    const achievements = Array.isArray(selectedGame?.achievementsList)
+      ? selectedGame.achievementsList
+      : [];
+
+    return achievements.filter(
+      (achievement) => String(achievement.title || "").trim().length > 0
+    );
+  }, [selectedGame]);
+
+  const manualNextAchievementTitle =
+    values?.nextAchievementMode === "manual" ? values.nextAchievement : "";
 
   async function saveBasics() {
     if (!selectedGame || !values) return;
@@ -59,8 +76,14 @@ export default function NewGamesAdminPage() {
         status: values.status,
         platform: values.platform,
         hours: values.hours.trim() || "0h",
-        currentObjective: values.objective.trim(),
-        objective: values.objective.trim(),
+        currentObjective:
+          values.nextAchievementMode === "manual"
+            ? values.nextAchievement.trim()
+            : "",
+        objective:
+          values.nextAchievementMode === "manual"
+            ? values.nextAchievement.trim()
+            : "",
       });
     } finally {
       setSaving(false);
@@ -161,12 +184,166 @@ export default function NewGamesAdminPage() {
                   <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">01</p>
                   <h3 className="mt-1 text-xl font-black">Dados do jogo</h3>
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    {(["title","subtitle","platform","hours","objective"] as const).map((key) => {
-                      const label = key === "title" ? "Nome" : key === "subtitle" ? "Subtítulo" : key === "platform" ? "Plataforma" : key === "hours" ? "Horas" : "Objetivo atual";
-                      return <label key={key} className={key === "objective" ? "md:col-span-2" : ""}><span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">{label}</span><input value={values[key]} onChange={(event) => setDraft({ ...values, [key]: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40" /></label>;
+                    {(["title","subtitle","platform","hours"] as const).map((key) => {
+                      const label =
+                        key === "title"
+                          ? "Nome"
+                          : key === "subtitle"
+                            ? "Subtítulo"
+                            : key === "platform"
+                              ? "Plataforma"
+                              : "Horas";
+
+                      return (
+                        <label key={key}>
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
+                            {label}
+                          </span>
+                          <input
+                            value={values[key]}
+                            onChange={(event) =>
+                              setDraft({ ...values, [key]: event.target.value })
+                            }
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                          />
+                        </label>
+                      );
                     })}
-                    <label><span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">Status</span><select value={values.status} onChange={(event) => setDraft({ ...values, status: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"><option value="progress">Em progresso</option><option value="planned">Próxima Maestria</option><option value="completed">Finalizado</option></select></label>
+
+                    <label>
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
+                        Status
+                      </span>
+                      <select
+                        value={values.status}
+                        onChange={(event) =>
+                          setDraft({ ...values, status: event.target.value })
+                        }
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                      >
+                        <option value="progress">Em progresso</option>
+                        <option value="planned">Próxima Maestria</option>
+                        <option value="completed">Finalizado</option>
+                      </select>
+                    </label>
                   </div>
+
+                  <div className="mt-6 rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-500">
+                        Próxima Conquista
+                      </p>
+                      <h4 className="mt-1 text-base font-black text-white">
+                        Defina como o jogo deve escolher a próxima conquista.
+                      </h4>
+                      <p className="mt-1 text-xs leading-relaxed text-white/35">
+                        Automática usa a primeira conquista ainda não concluída. Manual permite escolher uma conquista específica.
+                      </p>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      <label
+                        className={`cursor-pointer rounded-xl border p-4 transition ${
+                          values.nextAchievementMode === "automatic"
+                            ? "border-red-500/35 bg-red-500/[0.08]"
+                            : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name="next-achievement-mode"
+                            checked={values.nextAchievementMode === "automatic"}
+                            onChange={() =>
+                              setDraft({
+                                ...values,
+                                nextAchievementMode: "automatic",
+                                nextAchievement: "",
+                              })
+                            }
+                            className="mt-1 accent-red-500"
+                          />
+                          <span>
+                            <span className="block text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                              Automática
+                            </span>
+                            <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                              O site escolhe sozinho a próxima conquista pendente.
+                            </span>
+                          </span>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`cursor-pointer rounded-xl border p-4 transition ${
+                          values.nextAchievementMode === "manual"
+                            ? "border-red-500/35 bg-red-500/[0.08]"
+                            : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name="next-achievement-mode"
+                            checked={values.nextAchievementMode === "manual"}
+                            onChange={() =>
+                              setDraft({
+                                ...values,
+                                nextAchievementMode: "manual",
+                                nextAchievement:
+                                  manualNextAchievementTitle ||
+                                  nextAchievementOptions.find(
+                                    (achievement) =>
+                                      !["completed", "concluido", "concluida"].includes(
+                                        String(achievement.status || "").toLowerCase()
+                                      )
+                                  )?.title ||
+                                  "",
+                              })
+                            }
+                            className="mt-1 accent-red-500"
+                          />
+                          <span>
+                            <span className="block text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                              Definir manualmente
+                            </span>
+                            <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                              Escolha exatamente qual conquista será destacada.
+                            </span>
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+
+                    {values.nextAchievementMode === "manual" ? (
+                      <label className="mt-4 block">
+                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
+                          Conquista definida
+                        </span>
+                        <select
+                          value={values.nextAchievement}
+                          onChange={(event) =>
+                            setDraft({
+                              ...values,
+                              nextAchievement: event.target.value,
+                            })
+                          }
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                        >
+                          <option value="">Selecione uma conquista...</option>
+                          {nextAchievementOptions.map((achievement) => (
+                            <option
+                              key={String(achievement.id || achievement.title)}
+                              value={String(achievement.title)}
+                            >
+                              {String(achievement.title)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
+                  </div>
+
                   <div className="mt-5 flex justify-end"><button type="button" disabled={saving} onClick={saveBasics} className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 hover:bg-red-500/20 disabled:opacity-50">{saving ? "Salvando..." : "Salvar dados do jogo"}</button></div>
                 </section>
 
@@ -185,7 +362,7 @@ export default function NewGamesAdminPage() {
                   <div className="mt-5 grid gap-3 md:grid-cols-3">
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Ativa</p><p className="mt-2 text-sm font-black">Mostra o aviso de Jornada de Estreia.</p></div>
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Desativada</p><p className="mt-2 text-sm font-black">Libera a página normal do jogo.</p></div>
-                    <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Próximo passo</p><p className="mt-2 text-sm font-black">Migrar a seleção das conquistas para cá.</p></div>
+                    <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Próximo passo</p><p className="mt-2 text-sm font-black">A próxima conquista agora pode ser automática ou definida manualmente.</p></div>
                   </div>
                 </section>
 
