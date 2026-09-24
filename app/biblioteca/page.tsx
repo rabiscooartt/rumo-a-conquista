@@ -1433,6 +1433,7 @@ function PlayingNowGame({
   const cardImage = readText(game.cardImage, "") || readText(game.image, "");
   const achievementStats = getAchievementStats(game);
   const progress = getProgressPercent(game, achievementStats);
+  const isBacklog = isBacklogGame(game);
   const platform = getPlatformLabel(game);
   const playedTime = activitySummary
     ? formatMinutesAsGameTime(activitySummary.totalMinutes)
@@ -1503,6 +1504,7 @@ function AnnualRecentGame({
   const progress = getProgressPercent(game, achievementStats);
   const isCompleted = isCompletedGame(game);
   const isProgress = isProgressGame(game, Boolean(activitySummary));
+  const isBacklog = isBacklogGame(game) && !isProgress;
   const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Jogando" : "Na fila";
   const statusClass = isCompleted
     ? "border-purple-500/20 bg-purple-500/10 text-purple-300"
@@ -2770,3 +2772,4 @@ export default function BibliotecaPage() {
     </main>
   );
 }
+
