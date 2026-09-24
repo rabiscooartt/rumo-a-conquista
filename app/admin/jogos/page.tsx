@@ -121,9 +121,9 @@ export default function NewGamesAdminPage() {
               Nova estrutura administrativa. O visual daqui para frente será a base para migrar as funções do Admin antigo.
             </p>
           </div>
-          <Link href="/admin/jogos" className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white">
+          <div className="flex flex-wrap gap-2"><Link href="/admin/preparar-jogo" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20">Preparar novo jogo</Link><Link href="/admin/jogos" className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white">
             Admin antigo
-          </Link>
+          </Link></div>
         </div>
 
         <div className="mt-7 grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
