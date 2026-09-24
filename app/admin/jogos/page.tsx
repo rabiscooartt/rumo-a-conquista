@@ -176,6 +176,7 @@ export default function NewGamesAdminPage() {
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.14em] text-white/45">{statusLabel(selectedGame.status)}</span>
                       <span className={journeyActive(selectedGame) ? "rounded-full border border-red-500/20 bg-red-500/[0.06] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.14em] text-red-300" : "rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.14em] text-white/35"}>Jornada {journeyActive(selectedGame) ? "Ativa" : "Desativada"}</span>
+                      <Link href={`/admin/preparar-jogo?slug=${encodeURIComponent(selectedGame.slug)}`} className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-red-100 transition hover:bg-red-500/20">Preparar conquistas</Link>
                     </div>
                   </div>
                 </section>
