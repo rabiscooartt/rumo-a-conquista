@@ -64,6 +64,52 @@ async function details(id: number) {
   return p[String(id)]?.data ?? null;
 }
 
+async function findExophaseSteamGame(title: string) {
+  const searchUrl =
+    "https://www.exophase.com/games/?q=" + encodeURIComponent(title);
+
+  try {
+    const response = await fetch(searchUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const candidates = Array.from(
+      html.matchAll(/href=["'](\/game\/[^"'?#]+-steam\/achievements\/?)["']/gi)
+    ).map((match) => match[1]);
+
+    const unique = [...new Set(candidates)];
+
+    if (!unique.length) return null;
+
+    const normalizedTitle = norm(title);
+
+    const exactSlug = slug(title) + "-steam";
+    const exact = unique.find((href) => {
+      const match = href.match(/\/game\/([^/]+)\/achievements\/?$/i);
+      return match?.[1] === exactSlug;
+    });
+
+    const href = exact ?? unique[0];
+
+    return {
+      url: href.startsWith("http")
+        ? href
+        : "https://www.exophase.com" + href,
+      searchedTitle: normalizedTitle,
+    };
+  } catch (error) {
+    console.error("[Exophase Lookup]", error);
+    return null;
+  }
+}
+
 async function percentages(id: number) {
   try {
     const r = await fetch(
@@ -142,7 +188,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const [d, p] = await Promise.all([details(g.id), percentages(g.id)]);
+    const [d, p, exophaseGame] = await Promise.all([
+      details(g.id),
+      percentages(g.id),
+      findExophaseSteamGame(d?.name || g.name || registeredGame.title),
+    ]);
 
     if (!d) {
       return NextResponse.json(
@@ -179,11 +229,22 @@ export async function GET(req: NextRequest) {
         appId: g.id,
         source: "Steam",
         registered: Boolean(slugParam),
+        exophase: exophaseGame
+          ? {
+              found: true,
+              url: exophaseGame.url,
+            }
+          : {
+              found: false,
+              url: null,
+            },
       },
       achievements,
       warnings: [
         "Rank Bronze/Prata/Ouro é uma sugestão automática baseada na raridade global da conquista na Steam.",
-        "Exophase aparece como Não verificado nesta etapa; não marcamos uma conquista sem confirmação.",
+        exophaseGame
+        ? "Jogo localizado no Exophase. A próxima etapa fará o cruzamento das conquistas individualmente."
+        : "Não localizei uma página Steam correspondente no Exophase para este jogo. As conquistas continuam como Não verificado até a etapa de cruzamento.",
       ],
     });
   } catch (e) {
