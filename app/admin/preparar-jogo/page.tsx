@@ -34,6 +34,8 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [batchSize, setBatchSize] = useState(10);
+  const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
   const selected = useMemo(() => result?.achievements.filter((a) => a.journey).map((a, index) => prepareAchievement(a, index)) ?? [], [result]);
 
   useEffect(() => {
@@ -106,28 +108,35 @@ export default function Page() {
             <p className="mt-2 text-xs text-white/35">10 conquistas é o padrão inicial. O tamanho é ajustável para cada jogo.</p>
             <div className="mt-4 flex items-center gap-3">
               <label htmlFor="batch-size" className="text-[9px] font-black uppercase text-white/30">Conquistas por lote</label>
-              <input id="batch-size" type="number" min={1} max={100} defaultValue={10} className="w-20 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm font-bold" />
+              <input id="batch-size" type="number" min={1} max={100} value={batchSize} onChange={(e) => setBatchSize(Math.min(100, Math.max(1, Number(e.target.value) || 1)))} className="w-20 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm font-bold" />
             </div>
             <div className="mt-4 space-y-2">
-              {Array.from({ length: Math.ceil(selected.length / 10) }, (_, batchIndex) => {
-                const start = batchIndex * 10;
-                const batch = selected.slice(start, start + 10);
-                const packageText = [
+              {Array.from({ length: Math.ceil(selected.length / batchSize) }, (_, batchIndex) => {
+                const start = batchIndex * batchSize;
+                const batch = selected.slice(start, start + batchSize);
+                const lines = [
                   `JOGO: ${result?.game.name}`,
+                  `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
+                  `QUANTIDADE: ${batch.length}`,
                   "",
-                  ...batch.map((a, localIndex) => `CONQUISTA ${String(start + localIndex + 1).padStart(2, "0")}
-Nome: ${a.name}
-Descrição: ${a.description || "Sem descrição disponível."}
-Rank: ${a.rank}
-Jornada de Estreia: SIM
-Exophase: ${a.exophase === "sim" ? "SIM" : a.exophase === "nao" ? "NÃO" : "NÃO VERIFICADO"}
-Arquivo: ${a.filename}
-Conceito visual: ${a.visualConcept}`).join("\n\n"),
-                ].join("\n");
+                  "INSTRUÇÕES PARA A GERAÇÃO DAS ARTES:",
+                  "Gere uma imagem para cada conquista abaixo, mantendo uma identidade visual consistente entre todas.",
+                  "Formato: 1:1, preferencialmente 1024x1024.",
+                  "Composição: símbolo central ocupando aproximadamente 60–75% da imagem.",
+                  "Estética: fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental e iluminação dramática.",
+                  "Não inserir texto, letras, números ou nomes dentro das imagens.",
+                  "Mantenha a mesma linguagem visual entre as imagens, variando o conceito central.",
+                  "NÃO altere os nomes dos arquivos fornecidos.",
+                  "",
+                ];
+                batch.forEach((a, localIndex) => {
+                  lines.push(`CONQUISTA ${String(start + localIndex + 1).padStart(2, "0")}`, `Nome: ${a.name}`, `Descrição: ${a.description || "Sem descrição disponível."}`, `Rank: ${a.rank}`, "Jornada de Estreia: SIM", `Exophase: ${a.exophase === "sim" ? "SIM" : a.exophase === "nao" ? "NÃO" : "NÃO VERIFICADO"}`, `Arquivo: ${a.filename}`, `Conceito visual: ${a.visualConcept}`, "");
+                });
+                const packageText = lines.join("\n");
                 return (
                   <div key={batchIndex} className="flex items-center justify-between gap-4 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
                     <div><p className="text-xs font-black">Lote {String(batchIndex + 1).padStart(2, "0")}</p><p className="text-[9px] text-white/30">Conquistas {start + 1}–{start + batch.length}</p></div>
-                    <button type="button" onClick={() => navigator.clipboard.writeText(packageText)} className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100">Copiar lote</button>
+                    <button type="button" onClick={() => { void navigator.clipboard.writeText(packageText); setCopiedBatch(batchIndex); setTimeout(() => setCopiedBatch(null), 1800); }} className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100">{copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}</button>
                   </div>
                 );
               })}
