@@ -18,10 +18,10 @@ type Prepared = A & { filename: string; visualConcept: string };
 function slugify(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
-function prepareAchievement(a: A): Prepared {
+function prepareAchievement(a: A, index: number): Prepared {
   return {
     ...a,
-    filename: `${slugify(a.name) || "conquista"}.png`,
+    filename: `${String(index + 1).padStart(2, "0")}-${slugify(a.name) || "conquista"}.png`,
     visualConcept: a.description
       ? `Símbolo central inspirado no significado de "${a.name}", usando os elementos da descrição como referência. Identidade Rumo à Conquista: composição quadrada, fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental, iluminação dramática e sem texto.`
       : `Símbolo central representando "${a.name}" de forma clara e específica. Identidade Rumo à Conquista: composição quadrada, fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental, iluminação dramática e sem texto.`,
@@ -34,7 +34,7 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const selected = useMemo(() => result?.achievements.filter((a) => a.journey).map(prepareAchievement) ?? [], [result]);
+  const selected = useMemo(() => result?.achievements.filter((a) => a.journey).map((a, index) => prepareAchievement(a, index)) ?? [], [result]);
 
   useEffect(() => {
     if (!result?.game.slug) return;
@@ -99,6 +99,41 @@ export default function Page() {
             <div className="mt-4 space-y-2">{result.achievements.map((a, i) => <button key={a.id} onClick={() => toggle(a.id)} className={a.journey ? "w-full rounded-2xl border border-red-500/30 bg-red-500/[.06] p-4 text-left" : "w-full rounded-2xl border border-white/[.07] bg-black/20 p-4 text-left"}><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[8px] uppercase text-white/25">Conquista {i + 1}</p><h3 className="mt-1 text-sm font-black">{a.name}</h3><p className="mt-2 text-xs text-white/35">{a.description || "Sem descrição disponível."}</p></div><div className="flex shrink-0 flex-wrap gap-2"><span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">{a.rank}</span><span className="rounded-full border border-violet-400/20 px-3 py-1.5 text-[8px] font-black text-violet-200/70">{a.exophase === "sim" ? "Exophase" : a.exophase === "nao" ? "Sem Exophase" : "Não verificado"}</span><span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">{a.journey ? "Jornada" : "Fora da Jornada"}</span></div></div></button>)}</div>
             <div className="mt-5 flex items-center justify-between gap-4 border-t border-white/[.07] pt-5"><p className="text-xs text-white/35">A seleção será usada para preparar automaticamente os dados das artes.</p><button type="button" onClick={savePreparation} className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-red-100">{saved ? "Preparação salva" : "Salvar seleção"}</button></div>
           </section>
+
+          {selected.length > 0 && <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
+            <p className="text-[9px] uppercase tracking-[.18em] text-red-500">05 • Lotes para ChatGPT</p>
+            <h2 className="mt-1 text-xl font-black">Preparar lotes</h2>
+            <p className="mt-2 text-xs text-white/35">10 conquistas é o padrão inicial. O tamanho é ajustável para cada jogo.</p>
+            <div className="mt-4 flex items-center gap-3">
+              <label htmlFor="batch-size" className="text-[9px] font-black uppercase text-white/30">Conquistas por lote</label>
+              <input id="batch-size" type="number" min={1} max={100} defaultValue={10} className="w-20 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm font-bold" />
+            </div>
+            <div className="mt-4 space-y-2">
+              {Array.from({ length: Math.ceil(selected.length / 10) }, (_, batchIndex) => {
+                const start = batchIndex * 10;
+                const batch = selected.slice(start, start + 10);
+                const packageText = [
+                  `JOGO: ${result?.game.name}`,
+                  "",
+                  ...batch.map((a, localIndex) => `CONQUISTA ${String(start + localIndex + 1).padStart(2, "0")}
+Nome: ${a.name}
+Descrição: ${a.description || "Sem descrição disponível."}
+Rank: ${a.rank}
+Jornada de Estreia: SIM
+Exophase: ${a.exophase === "sim" ? "SIM" : a.exophase === "nao" ? "NÃO" : "NÃO VERIFICADO"}
+Arquivo: ${a.filename}
+Conceito visual: ${a.visualConcept}`).join("\n\n"),
+                ].join("\n");
+                return (
+                  <div key={batchIndex} className="flex items-center justify-between gap-4 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
+                    <div><p className="text-xs font-black">Lote {String(batchIndex + 1).padStart(2, "0")}</p><p className="text-[9px] text-white/30">Conquistas {start + 1}–{start + batch.length}</p></div>
+                    <button type="button" onClick={() => navigator.clipboard.writeText(packageText)} className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100">Copiar lote</button>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-[9px] leading-relaxed text-white/25">O botão copia o pacote completo. Depois abra a conversa do jogo no ChatGPT e cole.</p>
+          </section>}
 
           {selected.length > 0 && <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
             <p className="text-[9px] uppercase tracking-[.18em] text-red-500">04 • Dados preparados</p><h2 className="mt-1 text-xl font-black">Pacote de cada conquista</h2><p className="mt-2 text-xs text-white/35">Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.</p>
