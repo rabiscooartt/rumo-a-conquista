@@ -188,11 +188,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const [d, p, exophaseGame] = await Promise.all([
-      details(g.id),
-      percentages(g.id),
-      findExophaseSteamGame(d?.name || g.name || registeredGame.title),
-    ]);
+    const d = await details(g.id);
 
     if (!d) {
       return NextResponse.json(
@@ -203,6 +199,11 @@ export async function GET(req: NextRequest) {
         { status: 502 }
       );
     }
+
+    const [p, exophaseGame] = await Promise.all([
+      percentages(g.id),
+      findExophaseSteamGame(d.name || g.name || registeredGame.title),
+    ]);
 
     const achievements = (d.achievements ?? [])
       .map((a, i) => {
