@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const gameSlug = String(formData.get("gameSlug") ?? "").trim();
     const files = formData.getAll("files").filter((value): value is File => value instanceof File);
+    const expectedFilenames = JSON.parse(String(formData.get("expectedFilenames") ?? "[]")) as string[];
 
     if (!gameSlug) {
       return NextResponse.json({ error: "O slug do jogo é obrigatório." }, { status: 400 });
