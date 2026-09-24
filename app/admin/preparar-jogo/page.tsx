@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -51,7 +51,7 @@ function prepareAchievement(a: A, index: number): Prepared {
   };
 }
 
-export default function Page() {
+function PrepararJogoPage() {
   const searchParams = useSearchParams();
   const registeredSlug = searchParams.get("slug")?.trim() ?? "";
 
@@ -570,5 +570,22 @@ export default function Page() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#050505] text-white">
+          <Navbar />
+          <div className="mx-auto max-w-[1500px] px-5 py-8 lg:px-8 text-sm text-white/35">
+            Carregando preparador...
+          </div>
+        </main>
+      }
+    >
+      <PrepararJogoPage />
+    </Suspense>
   );
 }
