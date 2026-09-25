@@ -31,7 +31,83 @@ function rank(p?: number): "Bronze" | "Prata" | "Ouro" {
   return p < 5 ? "Ouro" : p < 20 ? "Prata" : "Bronze";
 }
 
-function isJourneyByCompletion(name: string, description: string) { const text = norm(`${name} ${description}`); return ["complete the campaign","complete the story","complete the game","finish the campaign","finish the story","finish the game","beat the game","wrap up the","complete the","resolve the","concluir a campanha","concluir a historia","concluir o jogo","finalizar a campanha","finalizar a historia","finalizar o jogo","resolver o caso","resolva o caso","complete o caso","conclua o caso","finalize o caso"].some((pattern) => text.includes(pattern)); }
+function isOnline(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "online",
+    "multiplayer",
+    "multijogador",
+    "co op",
+    "coop",
+    "cooperative",
+    "cooperativo",
+    "other players",
+    "outros jogadores",
+    "pvp",
+    "player versus player",
+    "matchmaking",
+    "server",
+    "servidor",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function isMomentary(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "in a single playthrough",
+    "in one playthrough",
+    "in a single game",
+    "in one game",
+    "in a single match",
+    "in one match",
+    "in a single run",
+    "in one run",
+    "during the chase",
+    "during the escape",
+    "during the mission",
+    "during the level",
+    "during the chapter",
+    "before the timer",
+    "within the time limit",
+    "sem ser atingido",
+    "sem tomar dano",
+    "em uma unica partida",
+    "em uma unica jogada",
+    "em uma unica run",
+    "em uma unica tentativa",
+    "durante a missao",
+    "durante o capitulo",
+    "durante a fase",
+    "antes do tempo acabar",
+    "dentro do tempo",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function isJourneyByCompletion(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "complete the campaign",
+    "complete the story",
+    "complete the game",
+    "finish the campaign",
+    "finish the story",
+    "finish the game",
+    "beat the game",
+    "wrap up the",
+    "resolve the case",
+    "concluir a campanha",
+    "concluir a historia",
+    "concluir o jogo",
+    "finalizar a campanha",
+    "finalizar a historia",
+    "finalizar o jogo",
+    "resolver o caso",
+    "resolva o caso",
+    "complete o caso",
+    "conclua o caso",
+    "finalize o caso",
+  ].some((pattern) => text.includes(pattern));
+}
 
 async function searchSteam(title: string) {
   const r = await fetch(
@@ -355,6 +431,9 @@ export async function GET(req: NextRequest) {
               : "nao"
             : "nao_verificado";
 
+        const online = isOnline(name, a.description?.trim() || "");
+        const momentary = isMomentary(name, a.description?.trim() || "");
+
         return {
           name,
           description: a.description?.trim() || "",
@@ -366,8 +445,12 @@ export async function GET(req: NextRequest) {
                 : undefined
           ),
           exophase: exophase as "sim" | "nao" | "nao_verificado",
-          journeySuggestion: isJourneyByCompletion(name, a.description?.trim() || ""),
-          journey: isJourneyByCompletion(name, a.description?.trim() || ""),
+          online,
+          momentary,
+          journeySuggestion:
+            !online && isJourneyByCompletion(name, a.description?.trim() || ""),
+          journey:
+            !online && isJourneyByCompletion(name, a.description?.trim() || ""),
           id: `${g.id}-achievement-${i + 1}-${slug(
             name || `conquista-${i + 1}`
           )}`,
@@ -396,7 +479,7 @@ export async function GET(req: NextRequest) {
       achievements,
       warnings: [
         "Rank Bronze/Prata/Ouro é uma sugestão automática baseada na raridade global da conquista na Steam.",
-        "Jornada de Estreia também começa como sugestão automática: a decisão final é do preparador e pode ser alterada em cada conquista.",
+        "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",
         exophaseGame
         ? exophaseTitles
           ? "Exophase consultado: cada conquista foi marcada apenas pela existência do mesmo título no Exophase."
