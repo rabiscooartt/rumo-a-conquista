@@ -11,7 +11,6 @@ type A = {
   name: string;
   description: string;
   rank: "Bronze" | "Prata" | "Ouro";
-  exophase: "sim" | "nao" | "nao_verificado";
   online: boolean;
   momentary: boolean;
   journeySuggestion: boolean;
@@ -282,18 +281,18 @@ function PrepararJogoPage() {
               ))}
 
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-violet-400/10 bg-violet-400/[.03] p-3">
-                <span className="text-[9px] font-black uppercase tracking-[.12em] text-violet-200/50">
+                <span className="text-[10px] font-black uppercase tracking-[.12em] text-violet-200/60">
                   Exophase
                 </span>
                 <span
                   className={
                     result.game.exophase?.found
-                      ? "rounded-full border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-1.5 text-[8px] font-black text-emerald-200"
-                      : "rounded-full border border-yellow-400/20 bg-yellow-400/[.05] px-3 py-1.5 text-[8px] font-black text-yellow-100/70"
+                      ? "rounded-full border border-emerald-400/20 bg-emerald-400/[.06] px-4 py-2 text-[10px] font-black text-emerald-200"
+                      : "rounded-full border border-yellow-400/20 bg-yellow-400/[.05] px-4 py-2 text-[10px] font-black text-yellow-100/70"
                   }
                 >
                   {result.game.exophase?.found
-                    ? "Jogo encontrado"
+                    ? `Jogo localizado • ${result.game.exophase.achievementCount ?? result.achievements.length} conquistas`
                     : "Jogo não localizado"}
                 </span>
                 {result.game.exophase?.url && (
@@ -301,7 +300,7 @@ function PrepararJogoPage() {
                     href={result.game.exophase.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[9px] font-black uppercase text-violet-200/70 underline underline-offset-4"
+                    className="text-[10px] font-black uppercase text-violet-200/70 underline underline-offset-4"
                   >
                     Abrir no Exophase
                   </a>
@@ -317,11 +316,11 @@ function PrepararJogoPage() {
                   </p>
                   <h2 className="text-xl font-black">Seleção da Jornada</h2>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-[8px] font-black uppercase">
-                  <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3 py-1.5 text-emerald-200">
+                <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-black uppercase">
+                  <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3.5 py-2 text-emerald-200">
                     Verde = decisão do preparador: Jornada
                   </span>
-                  <span className="rounded-full border border-yellow-400/25 bg-yellow-400/[.06] px-3 py-1.5 text-yellow-100">
+                  <span className="rounded-full border border-yellow-400/25 bg-yellow-400/[.06] px-3.5 py-2 text-yellow-100">
                     Amarelo = decisão do preparador: Fora
                   </span>
                 </div>
@@ -344,7 +343,7 @@ function PrepararJogoPage() {
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                       <div>
-                        <p className="text-[8px] uppercase text-white/25">
+                        <p className="text-[9px] uppercase text-white/25">
                           Conquista {i + 1}
                         </p>
                         <h3 className="mt-1 text-sm font-black">{a.name}</h3>
@@ -354,10 +353,10 @@ function PrepararJogoPage() {
                       </div>
 
                       <div className="flex shrink-0 flex-wrap gap-2">
-                        <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">
+                        <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
                           {a.rank}
                         </span>
-                        <span className="rounded-full border border-violet-400/20 px-3 py-1.5 text-[8px] font-black text-violet-200/70">
+                        <span className="rounded-full border border-violet-400/20 px-3.5 py-2 text-[10px] font-black text-violet-200/70">
                           {a.exophase === "sim"
                             ? "Exophase"
                             : a.exophase === "nao"
@@ -365,19 +364,19 @@ function PrepararJogoPage() {
                               : "Aguardando Exophase"}
                         </span>
                         {a.online && (
-                          <span className="rounded-full border border-sky-400/25 bg-sky-400/[.05] px-3 py-1.5 text-[8px] font-black text-sky-200">
+                          <span className="rounded-full border border-sky-400/25 bg-sky-400/[.05] px-3.5 py-2 text-[10px] font-black text-sky-200">
                             🌐 Online
                           </span>
                         )}
                         {a.momentary && (
-                          <span className="rounded-full border border-orange-400/25 bg-orange-400/[.05] px-3 py-1.5 text-[8px] font-black text-orange-200">
+                          <span className="rounded-full border border-orange-400/25 bg-orange-400/[.05] px-3.5 py-2 text-[10px] font-black text-orange-200">
                             ⚠️ Momentânea
                           </span>
                         )}
-                        <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">
+                        <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
                           👤 {a.journey ? "Decisão: Jornada de Estreia" : "Decisão: Fora da Jornada"}
                         </span>
-                        <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black text-white/45">
+                        <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black text-white/45">
                           🤖 {a.journeySuggestion ? "Sugestão: Jornada" : "Sugestão: Fora"}
                         </span>
                       </div>
@@ -463,7 +462,6 @@ function PrepararJogoPage() {
                           `Rank: ${a.rank}`,
                           "Jornada de Estreia: SIM",
                           `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
-                          `Exophase: ${a.exophase === "sim" ? "SIM" : a.exophase === "nao" ? "NÃO" : "NÃO VERIFICADO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
                           ""
@@ -534,30 +532,30 @@ function PrepararJogoPage() {
                           </p>
                           <h3 className="mt-1 text-sm font-black">{a.name}</h3>
                         </div>
-                        <span className="rounded-full border border-red-500/20 bg-red-500/[.06] px-3 py-1.5 text-[8px] font-black text-red-100">
+                        <span className="rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2 text-[10px] font-black text-red-100">
                           {a.rank}
                         </span>
                       </div>
 
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         <div>
-                          <p className="text-[8px] uppercase text-white/25">Descrição</p>
+                          <p className="text-[9px] uppercase text-white/25">Descrição</p>
                           <p className="mt-1 text-xs text-white/55">
                             {a.description || "Sem descrição disponível."}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[8px] uppercase text-white/25">Arquivo</p>
+                          <p className="text-[9px] uppercase text-white/25">Arquivo</p>
                           <p className="mt-1 text-xs font-bold text-white/70">
                             {a.filename}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[8px] uppercase text-white/25">Jornada de Estreia</p>
+                          <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
                           <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
                         </div>
                         <div>
-                          <p className="text-[8px] uppercase text-white/25">Exophase</p>
+                          <p className="text-[9px] uppercase text-white/25">Exophase</p>
                           <p className="mt-1 text-xs font-bold text-white/70">
                             {a.exophase === "sim"
                               ? "SIM"
@@ -569,7 +567,7 @@ function PrepararJogoPage() {
                       </div>
 
                       <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
-                        <p className="text-[8px] uppercase text-white/25">
+                        <p className="text-[9px] uppercase text-white/25">
                           Conceito visual
                         </p>
                         <p className="mt-1 text-xs leading-relaxed text-white/50">
