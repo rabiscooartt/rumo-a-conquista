@@ -12,6 +12,7 @@ type A = {
   description: string;
   rank: "Bronze" | "Prata" | "Ouro";
   exophase: "sim" | "nao" | "nao_verificado";
+  journeySuggestion: boolean;
   journey: boolean;
 };
 
@@ -316,10 +317,10 @@ function PrepararJogoPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-[8px] font-black uppercase">
                   <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3 py-1.5 text-emerald-200">
-                    Verde = Jornada de Estreia
+                    Verde = decisão do preparador: Jornada
                   </span>
                   <span className="rounded-full border border-yellow-400/25 bg-yellow-400/[.06] px-3 py-1.5 text-yellow-100">
-                    Amarelo = Fora da Jornada
+                    Amarelo = decisão do preparador: Fora
                   </span>
                 </div>
               </div>
@@ -358,7 +359,10 @@ function PrepararJogoPage() {
                               : "Aguardando Exophase"}
                         </span>
                         <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">
-                          {a.journey ? "Jornada de Estreia" : "Fora da Jornada de Estreia"}
+                          👤 {a.journey ? "Decisão: Jornada de Estreia" : "Decisão: Fora da Jornada"}
+                        </span>
+                        <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black text-white/45">
+                          🤖 {a.journeySuggestion ? "Sugestão: Jornada" : "Sugestão: Fora"}
                         </span>
                       </div>
                     </div>
@@ -442,6 +446,7 @@ function PrepararJogoPage() {
                           `Descrição: ${a.description || "Sem descrição disponível."}`,
                           `Rank: ${a.rank}`,
                           "Jornada de Estreia: SIM",
+                          `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
                           `Exophase: ${a.exophase === "sim" ? "SIM" : a.exophase === "nao" ? "NÃO" : "NÃO VERIFICADO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
@@ -533,7 +538,7 @@ function PrepararJogoPage() {
                         </div>
                         <div>
                           <p className="text-[8px] uppercase text-white/25">Jornada de Estreia</p>
-                          <p className="mt-1 text-xs font-bold text-red-100">SIM</p>
+                          <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
                         </div>
                         <div>
                           <p className="text-[8px] uppercase text-white/25">Exophase</p>
