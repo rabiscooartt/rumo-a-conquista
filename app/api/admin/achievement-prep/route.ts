@@ -8,6 +8,7 @@ type Details = {
     name?: string;
     displayName?: string;
     description?: string;
+    percent?: number;
   }>;
 };
 
@@ -48,20 +49,113 @@ async function searchSteam(title: string) {
   );
 }
 
+function decodeHtml(value: string) {
+  return value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#(\\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) =>
+      String.fromCodePoint(parseInt(code, 16))
+    );
+}
+
+function stripHtml(value: string) {
+  return decodeHtml(value.replace(/<[^>]*>/g, " "))
+    .replace(/\\s+/g, " ")
+    .trim();
+}
+
 async function details(id: number) {
-  const r = await fetch(
-    `https://store.steampowered.com/api/appdetails?appids=${id}&cc=US&l=english`,
-    { cache: "no-store" }
-  );
+  const url =
+    `https://store.steampowered.com/api/appdetails?appids=${id}&cc=US&l=english`;
 
-  if (!r.ok) return null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const r = await fetch(url, {
+        cache: "no-store",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0)",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+      });
 
-  const p = (await r.json()) as Record<
-    string,
-    { success?: boolean; data?: Details }
-  >;
+      if (!r.ok) continue;
 
-  return p[String(id)]?.data ?? null;
+      const p = (await r.json()) as Record<
+        string,
+        { success?: boolean; data?: Details }
+      >;
+
+      const data = p[String(id)]?.data;
+      if (data) return data;
+    } catch (error) {
+      console.error("[Steam AppDetails]", error);
+    }
+  }
+
+  return null;
+}
+
+async function communityDetails(id: number, title: string) {
+  try {
+    const r = await fetch(
+      `https://steamcommunity.com/stats/${id}/achievements/?l=english`,
+      {
+        cache: "no-store",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0)",
+          "Accept-Language": "en-US,en;q=0.9",
+          "X-ValveUserAgent": "panorama",
+        },
+      }
+    );
+
+    if (!r.ok) return null;
+
+    const html = await r.text();
+    const rows = Array.from(
+      html.matchAll(
+        /<div[^>]*class=["'][^"']*\\bachieveRow\\b[^"']*["'][^>]*>([\\s\\S]*?)(?=<div[^>]*class=["'][^"']*\\bachieveRow\\b|$)/gi
+      )
+    );
+
+    const achievements = rows
+      .map((match) => {
+        const row = match[1];
+        const titleMatch = row.match(
+          /<div[^>]*class=["'][^"']*\\bachieveTxt\\b[^"']*["'][^>]*>[\\s\\S]*?<h3[^>]*>([\\s\\S]*?)<\\/h3>/i
+        );
+        const descriptionMatch = row.match(
+          /<h5[^>]*>([\\s\\S]*?)<\\/h5>/i
+        );
+        const percentMatch = row.match(/(\\d+(?:\\.\\d+)?)%/);
+
+        const displayName = titleMatch ? stripHtml(titleMatch[1]) : "";
+        const description = descriptionMatch
+          ? stripHtml(descriptionMatch[1])
+          : "";
+        const percent = percentMatch ? Number(percentMatch[1]) : undefined;
+
+        return {
+          name: `community-${slug(displayName)}`,
+          displayName,
+          description,
+          percent,
+        };
+      })
+      .filter((achievement) => achievement.displayName);
+
+    if (!achievements.length) return null;
+
+    return { name: title, achievements } satisfies Details;
+  } catch (error) {
+    console.error("[Steam Community Achievements]", error);
+    return null;
+  }
 }
 
 async function findExophaseSteamGame(title: string) {
@@ -188,13 +282,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const d = await details(g.id);
+    const storeDetails = await details(g.id);
+    const d =
+      storeDetails ??
+      (await communityDetails(g.id, g.name || registeredGame.title));
 
     if (!d) {
       return NextResponse.json(
         {
           error:
-            "Encontrei o jogo, mas não consegui carregar suas conquistas.",
+            "Encontrei o jogo, mas não consegui carregar suas conquistas na Steam.",
         },
         { status: 502 }
       );
@@ -212,7 +309,13 @@ export async function GET(req: NextRequest) {
         return {
           name,
           description: a.description?.trim() || "",
-          rank: rank(a.name ? p.get(a.name) : undefined),
+          rank: rank(
+            typeof a.percent === "number"
+              ? a.percent
+              : a.name
+                ? p.get(a.name)
+                : undefined
+          ),
           exophase: "nao_verificado" as const,
           journey: false,
           id: `${g.id}-achievement-${i + 1}-${slug(
