@@ -314,9 +314,14 @@ function PrepararJogoPage() {
                   </p>
                   <h2 className="text-xl font-black">Seleção da Jornada</h2>
                 </div>
-                <span className="text-[9px] uppercase text-white/30">
-                  Clique para selecionar
-                </span>
+                <div className="flex flex-wrap items-center gap-2 text-[8px] font-black uppercase">
+                  <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3 py-1.5 text-emerald-200">
+                    Verde = Jornada de Estreia
+                  </span>
+                  <span className="rounded-full border border-yellow-400/25 bg-yellow-400/[.06] px-3 py-1.5 text-yellow-100">
+                    Amarelo = Fora da Jornada
+                  </span>
+                </div>
               </div>
 
               <div className="mt-4 space-y-2">
@@ -326,8 +331,8 @@ function PrepararJogoPage() {
                     onClick={() => toggle(a.id)}
                     className={
                       a.journey
-                        ? "w-full rounded-2xl border border-red-500/30 bg-red-500/[.06] p-4 text-left"
-                        : "w-full rounded-2xl border border-white/[.07] bg-black/20 p-4 text-left"
+                        ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-4 text-left"
+                        : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-4 text-left"
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -350,10 +355,10 @@ function PrepararJogoPage() {
                             ? "Exophase"
                             : a.exophase === "nao"
                               ? "Sem Exophase"
-                              : "Não verificado"}
+                              : "Aguardando Exophase"}
                         </span>
                         <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">
-                          {a.journey ? "Jornada" : "Fora da Jornada"}
+                          {a.journey ? "Jornada de Estreia" : "Fora da Jornada de Estreia"}
                         </span>
                       </div>
                     </div>

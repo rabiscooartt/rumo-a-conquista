@@ -31,11 +31,13 @@ function rank(p?: number): "Bronze" | "Prata" | "Ouro" {
   return p < 5 ? "Ouro" : p < 20 ? "Prata" : "Bronze";
 }
 
+function isJourneyByCompletion(name: string, description: string) { const text = norm(`${name} ${description}`); return ["complete the campaign","complete the story","complete the game","finish the campaign","finish the story","finish the game","beat the game","wrap up the","complete the","resolve the","concluir a campanha","concluir a historia","concluir o jogo","finalizar a campanha","finalizar a historia","finalizar o jogo","resolver o caso","resolva o caso","complete o caso","conclua o caso","finalize o caso"].some((pattern) => text.includes(pattern)); }
+
 async function searchSteam(title: string) {
   const r = await fetch(
     "https://store.steampowered.com/api/storesearch/?term=" +
       encodeURIComponent(title) +
-      "&l=english&cc=US",
+      "&l=brazilian&cc=US",
     { cache: "no-store" }
   );
 
@@ -71,7 +73,7 @@ function stripHtml(value: string) {
 
 async function details(id: number) {
   const url =
-    `https://store.steampowered.com/api/appdetails?appids=${id}&cc=US&l=english`;
+    `https://store.steampowered.com/api/appdetails?appids=${id}&cc=US&l=brazilian`;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
@@ -79,7 +81,7 @@ async function details(id: number) {
         cache: "no-store",
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0)",
-          "Accept-Language": "en-US,en;q=0.9",
+          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
         },
       });
 
@@ -103,12 +105,12 @@ async function details(id: number) {
 async function communityDetails(id: number, title: string) {
   try {
     const r = await fetch(
-      `https://steamcommunity.com/stats/${id}/achievements/?l=english`,
+      `https://steamcommunity.com/stats/${id}/achievements/?l=brazilian`,
       {
         cache: "no-store",
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0)",
-          "Accept-Language": "en-US,en;q=0.9",
+          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
           "X-ValveUserAgent": "panorama",
         },
       }
@@ -317,7 +319,7 @@ export async function GET(req: NextRequest) {
                 : undefined
           ),
           exophase: "nao_verificado" as const,
-          journey: false,
+          journey: isJourneyByCompletion(name, a.description?.trim() || ""),
           id: `${g.id}-achievement-${i + 1}-${slug(
             name || `conquista-${i + 1}`
           )}`,
