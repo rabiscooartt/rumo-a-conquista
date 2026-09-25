@@ -89,73 +89,58 @@ function stripHtml(value: string) {
 }
 
 async function findExophaseSteamGame(title: string) {
-  const directUrl =
-    "https://www.exophase.com/game/" + slug(title) + "-steam/achievements/";
+  // A URL do Exophase é determinística para a página Steam.
+  // A leitura do conteúdo fica separada para podermos usar um fallback
+  // quando o ambiente do servidor não consegue acessar o Exophase diretamente.
+  return {
+    url:
+      "https://www.exophase.com/game/" + slug(title) + "-steam/achievements/",
+  };
+}
 
-  try {
-    const directResponse = await fetch(directUrl, {
-      cache: "no-store",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
-      },
-    });
+async function parseExophaseHtml(html: string) {
+  const titleMatches = Array.from(
+    html.matchAll(
+      /<[^>]*class=["'][^"']*award-title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi
+    )
+  );
 
-    if (directResponse.ok) {
-      const directHtml = await directResponse.text();
-      if (/award-title|Total Achievements|achievement/i.test(directHtml)) {
-        return { url: directUrl };
-      }
-    }
-  } catch (error) {
-    console.error("[Exophase Direct Lookup]", error);
-  }
+  if (!titleMatches.length) return null;
 
-  const searchUrl =
-    "https://www.exophase.com/games/?q=" + encodeURIComponent(title);
+  const achievements: ExophaseAchievement[] = titleMatches
+    .map((match, index) => {
+      const title = stripHtml(match[1]);
+      const start = (match.index ?? 0) + match[0].length;
+      const end =
+        index + 1 < titleMatches.length
+          ? titleMatches[index + 1].index ?? html.length
+          : html.length;
+      const chunk = html.slice(start, end);
 
-  try {
-    const response = await fetch(searchUrl, {
-      cache: "no-store",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
-      },
-    });
+      const percentMatch = chunk.match(/(\d+(?:\.\d+)?)%/);
+      const percent = percentMatch ? Number(percentMatch[1]) : undefined;
 
-    if (!response.ok) return null;
+      const description = stripHtml(
+        chunk
+          .replace(/(\d+(?:\.\d+)?)%\s*\([^)]*\)/g, " ")
+          .replace(/\([^)]*\)/g, " ")
+      );
 
-    const html = await response.text();
-    const candidates = Array.from(
-      html.matchAll(/href=["'](\/game\/[^"'?#]+-steam\/achievements\/?)[ "']?/gi)
-    ).map((match) => match[1]);
+      return { name: title, description, percent };
+    })
+    .filter((achievement) => achievement.name);
 
-    const unique = [...new Set(candidates)];
-    if (!unique.length) return null;
-
-    const exactSlug = slug(title) + "-steam";
-    const exact = unique.find((href) => {
-      const match = href.match(/\/game\/([^/]+)\/achievements\/?$/i);
-      return match?.[1] === exactSlug;
-    });
-
-    const href = exact ?? unique[0];
-    return {
-      url: href.startsWith("http") ? href : "https://www.exophase.com" + href,
-    };
-  } catch (error) {
-    console.error("[Exophase Lookup]", error);
-    return null;
-  }
+  return achievements.length ? achievements : null;
 }
 
 async function fetchExophaseAchievements(url: string) {
-  const urls = [
+  const directUrls = [
     url.endsWith("/") ? url + "pt-BR/" : url + "/pt-BR/",
     url,
   ];
 
-  for (const targetUrl of urls) {
+  // Primeiro tentamos o Exophase diretamente.
+  for (const targetUrl of directUrls) {
     try {
       const response = await fetch(targetUrl, {
         cache: "no-store",
@@ -169,38 +154,41 @@ async function fetchExophaseAchievements(url: string) {
       if (!response.ok) continue;
 
       const html = await response.text();
-      const titleMatches = Array.from(
-        html.matchAll(
-          /<[^>]*class=["'][^"']*award-title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi
-        )
-      );
+      const achievements = await parseExophaseHtml(html);
 
-      if (!titleMatches.length) continue;
-
-      const achievements: ExophaseAchievement[] = titleMatches
-        .map((match, index) => {
-          const title = stripHtml(match[1]);
-          const start = (match.index ?? 0) + match[0].length;
-          const end =
-            index + 1 < titleMatches.length
-              ? titleMatches[index + 1].index ?? html.length
-              : html.length;
-          const chunk = html.slice(start, end);
-          const percentMatch = chunk.match(/(\d+(?:\.\d+)?)%/);
-          const percent = percentMatch ? Number(percentMatch[1]) : undefined;
-          const description = stripHtml(
-            chunk
-              .replace(/(\d+(?:\.\d+)?)%\s*\([^)]*\)/g, " ")
-              .replace(/\([^)]*\)/g, " ")
-          );
-
-          return { name: title, description, percent };
-        })
-        .filter((achievement) => achievement.name);
-
-      if (achievements.length) return { url: targetUrl, achievements };
+      if (achievements) {
+        return { url: targetUrl, achievements };
+      }
     } catch (error) {
-      console.error("[Exophase Achievements]", error);
+      console.error("[Exophase Direct Achievements]", error);
+    }
+  }
+
+  // Fallback de transporte: o conteúdo continua vindo da página do Exophase.
+  // O Reader apenas faz a leitura da URL quando o servidor da aplicação não
+  // consegue acessar o Exophase diretamente.
+  for (const targetUrl of directUrls) {
+    try {
+      const readerUrl = "https://r.jina.ai/" + targetUrl;
+      const response = await fetch(readerUrl, {
+        cache: "no-store",
+        headers: {
+          Accept: "text/html",
+          "X-Respond-With": "html",
+          "X-Timeout": "20",
+        },
+      });
+
+      if (!response.ok) continue;
+
+      const html = await response.text();
+      const achievements = await parseExophaseHtml(html);
+
+      if (achievements) {
+        return { url: targetUrl, achievements };
+      }
+    } catch (error) {
+      console.error("[Exophase Reader Fallback]", error);
     }
   }
 
