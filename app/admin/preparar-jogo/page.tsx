@@ -325,6 +325,10 @@ function PrepararJogoPage() {
                 </div>
               </div>
 
+              <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3 text-xs leading-relaxed text-white/45">
+                <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
+              </div>
+
               <div className="mt-4 space-y-2">
                 {result.achievements.map((a, i) => (
                   <button
