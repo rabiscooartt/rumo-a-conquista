@@ -202,7 +202,13 @@ function parseExophaseHtml(html: string) {
 
       return { name: title, description, percent };
     })
-    .filter((achievement): achievement is ExophaseAchievement => Boolean(achievement));
+    .filter(
+      (achievement): achievement is {
+        name: string;
+        description: string;
+        percent: number | undefined;
+      } => Boolean(achievement)
+    );
 
   return achievements.length ? achievements : null;
 }
