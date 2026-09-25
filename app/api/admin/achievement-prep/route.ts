@@ -57,7 +57,7 @@ function decodeHtml(value: string) {
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
-    .replace(/&#(\\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
     .replace(/&#x([0-9a-f]+);/gi, (_, code) =>
       String.fromCodePoint(parseInt(code, 16))
     );
@@ -65,7 +65,7 @@ function decodeHtml(value: string) {
 
 function stripHtml(value: string) {
   return decodeHtml(value.replace(/<[^>]*>/g, " "))
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -119,7 +119,7 @@ async function communityDetails(id: number, title: string) {
     const html = await r.text();
     const rows = Array.from(
       html.matchAll(
-        /<div[^>]*class=["'][^"']*\\bachieveRow\\b[^"']*["'][^>]*>([\\s\\S]*?)(?=<div[^>]*class=["'][^"']*\\bachieveRow\\b|$)/gi
+        /<div[^>]*class=["'][^"']*\bachieveRow\b[^"']*["'][^>]*>([\s\\S]*?)(?=<div[^>]*class=["'][^"']*\bachieveRow\b|$)/gi
       )
     );
 
@@ -127,12 +127,12 @@ async function communityDetails(id: number, title: string) {
       .map((match) => {
         const row = match[1];
         const titleMatch = row.match(
-          /<div[^>]*class=["'][^"']*\\bachieveTxt\\b[^"']*["'][^>]*>[\\s\\S]*?<h3[^>]*>([\\s\\S]*?)<\\/h3>/i
+          /<div[^>]*class=["'][^"']*\bachieveTxt\b[^"']*["'][^>]*>[\s\\S]*?<h3[^>]*>([\s\\S]*?)<\/h3>/i
         );
         const descriptionMatch = row.match(
-          /<h5[^>]*>([\\s\\S]*?)<\\/h5>/i
+          /<h5[^>]*>([\s\\S]*?)<\/h5>/i
         );
-        const percentMatch = row.match(/(\\d+(?:\\.\\d+)?)%/);
+        const percentMatch = row.match(/(\d+(?:\.\d+)?)%/);
 
         const displayName = titleMatch ? stripHtml(titleMatch[1]) : "";
         const description = descriptionMatch
