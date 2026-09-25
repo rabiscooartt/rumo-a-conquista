@@ -366,6 +366,7 @@ export async function GET(req: NextRequest) {
                 : undefined
           ),
           exophase: exophase as "sim" | "nao" | "nao_verificado",
+          journeySuggestion: isJourneyByCompletion(name, a.description?.trim() || ""),
           journey: isJourneyByCompletion(name, a.description?.trim() || ""),
           id: `${g.id}-achievement-${i + 1}-${slug(
             name || `conquista-${i + 1}`
@@ -395,6 +396,7 @@ export async function GET(req: NextRequest) {
       achievements,
       warnings: [
         "Rank Bronze/Prata/Ouro é uma sugestão automática baseada na raridade global da conquista na Steam.",
+        "Jornada de Estreia também começa como sugestão automática: a decisão final é do preparador e pode ser alterada em cada conquista.",
         exophaseGame
         ? exophaseTitles
           ? "Exophase consultado: cada conquista foi marcada apenas pela existência do mesmo título no Exophase."
