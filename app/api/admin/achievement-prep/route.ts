@@ -119,7 +119,7 @@ async function communityDetails(id: number, title: string) {
     const html = await r.text();
     const rows = Array.from(
       html.matchAll(
-        /<div[^>]*class=["'][^"']*\bachieveRow\b[^"']*["'][^>]*>([\s\\S]*?)(?=<div[^>]*class=["'][^"']*\bachieveRow\b|$)/gi
+        /<div[^>]*class=["'][^"']*\bachieveRow\b[^"']*["'][^>]*>([\s\S]*?)(?=<div[^>]*class=["'][^"']*\bachieveRow\b|$)/gi
       )
     );
 
@@ -127,10 +127,10 @@ async function communityDetails(id: number, title: string) {
       .map((match) => {
         const row = match[1];
         const titleMatch = row.match(
-          /<div[^>]*class=["'][^"']*\bachieveTxt\b[^"']*["'][^>]*>[\s\\S]*?<h3[^>]*>([\s\\S]*?)<\/h3>/i
+          /<div[^>]*class=["'][^"']*\bachieveTxt\b[^"']*["'][^>]*>[\s\S]*?<h3[^>]*>([\s\S]*?)<\/h3>/i
         );
         const descriptionMatch = row.match(
-          /<h5[^>]*>([\s\\S]*?)<\/h5>/i
+          /<h5[^>]*>([\s\S]*?)<\/h5>/i
         );
         const percentMatch = row.match(/(\d+(?:\.\d+)?)%/);
 
