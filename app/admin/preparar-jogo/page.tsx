@@ -26,6 +26,7 @@ type R = {
     exophase?: {
       found: boolean;
       url: string | null;
+      achievementCount?: number;
     };
   };
   achievements: A[];
@@ -356,13 +357,6 @@ function PrepararJogoPage() {
                         <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
                           {a.rank}
                         </span>
-                        <span className="rounded-full border border-violet-400/20 px-3.5 py-2 text-[10px] font-black text-violet-200/70">
-                          {a.exophase === "sim"
-                            ? "Exophase"
-                            : a.exophase === "nao"
-                              ? "Sem Exophase"
-                              : "Aguardando Exophase"}
-                        </span>
                         {a.online && (
                           <span className="rounded-full border border-sky-400/25 bg-sky-400/[.05] px-3.5 py-2 text-[10px] font-black text-sky-200">
                             🌐 Online
@@ -553,16 +547,6 @@ function PrepararJogoPage() {
                         <div>
                           <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
                           <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Exophase</p>
-                          <p className="mt-1 text-xs font-bold text-white/70">
-                            {a.exophase === "sim"
-                              ? "SIM"
-                              : a.exophase === "nao"
-                                ? "NÃO"
-                                : "NÃO VERIFICADO"}
-                          </p>
                         </div>
                       </div>
 
