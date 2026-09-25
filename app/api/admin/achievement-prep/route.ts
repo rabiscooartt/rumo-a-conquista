@@ -83,9 +83,151 @@ function decodeHtml(value: string) {
 }
 
 function stripHtml(value: string) {
-  return decodeHtml(value.replace(/<[^>]*>/g, " "))
-    .replace(/\s+/g, " ")
+  // Algumas respostas do Exophase/Jina trazem trechos de HTML escapados
+  // como &lt;img ...&gt;. Por isso decodificamos e removemos tags mais de
+  // uma vez, evitando que atributos de imagens vazem para a descrição.
+  let current = value;
+
+  for (let i = 0; i < 3; i += 1) {
+    current = current.replace(/<script[\\s\\S]*?<\\/script>/gi, " ");
+    current = current.replace(/<style[\\s\\S]*?<\\/style>/gi, " ");
+    current = current.replace(/<[^>]*>/g, " ");
+    current = decodeHtml(current);
+  }
+
+  return current.replace(/\\s+/g, " ").trim();
+}
+
+async function findExophaseSteamGame(title: string) {
+  // O fluxo da preparação é PT-BR. O Exophase possui uma rota localizada
+  // própria, então não usamos a página inglesa como fallback.
+  return {
+    url:
+      "https://www.exophase.com/game/" +
+      slug(title) +
+      "-steam/achievements/pt-BR/",
+  };
+}
+
+async function parseExophaseHtml(html: string) {
+  // Em vez de capturar até o primeiro </tag>, localizamos a abertura do
+  // elemento .award-title. Isso evita cortar o título no meio quando ele
+  // possui <span>, <a> ou outras tags internas.
+  const titleOpenMatches = Array.from(
+    html.matchAll(
+      /<([a-z0-9]+)\\b[^>]*class=["'][^"']*\\baward-title\\b[^"']*["'][^>]*>/gi
+    )
+  );
+
+  if (!titleOpenMatches.length) return null;
+
+  const achievements: ExophaseAchievement[] = titleOpenMatches
+    .map((match, index) => {
+      const titleStart = (match.index ?? 0) + match[0].length;
+      const nextTitleStart =
+        index + 1 < titleOpenMatches.length
+          ? titleOpenMatches[index + 1].index ?? html.length
+          : html.length;
+
+      const titleEndTag = new RegExp(
+        `</${match[1]}>\\s*import { NextRequest, NextResponse } from "next/server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+
+type ExophaseAchievement = {
+  name?: string;
+  description?: string;
+  percent?: number;
+};
+
+function norm(v: unknown) {
+  return String(v ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function slug(v: string) {
+  return norm(v).replace(/\s+/g, "-");
+}
+
+function rank(p?: number): "Bronze" | "Prata" | "Ouro" {
+  if (typeof p !== "number") return "Bronze";
+  return p < 5 ? "Ouro" : p < 20 ? "Prata" : "Bronze";
+}
+
+function isOnline(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "online", "multiplayer", "multijogador", "co op", "coop",
+    "cooperative", "cooperativo", "other players", "outros jogadores",
+    "pvp", "player versus player", "matchmaking", "server", "servidor",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function isMomentary(name: string, description: string) {
+  const text = norm(name + " " + description);
+  if (
+    /\bem \d+ segundos?\b/.test(text) ||
+    /\bem \d+ minutos?\b/.test(text) ||
+    /\b\d+ inimigos? em \d+ segundos?\b/.test(text)
+  ) return true;
+
+  return [
+    "in a single playthrough", "in one playthrough", "in a single game",
+    "in one game", "in a single match", "in one match", "in a single run",
+    "in one run", "during the chase", "during the escape", "during the mission",
+    "during the level", "during the chapter", "before the timer",
+    "within the time limit", "sem ser atingido", "sem tomar dano",
+    "em uma unica partida", "em uma unica jogada", "em uma unica run",
+    "em uma unica tentativa", "durante a missao", "durante o capitulo",
+    "durante a fase", "antes do tempo acabar", "dentro do tempo",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function isJourneyByCompletion(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "complete the campaign", "complete the story", "complete the game",
+    "finish the campaign", "finish the story", "finish the game",
+    "beat the game", "wrap up the", "resolve the case",
+    "concluir a campanha", "concluir a historia", "concluir o jogo",
+    "finalizar a campanha", "finalizar a historia", "finalizar o jogo",
+    "resolver o caso", "resolva o caso", "complete o caso",
+    "conclua o caso", "finalize o caso",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function decodeHtml(value: string) {
+  return value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) =>
+      String.fromCodePoint(parseInt(code, 16))
+    );
+}
+
+function stripHtml(value: string) {
+  // Algumas respostas do Exophase/Jina trazem trechos de HTML escapados
+  // como &lt;img ...&gt;. Por isso decodificamos e removemos tags mais de
+  // uma vez, evitando que atributos de imagens vazem para a descrição.
+  let current = value;
+
+  for (let i = 0; i < 3; i += 1) {
+    current = current.replace(/<script[\\s\\S]*?<\\/script>/gi, " ");
+    current = current.replace(/<style[\\s\\S]*?<\\/style>/gi, " ");
+    current = current.replace(/<[^>]*>/g, " ");
+    current = decodeHtml(current);
+  }
+
+  return current.replace(/\\s+/g, " ").trim();
 }
 
 async function findExophaseSteamGame(title: string) {
@@ -98,33 +240,33 @@ async function findExophaseSteamGame(title: string) {
   };
 }
 
-async function parseExophaseHtml(html: string) {
-  const titleMatches = Array.from(
-    html.matchAll(
-      /<[^>]*class=["'][^"']*award-title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi
-    )
-  );
+,
+        "i"
+      );
+      const titleRaw = html
+        .slice(titleStart, nextTitleStart)
+        .split(/<\\/[^>]+>/i)[0]
+        .replace(titleEndTag, "");
 
-  if (!titleMatches.length) return null;
+      const title = stripHtml(titleRaw);
 
-  const achievements: ExophaseAchievement[] = titleMatches
-    .map((match, index) => {
-      const title = stripHtml(match[1]);
-      const start = (match.index ?? 0) + match[0].length;
-      const end =
-        index + 1 < titleMatches.length
-          ? titleMatches[index + 1].index ?? html.length
-          : html.length;
-      const chunk = html.slice(start, end);
+      // Tudo entre este título e o próximo título pertence ao mesmo card.
+      // A descrição vem antes da primeira ocorrência de percentual.
+      const chunk = html.slice(titleStart, nextTitleStart);
+      const visible = stripHtml(chunk);
 
-      const percentMatch = chunk.match(/(\d+(?:\.\d+)?)%/);
+      const percentMatch = visible.match(/(\\d+(?:\\.\\d+)?)%/);
       const percent = percentMatch ? Number(percentMatch[1]) : undefined;
 
-      const description = stripHtml(
-        chunk
-          .replace(/(\d+(?:\.\d+)?)%\s*\([^)]*\)/g, " ")
-          .replace(/\([^)]*\)/g, " ")
-      );
+      let description = percentMatch
+        ? visible.slice(0, percentMatch.index).trim()
+        : visible;
+
+      // Remove textos de interface que podem aparecer antes da descrição.
+      description = description
+        .replace(/^Image\\s+/i, "")
+        .replace(/^Imagem\\s+/i, "")
+        .trim();
 
       return { name: title, description, percent };
     })
@@ -134,10 +276,12 @@ async function parseExophaseHtml(html: string) {
 }
 
 async function fetchExophaseAchievements(url: string) {
-  const directUrls = [
-    url.endsWith("/") ? url + "pt-BR/" : url + "/pt-BR/",
-    url,
-  ];
+  const targetUrl = url;
+
+  // Primeiro tentamos a página PT-BR do Exophase diretamente. Não caímos
+  // para a página inglesa, porque a preparação precisa manter títulos e
+  // descrições em português quando essa tradução existir.
+  const directUrls = [targetUrl];
 
   // Primeiro tentamos o Exophase diretamente.
   for (const targetUrl of directUrls) {
@@ -154,7 +298,15 @@ async function fetchExophaseAchievements(url: string) {
       if (!response.ok) continue;
 
       const html = await response.text();
-      const achievements = await parseExophaseHtml(html);
+
+      // A rota PT-BR deve retornar a interface localizada. Se o servidor
+      // receber uma página inglesa/redirectada, seguimos para o Reader em vez
+      // de apresentar inglês no painel.
+      const isPortuguese =
+        /conquistas|portugu[eê]s(?:\s*\\(brasil\\))?/i.test(html);
+
+      const achievements =
+        isPortuguese ? await parseExophaseHtml(html) : null;
 
       if (achievements) {
         return { url: targetUrl, achievements };
@@ -182,7 +334,11 @@ async function fetchExophaseAchievements(url: string) {
       if (!response.ok) continue;
 
       const html = await response.text();
-      const achievements = await parseExophaseHtml(html);
+      const isPortuguese =
+        /conquistas|portugu[eê]s(?:\s*\\(brasil\\))?/i.test(html);
+
+      const achievements =
+        isPortuguese ? await parseExophaseHtml(html) : null;
 
       if (achievements) {
         return { url: targetUrl, achievements };
