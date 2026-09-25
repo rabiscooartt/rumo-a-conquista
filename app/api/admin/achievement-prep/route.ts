@@ -1,1 +1,309 @@
-import { NextRequest, NextResponse } from "next/server";\nimport { createAdminSupabaseClient } from "@/lib/supabase-admin";\n\ntype ExophaseAchievement = {\n  name?: string;\n  description?: string;\n  percent?: number;\n};\n\nfunction norm(v: unknown) {\n  return String(v ?? "")\n    .trim()\n    .toLowerCase()\n    .normalize("NFD")\n    .replace(/[\u0300-\u036f]/g, "")\n    .replace(/[^a-z0-9]+/g, " ")\n    .trim();\n}\n\nfunction slug(v: string) {\n  return norm(v).replace(/\s+/g, "-");\n}\n\nfunction rank(p?: number): "Bronze" | "Prata" | "Ouro" {\n  if (typeof p !== "number") return "Bronze";\n  return p < 5 ? "Ouro" : p < 20 ? "Prata" : "Bronze";\n}\n\nfunction isOnline(name: string, description: string) {\n  const text = norm(name + " " + description);\n  return [\n    "online", "multiplayer", "multijogador", "co op", "coop",\n    "cooperative", "cooperativo", "other players", "outros jogadores",\n    "pvp", "player versus player", "matchmaking", "server", "servidor",\n  ].some((pattern) => text.includes(pattern));\n}\n\nfunction isMomentary(name: string, description: string) {\n  const text = norm(name + " " + description);\n  if (\n    /\bem \d+ segundos?\b/.test(text) ||\n    /\bem \d+ minutos?\b/.test(text) ||\n    /\b\d+ inimigos? em \d+ segundos?\b/.test(text)\n  ) return true;\n\n  return [\n    "in a single playthrough", "in one playthrough", "in a single game",\n    "in one game", "in a single match", "in one match", "in a single run",\n    "in one run", "during the chase", "during the escape", "during the mission",\n    "during the level", "during the chapter", "before the timer",\n    "within the time limit", "sem ser atingido", "sem tomar dano",\n    "em uma unica partida", "em uma unica jogada", "em uma unica run",\n    "em uma unica tentativa", "durante a missao", "durante o capitulo",\n    "durante a fase", "antes do tempo acabar", "dentro do tempo",\n  ].some((pattern) => text.includes(pattern));\n}\n\nfunction isJourneyByCompletion(name: string, description: string) {\n  const text = norm(name + " " + description);\n  return [\n    "complete the campaign", "complete the story", "complete the game",\n    "finish the campaign", "finish the story", "finish the game",\n    "beat the game", "wrap up the", "resolve the case",\n    "concluir a campanha", "concluir a historia", "concluir o jogo",\n    "finalizar a campanha", "finalizar a historia", "finalizar o jogo",\n    "resolver o caso", "resolva o caso", "complete o caso",\n    "conclua o caso", "finalize o caso",\n  ].some((pattern) => text.includes(pattern));\n}\n\nfunction decodeHtml(value: string) {\n  return value\n    .replace(/&nbsp;/gi, " ")\n    .replace(/&amp;/gi, "&")\n    .replace(/&quot;/gi, '"')\n    .replace(/&#39;|&apos;/gi, "'")\n    .replace(/&lt;/gi, "<")\n    .replace(/&gt;/gi, ">")\n    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))\n    .replace(/&#x([0-9a-f]+);/gi, (_, code) =>\n      String.fromCodePoint(parseInt(code, 16))\n    );\n}\n\nfunction stripHtml(value: string) {\n  return decodeHtml(value.replace(/<[^>]*>/g, " "))\n    .replace(/\s+/g, " ")\n    .trim();\n}\n\nasync function findExophaseSteamGame(title: string) {\n  const directUrl =\n    "https://www.exophase.com/game/" + slug(title) + "-steam/achievements/";\n\n  try {\n    const directResponse = await fetch(directUrl, {\n      cache: "no-store",\n      headers: {\n        "User-Agent":\n          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",\n      },\n    });\n\n    if (directResponse.ok) {\n      const directHtml = await directResponse.text();\n      if (/award-title|Total Achievements|achievement/i.test(directHtml)) {\n        return { url: directUrl };\n      }\n    }\n  } catch (error) {\n    console.error("[Exophase Direct Lookup]", error);\n  }\n\n  const searchUrl =\n    "https://www.exophase.com/games/?q=" + encodeURIComponent(title);\n\n  try {\n    const response = await fetch(searchUrl, {\n      cache: "no-store",\n      headers: {\n        "User-Agent":\n          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",\n      },\n    });\n\n    if (!response.ok) return null;\n\n    const html = await response.text();\n    const candidates = Array.from(\n      html.matchAll(/href=["'](\/game\/[^"'?#]+-steam\/achievements\/?)[ "']?/gi)\n    ).map((match) => match[1]);\n\n    const unique = [...new Set(candidates)];\n    if (!unique.length) return null;\n\n    const exactSlug = slug(title) + "-steam";\n    const exact = unique.find((href) => {\n      const match = href.match(/\/game\/([^/]+)\/achievements\/?$/i);\n      return match?.[1] === exactSlug;\n    });\n\n    const href = exact ?? unique[0];\n    return {\n      url: href.startsWith("http") ? href : "https://www.exophase.com" + href,\n    };\n  } catch (error) {\n    console.error("[Exophase Lookup]", error);\n    return null;\n  }\n}\n\nasync function fetchExophaseAchievements(url: string) {\n  const urls = [\n    url.endsWith("/") ? url + "pt-BR/" : url + "/pt-BR/",\n    url,\n  ];\n\n  for (const targetUrl of urls) {\n    try {\n      const response = await fetch(targetUrl, {\n        cache: "no-store",\n        headers: {\n          "User-Agent":\n            "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",\n          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",\n        },\n      });\n\n      if (!response.ok) continue;\n\n      const html = await response.text();\n      const titleMatches = Array.from(\n        html.matchAll(\n          /<[^>]*class=["'][^"']*award-title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi\n        )\n      );\n\n      if (!titleMatches.length) continue;\n\n      const achievements: ExophaseAchievement[] = titleMatches\n        .map((match, index) => {\n          const title = stripHtml(match[1]);\n          const start = (match.index ?? 0) + match[0].length;\n          const end =\n            index + 1 < titleMatches.length\n              ? titleMatches[index + 1].index ?? html.length\n              : html.length;\n          const chunk = html.slice(start, end);\n          const percentMatch = chunk.match(/(\d+(?:\.\d+)?)%/);\n          const percent = percentMatch ? Number(percentMatch[1]) : undefined;\n          const description = stripHtml(\n            chunk\n              .replace(/(\d+(?:\.\d+)?)%\s*\([^)]*\)/g, " ")\n              .replace(/\([^)]*\)/g, " ")\n          );\n\n          return { name: title, description, percent };\n        })\n        .filter((achievement) => achievement.name);\n\n      if (achievements.length) return { url: targetUrl, achievements };\n    } catch (error) {\n      console.error("[Exophase Achievements]", error);\n    }\n  }\n\n  return null;\n}\n\nasync function resolveGameTitle(slugParam: string | null, titleParam: string) {\n  if (slugParam) {\n    const client = createAdminSupabaseClient();\n    const { data, error } = await client\n      .from("games")\n      .select("slug, title")\n      .eq("slug", slugParam)\n      .eq("is_deleted", false)\n      .maybeSingle();\n\n    if (error) throw error;\n    if (!data) throw new Error("Jogo cadastrado não encontrado.");\n\n    return { slug: String(data.slug), title: String(data.title) };\n  }\n\n  if (!titleParam) throw new Error("O nome do jogo é obrigatório.");\n  return { slug: slug(titleParam), title: titleParam };\n}\n\nexport async function GET(req: NextRequest) {\n  const titleParam = req.nextUrl.searchParams.get("title")?.trim() ?? "";\n  const slugParam = req.nextUrl.searchParams.get("slug")?.trim() ?? "";\n\n  try {\n    const registeredGame = await resolveGameTitle(slugParam || null, titleParam);\n    const exophaseGame = await findExophaseSteamGame(registeredGame.title);\n\n    if (!exophaseGame) {\n      return NextResponse.json(\n        {\n          error:\n            "Não encontrei este jogo no Exophase. A preparação de conquistas agora usa o Exophase como fonte única.",\n        },\n        { status: 404 }\n      );\n    }\n\n    const exophaseData = await fetchExophaseAchievements(exophaseGame.url);\n    if (!exophaseData) {\n      return NextResponse.json(\n        {\n          error:\n            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas dessa página.",\n        },\n        { status: 502 }\n      );\n    }\n\n    const achievements = exophaseData.achievements.map((a, i) => {\n      const name = a.name?.trim() || "";\n      const description = a.description?.trim() || "";\n      const online = isOnline(name, description);\n      const momentary = isMomentary(name, description);\n      const journey = !online && isJourneyByCompletion(name, description);\n\n      return {\n        name,\n        description,\n        rank: rank(a.percent),\n        online,\n        momentary,\n        journeySuggestion: journey,\n        journey,\n        id:\n          "exophase-" +\n          slug(registeredGame.slug) +\n          "-achievement-" +\n          (i + 1) +\n          "-" +\n          slug(name || "conquista-" + (i + 1)),\n      };\n    });\n\n    return NextResponse.json({\n      ok: true,\n      game: {\n        name: registeredGame.title,\n        slug: registeredGame.slug,\n        source: "Exophase",\n        registered: Boolean(slugParam),\n        exophase: {\n          found: true,\n          url: exophaseData.url,\n          achievementCount: achievements.length,\n        },\n      },\n      achievements,\n      warnings: [\n        "Exophase é a fonte única desta preparação: nome, descrição e raridade vêm diretamente da página do jogo.",\n        "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",\n      ],\n    });\n  } catch (e) {\n    console.error("[Achievement Prep]", e);\n    const message =\n      e instanceof Error ? e.message : "Não foi possível preparar o jogo.";\n    return NextResponse.json({ error: message }, { status: 500 });\n  }\n}
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+
+type ExophaseAchievement = {
+  name?: string;
+  description?: string;
+  percent?: number;
+};
+
+function norm(v: unknown) {
+  return String(v ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function slug(v: string) {
+  return norm(v).replace(/\s+/g, "-");
+}
+
+function rank(p?: number): "Bronze" | "Prata" | "Ouro" {
+  if (typeof p !== "number") return "Bronze";
+  return p < 5 ? "Ouro" : p < 20 ? "Prata" : "Bronze";
+}
+
+function isOnline(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "online", "multiplayer", "multijogador", "co op", "coop",
+    "cooperative", "cooperativo", "other players", "outros jogadores",
+    "pvp", "player versus player", "matchmaking", "server", "servidor",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function isMomentary(name: string, description: string) {
+  const text = norm(name + " " + description);
+  if (
+    /\bem \d+ segundos?\b/.test(text) ||
+    /\bem \d+ minutos?\b/.test(text) ||
+    /\b\d+ inimigos? em \d+ segundos?\b/.test(text)
+  ) return true;
+
+  return [
+    "in a single playthrough", "in one playthrough", "in a single game",
+    "in one game", "in a single match", "in one match", "in a single run",
+    "in one run", "during the chase", "during the escape", "during the mission",
+    "during the level", "during the chapter", "before the timer",
+    "within the time limit", "sem ser atingido", "sem tomar dano",
+    "em uma unica partida", "em uma unica jogada", "em uma unica run",
+    "em uma unica tentativa", "durante a missao", "durante o capitulo",
+    "durante a fase", "antes do tempo acabar", "dentro do tempo",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function isJourneyByCompletion(name: string, description: string) {
+  const text = norm(name + " " + description);
+  return [
+    "complete the campaign", "complete the story", "complete the game",
+    "finish the campaign", "finish the story", "finish the game",
+    "beat the game", "wrap up the", "resolve the case",
+    "concluir a campanha", "concluir a historia", "concluir o jogo",
+    "finalizar a campanha", "finalizar a historia", "finalizar o jogo",
+    "resolver o caso", "resolva o caso", "complete o caso",
+    "conclua o caso", "finalize o caso",
+  ].some((pattern) => text.includes(pattern));
+}
+
+function decodeHtml(value: string) {
+  return value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) =>
+      String.fromCodePoint(parseInt(code, 16))
+    );
+}
+
+function stripHtml(value: string) {
+  return decodeHtml(value.replace(/<[^>]*>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function findExophaseSteamGame(title: string) {
+  const directUrl =
+    "https://www.exophase.com/game/" + slug(title) + "-steam/achievements/";
+
+  try {
+    const directResponse = await fetch(directUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+      },
+    });
+
+    if (directResponse.ok) {
+      const directHtml = await directResponse.text();
+      if (/award-title|Total Achievements|achievement/i.test(directHtml)) {
+        return { url: directUrl };
+      }
+    }
+  } catch (error) {
+    console.error("[Exophase Direct Lookup]", error);
+  }
+
+  const searchUrl =
+    "https://www.exophase.com/games/?q=" + encodeURIComponent(title);
+
+  try {
+    const response = await fetch(searchUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const candidates = Array.from(
+      html.matchAll(/href=["'](\/game\/[^"'?#]+-steam\/achievements\/?)[ "']?/gi)
+    ).map((match) => match[1]);
+
+    const unique = [...new Set(candidates)];
+    if (!unique.length) return null;
+
+    const exactSlug = slug(title) + "-steam";
+    const exact = unique.find((href) => {
+      const match = href.match(/\/game\/([^/]+)\/achievements\/?$/i);
+      return match?.[1] === exactSlug;
+    });
+
+    const href = exact ?? unique[0];
+    return {
+      url: href.startsWith("http") ? href : "https://www.exophase.com" + href,
+    };
+  } catch (error) {
+    console.error("[Exophase Lookup]", error);
+    return null;
+  }
+}
+
+async function fetchExophaseAchievements(url: string) {
+  const urls = [
+    url.endsWith("/") ? url + "pt-BR/" : url + "/pt-BR/",
+    url,
+  ];
+
+  for (const targetUrl of urls) {
+    try {
+      const response = await fetch(targetUrl, {
+        cache: "no-store",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+        },
+      });
+
+      if (!response.ok) continue;
+
+      const html = await response.text();
+      const titleMatches = Array.from(
+        html.matchAll(
+          /<[^>]*class=["'][^"']*award-title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi
+        )
+      );
+
+      if (!titleMatches.length) continue;
+
+      const achievements: ExophaseAchievement[] = titleMatches
+        .map((match, index) => {
+          const title = stripHtml(match[1]);
+          const start = (match.index ?? 0) + match[0].length;
+          const end =
+            index + 1 < titleMatches.length
+              ? titleMatches[index + 1].index ?? html.length
+              : html.length;
+          const chunk = html.slice(start, end);
+          const percentMatch = chunk.match(/(\d+(?:\.\d+)?)%/);
+          const percent = percentMatch ? Number(percentMatch[1]) : undefined;
+          const description = stripHtml(
+            chunk
+              .replace(/(\d+(?:\.\d+)?)%\s*\([^)]*\)/g, " ")
+              .replace(/\([^)]*\)/g, " ")
+          );
+
+          return { name: title, description, percent };
+        })
+        .filter((achievement) => achievement.name);
+
+      if (achievements.length) return { url: targetUrl, achievements };
+    } catch (error) {
+      console.error("[Exophase Achievements]", error);
+    }
+  }
+
+  return null;
+}
+
+async function resolveGameTitle(slugParam: string | null, titleParam: string) {
+  if (slugParam) {
+    const client = createAdminSupabaseClient();
+    const { data, error } = await client
+      .from("games")
+      .select("slug, title")
+      .eq("slug", slugParam)
+      .eq("is_deleted", false)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error("Jogo cadastrado não encontrado.");
+
+    return { slug: String(data.slug), title: String(data.title) };
+  }
+
+  if (!titleParam) throw new Error("O nome do jogo é obrigatório.");
+  return { slug: slug(titleParam), title: titleParam };
+}
+
+export async function GET(req: NextRequest) {
+  const titleParam = req.nextUrl.searchParams.get("title")?.trim() ?? "";
+  const slugParam = req.nextUrl.searchParams.get("slug")?.trim() ?? "";
+
+  try {
+    const registeredGame = await resolveGameTitle(slugParam || null, titleParam);
+    const exophaseGame = await findExophaseSteamGame(registeredGame.title);
+
+    if (!exophaseGame) {
+      return NextResponse.json(
+        {
+          error:
+            "Não encontrei este jogo no Exophase. A preparação de conquistas agora usa o Exophase como fonte única.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const exophaseData = await fetchExophaseAchievements(exophaseGame.url);
+    if (!exophaseData) {
+      return NextResponse.json(
+        {
+          error:
+            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas dessa página.",
+        },
+        { status: 502 }
+      );
+    }
+
+    const achievements = exophaseData.achievements.map((a, i) => {
+      const name = a.name?.trim() || "";
+      const description = a.description?.trim() || "";
+      const online = isOnline(name, description);
+      const momentary = isMomentary(name, description);
+      const journey = !online && isJourneyByCompletion(name, description);
+
+      return {
+        name,
+        description,
+        rank: rank(a.percent),
+        online,
+        momentary,
+        journeySuggestion: journey,
+        journey,
+        id:
+          "exophase-" +
+          slug(registeredGame.slug) +
+          "-achievement-" +
+          (i + 1) +
+          "-" +
+          slug(name || "conquista-" + (i + 1)),
+      };
+    });
+
+    return NextResponse.json({
+      ok: true,
+      game: {
+        name: registeredGame.title,
+        slug: registeredGame.slug,
+        source: "Exophase",
+        registered: Boolean(slugParam),
+        exophase: {
+          found: true,
+          url: exophaseData.url,
+          achievementCount: achievements.length,
+        },
+      },
+      achievements,
+      warnings: [
+        "Exophase é a fonte única desta preparação: nome, descrição e raridade vêm diretamente da página do jogo.",
+        "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",
+      ],
+    });
+  } catch (e) {
+    console.error("[Achievement Prep]", e);
+    const message =
+      e instanceof Error ? e.message : "Não foi possível preparar o jogo.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
