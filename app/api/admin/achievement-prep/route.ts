@@ -53,6 +53,14 @@ function isOnline(name: string, description: string) {
 
 function isMomentary(name: string, description: string) {
   const text = norm(name + " " + description);
+  if (
+    /\\bem \\d+ segundos?\\b/.test(text) ||
+    /\\bem \\d+ minutos?\\b/.test(text) ||
+    /\\b\\d+ inimigos? em \\d+ segundos?\\b/.test(text)
+  ) {
+    return true;
+  }
+
   return [
     "in a single playthrough",
     "in one playthrough",
@@ -237,6 +245,31 @@ async function communityDetails(id: number, title: string) {
 }
 
 async function findExophaseSteamGame(title: string) {
+  const directUrl =
+    "https://www.exophase.com/game/" + slug(title) + "-steam/achievements/";
+
+  try {
+    const directResponse = await fetch(directUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+      },
+    });
+
+    if (directResponse.ok) {
+      const directHtml = await directResponse.text();
+      if (/award-title|Total Achievements|achievement/i.test(directHtml)) {
+        return {
+          url: directUrl,
+          searchedTitle: norm(title),
+        };
+      }
+    }
+  } catch (error) {
+    console.error("[Exophase Direct Lookup]", error);
+  }
+
   const searchUrl =
     "https://www.exophase.com/games/?q=" + encodeURIComponent(title);
 
