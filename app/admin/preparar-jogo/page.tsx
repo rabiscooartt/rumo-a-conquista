@@ -12,6 +12,8 @@ type A = {
   description: string;
   rank: "Bronze" | "Prata" | "Ouro";
   exophase: "sim" | "nao" | "nao_verificado";
+  online: boolean;
+  momentary: boolean;
   journeySuggestion: boolean;
   journey: boolean;
 };
@@ -362,6 +364,16 @@ function PrepararJogoPage() {
                               ? "Sem Exophase"
                               : "Aguardando Exophase"}
                         </span>
+                        {a.online && (
+                          <span className="rounded-full border border-sky-400/25 bg-sky-400/[.05] px-3 py-1.5 text-[8px] font-black text-sky-200">
+                            🌐 Online
+                          </span>
+                        )}
+                        {a.momentary && (
+                          <span className="rounded-full border border-orange-400/25 bg-orange-400/[.05] px-3 py-1.5 text-[8px] font-black text-orange-200">
+                            ⚠️ Momentânea
+                          </span>
+                        )}
                         <span className="rounded-full border border-white/10 px-3 py-1.5 text-[8px] font-black">
                           👤 {a.journey ? "Decisão: Jornada de Estreia" : "Decisão: Fora da Jornada"}
                         </span>
@@ -395,7 +407,7 @@ function PrepararJogoPage() {
                 </p>
                 <h2 className="mt-1 text-xl font-black">Preparar lotes</h2>
                 <p className="mt-2 text-xs text-white/35">
-                  10 conquistas é o padrão inicial. O tamanho é ajustável para cada jogo.
+                  10 conquistas é o padrão inicial. O tamanho é ajustável para cada jogo. Online fica separado da Jornada e conquistas momentâneas recebem alerta para você decidir como executar.
                 </p>
 
                 <div className="mt-4 flex items-center gap-3">
