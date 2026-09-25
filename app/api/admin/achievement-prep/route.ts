@@ -71,9 +71,9 @@ function stripHtml(value: string) {
     .trim();
 }
 
-async function details(id: number) {
+async function details(id: number, language = "brazilian") {
   const url =
-    `https://store.steampowered.com/api/appdetails?appids=${id}&cc=US&l=brazilian`;
+    `https://store.steampowered.com/api/appdetails?appids=${id}&cc=US&l=${language}`;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
@@ -206,6 +206,34 @@ async function findExophaseSteamGame(title: string) {
   }
 }
 
+async function fetchExophaseAchievementTitles(url: string) {
+  try {
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const titles = Array.from(
+      html.matchAll(
+        /<[^>]*class=["'][^"']*award-title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi
+      )
+    )
+      .map((match) => stripHtml(match[1]))
+      .filter(Boolean);
+
+    return titles.length ? new Set(titles.map(norm)) : null;
+  } catch (error) {
+    console.error("[Exophase Achievements]", error);
+    return null;
+  }
+}
+
 async function percentages(id: number) {
   try {
     const r = await fetch(
@@ -304,9 +332,28 @@ export async function GET(req: NextRequest) {
       findExophaseSteamGame(d.name || g.name || registeredGame.title),
     ]);
 
+    const exophaseTitles = exophaseGame
+      ? await fetchExophaseAchievementTitles(exophaseGame.url)
+      : null;
+
+    const englishDetails = exophaseTitles
+      ? await details(g.id, "english")
+      : null;
+
     const achievements = (d.achievements ?? [])
       .map((a, i) => {
         const name = a.displayName?.trim() || a.name?.trim() || "";
+        const englishAchievement =
+          englishDetails?.achievements?.[i]?.displayName?.trim() ||
+          englishDetails?.achievements?.[i]?.name?.trim() ||
+          "";
+
+        const exophase =
+          exophaseTitles && englishAchievement
+            ? exophaseTitles.has(norm(englishAchievement))
+              ? "sim"
+              : "nao"
+            : "nao_verificado";
 
         return {
           name,
@@ -318,7 +365,7 @@ export async function GET(req: NextRequest) {
                 ? p.get(a.name)
                 : undefined
           ),
-          exophase: "nao_verificado" as const,
+          exophase: exophase as "sim" | "nao" | "nao_verificado",
           journey: isJourneyByCompletion(name, a.description?.trim() || ""),
           id: `${g.id}-achievement-${i + 1}-${slug(
             name || `conquista-${i + 1}`
@@ -349,8 +396,10 @@ export async function GET(req: NextRequest) {
       warnings: [
         "Rank Bronze/Prata/Ouro é uma sugestão automática baseada na raridade global da conquista na Steam.",
         exophaseGame
-        ? "Jogo localizado no Exophase. A próxima etapa fará o cruzamento das conquistas individualmente."
-        : "Não localizei uma página Steam correspondente no Exophase para este jogo. As conquistas continuam como Não verificado até a etapa de cruzamento.",
+        ? exophaseTitles
+          ? "Exophase consultado: cada conquista foi marcada apenas pela existência do mesmo título no Exophase."
+          : "O jogo foi localizado no Exophase, mas não foi possível ler a lista de conquistas."
+        : "O jogo ainda não foi localizado no Exophase. As conquistas ficam como Aguardando Exophase.",
       ],
     });
   } catch (e) {
