@@ -54,9 +54,9 @@ function isOnline(name: string, description: string) {
 function isMomentary(name: string, description: string) {
   const text = norm(name + " " + description);
   if (
-    /\\bem \\d+ segundos?\\b/.test(text) ||
-    /\\bem \\d+ minutos?\\b/.test(text) ||
-    /\\b\\d+ inimigos? em \\d+ segundos?\\b/.test(text)
+    /\bem \d+ segundos?\b/.test(text) ||
+    /\bem \d+ minutos?\b/.test(text) ||
+    /\b\d+ inimigos? em \d+ segundos?\b/.test(text)
   ) {
     return true;
   }
