@@ -347,26 +347,47 @@ async function fetchJinaHtml(
 ) {
   const readerUrl = "https://r.jina.ai/" + url;
 
-  const response = await fetch(readerUrl, {
+  try {
+    const browserResponse = await fetch(readerUrl, {
+      cache: "no-store",
+      headers: {
+        Accept: "text/html",
+        "X-Engine": "browser",
+        "X-Respond-With": "html",
+        "X-Respond-Timing": "network-idle",
+        "X-Wait-For-Selector": waitForSelector,
+        "X-No-Cache": "true",
+        "X-Timeout": "30",
+      },
+    });
+
+    if (browserResponse.ok) {
+      const html = await browserResponse.text();
+      if (html && html.includes("award-title")) return html;
+    }
+  } catch (error) {
+    console.error("[Jina Browser]", error);
+  }
+
+  // Fallback de compatibilidade: nem toda resposta do Jina/Exophase
+  // aceita o modo browser/selector. Mantemos o Reader simples como segunda
+  // tentativa para não transformar uma falha do browser em erro da preparação.
+  const plainResponse = await fetch(readerUrl, {
     cache: "no-store",
     headers: {
       Accept: "text/html",
-      "X-Engine": "browser",
       "X-Respond-With": "html",
-      "X-Respond-Timing": "network-idle",
-      "X-Wait-For-Selector": waitForSelector,
-      "X-No-Cache": "true",
-      "X-Timeout": "30",
+      "X-Timeout": "20",
     },
   });
 
-  if (!response.ok) {
+  if (!plainResponse.ok) {
     throw new Error(
-      "Jina Reader respondeu com status " + response.status
+      "Jina Reader respondeu com status " + plainResponse.status
     );
   }
 
-  return response.text();
+  return plainResponse.text();
 }
 
 async function fetchExophaseAchievementImage(detailUrl: string) {
