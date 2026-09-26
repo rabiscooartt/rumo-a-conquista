@@ -1286,7 +1286,7 @@ function PrepararJogoPage() {
                           `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
-                          `Referência visual Exophase: ${a.visualReferenceUrl || "Não disponível — criar a partir do jogo e da descrição."}`,
+                          `Referência visual Exophase: ${a.visualReferenceUrl || "Não disponível — criar a partir do jogo e da descrição."}`,\n                          `Arquivo de referência anexável: ${a.visualReferenceUrl ? a.filename.replace(/\\.png$/i, "-exophase-reference.png") : "Nenhum — gerar sem referência visual."}`,
                           ""
                         );
                       });
