@@ -128,7 +128,7 @@ function PrepararJogoPage() {
   }, [registeredSlug]);
 
   useEffect(() => {
-    const slug = result?.game.slug;
+    const slug = result?.game.slug ?? "";
     if (!slug) return;
 
     let cancelled = false;
