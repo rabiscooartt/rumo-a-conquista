@@ -237,8 +237,7 @@ function PrepararJogoPage() {
     const clean = description
       .trim()
       .replace(/^[.!?]+|[.!?]+$/g, "")
-      .replace(/^(mate|elimine|derrote|complete|conclua|faça|faca|encontre|colete|pegue|consiga|vença|venca)\s+/i, "")
-      .trim();
+      .replace(/\s+/g, " ");
 
     if (!clean) return "Nova Conquista";
 
@@ -247,56 +246,104 @@ function PrepararJogoPage() {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
-    const match = normalized.match(/(\d+)\s+inimigos?.*(um unico tiro|uma unica bala|um so tiro|uma so bala)/i);
-    if (match) {
-      const countNames: Record<string, string> = {
-        "1": "Um",
-        "2": "Dois",
-        "3": "Três",
-        "4": "Quatro",
-        "5": "Cinco",
-      };
-      const count = countNames[match[1]] ?? match[1];
-      return `Um Tiro, ${count} Alvos`;
-    }
-
-    if (/sem (tomar|receber) dano|sem ser atingid/.test(normalized)) {
-      return "Intocável";
-    }
-
-    if (/sem morrer|nao morra|não morra/.test(normalized)) {
-      return "De Pé Até o Fim";
-    }
-
-    if (/primeir[oa].*(missao|missão|caso|capitulo|capítulo)/.test(normalized)) {
+    // Títulos curtos e com "cara de conquista". O gerador nunca devolve
+    // a descrição inteira como título.
+    if (/^a primeira conquista\b/.test(normalized) || /\bprimeira conquista\b/.test(normalized)) {
       return "O Primeiro Passo";
     }
 
-    if (/complete|conclua|finalize|finalizar/.test(normalized)) {
-      return "Até o Fim";
+    if (/^a primeira vitoria\b/.test(normalized) || /\bprimeira vitoria\b/.test(normalized)) {
+      return "Primeira Vitória";
     }
 
-    if (/colet(e|ar)|encontr(e|ar)|peg(ue|ar)/.test(normalized)) {
-      const noun = clean
-        .replace(/^(colet(e|ar)|encontr(e|ar)|peg(ue|ar))\s+/i, "")
-        .replace(/\b(um|uma|o|a|os|as|todos?|todas?|\d+)\b/gi, "")
-        .trim();
-
-      if (noun) {
-        const shortNoun = noun.split(/\s+/).slice(0, 4).join(" ");
-        return `Em Busca de ${shortNoun.charAt(0).toUpperCase() + shortNoun.slice(1)}`;
-      }
+    if (/\b(um unico tiro|uma unica bala|um so tiro|uma so bala)\b/.test(normalized)) {
+      const count = normalized.match(/\b(\d+)\s+inimigos?\b/)?.[1];
+      if (count === "3") return "Um Tiro, Três Alvos";
+      if (count === "2") return "Um Tiro, Dois Alvos";
+      return "Um Tiro, Alvo Certo";
     }
 
-    if (/mate|elimine|derrote/.test(normalized)) {
+    if (/\bsem (tomar|receber) dano\b|\bsem ser atingid/.test(normalized)) {
+      return "Intocável";
+    }
+
+    if (/\bsem morrer\b|\bnao morra\b/.test(normalized)) {
+      return "De Pé Até o Fim";
+    }
+
+    if (/\bprimeir[oa]\s+(missao|caso|capitulo|fase)\b/.test(normalized)) {
+      return "O Primeiro Passo";
+    }
+
+    if (/\b(ultima|última)\s+(missao|caso|fase|batalha)\b/.test(normalized)) {
+      return "Até o Último Suspiro";
+    }
+
+    if (/\bcomplete|conclua|finalize|finalizar|termine|terminar\b/.test(normalized)) {
+      if (/\bcampanha|historia|historia|jogo\b/.test(normalized)) return "Até o Fim";
+      return "Missão Cumprida";
+    }
+
+    if (/\bmate|elimine|derrote|abata\b/.test(normalized)) {
+      if (/\bchef(e|es)|boss|batalha\b/.test(normalized)) return "Golpe Final";
       return "Precisão Mortal";
     }
 
-    const words = clean.split(/\s+/).slice(0, 5);
-    const compact = words.join(" ");
-    return compact.charAt(0).toUpperCase() + compact.slice(1);
-  }
+    if (/\bcolet(e|ar)|encontr(e|ar)|peg(ue|ar)|recolh/.test(normalized)) {
+      if (/\btodos?|todas?|100%|completo|completa\b/.test(normalized)) {
+        return "Nada Ficou Para Trás";
+      }
+      return "Em Busca do Inesperado";
+    }
 
+    if (/\bganhe|vença|venca|ven(ç|c)a|conquiste|conquistar\b/.test(normalized)) {
+      return "Vitória Merecida";
+    }
+
+    if (/\bdescubra|descobrir|revele|revelar|segredo|segredos|pista|pistas\b/.test(normalized)) {
+      return "Segredos à Vista";
+    }
+
+    if (/\bajude|ajudar|salve|salvar|resgate|resgatar\b/.test(normalized)) {
+      return "Uma Mão Amiga";
+    }
+
+    if (/\bexplore|explorar|visite|visitar\b/.test(normalized)) {
+      return "Além do Caminho";
+    }
+
+    if (/\bsem ser visto|sem ser detectado|furtiv|stealth\b/.test(normalized)) {
+      return "Nas Sombras";
+    }
+
+    if (/\btempo|segundos|minutos|rapido|rápido|rapidamente\b/.test(normalized)) {
+      return "Contra o Relógio";
+    }
+
+    if (/\bperfeito|perfeita|sem erro|sem erros\b/.test(normalized)) {
+      return "Sem Margem Para Erros";
+    }
+
+    // Fallback: transforma a ideia em um nome curto, mas nunca copia
+    // a descrição inteira.
+    const nouns = clean
+      .replace(/^(mate|elimine|derrote|complete|conclua|faça|faca|encontre|colete|pegue|consiga|vença|venca|termine|termine)\s+/i, "")
+      .replace(/\b(um|uma|o|a|os|as|de|do|da|dos|das|com|em|para|por)\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const words = nouns.split(" ").filter(Boolean);
+    if (words.length === 1) {
+      return `Além de ${words[0].charAt(0).toUpperCase() + words[0].slice(1)}`;
+    }
+
+    if (words.length >= 2) {
+      const phrase = words.slice(0, 3).join(" ");
+      return `O Segredo de ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}`;
+    }
+
+    return "Um Novo Começo";
+  }
   function addManualAchievement() {
     const value = manualAchievement.trim();
     if (!result || !value) return;
@@ -358,12 +405,13 @@ function PrepararJogoPage() {
       id: `custom-${Date.now()}`,
       name: generateManualTitle(value),
       description: value,
-      rank: "Bronze",
+      rank: manualRank,
       online: false,
       momentary: false,
       journeySuggestion: false,
       journey: true,
       notDoing: false,
+      isCustom: true,
     };
 
     setSaved(false);
