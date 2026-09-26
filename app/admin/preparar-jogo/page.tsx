@@ -231,6 +231,24 @@ function PrepararJogoPage() {
       .slice(0, 3);
   }
 
+  function generateManualTitle(description: string) {
+    const clean = description
+      .trim()
+      .replace(/^[.!?]+|[.!?]+$/g, "")
+      .replace(/^(mate|elimine|derrote|complete|conclua|faça|faca|encontre|colete|pegue|consiga|vença|venca)\s+/i, "")
+      .trim();
+
+    if (!clean) return "Nova Conquista";
+
+    const words = clean.split(/\s+/);
+    if (words.length <= 6) {
+      return clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
+
+    const compact = words.slice(0, 6).join(" ");
+    return compact.charAt(0).toUpperCase() + compact.slice(1) + "…";
+  }
+
   function addManualAchievement() {
     const value = manualAchievement.trim();
     if (!result || !value) return;
@@ -245,8 +263,8 @@ function PrepararJogoPage() {
 
     const custom: A = {
       id: `custom-${Date.now()}`,
-      name: value,
-      description: "",
+      name: generateManualTitle(value),
+      description: value,
       rank: "Bronze",
       online: false,
       momentary: false,
@@ -268,8 +286,8 @@ function PrepararJogoPage() {
 
     const custom: A = {
       id: `custom-${Date.now()}`,
-      name: value,
-      description: "",
+      name: generateManualTitle(value),
+      description: value,
       rank: "Bronze",
       online: false,
       momentary: false,
@@ -522,7 +540,7 @@ function PrepararJogoPage() {
                 </p>
                 <h3 className="mt-1 text-lg font-black">Adicionar uma conquista sua</h3>
                 <p className="mt-1 text-xs text-white/35">
-                  Digite o título ou a descrição. Antes de adicionar, o sistema procura conquistas do Exophase parecidas para evitar duplicatas.
+                  Digite apenas o que precisa ser feito. O sistema usa essa descrição para procurar conquistas do Exophase parecidas e, se for uma conquista nova, cria um título automaticamente.
                 </p>
                 <div className="mt-4 flex flex-col gap-3 md:flex-row">
                   <input
@@ -556,7 +574,7 @@ function PrepararJogoPage() {
                         Encontramos conquistas parecidas
                       </h3>
                       <p className="mt-1 text-xs text-white/40">
-                        Sua conquista: <span className="font-black text-white/80">{manualAchievement}</span>
+                        Sua descrição: <span className="font-black text-white/80">{manualAchievement}</span>
                       </p>
                     </div>
                     <button
