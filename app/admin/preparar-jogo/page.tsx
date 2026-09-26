@@ -133,7 +133,6 @@ function PrepararJogoPage() {
     let cancelled = false;
 
     async function loadDraft() {
-      setDraftLoading(true);
       try {
         const response = await fetch(
           "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(result.game.slug!),
