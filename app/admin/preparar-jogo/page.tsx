@@ -64,6 +64,8 @@ function PrepararJogoPage() {
   const [result, setResult] = useState<R | null>(null);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
@@ -128,48 +130,93 @@ function PrepararJogoPage() {
   useEffect(() => {
     if (!result?.game.slug) return;
 
-    const raw = localStorage.getItem(
-      `rumo-preparador:${result.game.slug}`
-    );
+    let cancelled = false;
 
-    if (!raw) return;
+    async function loadDraft() {
+      setDraftLoading(true);
+      try {
+        const response = await fetch(
+          "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(result.game.slug!),
+          { cache: "no-store" }
+        );
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Erro ao carregar rascunho.");
 
-    try {
-      const parsed = JSON.parse(raw);
-      const journeyIds = new Set<string>(
-        Array.isArray(parsed) ? parsed : parsed.journeyIds ?? []
-      );
-      const notDoingIds = new Set<string>(
-        Array.isArray(parsed) ? [] : parsed.notDoingIds ?? []
-      );
-      const customAchievements: A[] = Array.isArray(parsed)
-        ? []
-        : parsed.customAchievements ?? [];
+        if (!cancelled && payload.found && payload.draft) {
+          const draft = payload.draft;
+          const journeyIds = new Set<string>(draft.journeyIds ?? []);
+          const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
+          const customAchievements: A[] = draft.customAchievements ?? [];
 
-      setResult((current) =>
-        current
-          ? {
-              ...current,
-              achievements: [
-                ...current.achievements
-                  .filter((a) => !customAchievements.some((custom) => custom.id === a.id))
-                  .map((a) => ({
-                    ...a,
-                    journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
-                    notDoing: notDoingIds.has(a.id),
-                  })),
-                ...customAchievements,
-              ],
+          setResult((current) =>
+            current
+              ? {
+                  ...current,
+                  achievements: [
+                    ...current.achievements
+                      .filter((a) => !customAchievements.some((custom) => custom.id === a.id))
+                      .map((a) => ({
+                        ...a,
+                        journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
+                        notDoing: notDoingIds.has(a.id),
+                      })),
+                    ...customAchievements,
+                  ],
+                }
+              : current
+          );
+          setDraftUpdatedAt(draft.updatedAt ?? null);
+          setSaved(true);
+        } else if (!cancelled) {
+          // Migração de preparações antigas salvas no navegador.
+          const raw = localStorage.getItem(`rumo-preparador:${result.game.slug}`);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              const journeyIds = new Set<string>(
+                Array.isArray(parsed) ? parsed : parsed.journeyIds ?? []
+              );
+              const notDoingIds = new Set<string>(
+                Array.isArray(parsed) ? [] : parsed.notDoingIds ?? []
+              );
+              const customAchievements: A[] = Array.isArray(parsed)
+                ? []
+                : parsed.customAchievements ?? [];
+
+              setResult((current) =>
+                current
+                  ? {
+                      ...current,
+                      achievements: [
+                        ...current.achievements
+                          .filter((a) => !customAchievements.some((custom) => custom.id === a.id))
+                          .map((a) => ({
+                            ...a,
+                            journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
+                            notDoing: notDoingIds.has(a.id),
+                          })),
+                        ...customAchievements,
+                      ],
+                    }
+                  : current
+              );
+            } catch {
+              localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
             }
-          : current
-      );
-    } catch {
-      localStorage.removeItem(
-        `rumo-preparador:${result.game.slug}`
-      );
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Erro ao carregar rascunho.");
+      } finally {
+        if (!cancelled) setDraftLoading(false);
+      }
     }
-  }, [result?.game.slug]);
 
+    void loadDraft();
+    return () => {
+      cancelled = true;
+    };
+  }, [result?.game.slug]);
   function toggle(id: string) {
     setSaved(false);
     setResult((current) =>
@@ -518,23 +565,66 @@ function PrepararJogoPage() {
     setMergeTitle("");
     setMergeDescription("");
   }
-  function savePreparation() {
+  async function savePreparation() {
     if (!result?.game.slug) return;
 
-    localStorage.setItem(
-      `rumo-preparador:${result.game.slug}`,
-      JSON.stringify({
-        journeyIds: result.achievements
-          .filter((a) => a.journey && !a.notDoing)
-          .map((a) => a.id),
-        notDoingIds: result.achievements
-          .filter((a) => a.notDoing)
-          .map((a) => a.id),
-        customAchievements: result.achievements.filter((a) => a.isCustom),
-      })
-    );
+    setDraftLoading(true);
+    setError("");
 
-    setSaved(true);
+    try {
+      const response = await fetch("/api/admin/achievement-prep-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: result.game.slug,
+          preparation: {
+            journeyIds: result.achievements
+              .filter((a) => a.journey && !a.notDoing)
+              .map((a) => a.id),
+            notDoingIds: result.achievements
+              .filter((a) => a.notDoing)
+              .map((a) => a.id),
+            customAchievements: result.achievements.filter((a) => a.isCustom),
+          },
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Erro ao salvar rascunho.");
+
+      setDraftUpdatedAt(payload.updatedAt ?? new Date().toISOString());
+      setSaved(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao salvar rascunho.");
+    } finally {
+      setDraftLoading(false);
+    }
+  }
+
+  async function clearPreparation() {
+    if (!result?.game.slug) return;
+    if (!window.confirm("Limpar o rascunho desta preparação? As conquistas públicas não serão alteradas.")) return;
+
+    setDraftLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(result.game.slug),
+        { method: "DELETE" }
+      );
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Erro ao limpar rascunho.");
+
+      localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
+      setDraftUpdatedAt(null);
+      setSaved(false);
+      await search(result.game.slug);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao limpar rascunho.");
+    } finally {
+      setDraftLoading(false);
+    }
   }
 
   return (
@@ -556,6 +646,35 @@ function PrepararJogoPage() {
                 : "Fluxo provisório para jogos novos. Este botão será transformado no futuro em Adicionar novo jogo."}
             </p>
           </div>
+
+          {registeredSlug && result && (
+            <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/[.025] px-3 py-2">
+              <span className="text-[10px] font-black uppercase tracking-[.14em] text-sky-300">
+                {draftLoading ? "Salvando..." : saved ? "Rascunho salvo" : "Alterações não salvas"}
+              </span>
+              {draftUpdatedAt && (
+                <span className="text-[10px] text-white/35">
+                  • {new Date(draftUpdatedAt).toLocaleString("pt-BR")}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => void savePreparation()}
+                disabled={draftLoading}
+                className="rounded-lg border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-[10px] font-black uppercase text-sky-100 disabled:opacity-40"
+              >
+                💾 Salvar rascunho
+              </button>
+              <button
+                type="button"
+                onClick={() => void clearPreparation()}
+                disabled={draftLoading}
+                className="rounded-lg border border-red-400/20 bg-red-400/[.06] px-3 py-2 text-[10px] font-black uppercase text-red-200 disabled:opacity-40"
+              >
+                🗑️ Limpar preparação
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <Link
@@ -999,10 +1118,10 @@ function PrepararJogoPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={savePreparation}
+                  onClick={() => void savePreparation()}
                   className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-red-100"
                 >
-                  {saved ? "Preparação salva" : "Salvar seleção"}
+                  {saved ? "Preparação salva" : "Salvar rascunho"}
                 </button>
               </div>
             </section>
