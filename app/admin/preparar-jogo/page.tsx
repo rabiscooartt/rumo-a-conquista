@@ -148,11 +148,13 @@ function PrepararJogoPage() {
           ? {
               ...current,
               achievements: [
-                ...current.achievements.map((a) => ({
-                  ...a,
-                  journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
-                  notDoing: notDoingIds.has(a.id),
-                })),
+                ...current.achievements
+                  .filter((a) => !customAchievements.some((custom) => custom.id === a.id))
+                  .map((a) => ({
+                    ...a,
+                    journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
+                    notDoing: notDoingIds.has(a.id),
+                  })),
                 ...customAchievements,
               ],
             }
@@ -198,24 +200,43 @@ function PrepararJogoPage() {
   }
 
   function similarityScore(left: string, right: string) {
-    const a = slugify(left).split("-").filter((word) => word.length > 2);
-    const b = slugify(right).split("-").filter((word) => word.length > 2);
+    const stopWords = new Set([
+      "a","as","o","os","um","uma","uns","umas","de","do","da","dos","das",
+      "em","no","na","nos","nas","e","ou","que","com","sem","por","para",
+      "ao","aos","se","sua","seu","suas","seus","the","of","and","to","in",
+      "an","on","with","without","your"
+    ]);
+
+    const tokenize = (value: string) =>
+      slugify(value)
+        .split("-")
+        .map((word) => {
+          if (word.length > 5 && word.endsWith("es")) return word.slice(0, -2);
+          if (word.length > 5 && word.endsWith("s")) return word.slice(0, -1);
+          return word;
+        })
+        .filter((word) => word.length > 2 && !stopWords.has(word));
+
+    const a=tokenize(left);
+    const b=tokenize(right);
     if (!a.length || !b.length) return 0;
 
-    const setA = new Set(a);
-    const setB = new Set(b);
-    const intersection = [...setA].filter((word) => setB.has(word)).length;
-    const union = new Set([...setA, ...setB]).size;
-    const jaccard = union ? intersection / union : 0;
+    const setA=new Set(a);
+    const setB=new Set(b);
+    const intersection=[...setA].filter((word)=>setB.has(word)).length;
+    const union=new Set([...setA,...setB]).size;
+    const jaccard=union ? intersection/union : 0;
 
-    const compactA = a.join("");
-    const compactB = b.join("");
-    const contains =
-      compactA.includes(compactB) || compactB.includes(compactA) ? 0.2 : 0;
+    const compactA=a.join("");
+    const compactB=b.join("");
+    const contains=compactA.includes(compactB)||compactB.includes(compactA)?0.2:0;
 
-    return Math.min(1, jaccard + contains);
+    const bigrams=(tokens:string[])=>new Set(tokens.slice(0,-1).map((word,index)=>word+" "+tokens[index+1]));
+    const shared=[...bigrams(a)].filter((item)=>bigrams(b).has(item)).length;
+    const bigramBonus=Math.min(0.2,shared*0.08);
+
+    return Math.min(1,jaccard*0.65+contains+bigramBonus);
   }
-
   function findSimilarAchievements(value: string) {
     if (!result || !value.trim()) return [];
 
@@ -224,7 +245,7 @@ function PrepararJogoPage() {
       .map((achievement) => ({
         achievement,
         score: similarityScore(
-          value + " " + value,
+          value,
           achievement.name + " " + achievement.description
         ),
       }))
@@ -447,13 +468,25 @@ function PrepararJogoPage() {
     const value = manualAchievement.trim();
     if (!result || !value) return;
 
-    const custom: A = {
-      ...candidate,
-      id: candidate.id,
-      name: candidate.name || value,
-      description: candidate.description || value,
+    const exophaseDescription = candidate.description.trim();
+    const manualDescription = value.trim();
+    const sameDescription =
+      exophaseDescription.toLocaleLowerCase("pt-BR") ===
+      manualDescription.toLocaleLowerCase("pt-BR");
+
+    const merged: A = {
+      id: `custom-merged-${Date.now()}`,
+      name: generateManualTitle(value),
+      description: sameDescription
+        ? exophaseDescription
+        : [exophaseDescription, manualDescription].filter(Boolean).join(" "),
+      rank: manualRank,
+      online: candidate.online,
+      momentary: candidate.momentary,
+      journeySuggestion: candidate.journeySuggestion,
       journey: true,
       notDoing: false,
+      isCustom: true,
     };
 
     setSaved(false);
@@ -461,17 +494,18 @@ function PrepararJogoPage() {
       current
         ? {
             ...current,
-            achievements: current.achievements.map((a) =>
-              a.id === candidate.id ? custom : a
-            ),
+            achievements: [
+              ...current.achievements.filter((a) => a.id !== candidate.id),
+              merged,
+            ],
           }
         : current
     );
     setManualAchievement("");
+    setManualRank("Bronze");
     setShowSimilarity(false);
     setSimilarCandidates([]);
   }
-
   function savePreparation() {
     if (!result?.game.slug) return;
 
@@ -484,9 +518,7 @@ function PrepararJogoPage() {
         notDoingIds: result.achievements
           .filter((a) => a.notDoing)
           .map((a) => a.id),
-        customAchievements: result.achievements.filter((a) =>
-          a.id.startsWith("custom-")
-        ),
+        customAchievements: result.achievements.filter((a) => a.isCustom),
       })
     );
 
@@ -749,14 +781,14 @@ function PrepararJogoPage() {
                             onClick={() => mergeWithCandidate(achievement)}
                             className="rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-[10px] font-black uppercase text-violet-100"
                           >
-                            🔀 Mesclar
+                            🔀 Mesclar em uma
                           </button>
                           <button
                             type="button"
                             onClick={() => useExophaseCandidate(achievement)}
                             className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[10px] font-black uppercase text-emerald-100"
                           >
-                            🔄 Substituir pela Exophase
+                            🔄 Usar Exophase
                           </button>
                         </div>
                       </div>
