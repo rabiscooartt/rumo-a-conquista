@@ -15,6 +15,7 @@ type A = {
   momentary: boolean;
   journeySuggestion: boolean;
   journey: boolean;
+  notDoing: boolean;
 };
 
 type R = {
@@ -65,11 +66,16 @@ function PrepararJogoPage() {
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
+  const [manualAchievement, setManualAchievement] = useState("");
+  const [similarCandidates, setSimilarCandidates] = useState<
+    { achievement: A; score: number }[]
+  >([]);
+  const [showSimilarity, setShowSimilarity] = useState(false);
 
   const selected = useMemo(
     () =>
       result?.achievements
-        .filter((a) => a.journey)
+        .filter((a) => a.journey && !a.notDoing)
         .map((a, index) => prepareAchievement(a, index)) ?? [],
     [result]
   );
@@ -124,16 +130,29 @@ function PrepararJogoPage() {
     if (!raw) return;
 
     try {
-      const ids = new Set<string>(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      const journeyIds = new Set<string>(
+        Array.isArray(parsed) ? parsed : parsed.journeyIds ?? []
+      );
+      const notDoingIds = new Set<string>(
+        Array.isArray(parsed) ? [] : parsed.notDoingIds ?? []
+      );
+      const customAchievements: A[] = Array.isArray(parsed)
+        ? []
+        : parsed.customAchievements ?? [];
 
       setResult((current) =>
         current
           ? {
               ...current,
-              achievements: current.achievements.map((a) => ({
-                ...a,
-                journey: ids.has(a.id),
-              })),
+              achievements: [
+                ...current.achievements.map((a) => ({
+                  ...a,
+                  journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
+                  notDoing: notDoingIds.has(a.id),
+                })),
+                ...customAchievements,
+              ],
             }
           : current
       );
@@ -151,11 +170,169 @@ function PrepararJogoPage() {
         ? {
             ...current,
             achievements: current.achievements.map((a) =>
-              a.id === id ? { ...a, journey: !a.journey } : a
+              a.id === id && !a.notDoing
+                ? { ...a, journey: !a.journey }
+                : a
             ),
           }
         : current
     );
+  }
+
+  function toggleNotDoing(id: string) {
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((a) =>
+              a.id === id
+                ? { ...a, notDoing: !a.notDoing, journey: false }
+                : a
+            ),
+          }
+        : current
+    );
+  }
+
+  function similarityScore(left: string, right: string) {
+    const a = slugify(left).split("-").filter((word) => word.length > 2);
+    const b = slugify(right).split("-").filter((word) => word.length > 2);
+    if (!a.length || !b.length) return 0;
+
+    const setA = new Set(a);
+    const setB = new Set(b);
+    const intersection = [...setA].filter((word) => setB.has(word)).length;
+    const union = new Set([...setA, ...setB]).size;
+    const jaccard = union ? intersection / union : 0;
+
+    const compactA = a.join("");
+    const compactB = b.join("");
+    const contains =
+      compactA.includes(compactB) || compactB.includes(compactA) ? 0.2 : 0;
+
+    return Math.min(1, jaccard + contains);
+  }
+
+  function findSimilarAchievements(value: string) {
+    if (!result || !value.trim()) return [];
+
+    return result.achievements
+      .filter((a) => !a.notDoing)
+      .map((achievement) => ({
+        achievement,
+        score: similarityScore(
+          value + " " + value,
+          achievement.name + " " + achievement.description
+        ),
+      }))
+      .filter(({ score }) => score >= 0.35)
+      .sort((left, right) => right.score - left.score)
+      .slice(0, 3);
+  }
+
+  function addManualAchievement() {
+    const value = manualAchievement.trim();
+    if (!result || !value) return;
+
+    const candidates = findSimilarAchievements(value);
+
+    if (candidates.length) {
+      setSimilarCandidates(candidates);
+      setShowSimilarity(true);
+      return;
+    }
+
+    const custom: A = {
+      id: `custom-${Date.now()}`,
+      name: value,
+      description: "",
+      rank: "Bronze",
+      online: false,
+      momentary: false,
+      journeySuggestion: false,
+      journey: true,
+      notDoing: false,
+    };
+
+    setSaved(false);
+    setResult((current) =>
+      current ? { ...current, achievements: [...current.achievements, custom] } : current
+    );
+    setManualAchievement("");
+  }
+
+  function addCustomAsSeparate() {
+    const value = manualAchievement.trim();
+    if (!result || !value) return;
+
+    const custom: A = {
+      id: `custom-${Date.now()}`,
+      name: value,
+      description: "",
+      rank: "Bronze",
+      online: false,
+      momentary: false,
+      journeySuggestion: false,
+      journey: true,
+      notDoing: false,
+    };
+
+    setSaved(false);
+    setResult((current) =>
+      current ? { ...current, achievements: [...current.achievements, custom] } : current
+    );
+    setManualAchievement("");
+    setShowSimilarity(false);
+    setSimilarCandidates([]);
+  }
+
+  function useExophaseCandidate(candidate: A) {
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((a) =>
+              a.id === candidate.id
+                ? { ...a, journey: true, notDoing: false }
+                : a
+            ),
+          }
+        : current
+    );
+    setManualAchievement("");
+    setShowSimilarity(false);
+    setSimilarCandidates([]);
+  }
+
+  function mergeWithCandidate(candidate: A) {
+    const value = manualAchievement.trim();
+    if (!result || !value) return;
+
+    const custom: A = {
+      ...candidate,
+      id: candidate.id,
+      name: candidate.name || value,
+      description: candidate.description || value,
+      journey: true,
+      notDoing: false,
+    };
+
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((a) =>
+              a.id === candidate.id ? custom : a
+            ),
+          }
+        : current
+    );
+    setManualAchievement("");
+    setShowSimilarity(false);
+    setSimilarCandidates([]);
   }
 
   function savePreparation() {
@@ -163,9 +340,17 @@ function PrepararJogoPage() {
 
     localStorage.setItem(
       `rumo-preparador:${result.game.slug}`,
-      JSON.stringify(
-        result.achievements.filter((a) => a.journey).map((a) => a.id)
-      )
+      JSON.stringify({
+        journeyIds: result.achievements
+          .filter((a) => a.journey && !a.notDoing)
+          .map((a) => a.id),
+        notDoingIds: result.achievements
+          .filter((a) => a.notDoing)
+          .map((a) => a.id),
+        customAchievements: result.achievements.filter((a) =>
+          a.id.startsWith("custom-")
+        ),
+      })
     );
 
     setSaved(true);
@@ -331,19 +516,127 @@ function PrepararJogoPage() {
                 <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
               </div>
 
+              <div className="mt-5 rounded-2xl border border-violet-400/20 bg-violet-400/[.035] p-4">
+                <p className="text-[9px] font-black uppercase tracking-[.18em] text-violet-300/70">
+                  Conquista manual
+                </p>
+                <h3 className="mt-1 text-lg font-black">Adicionar uma conquista sua</h3>
+                <p className="mt-1 text-xs text-white/35">
+                  Digite o título ou a descrição. Antes de adicionar, o sistema procura conquistas do Exophase parecidas para evitar duplicatas.
+                </p>
+                <div className="mt-4 flex flex-col gap-3 md:flex-row">
+                  <input
+                    value={manualAchievement}
+                    onChange={(e) => setManualAchievement(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addManualAchievement();
+                    }}
+                    placeholder="Ex.: Mate três inimigos com um único tiro"
+                    className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={addManualAchievement}
+                    disabled={!manualAchievement.trim()}
+                    className="rounded-xl border border-violet-400/30 bg-violet-400/10 px-6 py-3 text-xs font-black uppercase text-violet-100 disabled:opacity-40"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+
+              {showSimilarity && (
+                <div className="mt-4 rounded-2xl border border-yellow-400/30 bg-yellow-400/[.05] p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.18em] text-yellow-200/70">
+                        ⚠️ Possíveis duplicatas
+                      </p>
+                      <h3 className="mt-1 text-lg font-black">
+                        Encontramos conquistas parecidas
+                      </h3>
+                      <p className="mt-1 text-xs text-white/40">
+                        Sua conquista: <span className="font-black text-white/80">{manualAchievement}</span>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSimilarity(false);
+                        setSimilarCandidates([]);
+                      }}
+                      className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    {similarCandidates.map(({ achievement, score }) => (
+                      <div key={achievement.id} className="rounded-xl border border-white/[.08] bg-black/25 p-4">
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div>
+                            <p className="text-[9px] uppercase text-violet-200/60">Sua conquista</p>
+                            <p className="mt-1 text-sm font-black">{manualAchievement}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase text-emerald-200/60">Exophase</p>
+                            <p className="mt-1 text-sm font-black">{achievement.name}</p>
+                            <p className="mt-1 text-xs text-white/35">{achievement.description}</p>
+                          </div>
+                        </div>
+                        <p className="mt-3 text-[10px] font-black text-yellow-200">
+                          Similaridade: {Math.round(score * 100)}%
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => mergeWithCandidate(achievement)}
+                            className="rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-[10px] font-black uppercase text-violet-100"
+                          >
+                            🔀 Mesclar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => useExophaseCandidate(achievement)}
+                            className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[10px] font-black uppercase text-emerald-100"
+                          >
+                            🔄 Substituir pela Exophase
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addCustomAsSeparate}
+                    className="mt-4 rounded-lg border border-white/10 bg-white/[.03] px-4 py-2 text-[10px] font-black uppercase text-white/60"
+                  >
+                    Não é duplicada — adicionar minha conquista
+                  </button>
+                </div>
+              )}
+
               <div className="mt-4 space-y-2">
                 {result.achievements.map((a, i) => (
-                  <button
+                  <div
                     key={a.id}
-                    onClick={() => toggle(a.id)}
                     className={
-                      a.journey
-                        ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-4 text-left"
-                        : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-4 text-left"
+                      a.notDoing
+                        ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-4"
+                        : a.journey
+                          ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-4"
+                          : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-4"
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      <div>
+                      <button
+                        type="button"
+                        onClick={() => toggle(a.id)}
+                        disabled={a.notDoing}
+                        className="min-w-0 flex-1 text-left disabled:cursor-default"
+                      >
                         <p className="text-[9px] uppercase text-white/25">
                           Conquista {i + 1}
                         </p>
@@ -351,9 +644,9 @@ function PrepararJogoPage() {
                         <p className="mt-2 text-xs text-white/35">
                           {a.description || "Sem descrição disponível."}
                         </p>
-                      </div>
+                      </button>
 
-                      <div className="flex shrink-0 flex-wrap gap-2">
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
                           {a.rank}
                         </span>
@@ -367,15 +660,34 @@ function PrepararJogoPage() {
                             ⚠️ Momentânea
                           </span>
                         )}
-                        <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
-                          👤 {a.journey ? "Decisão: Jornada de Estreia" : "Decisão: Fora da Jornada"}
-                        </span>
-                        <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black text-white/45">
-                          🤖 {a.journeySuggestion ? "Sugestão: Jornada" : "Sugestão: Fora"}
-                        </span>
+                        {a.notDoing ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleNotDoing(a.id)}
+                            className="rounded-full border border-red-400/40 bg-red-500/15 px-3.5 py-2 text-[10px] font-black text-red-200"
+                          >
+                            🚫 Não vou fazer · ↩ Incluir
+                          </button>
+                        ) : (
+                          <>
+                            <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
+                              👤 {a.journey ? "Decisão: Jornada de Estreia" : "Decisão: Fora da Jornada"}
+                            </span>
+                            <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black text-white/45">
+                              🤖 {a.journeySuggestion ? "Sugestão: Jornada" : "Sugestão: Fora"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => toggleNotDoing(a.id)}
+                              className="rounded-full border border-red-400/30 bg-red-500/[.05] px-3.5 py-2 text-[10px] font-black text-red-200 hover:bg-red-500/15"
+                            >
+                              ✕ Não vou fazer
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
 
