@@ -242,13 +242,59 @@ function PrepararJogoPage() {
 
     if (!clean) return "Nova Conquista";
 
-    const words = clean.split(/\s+/);
-    if (words.length <= 6) {
-      return clean.charAt(0).toUpperCase() + clean.slice(1);
+    const normalized = clean
+      .toLocaleLowerCase("pt-BR")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    const match = normalized.match(/(\d+)\s+inimigos?.*(um unico tiro|uma unica bala|um so tiro|uma so bala)/i);
+    if (match) {
+      const countNames: Record<string, string> = {
+        "1": "Um",
+        "2": "Dois",
+        "3": "Três",
+        "4": "Quatro",
+        "5": "Cinco",
+      };
+      const count = countNames[match[1]] ?? match[1];
+      return `Um Tiro, ${count} Alvos`;
     }
 
-    const compact = words.slice(0, 6).join(" ");
-    return compact.charAt(0).toUpperCase() + compact.slice(1) + "…";
+    if (/sem (tomar|receber) dano|sem ser atingid/.test(normalized)) {
+      return "Intocável";
+    }
+
+    if (/sem morrer|nao morra|não morra/.test(normalized)) {
+      return "De Pé Até o Fim";
+    }
+
+    if (/primeir[oa].*(missao|missão|caso|capitulo|capítulo)/.test(normalized)) {
+      return "O Primeiro Passo";
+    }
+
+    if (/complete|conclua|finalize|finalizar/.test(normalized)) {
+      return "Até o Fim";
+    }
+
+    if (/colet(e|ar)|encontr(e|ar)|peg(ue|ar)/.test(normalized)) {
+      const noun = clean
+        .replace(/^(colet(e|ar)|encontr(e|ar)|peg(ue|ar))\s+/i, "")
+        .replace(/\b(um|uma|o|a|os|as|todos?|todas?|\d+)\b/gi, "")
+        .trim();
+
+      if (noun) {
+        const shortNoun = noun.split(/\s+/).slice(0, 4).join(" ");
+        return `Em Busca de ${shortNoun.charAt(0).toUpperCase() + shortNoun.slice(1)}`;
+      }
+    }
+
+    if (/mate|elimine|derrote/.test(normalized)) {
+      return "Precisão Mortal";
+    }
+
+    const words = clean.split(/\s+/).slice(0, 5);
+    const compact = words.join(" ");
+    return compact.charAt(0).toUpperCase() + compact.slice(1);
   }
 
   function addManualAchievement() {
@@ -680,15 +726,19 @@ function PrepararJogoPage() {
               )}
 
               <div className="mt-4 space-y-2">
-                {result.achievements.map((a, i) => (
+                {[...result.achievements]
+                  .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom)))
+                  .map((a, i) => (
                   <div
                     key={a.id}
                     className={
                       a.notDoing
                         ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-4"
-                        : a.journey
-                          ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-4"
-                          : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-4"
+                        : a.isCustom
+                          ? "w-full rounded-2xl border border-sky-400/40 bg-sky-500/[.10] p-4"
+                          : a.journey
+                            ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-4"
+                            : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-4"
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
