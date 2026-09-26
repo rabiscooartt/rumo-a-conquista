@@ -6,35 +6,6 @@ import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ImportArtBatchUpload from "./ImportArtBatchUpload";
 
-async function downloadAchievementReference(achievement: Prepared) {
-  if (!achievement.visualReferenceUrl) return;
-
-  const response = await fetch(
-    "/api/admin/achievement-reference?url=" +
-      encodeURIComponent(achievement.visualReferenceUrl) +
-      "&filename=" +
-      encodeURIComponent(
-        achievement.filename.replace(/\.png$/i, "-exophase-reference.png")
-      ),
-    { cache: "no-store" }
-  );
-
-  if (!response.ok) {
-    throw new Error("Não foi possível baixar a referência do Exophase.");
-  }
-
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = achievement.filename.replace(/\.png$/i, "-exophase-reference.png");
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
-
-
 type A = {
   id: string;
   name: string;
@@ -103,7 +74,6 @@ function PrepararJogoPage() {
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
-  const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
   const [manualAchievement, setManualAchievement] = useState("");
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [similarCandidates, setSimilarCandidates] = useState<
@@ -1272,8 +1242,6 @@ function PrepararJogoPage() {
                         "NÃO copie, recorte, filtre, redesenhe pixel a pixel ou simplesmente reproduza a imagem do Exophase. Não substitua a referência por imagens de Steam, Xbox ou outras bases. Use somente a referência fornecida como inspiração visual quando ela existir e transforme seus elementos em uma criação original. Não tente contornar as diretrizes reproduzindo de forma excessivamente fiel personagens, artes ou outros elementos protegidos.",
                         "Quando uma conquista NÃO tiver referência visual utilizável do Exophase, crie a arte originalmente a partir SOMENTE do nome, descrição e universo visual do jogo, mantendo uma identidade de conquista clara e específica. Nesse caso, há liberdade criativa maior, pois não existe referência visual individual para adaptar.",
                         "NÃO altere os nomes dos arquivos fornecidos. Cada arquivo deve corresponder exatamente à conquista indicada logo antes dele.",
-                        "REFERÊNCIAS ANEXADAS: quando houver referência Exophase, os arquivos de referência baixados deste lote devem ser anexados à conversa do ChatGPT antes da geração. NÃO trate apenas a URL escrita no texto como referência visual. Use a imagem anexada correspondente a cada conquista como referência visual real.",
-                        "MAPEAMENTO DAS REFERÊNCIAS: cada arquivo terminado em -exophase-reference.png corresponde à conquista com o mesmo nome-base e deve ser usado SOMENTE naquela conquista. Não misture referências entre conquistas.",
                         "",
                       ];
 
@@ -1309,37 +1277,7 @@ function PrepararJogoPage() {
                             </p>
                           </div>
 
-                          <div className="flex flex-wrap justify-end gap-2">
-                            {batch.some((a) => Boolean(a.visualReferenceUrl)) && (
-                              <button
-                                type="button"
-                                disabled={downloadingBatch === batchIndex}
-                                onClick={async () => {
-                                  setDownloadingBatch(batchIndex);
-                                  try {
-                                    for (const achievement of batch) {
-                                      if (!achievement.visualReferenceUrl) continue;
-                                      await downloadAchievementReference(achievement);
-                                      await new Promise((resolve) => setTimeout(resolve, 250));
-                                    }
-                                  } catch (e) {
-                                    setError(
-                                      e instanceof Error
-                                        ? e.message
-                                        : "Não foi possível baixar as referências."
-                                    );
-                                  } finally {
-                                    setDownloadingBatch(null);
-                                  }
-                                }}
-                                className="rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-[9px] font-black uppercase text-violet-100 disabled:opacity-40"
-                              >
-                                {downloadingBatch === batchIndex
-                                  ? "Baixando..."
-                                  : "🖼️ Baixar referências"}
-                              </button>
-                            )}
-                            <button
+                          <div className="flex flex-wrap justify-end gap-2">                            <button
                               type="button"
                               onClick={() => {
                                 void navigator.clipboard.writeText(packageText);
@@ -1358,7 +1296,7 @@ function PrepararJogoPage() {
                 </div>
 
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  Primeiro baixe as referências visuais do lote e anexe essas imagens reais à conversa do ChatGPT. Depois copie o pacote e cole na mesma conversa. A URL sozinha não é tratada como referência visual.
+                  A referência visual do Exophase é usada pelo sistema apenas como inspiração visual e conceitual. Não é necessário baixar nem anexar imagens à conversa. Quando não houver referência, a arte será criada originalmente a partir dos dados da conquista e da identidade do jogo.
                 </p>
               </section>
             )}
