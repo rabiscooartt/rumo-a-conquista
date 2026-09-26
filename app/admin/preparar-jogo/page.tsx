@@ -56,8 +56,8 @@ function prepareAchievement(a: A, index: number): Prepared {
     ...a,
     filename: `${String(index + 1).padStart(2, "0")}-${slugify(a.name) || "conquista"}.png`,
     visualConcept: a.description
-      ? `Crie uma arte de conquista quadrada e sem texto, usando o conceito específico de "${a.name}" e os elementos da descrição. Quando houver referência Exophase, siga a REGRA 80/20 acima: a conquista deve continuar visualmente reconhecível como a mesma conquista, com uma melhoria/adaptação do Rumo à Conquista, e não virar uma medalha 3D genérica. Não aplique uma fórmula visual obrigatória a todos os jogos; preserve a linguagem visual da própria referência e do jogo. ${visualReferenceInstruction}`
-      : `Crie uma arte de conquista quadrada e sem texto, representando "${a.name}" de forma clara e específica. Não aplique uma fórmula visual obrigatória a todos os jogos; quando não houver referência Exophase, crie uma solução original coerente com a identidade visual do jogo. ${visualReferenceInstruction}`,
+      ? `Crie UMA imagem individual de conquista para "${a.name}". Gere somente esta conquista nesta imagem, sem outras conquistas, sem colagem e sem painel. A saída deve ser PNG 1:1 com fundo transparente fora da moldura e sem texto, usando o conceito específico de "${a.name}" e os elementos da descrição. Quando houver referência Exophase, siga a REGRA 80/20 acima: a conquista deve continuar visualmente reconhecível como a mesma conquista, com uma melhoria/adaptação do Rumo à Conquista, e não virar uma medalha 3D genérica. Não aplique uma fórmula visual obrigatória a todos os jogos; preserve a linguagem visual da própria referência e do jogo. ${visualReferenceInstruction}`
+      : `Crie UMA imagem individual de conquista para "${a.name}". Gere somente esta conquista nesta imagem, sem outras conquistas, sem colagem e sem painel. A saída deve ser PNG 1:1 com fundo transparente fora da moldura e sem texto, representando "${a.name}" de forma clara e específica. Não aplique uma fórmula visual obrigatória a todos os jogos; quando não houver referência Exophase, crie uma solução original coerente com a identidade visual do jogo. ${visualReferenceInstruction}`,
   };
 }
 
@@ -1229,9 +1229,10 @@ function PrepararJogoPage() {
                         "PROCESSAMENTO OBRIGATORIAMENTE SEPARADO: execute uma geração independente para cada bloco CONQUISTA. NÃO tente gerar o lote inteiro em uma única imagem ou uma única composição.",
                         "NUNCA faça colagem, montagem, contact sheet, sprite sheet, grade, mosaico, triptico, painel ou várias conquistas dentro da mesma imagem.",
                         "NUNCA coloque duas ou mais conquistas na mesma imagem, mesmo que seja apenas para mostrar o lote completo.",
-                        "Se a interface de geração produzir uma única imagem por chamada, faça uma chamada separada para cada CONQUISTA. Só considere o lote concluído quando existir um arquivo individual para cada conquista.",
+                        "Se a interface de geração produzir uma única imagem por chamada, faça uma chamada separada para cada CONQUISTA. NÃO responda com uma imagem contendo várias conquistas. Para um lote de 10, gere 10 imagens separadas; para um lote de 3, gere 3 imagens separadas. Só considere o lote concluído quando existir um arquivo individual para cada conquista.",
                         "Gere/trate cada conquista individualmente e mantenha a identidade visual consistente entre todas.",
-                        "Formato de CADA arquivo: 1:1, preferencialmente 1024x1024.",
+                        "Formato de CADA arquivo: PNG com transparência (fundo transparente fora da moldura), 1:1, preferencialmente 1024x1024.",
+                        "FUNDO TRANSPARENTE: a área externa à moldura deve ser totalmente transparente (alpha), sem fundo preto, cinza, vermelho ou outra cor sólida. A moldura e os elementos da conquista permanecem visíveis; o espaço ao redor deles deve ficar vazado/transparent.",
                         "Composição de CADA arquivo: preserve a composição e o enquadramento da referência Exophase quando ela existir, adaptando-a para uma arte final limpa e própria do Rumo à Conquista. Quando não houver referência, o símbolo principal deve ocupar aproximadamente 60–75% da imagem.",
                         "ESTILO: NÃO aplique uma fórmula visual fixa de fundo vermelho, metal, dourado, moldura ou 3D a todas as conquistas. Quando houver referência Exophase, mantenha a linguagem visual da própria referência e faça apenas a adaptação 20% do Rumo à Conquista. A identidade do jogo e da conquista tem prioridade sobre uma estética genérica.",
                         "Não inserir texto, letras, números ou nomes dentro das imagens.",
