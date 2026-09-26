@@ -128,14 +128,15 @@ function PrepararJogoPage() {
   }, [registeredSlug]);
 
   useEffect(() => {
-    if (!result?.game.slug) return;
+    const slug = result?.game.slug;
+    if (!slug) return;
 
     let cancelled = false;
 
     async function loadDraft() {
       try {
         const response = await fetch(
-          "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(result.game.slug!),
+          "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(slug),
           { cache: "no-store" }
         );
         const payload = await response.json();
@@ -168,7 +169,7 @@ function PrepararJogoPage() {
           setSaved(true);
         } else if (!cancelled) {
           // Migração de preparações antigas salvas no navegador.
-          const raw = localStorage.getItem(`rumo-preparador:${result.game.slug}`);
+          const raw = localStorage.getItem(`rumo-preparador:${slug}`);
           if (raw) {
             try {
               const parsed = JSON.parse(raw);
@@ -200,7 +201,7 @@ function PrepararJogoPage() {
                   : current
               );
             } catch {
-              localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
+              localStorage.removeItem(`rumo-preparador:${slug}`);
             }
           }
         }
