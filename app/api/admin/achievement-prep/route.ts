@@ -228,17 +228,13 @@ function extractVisualReference(block: string) {
   };
 
   // A imagem pode estar no próprio <img>/<source> ou em atributos de
-  // lazy-loading que o Exophase/Jina usa.
-  for (const match of decoded.matchAll(
-    /<(?:img|source)\b[^>]*\b(?:src|srcset|data-src|data-srcset|data-original|data-original-src|data-lazy-src|data-lazy-srcset|data-image|data-image-url|data-bg|data-background|data-background-image|data-url)\s*=\s*["']([^"']+)["']/gi
-  )) {
-    addCandidate(match[1]);
-  }
+  // lazy-loading. Aceitamos atributos com aspas simples, duplas ou sem
+  // aspas, porque o HTML retornado pelo Reader pode variar.
+  const imageAttributePattern =
+    /\b(?:src|srcset|data-src|data-srcset|data-original|data-original-src|data-lazy-src|data-lazy-srcset|data-image|data-image-url|data-bg|data-background|data-background-image|data-url)\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
 
-  for (const match of decoded.matchAll(
-    /\b(?:src|srcset|data-src|data-srcset|data-original|data-original-src|data-lazy-src|data-lazy-srcset|data-image|data-image-url|data-bg|data-background|data-background-image|data-url)\s*=\s*["']([^"']+)["']/gi
-  )) {
-    addCandidate(match[1]);
+  for (const match of decoded.matchAll(imageAttributePattern)) {
+    addCandidate(match[1] || match[2] || match[3]);
   }
 
   for (const match of decoded.matchAll(
@@ -307,27 +303,34 @@ function parseExophaseHtml(html: string) {
             titleOpenMatches[index - 1][0].length
           : 0;
 
-      // O ícone pode estar antes do .award-title, dentro do mesmo card.
-      // Procuramos vários formatos de lazy-loading/background, em vez de
-      // depender de uma única estrutura HTML do Exophase.
-      const visualBlock = html.slice(previousTitleEnd, nextTitleStart);
-      const beforeTitleBlock = html.slice(
-        Math.max(0, (match.index ?? 0) - 12000),
-        titleStart
+      // O ícone e o link da conquista podem ficar ANTES do .award-title,
+      // dentro do mesmo card. Por isso o parser precisa olhar para a janela
+      // inteira do card, e não somente para o HTML depois do título.
+      const cardStart = Math.max(
+        previousTitleEnd,
+        (match.index ?? 0) - 8000
       );
-      const visualReferenceUrl =
-        extractVisualReference(visualBlock) ||
-        extractVisualReference(beforeTitleBlock);
+      const cardBlock = html.slice(cardStart, nextTitleStart);
 
-      // Guardamos também o link da conquista. Se a listagem não expuser o
-      // ícone diretamente, a página individual da conquista será usada como
-      // fallback para obter a imagem oficial do Exophase.
+      const visualReferenceUrl = extractVisualReference(cardBlock);
+
+      // A página individual da conquista é o fallback mais confiável quando
+      // o card da listagem só expõe o texto "Image".
+      const detailLinkCandidates = Array.from(
+        cardBlock.matchAll(
+          /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>/gi
+        )
+      )
+        .map((a) => a[1] || a[2] || a[3])
+        .filter(Boolean);
+
       const detailLink =
+        detailLinkCandidates.find((href) =>
+          /\/achievement\//i.test(href as string)
+        ) ||
         extractAttribute(match[0], "href") ||
-        extractAttribute(
-          chunk.match(/<a\b[^>]*\bhref\s*=\s*["'][^"']+["'][^>]*>/i)?.[0] ?? "",
-          "href"
-        );
+        detailLinkCandidates[0] ||
+        null;
 
       const detailUrl = resolveExophaseUrl(detailLink);
 
