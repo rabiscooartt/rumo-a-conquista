@@ -292,9 +292,14 @@ function parseExophaseHtml(html: string) {
       // Guardamos também o link da conquista. Se a listagem não expuser o
       // ícone diretamente, a página individual da conquista será usada como
       // fallback para obter a imagem oficial do Exophase.
-      const detailUrl = resolveExophaseUrl(
-        extractAttribute(match[0], "href")
-      );
+      const detailLink =
+        extractAttribute(match[0], "href") ||
+        extractAttribute(
+          chunk.match(/<a\b[^>]*\bhref\s*=\s*["'][^"']+["'][^>]*>/i)?.[0] ?? "",
+          "href"
+        );
+
+      const detailUrl = resolveExophaseUrl(detailLink);
 
       const visible = stripHtml(chunk);
       let detailText = visible;
@@ -336,8 +341,42 @@ function parseExophaseHtml(html: string) {
   return achievements.length ? achievements : null;
 }
 
+async function fetchJinaHtml(
+  url: string,
+  waitForSelector = ".award-title"
+) {
+  const readerUrl = "https://r.jina.ai/" + url;
+
+  const response = await fetch(readerUrl, {
+    cache: "no-store",
+    headers: {
+      Accept: "text/html",
+      "X-Engine": "browser",
+      "X-Respond-With": "html",
+      "X-Respond-Timing": "network-idle",
+      "X-Wait-For-Selector": waitForSelector,
+      "X-No-Cache": "true",
+      "X-Timeout": "30",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      "Jina Reader respondeu com status " + response.status
+    );
+  }
+
+  return response.text();
+}
+
 async function fetchExophaseAchievementImage(detailUrl: string) {
   const extractFromPage = (html: string) => {
+    // Para a página individual, priorizamos a imagem que está realmente
+    // dentro do conteúdo da conquista. OG/Twitter podem apontar para a arte
+    // geral da página, então só usamos esses metadados como último fallback.
+    const visual = extractVisualReference(html);
+    if (visual) return visual;
+
     const metaImage =
       html.match(
         /<meta\b[^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*content=["']([^"']+)["'][^>]*>/i
@@ -350,10 +389,7 @@ async function fetchExophaseAchievementImage(detailUrl: string) {
       /<link\b[^>]*rel=["'][^"']*\bimage_src\b[^"']*["'][^>]*href=["']([^"']+)["']/i
     );
 
-    return (
-      resolveExophaseUrl(metaImage?.[1] || linkImage?.[1] || null) ||
-      extractVisualReference(html)
-    );
+    return resolveExophaseUrl(metaImage?.[1] || linkImage?.[1] || null);
   };
 
   try {
@@ -376,23 +412,13 @@ async function fetchExophaseAchievementImage(detailUrl: string) {
   }
 
   try {
-    const readerUrl = "https://r.jina.ai/" + detailUrl;
-    const response = await fetch(readerUrl, {
-      cache: "no-store",
-      headers: {
-        Accept: "text/html",
-        "X-Respond-With": "html",
-        "X-Timeout": "20",
-      },
-    });
-
-    if (response.ok) {
-      const html = await response.text();
-      const image = extractFromPage(html);
-      if (image) return image;
-    }
+    // O Reader é usado com Chromium, HTML renderizado e espera pelo
+    // .award-title. Isso cobre conteúdo/imagens que só aparecem após JS.
+    const html = await fetchJinaHtml(detailUrl, ".award-title");
+    const image = extractFromPage(html);
+    if (image) return image;
   } catch (error) {
-    console.error("[Exophase Achievement Image Reader]", error);
+    console.error("[Exophase Achievement Image Reader Browser]", error);
   }
 
   return null;
@@ -471,26 +497,16 @@ async function fetchExophaseAchievements(url: string) {
 
   // Fallback de transporte: Jina apenas lê a página do Exophase.
   try {
-    const readerUrl = "https://r.jina.ai/" + targetUrl;
-    const response = await fetch(readerUrl, {
-      cache: "no-store",
-      headers: {
-        Accept: "text/html",
-        "X-Respond-With": "html",
-        "X-Timeout": "20",
-      },
-    });
+    // Fallback robusto: Chromium + HTML renderizado + espera do bloco
+    // de conquistas. O Exophase pode montar parte do card/imagem via JS.
+    const html = await fetchJinaHtml(targetUrl, ".award-title");
 
-    if (response.ok) {
-      const html = await response.text();
+    if (isPortugueseExophasePage(html)) {
+      const achievements = parseExophaseHtml(html);
 
-      if (isPortugueseExophasePage(html)) {
-        const achievements = parseExophaseHtml(html);
-
-        if (achievements) {
-          const hydrated = await hydrateExophaseVisualReferences(achievements);
-          return { url: targetUrl, achievements: hydrated };
-        }
+      if (achievements) {
+        const hydrated = await hydrateExophaseVisualReferences(achievements);
+        return { url: targetUrl, achievements: hydrated };
       }
     }
   } catch (error) {
