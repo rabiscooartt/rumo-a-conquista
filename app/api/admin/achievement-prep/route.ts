@@ -167,7 +167,12 @@ function resolveExophaseUrl(rawUrl: string | null) {
   try {
     const url = new URL(decodeHtml(rawUrl), "https://www.exophase.com");
 
-    if (url.hostname !== "www.exophase.com" && url.hostname !== "exophase.com") {
+    // O Exophase pode servir as artes por subdomínios/CDN próprios
+    // (por exemplo, cdn.exophase.com). Continuamos bloqueando domínios externos.
+    if (
+      url.hostname !== "exophase.com" &&
+      !url.hostname.endsWith(".exophase.com")
+    ) {
       return null;
     }
 
