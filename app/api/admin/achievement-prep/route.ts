@@ -184,8 +184,8 @@ function parseExophaseHtml(html: string) {
       // próprio bloco da conquista do Exophase. Ela será usada apenas como
       // referência para recriar a arte, nunca como imagem final publicada.
       const visualMatch =
-        chunk.match(/<(?:img|source)\\b[^>]*(?:src|data-src|data-original|srcset)=["']([^"']+)["']/i) ??
-        chunk.match(/background-image\\s*:\\s*url\\(["']?([^"')]+)["']?\\)/i);
+        chunk.match(/<(?:img|source)\b[^>]*(?:src|data-src|data-original|srcset)=["']([^"']+)["']/i) ??
+        chunk.match(/background-image\s*:\s*url\(["']?([^"')]+)["']?\)/i);
       const rawVisualReference = visualMatch?.[1]?.trim() || null;
       const visualReferenceUrl =
         rawVisualReference && !rawVisualReference.startsWith("data:")
