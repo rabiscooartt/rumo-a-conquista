@@ -5,6 +5,7 @@ type ExophaseAchievement = {
   name?: string;
   description?: string;
   percent?: number;
+  visualReferenceUrl?: string | null;
 };
 
 function norm(v: unknown) {
@@ -179,6 +180,18 @@ function parseExophaseHtml(html: string) {
 
       if (!title) return null;
 
+      // Quando disponível, preservamos a referência visual encontrada no
+      // próprio bloco da conquista do Exophase. Ela será usada apenas como
+      // referência para recriar a arte, nunca como imagem final publicada.
+      const visualMatch =
+        chunk.match(/<(?:img|source)\\b[^>]*(?:src|data-src|data-original|srcset)=["']([^"']+)["']/i) ??
+        chunk.match(/background-image\\s*:\\s*url\\(["']?([^"')]+)["']?\\)/i);
+      const rawVisualReference = visualMatch?.[1]?.trim() || null;
+      const visualReferenceUrl =
+        rawVisualReference && !rawVisualReference.startsWith("data:")
+          ? new URL(rawVisualReference, "https://www.exophase.com").toString()
+          : null;
+
       // O bloco também contém a descrição, a raridade e o EXP. Depois de
       // limpar o HTML, removemos o título e pegamos a descrição até o %.
       const visible = stripHtml(chunk);
@@ -200,13 +213,14 @@ function parseExophaseHtml(html: string) {
         .replace(/\s+/g, " ")
         .trim();
 
-      return { name: title, description, percent };
+      return { name: title, description, percent, visualReferenceUrl };
     })
     .filter(
       (achievement): achievement is {
         name: string;
         description: string;
         percent: number | undefined;
+        visualReferenceUrl: string | null;
       } => Boolean(achievement)
     );
 
@@ -345,6 +359,7 @@ export async function GET(req: NextRequest) {
         journeySuggestion: journey,
         journey,
         notDoing: false,
+        visualReferenceUrl: a.visualReferenceUrl ?? null,
         id:
           "exophase-" +
           slug(registeredGame.slug) +
