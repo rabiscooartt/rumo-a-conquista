@@ -17,6 +17,7 @@ type A = {
   journey: boolean;
   notDoing: boolean;
   isCustom?: boolean;
+  visualReferenceUrl?: string | null;
 };
 
 type R = {
@@ -47,12 +48,16 @@ function slugify(value: string) {
 }
 
 function prepareAchievement(a: A, index: number): Prepared {
+  const visualReferenceInstruction = a.visualReferenceUrl
+    ? `Use a referência visual do Exophase abaixo como referência principal. Preserve aproximadamente 80–90% dos elementos visuais essenciais que tornam esta conquista reconhecível — símbolo/objeto principal, silhueta, composição, elementos característicos e cores predominantes — mas recrie a imagem como uma nova arte original do Rumo à Conquista. Use aproximadamente 10–20% de interpretação própria no acabamento, iluminação, detalhes e tratamento visual. Não copie, recorte, filtre ou simplesmente reproduza a imagem de referência. Referência visual: ${a.visualReferenceUrl}`
+    : "Esta conquista não possui uma referência visual utilizável extraída do Exophase. Crie a arte a partir do nome, descrição e universo visual do jogo, mantendo a identidade das conquistas do Rumo à Conquista.";
+
   return {
     ...a,
     filename: `${String(index + 1).padStart(2, "0")}-${slugify(a.name) || "conquista"}.png`,
     visualConcept: a.description
-      ? `Símbolo central inspirado no significado de "${a.name}", usando os elementos da descrição como referência. Identidade Rumo à Conquista: composição quadrada, fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental, iluminação dramática e sem texto.`
-      : `Símbolo central representando "${a.name}" de forma clara e específica. Identidade Rumo à Conquista: composição quadrada, fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental, iluminação dramática e sem texto.`,
+      ? `Símbolo central inspirado no significado de "${a.name}", usando os elementos da descrição como referência. Identidade Rumo à Conquista: composição quadrada, fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental, iluminação dramática e sem texto. ${visualReferenceInstruction}`
+      : `Símbolo central representando "${a.name}" de forma clara e específica. Identidade Rumo à Conquista: composição quadrada, fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental, iluminação dramática e sem texto. ${visualReferenceInstruction}`,
   };
 }
 
@@ -1225,6 +1230,7 @@ function PrepararJogoPage() {
                         "Estética: fundo escuro, vermelho profundo, metal, dourado/bronze/preto, moldura ornamental e iluminação dramática.",
                         "Não inserir texto, letras, números ou nomes dentro das imagens.",
                         "Mantenha a mesma linguagem visual entre as imagens, variando o conceito central.",
+                        "REGRA DE REFERÊNCIA VISUAL: quando uma conquista tiver uma referência do Exophase, use-a como referência principal e preserve aproximadamente 80–90% dos elementos visuais essenciais, mas recrie uma nova arte original do Rumo à Conquista com aproximadamente 10–20% de interpretação própria. Não copie diretamente a imagem. Quando não houver referência visual utilizável do Exophase, crie a arte a partir do nome, descrição e universo visual do jogo, mantendo a identidade das conquistas do Rumo à Conquista.",
                         "NÃO altere os nomes dos arquivos fornecidos.",
                         "",
                       ];
@@ -1239,6 +1245,7 @@ function PrepararJogoPage() {
                           `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
+                          `Referência visual Exophase: ${a.visualReferenceUrl || "Não disponível — criar a partir do jogo e da descrição."}`,
                           ""
                         );
                       });
@@ -1337,6 +1344,21 @@ function PrepararJogoPage() {
                         </p>
                         <p className="mt-1 text-xs leading-relaxed text-white/50">
                           {a.visualConcept}
+                        </p>
+                        <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+                          Referência Exophase:{" "}
+                          {a.visualReferenceUrl ? (
+                            <a
+                              href={a.visualReferenceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-red-200 underline underline-offset-2"
+                            >
+                              abrir referência visual
+                            </a>
+                          ) : (
+                            "não disponível — criação própria baseada no jogo"
+                          )}
                         </p>
                       </div>
                     </div>
