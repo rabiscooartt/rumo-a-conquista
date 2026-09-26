@@ -6,6 +6,7 @@ type ExophaseAchievement = {
   description?: string;
   percent?: number;
   visualReferenceUrl?: string | null;
+  detailUrl?: string | null;
 };
 
 function norm(v: unknown) {
@@ -152,6 +153,97 @@ async function findExophaseSteamGame(title: string) {
   };
 }
 
+function extractAttribute(tag: string, attribute: string) {
+  const match = tag.match(
+    new RegExp(attribute + String.raw\`\\s*=\\s*["']([^"']+)["']\`, "i")
+  );
+
+  return match?.[1]?.trim() || null;
+}
+
+function resolveExophaseUrl(rawUrl: string | null) {
+  if (!rawUrl) return null;
+
+  try {
+    const url = new URL(decodeHtml(rawUrl), "https://www.exophase.com");
+
+    if (url.hostname !== "www.exophase.com" && url.hostname !== "exophase.com") {
+      return null;
+    }
+
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function extractVisualReference(block: string) {
+  const decoded = decodeHtml(block);
+
+  const candidates: string[] = [];
+
+  const addCandidate = (value?: string | null) => {
+    if (!value) return;
+
+    let normalized = value.trim();
+
+    if (normalized.includes(",")) {
+      normalized = normalized.split(",")[0]?.trim() || "";
+    }
+
+    normalized = normalized
+      .replace(/^\s*url\(\s*["']?/i, "")
+      .replace(/["']?\s*\)\s*$/i, "")
+      .replace(/\s+\d+(?:\.\d+)?x$/i, "")
+      .trim();
+
+    if (
+      normalized &&
+      !normalized.startsWith("data:") &&
+      !normalized.startsWith("javascript:")
+    ) {
+      candidates.push(normalized);
+    }
+  };
+
+  for (const match of decoded.matchAll(
+    /<(?:img|source)\b[^>]*\b(?:src|data-src|data-original|data-lazy-src|data-image|data-image-url|data-bg|data-background|data-background-image)\s*=\s*["']([^"']+)["']/gi
+  )) {
+    addCandidate(match[1]);
+  }
+
+  for (const match of decoded.matchAll(
+    /\b(?:data-src|data-original|data-lazy-src|data-image|data-image-url|data-bg|data-background|data-background-image)\s*=\s*["']([^"']+)["']/gi
+  )) {
+    addCandidate(match[1]);
+  }
+
+  for (const match of decoded.matchAll(
+    /\bsrcset\s*=\s*["']([^"']+)["']/gi
+  )) {
+    addCandidate(match[1]);
+  }
+
+  for (const match of decoded.matchAll(
+    /(?:background(?:-image)?|--background-image)\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)/gi
+  )) {
+    addCandidate(match[1]);
+  }
+
+  for (const match of decoded.matchAll(
+    /<a\b[^>]*\bhref\s*=\s*["']([^"']+\.(?:png|jpe?g|webp)(?:\?[^"']*)?)["']/gi
+  )) {
+    addCandidate(match[1]);
+  }
+
+  for (const candidate of candidates) {
+    const resolved = resolveExophaseUrl(candidate);
+    if (resolved) return resolved;
+  }
+
+  return null;
+}
+
 function parseExophaseHtml(html: string) {
   // Procuramos a abertura do elemento .award-title, e não o primeiro
   // fechamento de tag. Assim títulos com <span>/<a> internos não quebram.
@@ -180,53 +272,25 @@ function parseExophaseHtml(html: string) {
 
       if (!title) return null;
 
-      // A arte da conquista no Exophase pode ficar ANTES do .award-title
-      // (por exemplo, em <img>, <source> ou background-image). Por isso,
-      // procurar somente no texto depois do título perde a referência.
-      // O bloco abaixo vai do fim do título anterior até o início do título atual,
-      // preservando a região visual associada à conquista atual.
       const previousTitleEnd =
         index > 0
           ? (titleOpenMatches[index - 1].index ?? 0) +
             titleOpenMatches[index - 1][0].length
           : 0;
 
-      const visualBlock = decodeHtml(
-        html.slice(previousTitleEnd, nextTitleStart)
+      // O ícone pode estar antes do .award-title, dentro do mesmo card.
+      // Procuramos vários formatos de lazy-loading/background, em vez de
+      // depender de uma única estrutura HTML do Exophase.
+      const visualBlock = html.slice(previousTitleEnd, nextTitleStart);
+      const visualReferenceUrl = extractVisualReference(visualBlock);
+
+      // Guardamos também o link da conquista. Se a listagem não expuser o
+      // ícone diretamente, a página individual da conquista será usada como
+      // fallback para obter a imagem oficial do Exophase.
+      const detailUrl = resolveExophaseUrl(
+        extractAttribute(match[0], "href")
       );
 
-      const visualMatch =
-        visualBlock.match(
-          /<(?:img|source)\b[^>]*(?:src|data-src|data-original)=["']([^"']+)["']/i
-        ) ??
-        visualBlock.match(
-          /<(?:img|source)\b[^>]*srcset=["']([^"']+)["']/i
-        ) ??
-        visualBlock.match(
-          /background-image\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)/i
-        );
-
-      let rawVisualReference = visualMatch?.[1]?.trim() || null;
-
-      // srcset pode conter várias URLs; usamos a primeira.
-      if (rawVisualReference?.includes(",")) {
-        rawVisualReference = rawVisualReference.split(",")[0]?.trim() || null;
-      }
-
-      // Alguns srcset usam "URL 1x" / "URL 2x".
-      if (rawVisualReference) {
-        rawVisualReference = rawVisualReference
-          .replace(/\s+\d+(?:\.\d+)?x$/i, "")
-          .trim();
-      }
-
-      const visualReferenceUrl =
-        rawVisualReference && !rawVisualReference.startsWith("data:")
-          ? new URL(rawVisualReference, "https://www.exophase.com").toString()
-          : null;
-
-      // O bloco também contém a descrição, a raridade e o EXP. Depois de
-      // limpar o HTML, removemos o título e pegamos a descrição até o %.
       const visible = stripHtml(chunk);
       let detailText = visible;
 
@@ -246,7 +310,13 @@ function parseExophaseHtml(html: string) {
         .replace(/\s+/g, " ")
         .trim();
 
-      return { name: title, description, percent, visualReferenceUrl };
+      return {
+        name: title,
+        description,
+        percent,
+        visualReferenceUrl,
+        detailUrl,
+      };
     })
     .filter(
       (achievement): achievement is {
@@ -254,10 +324,113 @@ function parseExophaseHtml(html: string) {
         description: string;
         percent: number | undefined;
         visualReferenceUrl: string | null;
+        detailUrl: string | null;
       } => Boolean(achievement)
     );
 
   return achievements.length ? achievements : null;
+}
+
+async function fetchExophaseAchievementImage(detailUrl: string) {
+  const extractFromPage = (html: string) => {
+    const metaImage =
+      html.match(
+        /<meta\b[^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*content=["']([^"']+)["'][^>]*>/i
+      ) ??
+      html.match(
+        /<meta\b[^>]*content=["']([^"']+)["'][^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*>/i
+      );
+
+    const linkImage = html.match(
+      /<link\b[^>]*rel=["'][^"']*\bimage_src\b[^"']*["'][^>]*href=["']([^"']+)["']/i
+    );
+
+    return (
+      resolveExophaseUrl(metaImage?.[1] || linkImage?.[1] || null) ||
+      extractVisualReference(html)
+    );
+  };
+
+  try {
+    const response = await fetch(detailUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+      },
+    });
+
+    if (response.ok) {
+      const html = await response.text();
+      const image = extractFromPage(html);
+      if (image) return image;
+    }
+  } catch (error) {
+    console.error("[Exophase Achievement Image Direct]", error);
+  }
+
+  try {
+    const readerUrl = "https://r.jina.ai/" + detailUrl;
+    const response = await fetch(readerUrl, {
+      cache: "no-store",
+      headers: {
+        Accept: "text/html",
+        "X-Respond-With": "html",
+        "X-Timeout": "20",
+      },
+    });
+
+    if (response.ok) {
+      const html = await response.text();
+      const image = extractFromPage(html);
+      if (image) return image;
+    }
+  } catch (error) {
+    console.error("[Exophase Achievement Image Reader]", error);
+  }
+
+  return null;
+}
+
+async function hydrateExophaseVisualReferences(
+  achievements: ExophaseAchievement[]
+) {
+  const result = [...achievements];
+
+  // Evitamos abrir dezenas de páginas individuais ao mesmo tempo.
+  const missing = result
+    .map((achievement, index) => ({ achievement, index }))
+    .filter(
+      ({ achievement }) =>
+        !achievement.visualReferenceUrl && Boolean(achievement.detailUrl)
+    );
+
+  const concurrency = 5;
+
+  for (let i = 0; i < missing.length; i += concurrency) {
+    const batch = missing.slice(i, i + concurrency);
+
+    const resolved = await Promise.all(
+      batch.map(async ({ achievement, index }) => ({
+        index,
+        image: achievement.detailUrl
+          ? await fetchExophaseAchievementImage(achievement.detailUrl)
+          : null,
+      }))
+    );
+
+    for (const item of resolved) {
+      if (item.image) {
+        result[item.index] = {
+          ...result[item.index],
+          visualReferenceUrl: item.image,
+        };
+      }
+    }
+  }
+
+  return result;
 }
 
 async function fetchExophaseAchievements(url: string) {
@@ -282,7 +455,8 @@ async function fetchExophaseAchievements(url: string) {
         const achievements = parseExophaseHtml(html);
 
         if (achievements) {
-          return { url: targetUrl, achievements };
+          const hydrated = await hydrateExophaseVisualReferences(achievements);
+          return { url: targetUrl, achievements: hydrated };
         }
       }
     }
@@ -309,7 +483,8 @@ async function fetchExophaseAchievements(url: string) {
         const achievements = parseExophaseHtml(html);
 
         if (achievements) {
-          return { url: targetUrl, achievements };
+          const hydrated = await hydrateExophaseVisualReferences(achievements);
+          return { url: targetUrl, achievements: hydrated };
         }
       }
     }
