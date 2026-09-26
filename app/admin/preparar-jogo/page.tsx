@@ -73,6 +73,9 @@ function PrepararJogoPage() {
     { achievement: A; score: number }[]
   >([]);
   const [showSimilarity, setShowSimilarity] = useState(false);
+  const [mergeCandidate, setMergeCandidate] = useState<A | null>(null);
+  const [mergeTitle, setMergeTitle] = useState("");
+  const [mergeDescription, setMergeDescription] = useState("");
 
   const selected = useMemo(
     () =>
@@ -464,22 +467,28 @@ function PrepararJogoPage() {
     setSimilarCandidates([]);
   }
 
-  function mergeWithCandidate(candidate: A) {
+  function openMergeDialog(candidate: A) {
     const value = manualAchievement.trim();
-    if (!result || !value) return;
+    if (!value) return;
 
     const exophaseDescription = candidate.description.trim();
-    const manualDescription = value.trim();
-    const sameDescription =
-      exophaseDescription.toLocaleLowerCase("pt-BR") ===
-      manualDescription.toLocaleLowerCase("pt-BR");
+    setMergeCandidate(candidate);
+    setMergeTitle(generateManualTitle(value));
+    setMergeDescription(
+      exophaseDescription && exophaseDescription.toLocaleLowerCase("pt-BR") !== value.toLocaleLowerCase("pt-BR")
+        ? [exophaseDescription, value].filter(Boolean).join(" ")
+        : exophaseDescription || value
+    );
+  }
+
+  function confirmMerge() {
+    const candidate = mergeCandidate;
+    if (!result || !candidate) return;
 
     const merged: A = {
       id: `custom-merged-${Date.now()}`,
-      name: generateManualTitle(value),
-      description: sameDescription
-        ? exophaseDescription
-        : [exophaseDescription, manualDescription].filter(Boolean).join(" "),
+      name: mergeTitle.trim() || generateManualTitle(manualAchievement),
+      description: mergeDescription.trim() || manualAchievement.trim(),
       rank: manualRank,
       online: candidate.online,
       momentary: candidate.momentary,
@@ -505,6 +514,9 @@ function PrepararJogoPage() {
     setManualRank("Bronze");
     setShowSimilarity(false);
     setSimilarCandidates([]);
+    setMergeCandidate(null);
+    setMergeTitle("");
+    setMergeDescription("");
   }
   function savePreparation() {
     if (!result?.game.slug) return;
@@ -778,7 +790,7 @@ function PrepararJogoPage() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           <button
                             type="button"
-                            onClick={() => mergeWithCandidate(achievement)}
+                            onClick={() => openMergeDialog(achievement)}
                             className="rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-[10px] font-black uppercase text-violet-100"
                           >
                             🔀 Mesclar em uma
@@ -802,6 +814,74 @@ function PrepararJogoPage() {
                   >
                     Não é duplicada — adicionar minha conquista
                   </button>
+                </div>
+              )}
+
+              {mergeCandidate && (
+                <div className="mt-4 rounded-2xl border border-violet-400/40 bg-violet-500/[.08] p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.2em] text-violet-300">
+                        Confirmar mesclagem
+                      </p>
+                      <h3 className="mt-1 text-lg font-black">Transformar em uma única conquista</h3>
+                      <p className="mt-1 text-xs text-white/45">
+                        Revise o título e a descrição antes de confirmar. A conquista Exophase escolhida será substituída por esta versão única.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMergeCandidate(null)}
+                      className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black uppercase text-white/60"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid gap-3">
+                    <label className="text-[10px] font-black uppercase text-white/50">
+                      Título final
+                      <input
+                        value={mergeTitle}
+                        onChange={(e) => setMergeTitle(e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold text-white outline-none focus:border-violet-400/50"
+                      />
+                    </label>
+
+                    <label className="text-[10px] font-black uppercase text-white/50">
+                      Descrição final
+                      <textarea
+                        value={mergeDescription}
+                        onChange={(e) => setMergeDescription(e.target.value)}
+                        rows={3}
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-medium text-white/80 outline-none focus:border-violet-400/50"
+                      />
+                    </label>
+
+                    <div className="flex flex-wrap items-end justify-between gap-3">
+                      <label className="text-[10px] font-black uppercase text-white/50">
+                        Rank
+                        <select
+                          value={manualRank}
+                          onChange={(e) => setManualRank(e.target.value as "Bronze" | "Prata" | "Ouro")}
+                          className="mt-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-xs font-black text-white outline-none"
+                        >
+                          <option value="Bronze">Bronze</option>
+                          <option value="Prata">Prata</option>
+                          <option value="Ouro">Ouro</option>
+                        </select>
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={confirmMerge}
+                        disabled={!mergeTitle.trim() || !mergeDescription.trim()}
+                        className="rounded-xl border border-violet-300/40 bg-violet-400/15 px-5 py-3 text-[10px] font-black uppercase text-violet-100 disabled:opacity-40"
+                      >
+                        🔀 Confirmar mesclagem
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 
