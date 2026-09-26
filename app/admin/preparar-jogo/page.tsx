@@ -16,6 +16,7 @@ type A = {
   journeySuggestion: boolean;
   journey: boolean;
   notDoing: boolean;
+  isCustom?: boolean;
 };
 
 type R = {
@@ -67,6 +68,7 @@ function PrepararJogoPage() {
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
   const [manualAchievement, setManualAchievement] = useState("");
+  const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -265,12 +267,13 @@ function PrepararJogoPage() {
       id: `custom-${Date.now()}`,
       name: generateManualTitle(value),
       description: value,
-      rank: "Bronze",
+      rank: manualRank,
       online: false,
       momentary: false,
       journeySuggestion: false,
       journey: true,
       notDoing: false,
+      isCustom: true,
     };
 
     setSaved(false);
@@ -278,6 +281,27 @@ function PrepararJogoPage() {
       current ? { ...current, achievements: [...current.achievements, custom] } : current
     );
     setManualAchievement("");
+    setManualRank("Bronze");
+  }
+
+  function updateCustomAchievement(
+    id: string,
+    field: "name" | "description" | "rank",
+    value: string
+  ) {
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((a) =>
+              a.id === id && a.isCustom
+                ? { ...a, [field]: value }
+                : a
+            ),
+          }
+        : current
+    );
   }
 
   function addCustomAsSeparate() {
@@ -301,6 +325,7 @@ function PrepararJogoPage() {
       current ? { ...current, achievements: [...current.achievements, custom] } : current
     );
     setManualAchievement("");
+    setManualRank("Bronze");
     setShowSimilarity(false);
     setSimilarCandidates([]);
   }
@@ -534,15 +559,22 @@ function PrepararJogoPage() {
                 <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
               </div>
 
-              <div className="mt-5 rounded-2xl border border-violet-400/20 bg-violet-400/[.035] p-4">
-                <p className="text-[9px] font-black uppercase tracking-[.18em] text-violet-300/70">
-                  Conquista manual
-                </p>
-                <h3 className="mt-1 text-lg font-black">Adicionar uma conquista sua</h3>
-                <p className="mt-1 text-xs text-white/35">
-                  Digite apenas o que precisa ser feito. O sistema usa essa descrição para procurar conquistas do Exophase parecidas e, se for uma conquista nova, cria um título automaticamente.
-                </p>
-                <div className="mt-4 flex flex-col gap-3 md:flex-row">
+              <div className="mt-5 rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-300">
+                      Conquista manual
+                    </p>
+                    <h3 className="mt-1 text-lg font-black">Adicionar uma conquista sua</h3>
+                    <p className="mt-1 text-xs text-white/45">
+                      Digite somente o que precisa ser feito. Se for nova, o sistema cria um título automaticamente.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-[9px] font-black uppercase text-sky-100">
+                    🔎 Verifica duplicatas
+                  </span>
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto]">
                   <input
                     value={manualAchievement}
                     onChange={(e) => setManualAchievement(e.target.value)}
@@ -550,13 +582,24 @@ function PrepararJogoPage() {
                       if (e.key === "Enter") addManualAchievement();
                     }}
                     placeholder="Ex.: Mate três inimigos com um único tiro"
-                    className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/20"
+                    className="min-w-0 rounded-xl border border-sky-300/20 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/25"
                   />
+                  <select
+                    value={manualRank}
+                    onChange={(e) =>
+                      setManualRank(e.target.value as "Bronze" | "Prata" | "Ouro")
+                    }
+                    className="rounded-xl border border-sky-300/20 bg-black/40 px-4 py-3 text-sm font-black text-white outline-none"
+                  >
+                    <option value="Bronze">Bronze</option>
+                    <option value="Prata">Prata</option>
+                    <option value="Ouro">Ouro</option>
+                  </select>
                   <button
                     type="button"
                     onClick={addManualAchievement}
                     disabled={!manualAchievement.trim()}
-                    className="rounded-xl border border-violet-400/30 bg-violet-400/10 px-6 py-3 text-xs font-black uppercase text-violet-100 disabled:opacity-40"
+                    className="rounded-xl border border-sky-300/30 bg-sky-300/15 px-6 py-3 text-xs font-black uppercase text-sky-50 disabled:opacity-40"
                   >
                     Adicionar
                   </button>
@@ -649,20 +692,51 @@ function PrepararJogoPage() {
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      <button
-                        type="button"
-                        onClick={() => toggle(a.id)}
-                        disabled={a.notDoing}
-                        className="min-w-0 flex-1 text-left disabled:cursor-default"
-                      >
-                        <p className="text-[9px] uppercase text-white/25">
-                          Conquista {i + 1}
-                        </p>
-                        <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                        <p className="mt-2 text-xs text-white/35">
-                          {a.description || "Sem descrição disponível."}
-                        </p>
-                      </button>
+                      {a.isCustom ? (
+                        <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
+                          <p className="text-[9px] uppercase text-sky-300/60">
+                            Conquista manual
+                          </p>
+                          <input
+                            value={a.name}
+                            onChange={(e) => updateCustomAchievement(a.id, "name", e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-sm font-black outline-none"
+                            aria-label="Título da conquista manual"
+                          />
+                          <textarea
+                            value={a.description}
+                            onChange={(e) => updateCustomAchievement(a.id, "description", e.target.value)}
+                            rows={2}
+                            className="mt-2 w-full resize-none rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-xs font-bold outline-none"
+                            aria-label="Descrição da conquista manual"
+                          />
+                          <select
+                            value={a.rank}
+                            onChange={(e) => updateCustomAchievement(a.id, "rank", e.target.value)}
+                            className="mt-2 rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-xs font-black outline-none"
+                            aria-label="Rank da conquista manual"
+                          >
+                            <option value="Bronze">Bronze</option>
+                            <option value="Prata">Prata</option>
+                            <option value="Ouro">Ouro</option>
+                          </select>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => toggle(a.id)}
+                          disabled={a.notDoing}
+                          className="min-w-0 flex-1 text-left disabled:cursor-default"
+                        >
+                          <p className="text-[9px] uppercase text-white/25">
+                            Conquista {i + 1}
+                          </p>
+                          <h3 className="mt-1 text-sm font-black">{a.name}</h3>
+                          <p className="mt-2 text-xs text-white/35">
+                            {a.description || "Sem descrição disponível."}
+                          </p>
+                        </button>
+                      )}
 
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
