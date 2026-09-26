@@ -167,8 +167,6 @@ function resolveExophaseUrl(rawUrl: string | null) {
   try {
     const url = new URL(decodeHtml(rawUrl), "https://www.exophase.com");
 
-    // O Exophase pode servir as artes por subdomínios/CDN próprios
-    // (por exemplo, cdn.exophase.com). Continuamos bloqueando domínios externos.
     if (
       url.hostname !== "exophase.com" &&
       !url.hostname.endsWith(".exophase.com")
@@ -182,25 +180,43 @@ function resolveExophaseUrl(rawUrl: string | null) {
   }
 }
 
+function resolveEmbeddedImageUrl(rawUrl: string | null) {
+  if (!rawUrl) return null;
+
+  try {
+    const url = new URL(decodeHtml(rawUrl), "https://www.exophase.com");
+
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return null;
+    }
+
+    // A página do Exophase pode embutir a arte através de uma CDN externa.
+    // Isso continua sendo uma referência encontrada NO Exophase; não estamos
+    // consultando Steam/Xbox/outra base para descobrir uma arte alternativa.
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function extractVisualReference(block: string) {
   const decoded = decodeHtml(block);
-
   const candidates: string[] = [];
 
   const addCandidate = (value?: string | null) => {
     if (!value) return;
 
-    let normalized = value.trim();
-
-    if (normalized.includes(",")) {
-      normalized = normalized.split(",")[0]?.trim() || "";
-    }
-
-    normalized = normalized
+    let normalized = value
+      .trim()
+      .replace(/^\\+/, "//")
       .replace(/^\s*url\(\s*["']?/i, "")
       .replace(/["']?\s*\)\s*$/i, "")
       .replace(/\s+\d+(?:\.\d+)?x$/i, "")
       .trim();
+
+    if (normalized.includes(",")) {
+      normalized = normalized.split(",")[0]?.trim() || "";
+    }
 
     if (
       normalized &&
@@ -211,20 +227,16 @@ function extractVisualReference(block: string) {
     }
   };
 
+  // A imagem pode estar no próprio <img>/<source> ou em atributos de
+  // lazy-loading que o Exophase/Jina usa.
   for (const match of decoded.matchAll(
-    /<(?:img|source)\b[^>]*\b(?:src|data-src|data-original|data-lazy-src|data-image|data-image-url|data-bg|data-background|data-background-image)\s*=\s*["']([^"']+)["']/gi
+    /<(?:img|source)\b[^>]*\b(?:src|srcset|data-src|data-srcset|data-original|data-original-src|data-lazy-src|data-lazy-srcset|data-image|data-image-url|data-bg|data-background|data-background-image|data-url)\s*=\s*["']([^"']+)["']/gi
   )) {
     addCandidate(match[1]);
   }
 
   for (const match of decoded.matchAll(
-    /\b(?:data-src|data-original|data-lazy-src|data-image|data-image-url|data-bg|data-background|data-background-image)\s*=\s*["']([^"']+)["']/gi
-  )) {
-    addCandidate(match[1]);
-  }
-
-  for (const match of decoded.matchAll(
-    /\bsrcset\s*=\s*["']([^"']+)["']/gi
+    /\b(?:src|srcset|data-src|data-srcset|data-original|data-original-src|data-lazy-src|data-lazy-srcset|data-image|data-image-url|data-bg|data-background|data-background-image|data-url)\s*=\s*["']([^"']+)["']/gi
   )) {
     addCandidate(match[1]);
   }
@@ -235,6 +247,15 @@ function extractVisualReference(block: string) {
     addCandidate(match[1]);
   }
 
+  // Jina pode devolver uma imagem em Markdown mesmo quando foi solicitado
+  // HTML. Também cobrimos URLs sem extensão (CDNs costumam usar esse formato).
+  for (const match of decoded.matchAll(
+    /!\[[^\]]*\]\(\s*<?([^)>\s]+)>?[^)]*\)/gi
+  )) {
+    addCandidate(match[1]);
+  }
+
+  // Último formato: links diretos para arquivos de imagem.
   for (const match of decoded.matchAll(
     /<a\b[^>]*\bhref\s*=\s*["']([^"']+\.(?:png|jpe?g|webp)(?:\?[^"']*)?)["']/gi
   )) {
@@ -242,8 +263,11 @@ function extractVisualReference(block: string) {
   }
 
   for (const candidate of candidates) {
-    const resolved = resolveExophaseUrl(candidate);
-    if (resolved) return resolved;
+    const exophaseUrl = resolveExophaseUrl(candidate);
+    if (exophaseUrl) return exophaseUrl;
+
+    const embeddedUrl = resolveEmbeddedImageUrl(candidate);
+    if (embeddedUrl) return embeddedUrl;
   }
 
   return null;
@@ -287,7 +311,13 @@ function parseExophaseHtml(html: string) {
       // Procuramos vários formatos de lazy-loading/background, em vez de
       // depender de uma única estrutura HTML do Exophase.
       const visualBlock = html.slice(previousTitleEnd, nextTitleStart);
-      const visualReferenceUrl = extractVisualReference(visualBlock);
+      const beforeTitleBlock = html.slice(
+        Math.max(0, (match.index ?? 0) - 12000),
+        titleStart
+      );
+      const visualReferenceUrl =
+        extractVisualReference(visualBlock) ||
+        extractVisualReference(beforeTitleBlock);
 
       // Guardamos também o link da conquista. Se a listagem não expuser o
       // ícone diretamente, a página individual da conquista será usada como
