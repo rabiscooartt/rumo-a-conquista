@@ -102,7 +102,8 @@ function PrepararJogoPage() {
   const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
-  const [copiedBatch, setCopiedBatch] = useState<number | null>(null);\n  const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
+  const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
+  const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
   const [manualAchievement, setManualAchievement] = useState("");
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [similarCandidates, setSimilarCandidates] = useState<
