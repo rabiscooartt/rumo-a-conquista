@@ -344,6 +344,7 @@ export async function GET(req: NextRequest) {
         momentary,
         journeySuggestion: journey,
         journey,
+        notDoing: false,
         id:
           "exophase-" +
           slug(registeredGame.slug) +
