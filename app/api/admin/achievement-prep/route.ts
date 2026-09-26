@@ -155,7 +155,7 @@ async function findExophaseSteamGame(title: string) {
 
 function extractAttribute(tag: string, attribute: string) {
   const match = tag.match(
-    new RegExp(attribute + String.raw\`\\s*=\\s*["']([^"']+)["']\`, "i")
+    new RegExp(attribute + "\\s*=\\s*[\"']([^\"']+)[\"']", "i")
   );
 
   return match?.[1]?.trim() || null;
