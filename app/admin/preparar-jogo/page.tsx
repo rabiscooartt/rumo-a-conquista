@@ -87,6 +87,39 @@ function PrepararJogoPage() {
     [result]
   );
 
+  const publicationStatus = useMemo(() => {
+    if (!result) {
+      return {
+        ready: false,
+        total: 0,
+        selected: 0,
+        missingDescriptions: 0,
+        reason: "Carregue o jogo para iniciar a preparação.",
+      };
+    }
+
+    const publishable = result.achievements.filter((a) => !a.notDoing);
+    const missingDescriptions = publishable.filter((a) => !a.description.trim()).length;
+    const ready =
+      Boolean(result.game.slug) &&
+      Boolean(result.game.exophase?.found) &&
+      publishable.length > 0 &&
+      missingDescriptions === 0 &&
+      saved;
+
+    return {
+      ready,
+      total: result.achievements.length,
+      selected: publishable.length,
+      missingDescriptions,
+      reason: !saved
+        ? "Salve o rascunho antes de publicar."
+        : missingDescriptions > 0
+          ? `${missingDescriptions} conquista(s) ainda estão sem descrição.`
+          : "As artes ainda precisam ser validadas antes da publicação.",
+    };
+  }, [result, saved]);
+
   async function search(gameSlug = registeredSlug, gameTitle = title) {
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
@@ -673,6 +706,21 @@ function PrepararJogoPage() {
               >
                 🗑️ Limpar preparação
               </button>
+              <div className="flex flex-col items-stretch gap-1">
+                <button
+                  type="button"
+                  disabled={!publicationStatus.ready || draftLoading}
+                  className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[10px] font-black uppercase text-emerald-100 disabled:cursor-not-allowed disabled:opacity-35"
+                  title={publicationStatus.ready ? "Publicar conquistas" : publicationStatus.reason}
+                >
+                  🚀 Publicar conquistas
+                </button>
+                <span className="text-[9px] text-white/25">
+                  {publicationStatus.ready
+                    ? "Pronto para publicar"
+                    : publicationStatus.reason}
+                </span>
+              </div>
             </div>
           )}
 
