@@ -180,13 +180,46 @@ function parseExophaseHtml(html: string) {
 
       if (!title) return null;
 
-      // Quando disponível, preservamos a referência visual encontrada no
-      // próprio bloco da conquista do Exophase. Ela será usada apenas como
-      // referência para recriar a arte, nunca como imagem final publicada.
+      // A arte da conquista no Exophase pode ficar ANTES do .award-title
+      // (por exemplo, em <img>, <source> ou background-image). Por isso,
+      // procurar somente no texto depois do título perde a referência.
+      // O bloco abaixo vai do fim do título anterior até o início do título atual,
+      // preservando a região visual associada à conquista atual.
+      const previousTitleEnd =
+        index > 0
+          ? (titleOpenMatches[index - 1].index ?? 0) +
+            titleOpenMatches[index - 1][0].length
+          : 0;
+
+      const visualBlock = decodeHtml(
+        html.slice(previousTitleEnd, nextTitleStart)
+      );
+
       const visualMatch =
-        chunk.match(/<(?:img|source)\b[^>]*(?:src|data-src|data-original|srcset)=["']([^"']+)["']/i) ??
-        chunk.match(/background-image\s*:\s*url\(["']?([^"')]+)["']?\)/i);
-      const rawVisualReference = visualMatch?.[1]?.trim() || null;
+        visualBlock.match(
+          /<(?:img|source)\b[^>]*(?:src|data-src|data-original)=["']([^"']+)["']/i
+        ) ??
+        visualBlock.match(
+          /<(?:img|source)\b[^>]*srcset=["']([^"']+)["']/i
+        ) ??
+        visualBlock.match(
+          /background-image\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)/i
+        );
+
+      let rawVisualReference = visualMatch?.[1]?.trim() || null;
+
+      // srcset pode conter várias URLs; usamos a primeira.
+      if (rawVisualReference?.includes(",")) {
+        rawVisualReference = rawVisualReference.split(",")[0]?.trim() || null;
+      }
+
+      // Alguns srcset usam "URL 1x" / "URL 2x".
+      if (rawVisualReference) {
+        rawVisualReference = rawVisualReference
+          .replace(/\s+\d+(?:\.\d+)?x$/i, "")
+          .trim();
+      }
+
       const visualReferenceUrl =
         rawVisualReference && !rawVisualReference.startsWith("data:")
           ? new URL(rawVisualReference, "https://www.exophase.com").toString()
