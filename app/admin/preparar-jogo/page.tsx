@@ -1259,7 +1259,6 @@ function PrepararJogoPage() {
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
                           `Referência visual Exophase: ${a.visualReferenceUrl || "Não disponível — criar a partir do jogo e da descrição."}`,
-                          `Arquivo de referência anexável: ${a.visualReferenceUrl ? a.filename.replace(/\.png$/i, "-exophase-reference.png") : "Nenhum — gerar sem referência visual."}`,
                           ""
                         );
                       });
