@@ -1,5 +1,7 @@
 "use client";
 
+// Preview: fluxo de análise visual textual das referências Exophase.
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -722,7 +724,7 @@ function PrepararJogoPage() {
         }
 
         const analyses = Array.isArray(payload.analyses) ? payload.analyses : [];
-        const byId = new Map(
+        const byId = new Map<string, string>(
           analyses
             .filter(
               (analysis: { id?: unknown; brief?: unknown }) =>
@@ -732,7 +734,7 @@ function PrepararJogoPage() {
             .map((analysis: { id: string; brief: string }) => [
               analysis.id,
               analysis.brief,
-            ])
+            ] as [string, string])
         );
 
         for (const achievement of chunk) {
@@ -776,10 +778,20 @@ function PrepararJogoPage() {
     }
   }
 
-  function buildAchievementPrompt(a: Prepared, index?: number, visualBriefOverride?: string) {
-    const numberLabel = index !== undefined
-      ? String(index + 1).padStart(2, "0")
-      : a.filename.split("-")[0];
+  function buildAchievementPrompt(
+    a: Prepared,
+    index?: number,
+    visualBriefOverride?: string
+  ) {
+    const numberLabel =
+      index !== undefined
+        ? String(index + 1).padStart(2, "0")
+        : a.filename.split("-")[0];
+
+    const brief =
+      visualBriefOverride?.trim() ||
+      a.visualBrief?.trim() ||
+      "PENDENTE — analisar a referência Exophase antes da geração.";
 
     return [
       `JOGO: ${result?.game.name ?? ""}`,
@@ -787,28 +799,30 @@ function PrepararJogoPage() {
       `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
       `ARQUIVO: ${a.filename}`,
       "",
-      "INSTRUÇÕES PARA A GERAÇÃO DA ARTE:",
-      "A referência do Exophase foi usada somente pelo site para análise visual. NÃO usar a imagem de referência como input direto do gerador.",
-      "A arte final deve ser criada exclusivamente a partir do significado da conquista, do brief visual textual abaixo e da Matriz Visual Oficial do Rumo à Conquista.",
+      "FASE 1 — BASE DA CONQUISTA:",
+      "Crie primeiro uma direção visual ORIGINAL para esta conquista usando somente o significado do nome, da descrição e do universo do jogo.",
+      "Defina o símbolo, objeto ou ação principal que comunica a conquista imediatamente.",
+      "",
+      "FASE 2 — AJUSTE VISUAL DA REFERÊNCIA:",
+      "Depois de criar a base, aplique somente os atributos visuais amplos registrados no brief abaixo.",
+      "O brief funciona como camada estética: paleta, contraste, traço, composição, atmosfera, iluminação, textura, acabamento e densidade de detalhes.",
+      "O brief NÃO substitui a base e NÃO deve determinar personagens, poses, ícones, logos, textos ou desenhos reconhecíveis da referência.",
       "",
       "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA:",
-      "1. IDENTIDADE: a imagem deve parecer parte de uma coleção consistente, sem repetir uma fórmula visual fixa.",
-      "2. FOCO: um elemento principal forte deve comunicar a conquista imediatamente; elementos secundários só entram quando ajudam o significado.",
-      "3. COMPOSIÇÃO EDGE-TO-EDGE: formato 1:1 e arte ocupando 100% do quadro, tocando diretamente os quatro limites. NUNCA deixar margem, faixa, respiro, canvas vazio ou campo preto externo ao redor da arte. Se houver moldura, ela toca diretamente as quatro bordas e faz parte do próprio desenho.",
-      "4. PALETA: seguir a paleta e o comportamento de cor descritos no brief. Se for monocromática ou muito restrita, preservar isso. Não adicionar vermelho, dourado, metal ou 3D por preferência estética.",
-      "5. LINGUAGEM GRÁFICA: adaptar traço, acabamento, textura, contraste, iluminação, enquadramento e densidade de detalhes ao brief.",
-      "6. ORIGINALIDADE: criar composição nova e independente. Não copiar, recortar, filtrar, redesenhar ou reproduzir personagens, logos, ícones ou outros elementos reconhecíveis da referência.",
-      "7. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos dentro da arte.",
-      "8. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
-      "9. LEGIBILIDADE: a conquista deve ser entendida à primeira vista. Simplifique quando necessário.",
+      "1. IDENTIDADE: parecer parte de uma coleção consistente sem repetir uma fórmula fixa.",
+      "2. FOCO: um elemento principal forte deve comunicar a conquista à primeira vista.",
+      "3. EDGE-TO-EDGE: formato 1:1 e arte ocupando 100% do canvas, tocando diretamente as quatro bordas. Não criar margem, faixa ou fundo externo preto.",
+      "4. PALETA: seguir o perfil visual do brief. Se monocromática ou muito restrita, preservar essa característica.",
+      "5. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos.",
+      "6. ORIGINALIDADE: composição nova e independente; não copiar, recortar, filtrar, redesenhar ou reproduzir elementos reconhecíveis da referência.",
+      "7. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
+      "8. LEGIBILIDADE: simplificar quando necessário para que o significado seja imediato.",
       "",
-      `BRIEF VISUAL TEXTUAL DA REFERÊNCIA:`,
-      visualBriefOverride?.trim() ||
-        a.visualBrief?.trim() ||
-        "PENDENTE — antes de gerar, analisar a referência Exophase e registrar os atributos visuais amplos.",
+      "BRIEF VISUAL TEXTUAL — AJUSTE DA REFERÊNCIA:",
+      brief,
       "",
-      "ORDEM DE PRIORIDADE: 1) significado da conquista; 2) brief visual textual; 3) Matriz Visual Oficial; 4) detalhes complementares do universo do jogo.",
-      "FALLBACK: se o conceito inicial for bloqueado, não usar a imagem de referência. Reescrever a direção de forma mais abstrata e simbólica, mantendo o significado da conquista e os atributos visuais gerais identificados.",
+      "ORDEM FINAL: significado da conquista e base original → ajuste visual textual → Matriz Visual Oficial → detalhes complementares do jogo.",
+      "FALLBACK: se a direção inicial for bloqueada, mantenha a base e torne o ajuste visual mais abstrato. Nunca usar a imagem de referência como input direto do gerador.",
     ].join("\n");
   }
 
@@ -822,7 +836,6 @@ function PrepararJogoPage() {
       }
 
       const prompt = buildAchievementPrompt(a, undefined, brief);
-
       await navigator.clipboard.writeText(prompt);
       setCopiedAchievementId(a.id);
       setTimeout(() => setCopiedAchievementId(null), 2200);
@@ -901,21 +914,26 @@ function PrepararJogoPage() {
 
       if (!response.ok) {
         let message = "Não foi possível montar o lote de texto.";
-        try {
-          const payload = await response.json();
-          if (payload?.error) message = payload.error;
-        } catch {
-          // Mantém a mensagem padrão quando a resposta não é JSON.
+        const contentType = response.headers.get("content-type") ?? "";
+
+        if (contentType.includes("application/json")) {
+          try {
+            const payload = await response.json();
+            if (payload?.error) message = payload.error;
+          } catch {
+            // Mantém a mensagem padrão.
+          }
         }
+
         throw new Error(message);
       }
 
-      const blob = await response.blob();
-      if (blob.size === 0) {
+      const zipBlob = await response.blob();
+      if (zipBlob.size === 0) {
         throw new Error("O arquivo do lote veio vazio.");
       }
 
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(zipBlob);
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`;
@@ -936,126 +954,37 @@ function PrepararJogoPage() {
 
   async function clearPreparation() {
     if (!result?.game.slug) return;
-    if (!window.confirm("Limpar o rascunho desta preparação? As conquistas públicas não serão alteradas.")) return;
+    if (
+      !window.confirm(
+        "Limpar o rascunho desta preparação? As conquistas públicas não serão alteradas."
+      )
+    ) return;
 
     setDraftLoading(true);
     setError("");
 
     try {
       const response = await fetch(
-        "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(result.game.slug),
+        "/api/admin/achievement-prep-draft?slug=" +
+          encodeURIComponent(result.game.slug),
         { method: "DELETE" }
       );
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Erro ao limpar rascunho.");
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Erro ao limpar rascunho.");
+      }
 
       localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
       setDraftUpdatedAt(null);
       setSaved(false);
       await search(result.game.slug);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao limpar rascunho.");
-    } finally {
-      setDraftLoading(false);
-    }
-  }
-
-  async function copyAchievementPrompt(a: Prepared) {
-    const prompt = [
-      `JOGO: ${result?.game.name ?? ""}`,
-      `CONQUISTA: ${a.name}`,
-      `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
-      `ARQUIVO: ${a.filename}`,
-      "",
-      "REFERÊNCIA EXOPHASE: material de análise visual somente. NÃO usar a imagem como entrada direta do gerador.",
-      "Crie um brief visual textual original a partir das características amplas observadas na referência, do nome, da descrição e da Matriz Visual Oficial do Rumo à Conquista.",
-      "Preserve apenas linguagem visual ampla — paleta, contraste, atmosfera, enquadramento, textura e tratamento gráfico — e crie uma composição nova e independente.",
-      "Se a referência for monocromática ou usar uma paleta muito restrita, mantenha essa característica.",
-      "Não copie, recorte, filtre, redesenhe ou reproduza personagens, logos, ícones ou outros elementos reconhecíveis da referência.",
-      "",
-      a.visualReferenceUrl
-        ? `A referência individual correspondente está no ZIP do lote: ${a.visualReferenceUrl}`
-        : "Não há referência visual individual disponível.",
-    ].join("\n");
-
-    try {
-      await navigator.clipboard.writeText(prompt);
-      setCopiedAchievementId(a.id);
-      setTimeout(() => setCopiedAchievementId(null), 2200);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Não foi possível copiar o brief da conquista.");
-    }
-  }
-
-  async function downloadBatchPackage(
-    batch: Prepared[],
-    batchIndex: number,
-    packageText: string
-  ) {
-    setDownloadingBatch(batchIndex);
-    setError("");
-
-    try {
-      const references = batch
-        .filter((achievement) => Boolean(achievement.visualReferenceUrl))
-        .map((achievement) => ({
-          filename: achievement.filename,
-          url: achievement.visualReferenceUrl as string,
-        }));
-
-      const response = await fetch("/api/admin/achievement-reference-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
-          packageText,
-          references,
-        }),
-      });
-
-      if (!response.ok) {
-        let message = "Não foi possível montar o lote completo.";
-        try {
-          const payload = await response.json();
-          if (payload?.error) message = payload.error;
-        } catch {
-          // Mantém a mensagem padrão quando a resposta não é JSON.
-        }
-        throw new Error(message);
-      }
-
-      const blob = await response.blob();
-      if (blob.type !== "application/zip" && blob.size === 0) {
-        throw new Error("O arquivo do lote veio vazio.");
-      }
-
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-
-      const downloadedReferences =
-        response.headers.get("X-Rumo-Downloaded-Reference-Count") ?? String(references.length);
-      const totalReferences =
-        response.headers.get("X-Rumo-Reference-Count") ?? String(references.length);
-
-      if (downloadedReferences !== totalReferences) {
-        setError(
-          `Lote ${String(batchIndex + 1).padStart(2, "0")} baixado, mas ${totalReferences} referências foram solicitadas e ${downloadedReferences} foram incluídas. Veja o arquivo REFERENCIAS-COM-FALHA.txt dentro do ZIP.`
-        );
-      }
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível baixar o lote completo."
+        error instanceof Error ? error.message : "Erro ao limpar rascunho."
       );
     } finally {
-      setDownloadingBatch(null);
+      setDraftLoading(false);
     }
   }
 
