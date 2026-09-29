@@ -1,5 +1,7 @@
 "use client";
 
+// Preview: fluxo de análise visual textual das referências Exophase.
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
