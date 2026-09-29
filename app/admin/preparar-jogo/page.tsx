@@ -49,11 +49,11 @@ function slugify(value: string) {
 
 function prepareAchievement(a: A, index: number): Prepared {
   const visualReferenceInstruction = a.visualReferenceUrl
-    ? "REFERÊNCIA EXOPHASE DISPONÍVEL: a referência visual individual do Exophase é a principal base da direção visual desta arte. Analise e siga sua linguagem visual em aproximadamente 80% da direção final: paleta e tratamento de cor, contraste, composição e enquadramento, atmosfera, iluminação, textura e estilo gráfico. Preserve características importantes da referência, inclusive sua paleta monocromática quando ela existir, em vez de aplicar uma estética genérica. Os cerca de 20% restantes devem ser uma interpretação original para o Rumo à Conquista. O nome e a descrição da conquista validam o significado. Crie uma arte nova e independente. NÃO copie, recorte, filtre, redesenhe ou reproduza fielmente a imagem original; não reproduza personagens, ilustrações, ícones, logos ou elementos protegidos. Se houver um elemento protegido, substitua-o por uma representação original que transmita a mesma ideia. Não tente transformar a referência diretamente."
+    ? "REFERÊNCIA EXOPHASE DISPONÍVEL: analise a referência visual individual apenas para extrair características amplas como paleta, contraste, enquadramento, atmosfera, iluminação, textura e linguagem gráfica. A referência orienta a linguagem da arte, mas NÃO deve ser reproduzida, transformada ou reconstruída. Use aproximadamente 80% dessas características gerais e aproximadamente 20% de interpretação original para criar uma nova arte. Se a referência for monocromática ou usar uma paleta muito restrita, preserve essa característica. Não copie, recorte, filtre, redesenhe ou tente reproduzir fielmente personagens, logos, ícones, ilustrações ou outros elementos reconhecíveis. Quando um elemento específico não puder ser reutilizado, substitua-o por um símbolo ou objeto original que comunique a mesma ideia. Se houver risco de bloqueio, aumente a distância dos elementos específicos da referência e priorize uma interpretação original baseada no nome, na descrição e no universo do jogo."
     : "SEM REFERÊNCIA EXOPHASE: esta conquista não possui uma referência visual utilizável. Crie a arte originalmente a partir do nome, descrição e universo visual do jogo, mantendo uma identidade de conquista clara e específica. Não procure nem substitua a referência por artes de Steam, Xbox ou outras bases.";
 
   const baseOutputRules =
-    "UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. A composição deve preencher praticamente todo o quadrado. A moldura deve encostar nas bordas ou ficar o mais próxima possível delas, sem criar uma faixa preta externa desnecessária; se algum respiro técnico for inevitável, mantenha-o mínimo. Não inserir texto, letras, números ou nomes dentro da imagem. Não fazer colagem, painel, mosaico, triptico, contact sheet ou múltiplas conquistas na mesma imagem. PRIORIDADE DE LEGIBILIDADE: a conquista deve ser compreendida à primeira vista, com um elemento principal forte e hierarquia clara entre foco, secundários e fundo. Evite excesso de objetos, sobreposição e detalhes pequenos que concorram pela atenção. SIMPLIFICAÇÃO INTELIGENTE: preservar a referência não exige manter todos os elementos dela; selecione os que melhor comunicam a conquista e simplifique os demais sempre que isso aumentar a legibilidade sem perder a linguagem visual da referência.";
+    "UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. A composição deve preencher praticamente todo o quadrado, sem faixa preta externa desnecessária. Não inserir texto, letras, números ou nomes dentro da imagem. Não fazer colagem, painel, mosaico, triptico, contact sheet, grade ou múltiplas conquistas na mesma imagem. PRIORIDADE DE LEGIBILIDADE: a conquista deve ser compreendida à primeira vista, com um elemento principal forte e poucos elementos secundários bem organizados. SIMPLIFICAÇÃO INTELIGENTE: selecione os elementos que melhor comunicam a conquista e simplifique os demais sempre que isso aumentar a legibilidade sem perder a linguagem visual da referência.";
 
   return {
     ...a,
@@ -347,8 +347,7 @@ function PrepararJogoPage() {
       .slice(0, 3);
   }
 
-  function generateManualTitle(description: string) {
-    const clean = description
+  function generateManualTitle(description: string) {    const clean = description
       .trim()
       .replace(/^[.!?]+|[.!?]+$/g, "")
       .replace(/\s+/g, " ");
@@ -677,16 +676,18 @@ function PrepararJogoPage() {
       `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
       `ARQUIVO: ${a.filename}`,
       "",
-      a.visualConcept,
+      a.visualReferenceUrl
+        ? "REFERÊNCIA EXOPHASE INDIVIDUAL — USAR COMO BASE DE ANÁLISE VISUAL."
+        : "SEM REFERÊNCIA EXOPHASE: criar a partir do nome, descrição e universo visual do jogo.",
+      "Analise a referência apenas para extrair paleta, contraste, enquadramento, atmosfera, iluminação, textura e linguagem gráfica.",
+      "Use aproximadamente 80% dessas características gerais e aproximadamente 20% de interpretação original. Crie uma nova arte independente.",
+      "Se a referência for monocromática ou usar uma paleta muito restrita, mantenha essa característica. Não introduza vermelho, dourado, metal ou 3D apenas por preferência estética.",
+      "Não copie, recorte, filtre, redesenhe ou reproduza fielmente personagens, logos, ícones, ilustrações ou outros elementos reconhecíveis. Se houver risco de bloqueio, afaste-se dos elementos específicos da referência e faça uma interpretação original baseada no nome, descrição e universo do jogo.",
       "",
-      "REFERÊNCIA EXOPHASE INDIVIDUAL — OBRIGATÓRIA E DETERMINANTE.",
-      "Esta imagem específica é a referência visual desta conquista. Use aproximadamente 80% de sua direção visual e aproximadamente 20% de interpretação original.",
-"Analise a referência para preservar sua linguagem visual, paleta, contraste, atmosfera, composição e tratamento gráfico, mas crie uma nova arte independente.",
-"Se a referência for monocromática, mantenha a linguagem monocromática. Não aplique cores apenas por preferência estética.",
-"Não copie ou reproduza fielmente a referência, personagens, ilustrações, ícones ou logos. Se houver bloqueio, afaste-se dos elementos específicos e faça uma interpretação original da conquista.",            a.visualReferenceUrl
+      a.visualReferenceUrl
         ? `URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`
         : "Esta conquista não possui referência visual individual.",
-    ].join("\n");
+    ]
 
     try {
       if (!a.visualReferenceUrl) {
@@ -697,8 +698,7 @@ function PrepararJogoPage() {
             encodeURIComponent(a.visualReferenceUrl),
           { cache: "no-store" }
         );
-        if (!response.ok) {
-          throw new Error("Não foi possível carregar a referência visual do Exophase.");
+        if (!response.ok) {          throw new Error("Não foi possível carregar a referência visual do Exophase.");
         }
 
         const blob = await response.blob();
@@ -1047,8 +1047,7 @@ function PrepararJogoPage() {
                       setManualRank(e.target.value as "Bronze" | "Prata" | "Ouro")
                     }
                     className="rounded-xl border border-sky-300/20 bg-black/40 px-4 py-3 text-sm font-black text-white outline-none"
-                  >
-                    <option value="Bronze">Bronze</option>
+                  >                    <option value="Bronze">Bronze</option>
                     <option value="Prata">Prata</option>
                     <option value="Ouro">Ouro</option>
                   </select>
@@ -1378,19 +1377,16 @@ function PrepararJogoPage() {
                         "NUNCA coloque duas ou mais conquistas na mesma imagem, mesmo que seja apenas para mostrar o lote completo.",
                         "Se a interface de geração produzir uma única imagem por chamada, faça uma chamada separada para cada CONQUISTA. NÃO responda com uma imagem contendo várias conquistas. Para um lote de 10, gere 10 imagens separadas; para um lote de 3, gere 3 imagens separadas. Só considere o lote concluído quando existir um arquivo individual para cada conquista.",
                         "Gere/trate cada conquista individualmente e mantenha a identidade visual consistente entre todas.",
-                        "ANÁLISE INDIVIDUAL OBRIGATÓRIA: cada CONQUISTA deve ser analisada separadamente usando sua própria referência visual do Exophase, seu próprio nome e sua própria descrição. Não crie uma direção visual geral para o lote e não use a referência de outra conquista como substituta.",
-"COMPOSIÇÃO DE CADA ARQUIVO: quando houver referência Exophase, ela é a principal referência visual. Siga aproximadamente 80% da direção visual da referência — paleta/tratamento de cor, composição/enquadramento, elementos principais, atmosfera, iluminação, textura e linguagem gráfica — e use aproximadamente 20% para uma interpretação original. Se a referência for monocromática, preserve a linguagem monocromática; não introduza cores apenas por preferência estética. Quando não houver referência, crie a direção visual a partir do nome, descrição e identidade do jogo.",
-"REFERÊNCIA E SEGURANÇA: não aplique uma fórmula visual fixa de vermelho, metal, dourado, moldura ou 3D. Quando houver referência Exophase, ela deve comandar a direção visual em aproximadamente 80%, enquanto a interpretação original ocupa aproximadamente 20%. Não copie, filtre, recorte, redesenhe ou reproduza fielmente personagens, ilustrações, ícones, logos ou outros elementos protegidos. Se necessário, substitua elementos protegidos por equivalentes originais que transmitam a mesma ideia. Preserve características visuais importantes da referência, inclusive sua paleta e tratamento gráfico, sem transformar a arte em uma cópia.",
-"FONTE DOS DADOS: os nomes e descrições abaixo são os dados oficiais desta preparação vindos do Exophase. Não invente outras conquistas, não troque nomes e não substitua uma conquista por outra.",
-"PRIORIDADE DA REFERÊNCIA: quando houver referência visual individual do Exophase, ela é a base visual principal. Preserve aproximadamente 80% de sua linguagem visual e use aproximadamente 20% para uma interpretação original. Nome e descrição validam o significado da conquista. Não reproduza fielmente a imagem nem copie elementos protegidos; transforme a referência em uma criação nova e segura.",
-"NÃO copie, recorte, filtre, redesenhe ou simplesmente reproduza a imagem do Exophase. Não substitua a referência por imagens de Steam, Xbox ou outras bases. Use a referência para compreender a linguagem visual e transforme seus elementos em uma criação original. Se a geração for bloqueada, afaste-se mais dos elementos específicos da referência e crie uma interpretação original da conquista, mantendo sua identidade visual e, quando possível, sua paleta predominante.",                        "Não inserir texto, letras, números ou nomes dentro das imagens.",
-                        "Cada conquista deve manter sua própria identidade visual. Não force todas as imagens a terem a mesma composição, personagem, objeto, enquadramento ou acabamento; a consistência deve vir da coleção e da adaptação, não da repetição de uma fórmula.",
+                        "ANÁLISE INDIVIDUAL OBRIGATÓRIA: cada CONQUISTA deve ser analisada separadamente a partir de sua própria referência visual do Exophase, do nome e da descrição. Nunca use a referência de outra conquista como substituta.",
+                        "DIREÇÃO VISUAL: quando houver referência Exophase utilizável, use-a como pesquisa visual principal para identificar características amplas como paleta, contraste, enquadramento, atmosfera, iluminação, textura e linguagem gráfica. A referência orienta a linguagem da arte, mas NÃO deve ser reproduzida, transformada ou reconstruída. Use aproximadamente 80% dessas características gerais e aproximadamente 20% de interpretação original para a nova arte.",
+                        "PALETA: se a referência for monocromática ou usar uma paleta muito restrita, mantenha essa característica na nova arte. Não introduza vermelho, dourado, metal ou 3D apenas por preferência estética.",
+                        "ORIGINALIDADE E SEGURANÇA: crie sempre uma composição nova e independente. NÃO copie, recorte, filtre, redesenhe ou tente reproduzir fielmente a imagem de referência. NÃO reproduza personagens, logos, ícones, ilustrações ou outros elementos reconhecíveis da referência. Quando um elemento específico não puder ser reutilizado, substitua-o por um símbolo ou objeto original que comunique a mesma ideia da conquista.",
+                        "DISTÂNCIA DA REFERÊNCIA: a análise deve extrair a linguagem visual, não a identidade exata da imagem. Se houver qualquer risco de bloqueio, aumente imediatamente a distância dos elementos específicos da referência e priorize uma interpretação original baseada no nome, na descrição e no universo do jogo.",
                         "FONTE DOS DADOS: os nomes e descrições abaixo são os dados oficiais desta preparação vindos do Exophase. Não invente outras conquistas, não troque nomes e não substitua uma conquista por outra.",
-                        "PRIORIDADE DA REFERÊNCIA: quando houver referência visual individual do Exophase, ela é a principal base visual, aproximadamente 80% da direção final. Isso inclui a semelhança de linguagem visual e a preservação da paleta de cores predominante da referência. Os aproximadamente 20% restantes são interpretação original. Nome e descrição validam o significado. A arte final deve ser uma criação nova e independente, visualmente semelhante à referência em linguagem e paleta, sem reproduzir a imagem, sua composição específica ou elementos reconhecíveis.",
-                        "NÃO copie, recorte, filtre, redesenhe, transforme ou simplesmente reproduza a imagem do Exophase. Não substitua a referência por imagens de Steam, Xbox ou outras bases. Quando houver referência, mantenha aproximadamente 80% da direção visual derivada dela e use aproximadamente 20% para uma interpretação original. Crie uma composição nova e independente e não tente reproduzir de forma excessivamente fiel personagens, artes, ícones, logos ou outros elementos protegidos.",
-                        "Quando uma conquista NÃO tiver referência visual utilizável do Exophase, crie a arte originalmente a partir SOMENTE do nome, descrição e universo visual do jogo, mantendo uma identidade de conquista clara e específica. Nesse caso, há liberdade criativa maior, pois não existe referência visual individual para adaptar.",
-                        "NÃO altere os nomes dos arquivos fornecidos. Cada arquivo deve corresponder exatamente à conquista indicada logo antes dele.",
-                        "REGRA 7 — FALLBACK OBRIGATÓRIO EM CASO DE BLOQUEIO: se uma conquista passar por todas as regras anteriores, mas ainda assim não for possível gerar a arte solicitada devido a direitos autorais, diretrizes de segurança, limitações do ChatGPT ou qualquer outra restrição de geração, NÃO interrompa o lote e NÃO deixe a conquista sem arquivo. Nesse caso, crie uma nova interpretação visual livre e original baseada no nome, descrição e ideia central da conquista. A nova arte deve ser suficientemente diferente da referência para permitir a geração, mas deve continuar lembrando claramente o significado da conquista e permanecer coerente com a identidade visual das demais conquistas do lote. Sempre que possível, preserve também a linguagem gráfica e a paleta predominante identificadas na referência, sem reproduzir elementos protegidos. A prioridade nesse caso é criar uma arte original, específica, reconhecível e coerente com a coleção. Nunca substituir por uma arte genérica, nunca colocar várias conquistas na mesma imagem e nunca deixar o lote incompleto.",
+                        "SEM TEXTO: não inserir texto, letras, números ou nomes dentro das imagens.",
+                        "IDENTIDADE DA COLEÇÃO: cada conquista deve ser visualmente própria. A consistência entre as imagens deve vir do acabamento geral e da adaptação ao universo do jogo, não da repetição de uma mesma composição ou fórmula.",
+                        "REGRA DE SAÍDA: cada conquista deve gerar exatamente um arquivo individual com o nome fornecido. Não fazer colagem, painel, mosaico, triptico, contact sheet, grade ou qualquer imagem que contenha várias conquistas.",
+                        "FALLBACK OBRIGATÓRIO: se uma conquista for bloqueada, NÃO interrompa o lote e NÃO deixe a conquista sem arquivo. Faça uma nova interpretação visual, claramente mais distante da referência, baseada no nome, na descrição e na ideia central da conquista. Mantenha, quando possível, a paleta ou o tratamento geral da referência, mas priorize uma composição totalmente nova e original.",
                         "",
                       ];
 
@@ -1398,202 +1394,3 @@ function PrepararJogoPage() {
                         lines.push(
                           `CONQUISTA ${String(start + localIndex + 1).padStart(2, "0")}`,
                           `Nome: ${a.name}`,
-                          `Descrição: ${a.description || "Sem descrição disponível."}`,
-                          `Rank: ${a.rank}`,
-                          "Jornada de Estreia: SIM",
-                          `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
-                          `Arquivo: ${a.filename}`,
-                          `Conceito visual: ${a.visualConcept}`,
-                          `Referência visual Exophase: ${a.visualReferenceUrl ? "OBRIGATÓRIA E DETERMINANTE — principal base visual (aprox. 80%), com aprox. 20% de interpretação original; usar esta referência individual específica" : "Não disponível — criar a partir do jogo e da descrição."}`,
-                          ...(a.visualReferenceUrl ? [`URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`] : []),
-                          ""
-                        );
-                      });
-
-                      const packageText = lines.join("\n");
-
-                      return (
-                        <div
-                          key={batchIndex}
-                          className="flex items-center justify-between gap-4 rounded-xl border border-white/[.06] bg-white/[.02] p-3"
-                        >
-                          <div>
-                            <p className="text-xs font-black">
-                              Lote {String(batchIndex + 1).padStart(2, "0")}
-                            </p>
-                            <p className="text-[9px] text-white/30">
-                              Conquistas {start + 1}–{start + batch.length}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                void navigator.clipboard.writeText(packageText);
-                                setCopiedBatch(batchIndex);
-                                setTimeout(() => setCopiedBatch(null), 1800);
-                              }}
-                              className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100"
-                            >
-                              {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                void downloadBatchPackage(batch, batchIndex, packageText)
-                              }
-                              disabled={downloadingBatch === batchIndex}
-                              className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:cursor-wait disabled:opacity-50"
-                            >
-                              {downloadingBatch === batchIndex
-                                ? "Montando pacote..."
-                                : "📦 Baixar para ChatGPT"}
-                            </button>
-                          </div>
-                          <details className="w-full rounded-xl border border-white/[.06] bg-white/[.015]">
-                            <summary className="cursor-pointer px-3 py-2 text-[9px] font-black uppercase tracking-wider text-white/40">
-                              Referências individuais
-                            </summary>
-                            <div className="space-y-2 border-t border-white/[.05] p-3">
-                              {batch.map((a) => (
-                                <div key={a.id} className="flex flex-col gap-2 rounded-lg border border-white/[.05] bg-black/20 p-3 md:flex-row md:items-center md:justify-between">
-                                  <div className="min-w-0">
-                                    <p className="truncate text-xs font-black">{a.name}</p>
-                                    <p className="text-[9px] text-white/30">{a.filename}</p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    disabled={!a.visualReferenceUrl}
-                                    onClick={() => void copyAchievementWithReference(a)}
-                                    className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-not-allowed disabled:opacity-35"
-                                  >
-                                    {copiedAchievementId === a.id ? "Copiado + imagem" : "Copiar + referência"}
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </details>
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-
-                <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  <span className="font-black text-white/45">Baixar para ChatGPT:</span> o ZIP já contém o texto do lote e todas as referências individuais do Exophase. <span className="font-black text-white/45">Não precisa extrair nada.</span> Baixe o pacote e anexe o ZIP diretamente nesta conversa; o texto e as imagens ficam juntos dentro do mesmo arquivo.
-                </p>
-              </section>
-            )}
-
-            {selected.length > 0 && (
-              <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
-                <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
-                  04 • Dados preparados
-                </p>
-                <h2 className="mt-1 text-xl font-black">
-                  Pacote de cada conquista
-                </h2>
-                <p className="mt-2 text-xs text-white/35">
-                  Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
-                </p>
-
-                <div className="mt-4 space-y-3">
-                  {selected.map((a, i) => (
-                    <div
-                      key={a.id}
-                      className="rounded-2xl border border-white/[.07] bg-black/25 p-4"
-                    >
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                          <p className="text-[8px] uppercase tracking-[.14em] text-white/25">
-                            Conquista {String(i + 1).padStart(2, "0")}
-                          </p>
-                          <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                        </div>
-                        <span className="rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2 text-[10px] font-black text-red-100">
-                          {a.rank}
-                        </span>
-                      </div>
-
-                      <div className="mt-4 grid gap-3 md:grid-cols-2">
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Descrição</p>
-                          <p className="mt-1 text-xs text-white/55">
-                            {a.description || "Sem descrição disponível."}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Arquivo</p>
-                          <p className="mt-1 text-xs font-bold text-white/70">
-                            {a.filename}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
-                          <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
-                        <p className="text-[9px] uppercase text-white/25">
-                          Conceito visual
-                        </p>
-                        <p className="mt-1 text-xs leading-relaxed text-white/50">
-                          {a.visualConcept}
-                        </p>
-                        <p className="mt-3 text-[10px] leading-relaxed text-white/35">
-                          Referência Exophase:{" "}
-                          {a.visualReferenceUrl ? (
-                            <a
-                              href={a.visualReferenceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-red-200 underline underline-offset-2"
-                            >
-                              abrir referência visual
-                            </a>
-                          ) : (
-                            "não disponível — criação própria baseada no jogo"
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {selected.length > 0 && (
-              <ImportArtBatchUpload
-                gameSlug={result.game.slug ?? ""}
-                achievements={selected.map((a) => ({
-                  name: a.name,
-                  filename: a.filename,
-                  rank: a.rank,
-                }))}
-              />
-            )}
-          </>
-        )}
-      </div>
-    </main>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen bg-[#050505] text-white">
-          <Navbar />
-          <div className="mx-auto max-w-[1500px] px-5 py-8 lg:px-8 text-sm text-white/35">
-            Carregando preparador...
-          </div>
-        </main>
-      }
-    >
-      <PrepararJogoPage />
-    </Suspense>
-  );
-}
