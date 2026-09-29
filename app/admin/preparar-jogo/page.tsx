@@ -854,13 +854,18 @@ function PrepararJogoPage() {
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
       "",
-      "INSTRUÇÕES: cada conquista abaixo já foi preparada para geração individual. O Exophase serviu somente como fonte de análise visual. NENHUMA imagem de referência deve ser usada como input direto do gerador.",
+      "OBJETIVO DO PACOTE: analisar visualmente cada referência do Exophase e, a partir do nome + descrição + universo do jogo, criar os prompts textuais finais das artes. As imagens em referencias/ são apenas material de análise.",
+      "IMPORTANTE: não usar as imagens originais como input direto do gerador. Depois da análise, a geração deve usar somente os prompts textuais finais.",
       "",
     ];
 
     batch.forEach((a, localIndex) => {
+      const numberLabel = String(batchIndex * batchSize + localIndex + 1).padStart(2, "0");
       lines.push(
-        buildAchievementPrompt(a, batchIndex * batchSize + localIndex),
+        `CONQUISTA ${numberLabel}: ${a.name}`,
+        `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
+        `ARQUIVO DA ARTE FINAL: ${a.filename}`,
+        `REFERÊNCIA VISUAL: referencias/${a.filename}`,
         "",
         "-----",
         ""
@@ -872,13 +877,7 @@ function PrepararJogoPage() {
 
   async function copyBatchPrompt(batch: Prepared[], batchIndex: number) {
     try {
-      const analyzed = await analyzeVisualBriefs(batch);
-      const preparedBatch = batch.map((achievement) => ({
-        ...achievement,
-        visualBrief: analyzed[achievement.id] ?? achievement.visualBrief,
-      }));
-      const packageText = buildBatchPackageText(preparedBatch, batchIndex);
-
+      const packageText = buildBatchPackageText(batch, batchIndex);
       await navigator.clipboard.writeText(packageText);
       setCopiedBatch(batchIndex);
       setTimeout(() => setCopiedBatch(null), 1800);
@@ -886,7 +885,7 @@ function PrepararJogoPage() {
       setError(
         error instanceof Error
           ? error.message
-          : "Não foi possível preparar e copiar o lote."
+          : "Não foi possível preparar e copiar os dados do lote."
       );
     }
   }
@@ -896,12 +895,13 @@ function PrepararJogoPage() {
     setError("");
 
     try {
-      const analyzed = await analyzeVisualBriefs(batch);
-      const preparedBatch = batch.map((achievement) => ({
-        ...achievement,
-        visualBrief: analyzed[achievement.id] ?? achievement.visualBrief,
-      }));
-      const packageText = buildBatchPackageText(preparedBatch, batchIndex);
+      const packageText = buildBatchPackageText(batch, batchIndex);
+      const references = batch
+        .filter((achievement) => Boolean(achievement.visualReferenceUrl))
+        .map((achievement) => ({
+          filename: achievement.filename,
+          url: achievement.visualReferenceUrl as string,
+        }));
 
       const response = await fetch("/api/admin/achievement-reference-batch", {
         method: "POST",
@@ -909,11 +909,12 @@ function PrepararJogoPage() {
         body: JSON.stringify({
           filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
           packageText,
+          references,
         }),
       });
 
       if (!response.ok) {
-        let message = "Não foi possível montar o lote de texto.";
+        let message = "Não foi possível montar o ZIP com as referências.";
         const contentType = response.headers.get("content-type") ?? "";
 
         if (contentType.includes("application/json")) {
@@ -945,7 +946,7 @@ function PrepararJogoPage() {
       setError(
         error instanceof Error
           ? error.message
-          : "Não foi possível baixar o lote de texto."
+          : "Não foi possível baixar o ZIP com as referências."
       );
     } finally {
       setDownloadingBatch(null);
@@ -1490,7 +1491,7 @@ function PrepararJogoPage() {
 
               <div className="mt-5 flex items-center justify-between gap-4 border-t border-white/[.07] pt-5">
                 <p className="text-xs text-white/35">
-                  A seleção será usada para preparar automaticamente os dados das artes.
+                  A seleção será usada para montar o pacote de referências das artes.
                 </p>
                 <button
                   type="button"
@@ -1511,7 +1512,7 @@ function PrepararJogoPage() {
                     </p>
                     <h2 className="mt-1 text-xl font-black">Copiar prompts e preparar lotes</h2>
                     <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
-                      A referência do Exophase não acompanha mais a geração. O site analisa a imagem, salva o brief visual textual e usa somente esse texto na hora de copiar ou baixar o material.
+                      O site monta um ZIP com o texto do lote e as imagens de referência do Exophase. Depois, o ZIP pode ser enviado ao ChatGPT para análise visual geral + análise individual de cada conquista.
                     </p>
                   </div>
 
@@ -1603,12 +1604,12 @@ function PrepararJogoPage() {
                               <button
                                 type="button"
                                 onClick={() => void downloadBatchPackage(batch, batchIndex)}
-                                disabled={downloadingBatch === batchIndex || analyzingReferences}
+                                disabled={downloadingBatch === batchIndex}
                                 className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:cursor-wait disabled:opacity-40"
                               >
                                 {downloadingBatch === batchIndex
                                   ? "Montando..."
-                                  : "📦 Baixar texto"}
+                                  : "📦 Baixar ZIP + referências"}
                               </button>
                             </div>
                           </div>
