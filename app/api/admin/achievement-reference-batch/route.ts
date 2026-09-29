@@ -134,12 +134,22 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       filename?: string;
       packageText?: string;
+      references?: { filename: string; url: string }[];
     };
 
     const packageText = body.packageText?.trim();
+    const references = Array.isArray(body.references) ? body.references : [];
+
     if (!packageText) {
       return NextResponse.json(
         { error: "O conteúdo textual do lote está vazio." },
+        { status: 400 }
+      );
+    }
+
+    if (references.length > 100) {
+      return NextResponse.json(
+        { error: "Um lote pode conter no máximo 100 referências." },
         { status: 400 }
       );
     }
@@ -149,15 +159,112 @@ export async function POST(request: NextRequest) {
       "Lote.zip"
     );
 
-    const textFileName = safeZipFilename.replace(/\.zip$/i, "") + ".txt";
     const encoder = new TextEncoder();
-
-    const zip = buildZip([
+    const textFileName = safeZipFilename.replace(/\.zip$/i, "") + ".txt";
+    const files: { name: string; data: Uint8Array }[] = [
       {
         name: textFileName,
         data: encoder.encode(packageText),
       },
-    ]);
+    ];
+
+    const uniqueNames = new Set<string>();
+    const validReferences = references.map((reference, index) => {
+      const url = reference?.url?.trim() ?? "";
+      if (!url) throw new Error(`A referência ${index + 1} está sem URL.`);
+
+      const parsedUrl = new URL(url);
+      const allowed =
+        (parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:") &&
+        (parsedUrl.hostname === "exophase.com" ||
+          parsedUrl.hostname.endsWith(".exophase.com"));
+
+      if (!allowed) {
+        throw new Error(`A referência ${index + 1} não é uma URL válida do Exophase.`);
+      }
+
+      const cleanName = safeFilename(
+        reference?.filename?.trim() || `referencia-${index + 1}.png`,
+        `referencia-${index + 1}.png`
+      );
+
+      let filename = cleanName;
+      let suffix = 2;
+      while (uniqueNames.has(filename.toLowerCase())) {
+        const dot = cleanName.lastIndexOf(".");
+        const stem = dot > 0 ? cleanName.slice(0, dot) : cleanName;
+        const ext = dot > 0 ? cleanName.slice(dot) : ".png";
+        filename = `${stem}-${suffix}${ext}`;
+        suffix += 1;
+      }
+
+      uniqueNames.add(filename.toLowerCase());
+      return { filename: `referencias/${filename}`, url };
+    });
+
+    const downloaded = await Promise.allSettled(
+      validReferences.map(async (reference) => {
+        const response = await fetch(reference.url, {
+          cache: "no-store",
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Falha ao baixar a referência.");
+        }
+
+        const contentType =
+          response.headers.get("content-type")?.split(";")[0].trim() ?? "";
+
+        if (!contentType.startsWith("image/")) {
+          throw new Error("O Exophase não retornou uma imagem.");
+        }
+
+        return {
+          ...reference,
+          data: new Uint8Array(await response.arrayBuffer()),
+        };
+      })
+    );
+
+    const failed: string[] = [];
+    downloaded.forEach((item, index) => {
+      if (item.status === "fulfilled") {
+        files.push({
+          name: item.value.filename,
+          data: item.value.data,
+        });
+      } else {
+        failed.push(validReferences[index].filename);
+      }
+    });
+
+    const totalBytes = files.reduce((sum, file) => sum + file.data.length, 0);
+    if (totalBytes > 20 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "As referências deste lote ultrapassam o limite de 20 MB." },
+        { status: 413 }
+      );
+    }
+
+    if (failed.length) {
+      files.push({
+        name: "REFERENCIAS-COM-FALHA.txt",
+        data: encoder.encode(
+          [
+            "Algumas referências do Exophase não puderam ser baixadas.",
+            "Gere o lote novamente para tentar outra vez.",
+            "",
+            ...failed.map((filename) => `- ${filename}`),
+          ].join("\n")
+        ),
+      });
+    }
+
+    const zip = buildZip(files);
 
     return new NextResponse(zip, {
       status: 200,
