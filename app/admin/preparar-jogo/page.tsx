@@ -688,7 +688,7 @@ function PrepararJogoPage() {
       a.visualReferenceUrl
         ? `URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`
         : "Esta conquista não possui referência visual individual.",
-    ]
+    ].join("\n");
 
     try {
       if (!a.visualReferenceUrl) {
