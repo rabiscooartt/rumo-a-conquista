@@ -850,31 +850,83 @@ function PrepararJogoPage() {
 
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
     const lines = [
+      "RUMO À CONQUISTA — PACOTE DE ANÁLISE VISUAL + PROMPTS",
+      "",
       `JOGO: ${result?.game.name ?? ""}`,
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
       "",
-      "OBJETIVO DO PACOTE: analisar visualmente cada referência do Exophase e, a partir do nome + descrição + universo do jogo, criar os prompts textuais finais das artes. As imagens em referencias/ são apenas material de análise.",
-      "IMPORTANTE: não usar as imagens originais como input direto do gerador. Depois da análise, a geração deve usar somente os prompts textuais finais.",
+      "OBJETIVO DESTE PACOTE:",
+      "Usar este TXT junto com a pasta referencias/ para realizar uma análise visual em duas camadas e, somente depois, criar os prompts textuais finais das artes.",
+      "",
+      "FLUXO OBRIGATÓRIO:",
+      "1. Analise TODAS as referências do lote em conjunto para identificar o DNA VISUAL GERAL do jogo/lote.",
+      "2. Depois analise CADA referência individualmente, relacionando a imagem apenas à conquista correspondente.",
+      "3. Para cada conquista, crie primeiro a BASE DA CONQUISTA usando o nome, a descrição e o contexto do jogo.",
+      "4. Em seguida, aplique o AJUSTE VISUAL INDIVIDUAL extraído da referência daquela conquista.",
+      "5. Acrescente o DNA VISUAL GERAL do lote para manter coerência entre todas as artes.",
+      "6. Aplique a MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA.",
+      "7. Entregue os prompts finais, um por conquista.",
+      "",
+      "ANÁLISE — REGRAS IMPORTANTES:",
+      "• A pasta referencias/ contém imagens para análise visual. Não usar nenhuma referência como input direto na geração da arte.",
+      "• A análise deve abstrair atributos visuais amplos: paleta, contraste, linha/traço, acabamento, composição, enquadramento, atmosfera, iluminação, textura, densidade de detalhes e elementos gerais.",
+      "• Não copiar, redesenhar, recortar, filtrar ou reproduzir personagens, ícones, logos, textos, poses ou composições reconhecíveis das referências.",
+      "• Não inventar detalhes que não estejam sustentados pelo nome, descrição, contexto do jogo ou pela própria referência.",
+      "• Se uma referência for monocromática ou tiver uma paleta muito restrita, registrar isso e preservar a característica no prompt final.",
+      "• Se uma referência estiver ausente ou ilegível, registrar a limitação e trabalhar somente com o material disponível.",
+      "",
+      "ETAPA 1 — DNA VISUAL GERAL DO LOTE:",
+      "Produza um resumo curto e objetivo dos traços visuais que podem ser compartilhados pela coleção: paleta predominante, contraste, tratamento de luz, linguagem de traço, acabamento, textura, atmosfera, composição recorrente e densidade de detalhes.",
+      "Não transforme esse DNA em uma fórmula rígida. Ele serve para coerência, enquanto cada conquista continua tendo sua própria identidade.",
+      "",
+      "ETAPA 2 — ANÁLISE INDIVIDUAL:",
+      "Para cada conquista, identifique somente o que a referência daquela conquista acrescenta ou ajusta visualmente em relação ao DNA geral. Priorize características visuais abstratas e úteis para geração.",
+      "",
+      "ETAPA 3 — PROMPT FINAL:",
+      "Cada prompt deve ser autossuficiente e conter, nesta ordem:",
+      "A) BASE DA CONQUISTA — significado visual original derivado do nome + descrição + universo do jogo.",
+      "B) AJUSTE VISUAL INDIVIDUAL — atributos visuais abstratos observados na referência específica.",
+      "C) DNA VISUAL GERAL DO LOTE — características compartilhadas que mantêm a coleção coerente.",
+      "D) MATRIZ VISUAL OFICIAL — regras de composição, legibilidade, edge-to-edge, originalidade e saída.",
+      "",
+      "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA:",
+      "• Uma conquista = uma imagem individual.",
+      "• Formato 1:1, preferencialmente 1024x1024, PNG.",
+      "• Arte edge-to-edge, tocando diretamente os quatro limites do canvas.",
+      "• Não criar margem, faixa, canvas vazio ou área preta externa ao redor da arte.",
+      "• Se houver moldura, ela deve fazer parte da composição e tocar diretamente as quatro bordas.",
+      "• Um elemento principal forte deve comunicar a conquista imediatamente; simplificar quando necessário.",
+      "• Não inserir texto, letras, números, nomes ou logotipos.",
+      "• Não fazer colagem, painel, mosaico, tríptico, contact sheet, grade, sprite sheet ou múltiplas conquistas na mesma imagem.",
+      "• Não usar uma fórmula global fixa de vermelho, dourado, metal, medalha ou 3D. A linguagem deve seguir o DNA e a referência de cada jogo.",
+      "• A referência do Exophase é somente fonte de análise visual; a arte final deve ser uma composição nova e independente.",
+      "• Se houver qualquer bloqueio ou conflito com a referência, afastar-se de elementos específicos e preservar somente atributos visuais amplos quando apropriado.",
+      "",
+      "NÃO GERAR IMAGENS NESTA ETAPA.",
+      "Primeiro entregue a análise geral, as análises individuais e os prompts finais. A geração das imagens acontecerá separadamente, uma conquista por vez, usando apenas o prompt textual correspondente.",
       "",
     ];
 
     batch.forEach((a, localIndex) => {
       const numberLabel = String(batchIndex * batchSize + localIndex + 1).padStart(2, "0");
       lines.push(
-        `CONQUISTA ${numberLabel}: ${a.name}`,
+        `CONQUISTA ${numberLabel}`,
+        `NOME: ${a.name}`,
         `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
         `ARQUIVO DA ARTE FINAL: ${a.filename}`,
-        `REFERÊNCIA VISUAL: referencias/${a.filename}`,
+        `ARQUIVO DA REFERÊNCIA: referencias/${a.filename}`,
+        "",
+        "A referência acima corresponde especificamente a esta conquista.",
+        "Analise-a individualmente depois de concluir o DNA visual geral do lote.",
         "",
         "-----",
         ""
       );
     });
 
-    return lines.join("\n");
+    return lines.join("\\n");
   }
-
   async function copyBatchPrompt(batch: Prepared[], batchIndex: number) {
     try {
       const packageText = buildBatchPackageText(batch, batchIndex);
