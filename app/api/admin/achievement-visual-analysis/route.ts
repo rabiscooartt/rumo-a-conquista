@@ -76,15 +76,7 @@ async function fetchReferenceAsDataUrl(url: string) {
     throw new Error("Uma das referências do Exophase é maior que 5 MB.");
   }
 
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
-    binary += String.fromCharCode(...chunk);
-  }
-
-  return `data:${contentType};base64,${Buffer.from(binary, "binary").toString("base64")}`;
+  return `data:${contentType};base64,${Buffer.from(bytes).toString("base64")}`;
 }
 
 function toVisualBrief(analysis: VisualAnalysis) {
@@ -251,10 +243,17 @@ async function analyzeWithOpenAI(
   }
 
   const expectedIds = new Set(achievements.map((achievement) => achievement.id));
+  const returnedIds = new Set<string>();
+
   for (const analysis of analyses) {
-    if (!analysis || !expectedIds.has(analysis.id)) {
-      throw new Error("A OpenAI devolveu uma análise com ID de conquista inválido.");
+    if (!analysis || !expectedIds.has(analysis.id) || returnedIds.has(analysis.id)) {
+      throw new Error("A OpenAI devolveu IDs de conquista inválidos ou duplicados.");
     }
+    returnedIds.add(analysis.id);
+  }
+
+  if (returnedIds.size !== expectedIds.size) {
+    throw new Error("A OpenAI não devolveu uma análise para todas as conquistas enviadas.");
   }
 
   return analyses.map((analysis) => ({
