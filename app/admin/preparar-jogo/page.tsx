@@ -738,6 +738,8 @@ function PrepararJogoPage() {
     } catch (error) {
       setError(error instanceof Error ? error.message : "Não foi possível copiar a conquista com a referência.");
     }
+  }
+
   async function downloadBatchPackage(
     batch: Prepared[],
     batchIndex: number,
