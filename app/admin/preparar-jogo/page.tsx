@@ -77,6 +77,7 @@ function PrepararJogoPage() {
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
+  const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [manualAchievement, setManualAchievement] = useState("");
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [similarCandidates, setSimilarCandidates] = useState<
@@ -668,6 +669,75 @@ function PrepararJogoPage() {
     }
   }
 
+  async function copyAchievementWithReference(a: Prepared) {
+    const prompt = [
+      `JOGO: ${result?.game.name ?? ""}`,
+      `CONQUISTA: ${a.name}`,
+      `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
+      `ARQUIVO: ${a.filename}`,
+      "",
+      a.visualConcept,
+      "",
+      "REFERÊNCIA EXOPHASE INDIVIDUAL — OBRIGATÓRIA E DETERMINANTE.",
+      "Esta imagem específica é a referência visual desta conquista. Use aproximadamente 80% de sua direção visual e aproximadamente 20% de interpretação original.",
+      "Analise esta referência individual antes de gerar. Preserve sua linguagem visual, especialmente paleta, contraste, atmosfera, composição, enquadramento e tratamento gráfico.",
+      "Priorize legibilidade e simplifique elementos secundários somente quando necessário, sem descaracterizar a referência.",
+      a.visualReferenceUrl
+        ? `URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`
+        : "Esta conquista não possui referência visual individual.",
+    ].join("\n");
+
+    try {
+      if (!a.visualReferenceUrl) {
+        await navigator.clipboard.writeText(prompt);
+      } else {
+        const response = await fetch(
+          "/api/admin/achievement-reference?url=" +
+            encodeURIComponent(a.visualReferenceUrl),
+          { cache: "no-store" }
+        );
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar a referência visual do Exophase.");
+        }
+
+        const blob = await response.blob();
+        if (!blob.type.startsWith("image/")) {
+          throw new Error("A referência retornada não é uma imagem.");
+        }
+
+        const types: Record<string, Blob> = {
+          "text/plain": new Blob([prompt], { type: "text/plain" }),
+        };
+
+        if (blob.type === "image/png") {
+          types["image/png"] = blob;
+        } else {
+          const bitmap = await createImageBitmap(blob);
+          const canvas = document.createElement("canvas");
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Não foi possível preparar a referência.");
+          context.drawImage(bitmap, 0, 0);
+          bitmap.close();
+          const pngBlob = await new Promise<Blob>((resolve, reject) =>
+            canvas.toBlob((result) =>
+              result ? resolve(result) : reject(new Error("Não foi possível converter a referência.")),
+              "image/png"
+            )
+          );
+          types["image/png"] = pngBlob;
+        }
+
+        await navigator.clipboard.write([new ClipboardItem(types)]);
+      }
+
+      setCopiedAchievementId(a.id);
+      setTimeout(() => setCopiedAchievementId(null), 2200);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Não foi possível copiar a conquista com a referência.");
+    }
+  }
   return (
     <main className="min-h-screen bg-[#050505] text-white">
       <Navbar />
@@ -1261,7 +1331,8 @@ function PrepararJogoPage() {
                           `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
-                          `Referência visual Exophase: ${a.visualReferenceUrl ? "disponível no painel do preparador — principal base visual (aprox. 80%), com aprox. 20% de interpretação original; não reproduzir a imagem" : "Não disponível — criar a partir do jogo e da descrição."}`,
+                          `Referência visual Exophase: ${a.visualReferenceUrl ? "OBRIGATÓRIA E DETERMINANTE — principal base visual (aprox. 80%), com aprox. 20% de interpretação original; usar esta referência individual específica" : "Não disponível — criar a partir do jogo e da descrição."}`,
+                          ...(a.visualReferenceUrl ? [`URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`] : []),
                           ""
                         );
                       });
@@ -1294,6 +1365,29 @@ function PrepararJogoPage() {
                               {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
                             </button>
                           </div>
+                          <details className="w-full rounded-xl border border-white/[.06] bg-white/[.015]">
+                            <summary className="cursor-pointer px-3 py-2 text-[9px] font-black uppercase tracking-wider text-white/40">
+                              Referências individuais
+                            </summary>
+                            <div className="space-y-2 border-t border-white/[.05] p-3">
+                              {batch.map((a) => (
+                                <div key={a.id} className="flex flex-col gap-2 rounded-lg border border-white/[.05] bg-black/20 p-3 md:flex-row md:items-center md:justify-between">
+                                  <div className="min-w-0">
+                                    <p className="truncate text-xs font-black">{a.name}</p>
+                                    <p className="text-[9px] text-white/30">{a.filename}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={!a.visualReferenceUrl}
+                                    onClick={() => void copyAchievementWithReference(a)}
+                                    className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-not-allowed disabled:opacity-35"
+                                  >
+                                    {copiedAchievementId === a.id ? "Copiado + imagem" : "Copiar + referência"}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
                         </div>
                       );
                     }
