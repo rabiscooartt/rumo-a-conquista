@@ -18,6 +18,7 @@ type A = {
   notDoing: boolean;
   isCustom?: boolean;
   visualReferenceUrl?: string | null;
+  visualBrief?: string;
 };
 
 type R = {
@@ -189,6 +190,7 @@ function PrepararJogoPage() {
           const draft = payload.draft;
           const journeyIds = new Set<string>(draft.journeyIds ?? []);
           const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
+          const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
           const customAchievements: A[] = draft.customAchievements ?? [];
 
           setResult((current) =>
@@ -202,6 +204,7 @@ function PrepararJogoPage() {
                         ...a,
                         journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
                         notDoing: notDoingIds.has(a.id),
+                        visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
                       })),
                     ...customAchievements,
                   ],
@@ -286,6 +289,20 @@ function PrepararJogoPage() {
               a.id === id
                 ? { ...a, notDoing: !a.notDoing, journey: false }
                 : a
+            ),
+          }
+        : current
+    );
+  }
+
+  function updateVisualBrief(id: string, value: string) {
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((a) =>
+              a.id === id ? { ...a, visualBrief: value } : a
             ),
           }
         : current
@@ -627,6 +644,11 @@ function PrepararJogoPage() {
             notDoingIds: result.achievements
               .filter((a) => a.notDoing)
               .map((a) => a.id),
+            visualBriefs: Object.fromEntries(
+              result.achievements
+                .filter((a) => !a.isCustom && a.visualBrief?.trim())
+                .map((a) => [a.id, a.visualBrief?.trim() ?? ""])
+            ),
             customAchievements: result.achievements.filter((a) => a.isCustom),
           },
         }),
@@ -1328,23 +1350,24 @@ function PrepararJogoPage() {
                         `QUANTIDADE: ${batch.length}`,
                         "",
                         "INSTRUÇÕES PARA A GERAÇÃO DAS ARTES:",
-                        "MODO DE TRABALHO — REFERÊNCIA NÃO É INPUT DE GERAÇÃO: as imagens de referência do Exophase presentes no pacote servem somente para análise visual. NÃO use a imagem de referência como entrada direta do gerador, NÃO transforme, redesenhe, filtre ou reproduza a referência.",
-                        "FLUXO OBRIGATÓRIO: EXOPHASE → ANALISAR LINGUAGEM VISUAL → CONVERTER EM BRIEF TEXTUAL → GERAR ARTE ORIGINAL. A arte final deve ser criada a partir do brief textual, do nome, da descrição e da Matriz Visual Oficial do Rumo à Conquista.",
+                        "MODO DE TRABALHO — REFERÊNCIA NÃO É INPUT DE GERAÇÃO: as imagens de referência do Exophase presentes no pacote servem somente para análise visual. NÃO use a imagem de referência como entrada direta do gerador.",
+                        "FLUXO OBRIGATÓRIO: EXOPHASE → ANALISAR → ESCREVER BRIEF VISUAL TEXTUAL → GERAR ARTE ORIGINAL. A geração deve usar somente o brief textual, o nome, a descrição e a Matriz Visual Oficial do Rumo à Conquista.",
                         "",
                         "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA:",
-                        "1. IDENTIDADE DA COLEÇÃO: cada conquista deve parecer parte de uma coleção única, mas sem repetir uma fórmula visual. A consistência vem do acabamento, da legibilidade, da qualidade do emblema e da adaptação ao universo de cada jogo.",
-                        "2. FOCO: um elemento principal forte deve comunicar a conquista imediatamente. Elementos secundários são permitidos somente quando ajudam o significado.",
-                        "3. COMPOSIÇÃO EDGE-TO-EDGE: formato 1:1, a arte deve ocupar 100% do quadro e tocar diretamente os quatro limites da imagem. NÃO criar margem, respiro, faixa preta, canvas vazio ou área de fundo entre a arte e as bordas. Se houver moldura, ela deve formar as próprias bordas da imagem e estar integrada ao desenho; não deve existir uma moldura interna cercada por um campo preto externo.",
-                        "4. PALETA: a paleta deve vir do perfil visual do jogo. Se as referências analisadas forem monocromáticas ou de paleta muito restrita, preservar essa característica. Não adicionar vermelho, dourado, metal ou 3D por preferência estética.",
-                        "5. LINGUAGEM GRÁFICA: adaptar traço, acabamento, textura, contraste, iluminação e densidade de detalhes ao perfil do jogo identificado nas referências.",
-                        "6. ORIGINALIDADE: a imagem final deve ser uma composição nova e independente. Não copiar, recortar, filtrar, redesenhar ou reproduzir personagens, logos, ícones, ilustrações ou outros elementos reconhecíveis das referências.",
+                        "1. IDENTIDADE DA COLEÇÃO: cada conquista deve parecer parte de uma coleção única, mas sem repetir uma fórmula visual.",
+                        "2. FOCO: um elemento principal forte deve comunicar a conquista imediatamente; elementos secundários só entram quando ajudam o significado.",
+                        "3. COMPOSIÇÃO EDGE-TO-EDGE: formato 1:1, a arte ocupa 100% do quadro e toca diretamente os quatro limites. NÃO criar margem, respiro, faixa preta, canvas vazio ou área de fundo entre a arte e as bordas. Se houver moldura, ela forma as próprias bordas da imagem e faz parte do desenho.",
+                        "4. PALETA: a paleta vem do perfil visual identificado na análise. Se a referência for monocromática ou usar paleta muito restrita, preservar essa característica. Não adicionar vermelho, dourado, metal ou 3D por preferência estética.",
+                        "5. LINGUAGEM GRÁFICA: adaptar traço, acabamento, textura, contraste, iluminação e densidade de detalhes ao perfil textual identificado na análise.",
+                        "6. ORIGINALIDADE: criar composição nova e independente. Não copiar, recortar, filtrar, redesenhar ou reproduzir personagens, logos, ícones, ilustrações ou outros elementos reconhecíveis da referência.",
                         "7. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos dentro da arte.",
-                        "8. SAÍDA: cada conquista gera exatamente um arquivo PNG individual com o nome fornecido. Nunca juntar duas ou mais conquistas em uma mesma imagem.",
+                        "8. SAÍDA: cada conquista gera exatamente um arquivo PNG individual com o nome fornecido. Nunca juntar duas ou mais conquistas na mesma imagem.",
                         "",
-                        "ANÁLISE INDIVIDUAL: para cada conquista, leia seu nome, sua descrição e sua referência visual individual. Extraia apenas características amplas de linguagem visual e traduza-as em um brief original específico para aquela conquista. Não use a referência de outra conquista como substituta.",
-                        "CONCEITO DA CONQUISTA: o símbolo principal deve nascer do significado da conquista. Não escolha um objeto apenas porque aparece na referência; escolha o que melhor comunica o objetivo da conquista.",
-                        "FALLBACK: se a geração do conceito inicial for bloqueada, afaste-se mais de qualquer elemento específico identificado na referência e gere uma composição simbólica original baseada no nome, descrição e universo do jogo. Continue respeitando a Matriz Visual Oficial e a paleta geral identificada.",
-                        "",
+                        "ANÁLISE INDIVIDUAL: examine a referência da própria conquista e transforme-a em um BRIEF VISUAL TEXTUAL. Registre apenas atributos amplos e úteis: paleta, contraste, traço, composição, atmosfera, iluminação, textura, densidade de detalhes e recursos gráficos.",
+                        "BRIEF DA CONQUISTA: o símbolo principal deve nascer do significado da conquista. Use o perfil visual textual como linguagem, não como desenho a reproduzir.",
+                        "ORDEM DE PRIORIDADE: 1) significado da conquista; 2) brief visual textual; 3) Matriz Visual Oficial; 4) detalhes complementares do universo do jogo.",
+                        "FALLBACK: se o conceito inicial for bloqueado, não usar a imagem de referência como entrada. Reescrever o brief de forma mais abstrata e simbólica, mantendo o significado da conquista e os atributos gerais identificados.",
+
                       ];
 
                       batch.forEach((a, localIndex) => {
@@ -1357,7 +1380,8 @@ function PrepararJogoPage() {
                           `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
-                          `Referência visual Exophase: ${a.visualReferenceUrl ? "material de análise visual somente; não é input direto de geração" : "Não disponível — criar a partir do jogo e da descrição."}`,
+                          `Brief visual textual: ${a.visualBrief?.trim() || "PENDENTE — analisar a referência e escrever o brief antes da geração."}`,
+                          `Referência visual Exophase: ${a.visualReferenceUrl ? "material de análise visual somente; NÃO usar como input direto de geração" : "Não disponível — criar a partir do jogo e da descrição."}`,
                           ...(a.visualReferenceUrl ? [`URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`] : []),
                           ""
                         );
@@ -1486,6 +1510,37 @@ function PrepararJogoPage() {
                           <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
                           <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
                         </div>
+                      </div>
+
+                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
+                        <p className="text-[9px] uppercase text-white/25">
+                          Brief visual textual
+                        </p>
+                        <p className="mt-1 text-[10px] leading-relaxed text-white/35">
+                          Registre apenas atributos amplos da referência: paleta, contraste, traço, composição, atmosfera, iluminação, textura e densidade de detalhes. A geração usará este texto, não a imagem.
+                        </p>
+                        <textarea
+                          value={a.visualBrief ?? ""}
+                          onChange={(e) => updateVisualBrief(a.id, e.target.value)}
+                          rows={4}
+                          placeholder="Ex.: preto e branco, alto contraste, cartoon noir, figura central dominante, textura de tinta e impressão antiga..."
+                          className="mt-3 w-full resize-y rounded-xl border border-white/[.07] bg-black/30 px-3 py-3 text-xs leading-relaxed text-white/75 outline-none placeholder:text-white/15 focus:border-red-400/30"
+                        />
+                        <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+                          Referência Exophase:{" "}
+                          {a.visualReferenceUrl ? (
+                            <a
+                              href={a.visualReferenceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-red-200 underline underline-offset-2"
+                            >
+                              abrir somente para análise
+                            </a>
+                          ) : (
+                            "não disponível — criar brief original"
+                          )}
+                        </p>
                       </div>
 
                       <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
