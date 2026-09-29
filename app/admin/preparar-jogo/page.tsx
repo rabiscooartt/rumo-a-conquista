@@ -347,7 +347,8 @@ function PrepararJogoPage() {
       .slice(0, 3);
   }
 
-  function generateManualTitle(description: string) {    const clean = description
+  function generateManualTitle(description: string) {
+    const clean = description
       .trim()
       .replace(/^[.!?]+|[.!?]+$/g, "")
       .replace(/\s+/g, " ");
@@ -698,7 +699,8 @@ function PrepararJogoPage() {
             encodeURIComponent(a.visualReferenceUrl),
           { cache: "no-store" }
         );
-        if (!response.ok) {          throw new Error("Não foi possível carregar a referência visual do Exophase.");
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar a referência visual do Exophase.");
         }
 
         const blob = await response.blob();
@@ -1047,7 +1049,8 @@ function PrepararJogoPage() {
                       setManualRank(e.target.value as "Bronze" | "Prata" | "Ouro")
                     }
                     className="rounded-xl border border-sky-300/20 bg-black/40 px-4 py-3 text-sm font-black text-white outline-none"
-                  >                    <option value="Bronze">Bronze</option>
+                  >
+                    <option value="Bronze">Bronze</option>
                     <option value="Prata">Prata</option>
                     <option value="Ouro">Ouro</option>
                   </select>
@@ -1394,3 +1397,202 @@ function PrepararJogoPage() {
                         lines.push(
                           `CONQUISTA ${String(start + localIndex + 1).padStart(2, "0")}`,
                           `Nome: ${a.name}`,
+                          `Descrição: ${a.description || "Sem descrição disponível."}`,
+                          `Rank: ${a.rank}`,
+                          "Jornada de Estreia: SIM",
+                          `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
+                          `Arquivo: ${a.filename}`,
+                          `Conceito visual: ${a.visualConcept}`,
+                          `Referência visual Exophase: ${a.visualReferenceUrl ? "usar esta referência individual como base de análise visual (aprox. 80%), com aprox. 20% de interpretação original" : "Não disponível — criar a partir do jogo e da descrição."}`,
+                          ...(a.visualReferenceUrl ? [`URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`] : []),
+                          ""
+                        );
+                      });
+
+                      const packageText = lines.join("\n");
+
+                      return (
+                        <div
+                          key={batchIndex}
+                          className="flex items-center justify-between gap-4 rounded-xl border border-white/[.06] bg-white/[.02] p-3"
+                        >
+                          <div>
+                            <p className="text-xs font-black">
+                              Lote {String(batchIndex + 1).padStart(2, "0")}
+                            </p>
+                            <p className="text-[9px] text-white/30">
+                              Conquistas {start + 1}–{start + batch.length}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void navigator.clipboard.writeText(packageText);
+                                setCopiedBatch(batchIndex);
+                                setTimeout(() => setCopiedBatch(null), 1800);
+                              }}
+                              className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100"
+                            >
+                              {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void downloadBatchPackage(batch, batchIndex, packageText)
+                              }
+                              disabled={downloadingBatch === batchIndex}
+                              className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:cursor-wait disabled:opacity-50"
+                            >
+                              {downloadingBatch === batchIndex
+                                ? "Montando pacote..."
+                                : "📦 Baixar para ChatGPT"}
+                            </button>
+                          </div>
+                          <details className="w-full rounded-xl border border-white/[.06] bg-white/[.015]">
+                            <summary className="cursor-pointer px-3 py-2 text-[9px] font-black uppercase tracking-wider text-white/40">
+                              Referências individuais
+                            </summary>
+                            <div className="space-y-2 border-t border-white/[.05] p-3">
+                              {batch.map((a) => (
+                                <div key={a.id} className="flex flex-col gap-2 rounded-lg border border-white/[.05] bg-black/20 p-3 md:flex-row md:items-center md:justify-between">
+                                  <div className="min-w-0">
+                                    <p className="truncate text-xs font-black">{a.name}</p>
+                                    <p className="text-[9px] text-white/30">{a.filename}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={!a.visualReferenceUrl}
+                                    onClick={() => void copyAchievementWithReference(a)}
+                                    className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-not-allowed disabled:opacity-35"
+                                  >
+                                    {copiedAchievementId === a.id ? "Copiado + imagem" : "Copiar + referência"}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
+
+                <p className="mt-3 text-[9px] leading-relaxed text-white/25">
+                  <span className="font-black text-white/45">Baixar para ChatGPT:</span> o ZIP já contém o texto do lote e todas as referências individuais do Exophase. <span className="font-black text-white/45">Não precisa extrair nada.</span> Baixe o pacote e anexe o ZIP diretamente nesta conversa; o texto e as imagens ficam juntos dentro do mesmo arquivo.
+                </p>
+              </section>
+            )}
+
+            {selected.length > 0 && (
+              <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
+                <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
+                  04 • Dados preparados
+                </p>
+                <h2 className="mt-1 text-xl font-black">
+                  Pacote de cada conquista
+                </h2>
+                <p className="mt-2 text-xs text-white/35">
+                  Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  {selected.map((a, i) => (
+                    <div
+                      key={a.id}
+                      className="rounded-2xl border border-white/[.07] bg-black/25 p-4"
+                    >
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <p className="text-[8px] uppercase tracking-[.14em] text-white/25">
+                            Conquista {String(i + 1).padStart(2, "0")}
+                          </p>
+                          <h3 className="mt-1 text-sm font-black">{a.name}</h3>
+                        </div>
+                        <span className="rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2 text-[10px] font-black text-red-100">
+                          {a.rank}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <div>
+                          <p className="text-[9px] uppercase text-white/25">Descrição</p>
+                          <p className="mt-1 text-xs text-white/55">
+                            {a.description || "Sem descrição disponível."}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase text-white/25">Arquivo</p>
+                          <p className="mt-1 text-xs font-bold text-white/70">
+                            {a.filename}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
+                          <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
+                        <p className="text-[9px] uppercase text-white/25">
+                          Conceito visual
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-white/50">
+                          {a.visualConcept}
+                        </p>
+                        <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+                          Referência Exophase:{" "}
+                          {a.visualReferenceUrl ? (
+                            <a
+                              href={a.visualReferenceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-red-200 underline underline-offset-2"
+                            >
+                              abrir referência visual
+                            </a>
+                          ) : (
+                            "não disponível — criação própria baseada no jogo"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {selected.length > 0 && (
+              <ImportArtBatchUpload
+                gameSlug={result.game.slug ?? ""}
+                achievements={selected.map((a) => ({
+                  name: a.name,
+                  filename: a.filename,
+                  rank: a.rank,
+                }))}
+              />
+            )}
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#050505] text-white">
+          <Navbar />
+          <div className="mx-auto max-w-[1500px] px-5 py-8 lg:px-8 text-sm text-white/35">
+            Carregando preparador...
+          </div>
+        </main>
+      }
+    >
+      <PrepararJogoPage />
+    </Suspense>
+  );
+}
