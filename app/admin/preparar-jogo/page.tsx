@@ -778,10 +778,20 @@ function PrepararJogoPage() {
     }
   }
 
-  function buildAchievementPrompt(a: Prepared, index?: number, visualBriefOverride?: string) {
-    const numberLabel = index !== undefined
-      ? String(index + 1).padStart(2, "0")
-      : a.filename.split("-")[0];
+  function buildAchievementPrompt(
+    a: Prepared,
+    index?: number,
+    visualBriefOverride?: string
+  ) {
+    const numberLabel =
+      index !== undefined
+        ? String(index + 1).padStart(2, "0")
+        : a.filename.split("-")[0];
+
+    const brief =
+      visualBriefOverride?.trim() ||
+      a.visualBrief?.trim() ||
+      "PENDENTE — analisar a referência Exophase antes da geração.";
 
     return [
       `JOGO: ${result?.game.name ?? ""}`,
@@ -789,31 +799,32 @@ function PrepararJogoPage() {
       `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
       `ARQUIVO: ${a.filename}`,
       "",
-      "INSTRUÇÕES PARA A GERAÇÃO DA ARTE:",
-      "A referência do Exophase foi usada somente pelo site para análise visual. NÃO usar a imagem de referência como input direto do gerador.",
-      "A arte final deve ser criada exclusivamente a partir do significado da conquista, do brief visual textual abaixo e da Matriz Visual Oficial do Rumo à Conquista.",
+      "FASE 1 — BASE DA CONQUISTA:",
+      "Crie primeiro uma direção visual ORIGINAL para esta conquista usando somente o significado do nome, da descrição e do universo do jogo.",
+      "Defina o símbolo, objeto ou ação principal que comunica a conquista imediatamente.",
+      "",
+      "FASE 2 — AJUSTE VISUAL DA REFERÊNCIA:",
+      "Depois de criar a base, aplique somente os atributos visuais amplos registrados no brief abaixo.",
+      "O brief funciona como camada estética: paleta, contraste, traço, composição, atmosfera, iluminação, textura, acabamento e densidade de detalhes.",
+      "O brief NÃO substitui a base e NÃO deve determinar personagens, poses, ícones, logos, textos ou desenhos reconhecíveis da referência.",
       "",
       "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA:",
-      "1. IDENTIDADE: a imagem deve parecer parte de uma coleção consistente, sem repetir uma fórmula visual fixa.",
-      "2. FOCO: um elemento principal forte deve comunicar a conquista imediatamente; elementos secundários só entram quando ajudam o significado.",
-      "3. COMPOSIÇÃO EDGE-TO-EDGE: formato 1:1 e arte ocupando 100% do quadro, tocando diretamente os quatro limites. NUNCA deixar margem, faixa, respiro, canvas vazio ou campo preto externo ao redor da arte. Se houver moldura, ela toca diretamente as quatro bordas e faz parte do próprio desenho.",
-      "4. PALETA: seguir a paleta e o comportamento de cor descritos no brief. Se for monocromática ou muito restrita, preservar isso. Não adicionar vermelho, dourado, metal ou 3D por preferência estética.",
-      "5. LINGUAGEM GRÁFICA: adaptar traço, acabamento, textura, contraste, iluminação, enquadramento e densidade de detalhes ao brief.",
-      "6. ORIGINALIDADE: criar composição nova e independente. Não copiar, recortar, filtrar, redesenhar ou reproduzir personagens, logos, ícones ou outros elementos reconhecíveis da referência.",
-      "7. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos dentro da arte.",
-      "8. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
-      "9. LEGIBILIDADE: a conquista deve ser entendida à primeira vista. Simplifique quando necessário.",
+      "1. IDENTIDADE: parecer parte de uma coleção consistente sem repetir uma fórmula fixa.",
+      "2. FOCO: um elemento principal forte deve comunicar a conquista à primeira vista.",
+      "3. EDGE-TO-EDGE: formato 1:1 e arte ocupando 100% do canvas, tocando diretamente as quatro bordas. Não criar margem, faixa ou fundo externo preto.",
+      "4. PALETA: seguir o perfil visual do brief. Se monocromática ou muito restrita, preservar essa característica.",
+      "5. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos.",
+      "6. ORIGINALIDADE: composição nova e independente; não copiar, recortar, filtrar, redesenhar ou reproduzir elementos reconhecíveis da referência.",
+      "7. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
+      "8. LEGIBILIDADE: simplificar quando necessário para que o significado seja imediato.",
       "",
-      `BRIEF VISUAL TEXTUAL DA REFERÊNCIA:`,
-      visualBriefOverride?.trim() ||
-        a.visualBrief?.trim() ||
-        "PENDENTE — antes de gerar, analisar a referência Exophase e registrar os atributos visuais amplos.",
+      "BRIEF VISUAL TEXTUAL — AJUSTE DA REFERÊNCIA:",
+      brief,
       "",
-      "ORDEM DE PRIORIDADE: 1) significado da conquista; 2) brief visual textual; 3) Matriz Visual Oficial; 4) detalhes complementares do universo do jogo.",
-      "FALLBACK: se o conceito inicial for bloqueado, não usar a imagem de referência. Reescrever a direção de forma mais abstrata e simbólica, mantendo o significado da conquista e os atributos visuais gerais identificados.",
+      "ORDEM FINAL: significado da conquista e base original → ajuste visual textual → Matriz Visual Oficial → detalhes complementares do jogo.",
+      "FALLBACK: se a direção inicial for bloqueada, mantenha a base e torne o ajuste visual mais abstrato. Nunca usar a imagem de referência como input direto do gerador.",
     ].join("\n");
   }
-
 
   async function copyAchievementPrompt(a: Prepared) {
     try {
