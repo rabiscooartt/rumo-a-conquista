@@ -53,7 +53,7 @@ function prepareAchievement(a: A, index: number): Prepared {
     : "SEM REFERÊNCIA EXOPHASE: esta conquista não possui uma referência visual utilizável. Crie a arte originalmente a partir do nome, descrição e universo visual do jogo, mantendo uma identidade de conquista clara e específica. Não procure nem substitua a referência por artes de Steam, Xbox ou outras bases.";
 
   const baseOutputRules =
-    "UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. A composição deve preencher praticamente todo o quadrado. A moldura deve encostar nas bordas ou ficar o mais próxima possível delas, sem criar uma faixa preta externa desnecessária; se algum respiro técnico for inevitável, mantenha-o mínimo. Não inserir texto, letras, números ou nomes dentro da imagem. Não fazer colagem, painel, mosaico, triptico, contact sheet ou múltiplas conquistas na mesma imagem.";
+    "UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. A composição deve preencher praticamente todo o quadrado. A moldura deve encostar nas bordas ou ficar o mais próxima possível delas, sem criar uma faixa preta externa desnecessária; se algum respiro técnico for inevitável, mantenha-o mínimo. Não inserir texto, letras, números ou nomes dentro da imagem. Não fazer colagem, painel, mosaico, triptico, contact sheet ou múltiplas conquistas na mesma imagem. PRIORIDADE DE LEGIBILIDADE: a conquista deve ser compreensível à primeira vista, com um elemento principal forte e hierarquia clara entre foco, secundários e fundo. Evite excesso de objetos, sobreposição e detalhes pequenos que concorram pela atenção. SIMPLIFICAÇÃO INTELIGENTE: preservar a referência não exige manter todos os elementos dela; selecione os que melhor comunicam a conquista e simplifique os demais sempre que isso aumentar a legibilidade sem perder a linguagem visual da referência.";
 
   return {
     ...a,
@@ -1233,7 +1233,10 @@ function PrepararJogoPage() {
                         "NUNCA faça colagem, montagem, contact sheet, sprite sheet, grade, mosaico, triptico, painel ou várias conquistas dentro da mesma imagem.",
                         "NUNCA coloque duas ou mais conquistas na mesma imagem, mesmo que seja apenas para mostrar o lote completo.",
                         "Se a interface de geração produzir uma única imagem por chamada, faça uma chamada separada para cada CONQUISTA. NÃO responda com uma imagem contendo várias conquistas. Para um lote de 10, gere 10 imagens separadas; para um lote de 3, gere 3 imagens separadas. Só considere o lote concluído quando existir um arquivo individual para cada conquista.",
-                        "Gere/trate cada conquista individualmente e mantenha a identidade visual consistente entre todas.",
+                        "Gere/trate cada conquista individualmente e mantenha a identidade visual consistente entre todas, sem criar uma direção visual genérica para o lote.",
+                        "ANÁLISE INDIVIDUAL OBRIGATÓRIA: cada CONQUISTA deve ser analisada separadamente com sua própria referência visual do Exophase, seu próprio nome e sua própria descrição. Nunca use a referência de outra conquista como base.",
+                        "PRIORIDADE DE LEGIBILIDADE: o significado da conquista deve ser compreendido à primeira vista. Escolha um foco visual principal forte e reduza elementos secundários que criem ruído.",
+                        "SIMPLIFICAÇÃO INTELIGENTE: quando a referência for complexa, preserve sua linguagem visual dominante, mas selecione e organize apenas os elementos necessários para comunicar a conquista com clareza.";
                         "Formato de CADA arquivo: PNG 1:1, preferencialmente 1024x1024, com fundo fechado/opaco e sem transparência externa.",
                         "FUNDO FECHADO E COMPOSIÇÃO ATÉ A BORDA: a imagem deve ser preenchida até praticamente 100% do quadrado. A moldura deve encostar nas bordas ou ficar o mais próxima possível delas. Não criar uma faixa preta externa à moldura; se algum respiro técnico for inevitável, mantê-lo mínimo. Não usar transparência externa.",
                         "COMPOSIÇÃO DE CADA ARQUIVO: quando houver referência Exophase, ela deve orientar aproximadamente 80% da direção visual — paleta, contraste, atmosfera, enquadramento, composição geral, elementos visuais, iluminação, textura e tratamento gráfico. Os aproximadamente 20% restantes são interpretação original para o Rumo à Conquista. Se a referência for predominantemente monocromática, mantenha uma linguagem cromática compatível; não introduza cores apenas por preferência estética. A referência continua sendo a base visual dominante, mas a arte final deve ser nova e independente. Quando não houver referência, crie a direção visual a partir do nome, descrição e identidade do jogo.",
@@ -1258,7 +1261,8 @@ function PrepararJogoPage() {
                           `Sugestão automática de Jornada: ${a.journeySuggestion ? "SIM" : "NÃO"}`,
                           `Arquivo: ${a.filename}`,
                           `Conceito visual: ${a.visualConcept}`,
-                          `Referência visual Exophase: ${a.visualReferenceUrl ? "disponível no painel do preparador — principal base visual (aprox. 80%), com aprox. 20% de interpretação original; não reproduzir a imagem" : "Não disponível — criar a partir do jogo e da descrição."}`,
+                          `Referência visual Exophase: ${a.visualReferenceUrl ? "OBRIGATÓRIA E DETERMINANTE — esta é a referência individual desta conquista; aprox. 80% da direção visual, com aprox. 20% de interpretação original. Use esta referência específica, não a de outra conquista." : "Não disponível — criar a partir do jogo e da descrição."}`,
+                          ...(a.visualReferenceUrl ? [`URL DA REFERÊNCIA INDIVIDUAL: ${a.visualReferenceUrl}`] : []),
                           ""
                         );
                       });
@@ -1298,7 +1302,7 @@ function PrepararJogoPage() {
                 </div>
 
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  Quando houver referência visual individual do Exophase, ela é a principal base visual da arte: aproximadamente 80% da direção visual vem da referência e 20% é interpretação original. A imagem final deve preservar sua linguagem visual sem copiar ou reproduzir a arte. Não é necessário baixar nem anexar a imagem à conversa. Quando não houver referência, a arte será criada originalmente a partir dos dados da conquista e da identidade do jogo.
+                  Cada conquista usa sua própria referência visual individual do Exophase como base determinante: aproximadamente 80% da direção visual vem dessa referência específica e 20% é interpretação original. O lote não cria uma direção visual geral. A referência deve ser analisada conquista por conquista, preservando sua linguagem visual e simplificando apenas o necessário para melhorar a legibilidade. Quando houver URL, ela identifica exatamente a referência correspondente àquela conquista. Quando não houver referência, a arte será criada originalmente a partir dos dados da conquista e da identidade do jogo.
                 </p>
               </section>
             )}
@@ -1395,22 +1399,5 @@ function PrepararJogoPage() {
         )}
       </div>
     </main>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen bg-[#050505] text-white">
-          <Navbar />
-          <div className="mx-auto max-w-[1500px] px-5 py-8 lg:px-8 text-sm text-white/35">
-            Carregando preparador...
-          </div>
-        </main>
-      }
-    >
-      <PrepararJogoPage />
-    </Suspense>
   );
 }
