@@ -49,18 +49,18 @@ function slugify(value: string) {
 
 function prepareAchievement(a: A, index: number): Prepared {
   const visualReferenceInstruction = a.visualReferenceUrl
-    ? "REFERÊNCIA EXOPHASE DISPONÍVEL: a referência visual individual do Exophase é a principal base da direção visual desta arte, aproximadamente 80% da direção final. Use a referência para orientar paleta, contraste, atmosfera, enquadramento, composição geral, elementos visuais, iluminação, textura e tratamento gráfico. Os aproximadamente 20% restantes devem ser uma interpretação original para o Rumo à Conquista. A imagem final deve ser uma criação nova e independente, mantendo a linguagem visual da referência sem reproduzi-la. NÃO use a referência como imagem-base para transformação, edição, recorte, traçado ou reprodução. NÃO reproduza composição específica, personagem, ilustração, ícone, logo ou outros elementos reconhecíveis da referência. Se houver um elemento protegido, substitua-o por uma solução visual original que comunique a mesma ideia. O nome e a descrição da conquista são a fonte para o significado; a referência serve apenas para orientar o clima visual. Não aplique uma estética genérica que contradiga a linguagem observada na referência."
+    ? "REFERÊNCIA EXOPHASE INDIVIDUAL — OBRIGATÓRIA E DETERMINANTE: esta conquista possui uma referência visual específica e ela define aproximadamente 80% da direção final. Analise esta referência individual antes de decidir a composição. Não use a média do lote, outra conquista ou uma estética genérica como substituta. Preserve paleta, contraste, atmosfera, enquadramento, composição geral, elementos visuais principais, iluminação, textura e tratamento gráfico observados na referência. Os aproximadamente 20% restantes são interpretação original para o Rumo à Conquista. Se a referência for predominantemente monocromática, mantenha essa linguagem cromática e não introduza cores apenas por preferência estética. A simplificação deve melhorar a legibilidade sem descaracterizar a referência. A arte final deve ser nova e independente: não use a referência como imagem-base para transformação, edição, recorte, traçado ou reprodução e não copie elementos protegidos reconhecíveis; substitua-os por equivalentes originais quando necessário."
     : "SEM REFERÊNCIA EXOPHASE: esta conquista não possui uma referência visual utilizável. Crie a arte originalmente a partir do nome, descrição e universo visual do jogo, mantendo uma identidade de conquista clara e específica. Não procure nem substitua a referência por artes de Steam, Xbox ou outras bases.";
 
-  const baseOutputRules =
+  const baseOutputRules =  const baseOutputRules =
     "UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. A composição deve preencher praticamente todo o quadrado. A moldura deve encostar nas bordas ou ficar o mais próxima possível delas, sem criar uma faixa preta externa desnecessária; se algum respiro técnico for inevitável, mantenha-o mínimo. Não inserir texto, letras, números ou nomes dentro da imagem. Não fazer colagem, painel, mosaico, triptico, contact sheet ou múltiplas conquistas na mesma imagem. PRIORIDADE DE LEGIBILIDADE: a conquista deve ser compreensível à primeira vista, com um elemento principal forte e hierarquia clara entre foco, secundários e fundo. Evite excesso de objetos, sobreposição e detalhes pequenos que concorram pela atenção. SIMPLIFICAÇÃO INTELIGENTE: preservar a referência não exige manter todos os elementos dela; selecione os que melhor comunicam a conquista e simplifique os demais sempre que isso aumentar a legibilidade sem perder a linguagem visual da referência.";
 
   return {
     ...a,
     filename: `${String(index + 1).padStart(2, "0")}-${slugify(a.name) || "conquista"}.png`,
     visualConcept: a.description
-      ? `Crie UMA imagem individual de conquista para "${a.name}". ${baseOutputRules} ${visualReferenceInstruction} O resultado deve ser uma arte original, específica para esta conquista e coerente com o jogo, sem transformar todas as conquistas em uma fórmula visual única.`
-      : `Crie UMA imagem individual de conquista para "${a.name}". ${baseOutputRules} ${visualReferenceInstruction} O resultado deve ser uma arte original, específica para esta conquista e coerente com o jogo.`,
+      ? `Crie UMA imagem individual de conquista para "${a.name}". ${baseOutputRules} ${visualReferenceInstruction} ANÁLISE INDIVIDUAL OBRIGATÓRIA: use a referência visual específica desta conquista como base determinante. URL da referência individual: ${a.visualReferenceUrl || "não disponível"}. Identifique primeiro o foco e os elementos essenciais da referência; depois simplifique somente o necessário para garantir legibilidade imediata. O resultado deve ser uma arte original, específica para esta conquista e coerente com o jogo, sem transformar todas as conquistas em uma fórmula visual única.`
+      : `Crie UMA imagem individual de conquista para "${a.name}". ${baseOutputRules} ${visualReferenceInstruction} ANÁLISE INDIVIDUAL OBRIGATÓRIA: use a referência visual específica desta conquista como base determinante. URL da referência individual: ${a.visualReferenceUrl || "não disponível"}. Identifique primeiro o foco e os elementos essenciais da referência; depois simplifique somente o necessário para garantir legibilidade imediata. O resultado deve ser uma arte original, específica para esta conquista e coerente com o jogo.`
   };
 }
 
@@ -1398,6 +1398,3 @@ function PrepararJogoPage() {
           </>
         )}
       </div>
-    </main>
-  );
-}
