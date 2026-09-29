@@ -812,7 +812,7 @@ function PrepararJogoPage() {
     ].join("\n");
   }
 
-  async function copyAchievementWithReference(a: Prepared) {
+  async function copyAchievementPrompt(a: Prepared) {
     try {
       let brief = a.visualBrief?.trim() ?? "";
 
@@ -960,7 +960,7 @@ function PrepararJogoPage() {
     }
   }
 
-  async function copyAchievementWithReference(a: Prepared) {
+  async function copyAchievementPrompt(a: Prepared) {
     const prompt = [
       `JOGO: ${result?.game.name ?? ""}`,
       `CONQUISTA: ${a.name}`,
@@ -1762,7 +1762,7 @@ function PrepararJogoPage() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => void copyAchievementWithReference(a)}
+                            onClick={() => void copyAchievementPrompt(a)}
                             disabled={analyzingReferences}
                             className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-wait disabled:opacity-40"
                           >
