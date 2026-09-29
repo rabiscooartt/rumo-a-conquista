@@ -1448,8 +1448,8 @@ function PrepararJogoPage() {
                               className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:cursor-wait disabled:opacity-50"
                             >
                               {downloadingBatch === batchIndex
-                                ? "Montando ZIP..."
-                                : "Baixar lote completo"}
+                                ? "Montando pacote..."
+                                : "📦 Baixar para ChatGPT"}
                             </button>
                           </div>
                           <details className="w-full rounded-xl border border-white/[.06] bg-white/[.015]">
@@ -1482,7 +1482,7 @@ function PrepararJogoPage() {
                 </div>
 
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  <span className="font-black text-white/45">Baixar lote completo:</span> o ZIP contém o texto do lote e uma pasta <span className="font-black text-white/45">referencias/</span> com uma imagem individual para cada referência Exophase disponível. Use esse ZIP para transportar o lote; para gerar as artes no ChatGPT, extraia as imagens e anexe as referências individuais junto do texto do lote.
+                  <span className="font-black text-white/45">Baixar para ChatGPT:</span> o ZIP já contém o texto do lote e todas as referências individuais do Exophase. <span className="font-black text-white/45">Não precisa extrair nada.</span> Baixe o pacote e anexe o ZIP diretamente nesta conversa; o texto e as imagens ficam juntos dentro do mesmo arquivo.
                 </p>
               </section>
             )}
