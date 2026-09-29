@@ -815,6 +815,175 @@ function PrepararJogoPage() {
   }
 
 
+  async function copyAchievementPrompt(a: Prepared) {
+    try {
+      let brief = a.visualBrief?.trim() ?? "";
+
+      if (!brief && a.visualReferenceUrl) {
+        const analyzed = await analyzeVisualBriefs([a]);
+        brief = analyzed[a.id] ?? "";
+      }
+
+      const prompt = buildAchievementPrompt(a, undefined, brief);
+      await navigator.clipboard.writeText(prompt);
+      setCopiedAchievementId(a.id);
+      setTimeout(() => setCopiedAchievementId(null), 2200);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível preparar e copiar o prompt da conquista."
+      );
+    }
+  }
+
+  function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
+    const lines = [
+      `JOGO: ${result?.game.name ?? ""}`,
+      `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
+      `QUANTIDADE: ${batch.length}`,
+      "",
+      "INSTRUÇÕES: cada conquista abaixo já foi preparada para geração individual. O Exophase serviu somente como fonte de análise visual. NENHUMA imagem de referência deve ser usada como input direto do gerador.",
+      "",
+    ];
+
+    batch.forEach((a, localIndex) => {
+      lines.push(
+        buildAchievementPrompt(a, batchIndex * batchSize + localIndex),
+        "",
+        "-----",
+        ""
+      );
+    });
+
+    return lines.join("\n");
+  }
+
+  async function copyBatchPrompt(batch: Prepared[], batchIndex: number) {
+    try {
+      const analyzed = await analyzeVisualBriefs(batch);
+      const preparedBatch = batch.map((achievement) => ({
+        ...achievement,
+        visualBrief: analyzed[achievement.id] ?? achievement.visualBrief,
+      }));
+      const packageText = buildBatchPackageText(preparedBatch, batchIndex);
+
+      await navigator.clipboard.writeText(packageText);
+      setCopiedBatch(batchIndex);
+      setTimeout(() => setCopiedBatch(null), 1800);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível preparar e copiar o lote."
+      );
+    }
+  }
+
+  async function downloadBatchPackage(batch: Prepared[], batchIndex: number) {
+    setDownloadingBatch(batchIndex);
+    setError("");
+
+    try {
+      const analyzed = await analyzeVisualBriefs(batch);
+      const preparedBatch = batch.map((achievement) => ({
+        ...achievement,
+        visualBrief: analyzed[achievement.id] ?? achievement.visualBrief,
+      }));
+      const packageText = buildBatchPackageText(preparedBatch, batchIndex);
+
+      const response = await fetch("/api/admin/achievement-reference-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
+          packageText,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || "Não foi possível montar o lote de texto.");
+      }
+
+      const blob = await new Response(JSON.stringify(payload)).blob();
+      void blob;
+
+      // A rota devolve ZIP binário; refazemos a requisição para ler o corpo
+      // como blob depois de validar erros pelo content-type.
+      const retryResponse = await fetch("/api/admin/achievement-reference-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
+          packageText,
+        }),
+      });
+
+      if (!retryResponse.ok) {
+        throw new Error("Não foi possível baixar o lote de texto.");
+      }
+
+      const zipBlob = await retryResponse.blob();
+      if (zipBlob.size === 0) {
+        throw new Error("O arquivo do lote veio vazio.");
+      }
+
+      const url = URL.createObjectURL(zipBlob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível baixar o lote de texto."
+      );
+    } finally {
+      setDownloadingBatch(null);
+    }
+  }
+
+  async function clearPreparation() {
+    if (!result?.game.slug) return;
+    if (
+      !window.confirm(
+        "Limpar o rascunho desta preparação? As conquistas públicas não serão alteradas."
+      )
+    ) return;
+
+    setDraftLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/admin/achievement-prep-draft?slug=" +
+          encodeURIComponent(result.game.slug),
+        { method: "DELETE" }
+      );
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Erro ao limpar rascunho.");
+      }
+
+      localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
+      setDraftUpdatedAt(null);
+      setSaved(false);
+      await search(result.game.slug);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Erro ao limpar rascunho."
+      );
+    } finally {
+      setDraftLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#050505] text-white">
       <Navbar />
