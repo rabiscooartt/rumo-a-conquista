@@ -925,7 +925,7 @@ function PrepararJogoPage() {
       );
     });
 
-    return lines.join("\\n");
+    return lines.join("\n");
   }
   async function copyBatchPrompt(batch: Prepared[], batchIndex: number) {
     try {
