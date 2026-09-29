@@ -711,7 +711,7 @@ function PrepararJogoPage() {
               id: achievement.id,
               name: achievement.name,
               description: achievement.description,
-              visualReferenceUrl: achievement.visualReferenceUrl,
+              visualReferenceUrl: achievement.visualReferenceUrl as string,
             })),
           }),
         });
