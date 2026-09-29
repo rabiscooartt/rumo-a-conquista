@@ -1,6 +1,7 @@
 "use client";
 
 // Preview: fluxo de análise visual textual das referências Exophase.
+// Vercel Preview build trigger.
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
