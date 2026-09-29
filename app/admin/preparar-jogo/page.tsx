@@ -77,6 +77,7 @@ function PrepararJogoPage() {
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
+  const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [manualAchievement, setManualAchievement] = useState("");
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [similarCandidates, setSimilarCandidates] = useState<
@@ -665,6 +666,72 @@ function PrepararJogoPage() {
       setError(e instanceof Error ? e.message : "Erro ao limpar rascunho.");
     } finally {
       setDraftLoading(false);
+    }
+  }
+
+  async function copyAchievementPromptWithReference(a: Prepared) {
+    const prompt = [
+      `JOGO: ${result?.game.name ?? ""}`,
+      `CONQUISTA: ${a.name}`,
+      `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
+      `ARQUIVO: ${a.filename}`,
+      "",
+      a.visualConcept,
+      "",
+      "REGRA CRÍTICA: a referência visual individual do Exophase desta conquista é determinante. Analise esta referência específica antes de gerar. Preserve sua linguagem visual em aproximadamente 80% e use aproximadamente 20% de interpretação original. Priorize legibilidade e simplifique elementos secundários sem descaracterizar a referência.",
+      a.visualReferenceUrl
+        ? `REFERÊNCIA VISUAL INDIVIDUAL OBRIGATÓRIA: ${a.visualReferenceUrl}`
+        : "REFERÊNCIA VISUAL INDIVIDUAL: não disponível.",
+    ].join("\n");
+
+    try {
+      if (!a.visualReferenceUrl) {
+        await navigator.clipboard.writeText(prompt);
+      } else {
+        const response = await fetch(
+          "/api/admin/achievement-reference?url=" +
+            encodeURIComponent(a.visualReferenceUrl),
+          { cache: "no-store" }
+        );
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar a referência visual.");
+        }
+
+        const blob = await response.blob();
+        if (!blob.type.startsWith("image/")) {
+          throw new Error("A referência retornada não é uma imagem.");
+        }
+
+        const referenceDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Não foi possível preparar a referência."));
+          reader.readAsDataURL(blob);
+        });
+
+        const escapedPrompt = prompt
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\n/g, "<br>");
+        const html = `<p>${escapedPrompt}</p><img src="${referenceDataUrl}" alt="Referência visual Exophase" />`;
+
+        const clipboardTypes: Record<string, Blob> = {
+          "text/plain": new Blob([prompt], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }),
+        };
+
+        if (blob.type === "image/png") {
+          clipboardTypes["image/png"] = blob;
+        }
+
+        await navigator.clipboard.write([new ClipboardItem(clipboardTypes)]);
+      }
+
+      setCopiedAchievementId(a.id);
+      setTimeout(() => setCopiedAchievementId(null), 2200);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Não foi possível copiar a preparação.");
     }
   }
 
@@ -1295,6 +1362,29 @@ function PrepararJogoPage() {
                               {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
                             </button>
                           </div>
+                          <details className="mt-3 w-full rounded-xl border border-white/[.06] bg-white/[.015]">
+                            <summary className="cursor-pointer px-3 py-2 text-[9px] font-black uppercase tracking-wider text-white/40">
+                              Gerar individualmente com a referência Exophase
+                            </summary>
+                            <div className="space-y-2 border-t border-white/[.05] p-3">
+                              {batch.map((a) => (
+                                <div key={a.id} className="flex flex-col gap-2 rounded-lg border border-white/[.05] bg-black/20 p-3 md:flex-row md:items-center md:justify-between">
+                                  <div className="min-w-0">
+                                    <p className="truncate text-xs font-black">{a.name}</p>
+                                    <p className="text-[9px] text-white/30">{a.filename}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={!a.visualReferenceUrl}
+                                    onClick={() => void copyAchievementPromptWithReference(a)}
+                                    className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-not-allowed disabled:opacity-35"
+                                  >
+                                    {copiedAchievementId === a.id ? "Copiado + referência" : "Copiar + referência"}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
                         </div>
                       );
                     }
