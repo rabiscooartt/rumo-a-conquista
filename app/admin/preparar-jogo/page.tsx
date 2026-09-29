@@ -81,8 +81,6 @@ function PrepararJogoPage() {
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
-  const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
-  const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
   const [analyzingReferences, setAnalyzingReferences] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ done: 0, total: 0 });
   const [manualAchievement, setManualAchievement] = useState("");
@@ -779,10 +777,9 @@ function PrepararJogoPage() {
     }
   }
 
-  function buildAchievementPrompt(a: Prepared, index?: number, visualBriefOverride?: string) {
-    const numberLabel = index !== undefined
-      ? String(index + 1).padStart(2, "0")
-      : a.filename.split("-")[0];
+  function buildBaseAchievementPrompt(a: Prepared, index?: number) {
+    const numberLabel =
+      index !== undefined ? String(index + 1).padStart(2, "0") : a.filename.split("-")[0];
 
     return [
       `JOGO: ${result?.game.name ?? ""}`,
@@ -790,52 +787,47 @@ function PrepararJogoPage() {
       `DESCRIÇÃO: ${a.description || "Sem descrição disponível."}`,
       `ARQUIVO: ${a.filename}`,
       "",
-      "INSTRUÇÕES PARA A GERAÇÃO DA ARTE:",
-      "A referência do Exophase foi usada somente pelo site para análise visual. NÃO usar a imagem de referência como input direto do gerador.",
-      "A arte final deve ser criada exclusivamente a partir do significado da conquista, do brief visual textual abaixo e da Matriz Visual Oficial do Rumo à Conquista.",
+      "FASE 1 — BASE DA CONQUISTA:",
+      "Antes de considerar qualquer referência visual, construa uma direção visual original para ESTA conquista usando somente o significado do nome, da descrição e do universo do jogo.",
+      "A base deve definir o símbolo/objeto/ação principal que comunica a conquista de forma imediata. Não copiar nem procurar equivalentes diretos da referência.",
       "",
       "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA:",
       "1. IDENTIDADE: a imagem deve parecer parte de uma coleção consistente, sem repetir uma fórmula visual fixa.",
       "2. FOCO: um elemento principal forte deve comunicar a conquista imediatamente; elementos secundários só entram quando ajudam o significado.",
       "3. COMPOSIÇÃO EDGE-TO-EDGE: formato 1:1 e arte ocupando 100% do quadro, tocando diretamente os quatro limites. NUNCA deixar margem, faixa, respiro, canvas vazio ou campo preto externo ao redor da arte. Se houver moldura, ela toca diretamente as quatro bordas e faz parte do próprio desenho.",
-      "4. PALETA: seguir a paleta e o comportamento de cor descritos no brief. Se for monocromática ou muito restrita, preservar isso. Não adicionar vermelho, dourado, metal ou 3D por preferência estética.",
-      "5. LINGUAGEM GRÁFICA: adaptar traço, acabamento, textura, contraste, iluminação, enquadramento e densidade de detalhes ao brief.",
-      "6. ORIGINALIDADE: criar composição nova e independente. Não copiar, recortar, filtrar, redesenhar ou reproduzir personagens, logos, ícones ou outros elementos reconhecíveis da referência.",
-      "7. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos dentro da arte.",
-      "8. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
-      "9. LEGIBILIDADE: a conquista deve ser entendida à primeira vista. Simplifique quando necessário.",
+      "4. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
+      "5. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos dentro da arte.",
+      "6. LEGIBILIDADE: a conquista deve ser entendida à primeira vista. Simplifique quando necessário.",
       "",
-      `BRIEF VISUAL TEXTUAL DA REFERÊNCIA:`,
-      visualBriefOverride?.trim() ||
-        a.visualBrief?.trim() ||
-        "PENDENTE — antes de gerar, analisar a referência Exophase e registrar os atributos visuais amplos.",
+      "FASE 2 — AJUSTE VISUAL DA REFERÊNCIA:",
+      "Depois de criar a base da conquista, aplique SOMENTE os atributos visuais amplos registrados no brief abaixo como uma camada de direção estética.",
+      "O brief NÃO substitui a base da conquista e NÃO define o símbolo principal. Ele ajusta linguagem visual: paleta, contraste, traço, composição, atmosfera, iluminação, textura, acabamento e densidade de detalhes.",
+      "Não importar personagens, logos, ícones, textos, poses, desenhos ou outros elementos reconhecíveis da referência.",
       "",
-      "ORDEM DE PRIORIDADE: 1) significado da conquista; 2) brief visual textual; 3) Matriz Visual Oficial; 4) detalhes complementares do universo do jogo.",
-      "FALLBACK: se o conceito inicial for bloqueado, não usar a imagem de referência. Reescrever a direção de forma mais abstrata e simbólica, mantendo o significado da conquista e os atributos visuais gerais identificados.",
+      "BRIEF VISUAL TEXTUAL — AJUSTE:",
+      "PENDENTE — analisar a referência Exophase antes da geração.",
+      "",
+      "ORDEM FINAL: 1) significado da conquista e base original; 2) ajuste visual textual da referência; 3) Matriz Visual Oficial; 4) detalhes complementares do universo do jogo.",
+      "ORIGINALIDADE: o resultado deve ser uma composição nova e independente.",
+      "FALLBACK: se a direção inicial for bloqueada, preserve a base e reescreva apenas o ajuste visual de forma mais abstrata e simbólica. Nunca use a imagem de referência como input direto do gerador.",
     ].join("\n");
   }
 
+  function buildAchievementPrompt(
+    a: Prepared,
+    index?: number,
+    visualBriefOverride?: string
+  ) {
+    const base = buildBaseAchievementPrompt(a, index);
+    const brief =
+      visualBriefOverride?.trim() ||
+      a.visualBrief?.trim() ||
+      "PENDENTE — analisar a referência Exophase antes da geração.";
 
-  async function copyAchievementPrompt(a: Prepared) {
-    try {
-      let brief = a.visualBrief?.trim() ?? "";
-
-      if (!brief && a.visualReferenceUrl) {
-        const analyzed = await analyzeVisualBriefs([a]);
-        brief = analyzed[a.id] ?? "";
-      }
-
-      const prompt = buildAchievementPrompt(a, undefined, brief);
-      await navigator.clipboard.writeText(prompt);
-      setCopiedAchievementId(a.id);
-      setTimeout(() => setCopiedAchievementId(null), 2200);
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível preparar e copiar o prompt da conquista."
-      );
-    }
+    return base.replace(
+      "BRIEF VISUAL TEXTUAL — AJUSTE:\nPENDENTE — analisar a referência Exophase antes da geração.",
+      `BRIEF VISUAL TEXTUAL — AJUSTE:\n${brief}`
+    );
   }
 
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
@@ -844,7 +836,11 @@ function PrepararJogoPage() {
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
       "",
-      "INSTRUÇÕES: cada conquista abaixo já foi preparada para geração individual. O Exophase serviu somente como fonte de análise visual. NENHUMA imagem de referência deve ser usada como input direto do gerador.",
+      "INSTRUÇÕES DO LOTE:",
+      "Cada conquista será gerada individualmente.",
+      "O Exophase foi usado somente pelo site como fonte de análise visual.",
+      "NENHUMA imagem de referência deve ser anexada ou usada como input direto do gerador.",
+      "Para cada conquista, siga obrigatoriamente: FASE 1 — criar a BASE DA CONQUISTA; FASE 2 — aplicar o AJUSTE VISUAL TEXTUAL derivado da referência.",
       "",
     ];
 
@@ -878,103 +874,6 @@ function PrepararJogoPage() {
           ? error.message
           : "Não foi possível preparar e copiar o lote."
       );
-    }
-  }
-
-  async function downloadBatchPackage(batch: Prepared[], batchIndex: number) {
-    setDownloadingBatch(batchIndex);
-    setError("");
-
-    try {
-      const analyzed = await analyzeVisualBriefs(batch);
-      const preparedBatch = batch.map((achievement) => ({
-        ...achievement,
-        visualBrief: analyzed[achievement.id] ?? achievement.visualBrief,
-      }));
-      const packageText = buildBatchPackageText(preparedBatch, batchIndex);
-
-      const response = await fetch("/api/admin/achievement-reference-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
-          packageText,
-        }),
-      });
-
-      if (!response.ok) {
-        let message = "Não foi possível montar o lote de texto.";
-        const contentType = response.headers.get("content-type") ?? "";
-
-        if (contentType.includes("application/json")) {
-          try {
-            const payload = await response.json();
-            if (payload?.error) message = payload.error;
-          } catch {
-            // Mantém a mensagem padrão.
-          }
-        }
-
-        throw new Error(message);
-      }
-
-      const zipBlob = await response.blob();
-      if (zipBlob.size === 0) {
-        throw new Error("O arquivo do lote veio vazio.");
-      }
-
-      const url = URL.createObjectURL(zipBlob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível baixar o lote de texto."
-      );
-    } finally {
-      setDownloadingBatch(null);
-    }
-  }
-
-  async function clearPreparation() {
-    if (!result?.game.slug) return;
-    if (
-      !window.confirm(
-        "Limpar o rascunho desta preparação? As conquistas públicas não serão alteradas."
-      )
-    ) return;
-
-    setDraftLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        "/api/admin/achievement-prep-draft?slug=" +
-          encodeURIComponent(result.game.slug),
-        { method: "DELETE" }
-      );
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error || "Erro ao limpar rascunho.");
-      }
-
-      localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
-      setDraftUpdatedAt(null);
-      setSaved(false);
-      await search(result.game.slug);
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Erro ao limpar rascunho."
-      );
-    } finally {
-      setDraftLoading(false);
     }
   }
 
@@ -1494,34 +1393,14 @@ function PrepararJogoPage() {
 
             {selected.length > 0 && (
               <section className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
-                      05 • Material para ChatGPT
-                    </p>
-                    <h2 className="mt-1 text-xl font-black">Copiar prompts e preparar lotes</h2>
-                    <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
-                      A referência do Exophase não acompanha mais a geração. O site analisa a imagem, salva o brief visual textual e usa somente esse texto na hora de copiar ou baixar o material.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => void analyzeVisualBriefs(selected)}
-                    disabled={
-                      analyzingReferences ||
-                      selected.every(
-                        (achievement) =>
-                          !achievement.visualReferenceUrl ||
-                          Boolean(achievement.visualBrief?.trim())
-                      )
-                    }
-                    className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-3 text-xs font-black uppercase tracking-[.1em] text-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {analyzingReferences
-                      ? `🧠 Analisando ${analysisProgress.done}/${analysisProgress.total}...`
-                      : "🧠 Analisar referências com IA"}
-                  </button>
+                <div>
+                  <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
+                    05 • Material para ChatGPT
+                  </p>
+                  <h2 className="mt-1 text-xl font-black">Copiar prompts por lote</h2>
+                  <p className="mt-2 max-w-[950px] text-xs leading-relaxed text-white/35">
+                    O botão do lote faz tudo: primeiro o site analisa as referências Exophase, salva os briefs visuais e depois copia o prompt completo. A imagem de referência nunca acompanha o material copiado.
+                  </p>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] text-white/35">
@@ -1529,10 +1408,10 @@ function PrepararJogoPage() {
                     {selected.filter((a) => a.visualBrief?.trim()).length}/{selected.length} briefs prontos
                   </span>
                   <span className="rounded-full border border-white/10 px-3 py-1.5">
-                    {selected.filter((a) => a.visualReferenceUrl && !a.visualBrief?.trim()).length} aguardando análise
+                    {selected.filter((a) => a.visualReferenceUrl && !a.visualBrief?.trim()).length} referências aguardando leitura
                   </span>
                   <span className="rounded-full border border-white/10 px-3 py-1.5">
-                    geração = texto, não imagem
+                    referência = ajuste textual
                   </span>
                 </div>
 
@@ -1581,31 +1460,23 @@ function PrepararJogoPage() {
                               </p>
                             </div>
 
-                            <div className="flex flex-wrap justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => void copyBatchPrompt(batch, batchIndex)}
-                                disabled={analyzingReferences}
-                                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100 disabled:cursor-wait disabled:opacity-40"
-                              >
-                                {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void downloadBatchPackage(batch, batchIndex)}
-                                disabled={downloadingBatch === batchIndex || analyzingReferences}
-                                className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:cursor-wait disabled:opacity-40"
-                              >
-                                {downloadingBatch === batchIndex
-                                  ? "Montando..."
-                                  : "📦 Baixar texto"}
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void copyBatchPrompt(batch, batchIndex)}
+                              disabled={analyzingReferences}
+                              className="rounded-lg border border-red-500/30 bg-red-500/10 px-5 py-2.5 text-[9px] font-black uppercase text-red-100 disabled:cursor-wait disabled:opacity-40"
+                            >
+                              {analyzingReferences
+                                ? `🧠 Analisando ${analysisProgress.done}/${analysisProgress.total}...`
+                                : copiedBatch === batchIndex
+                                  ? "Prompt copiado"
+                                  : "Copiar prompt do lote"}
+                            </button>
                           </div>
 
                           <div className="mt-3 rounded-lg border border-white/[.05] bg-black/20 p-3">
                             <p className="text-[9px] leading-relaxed text-white/30">
-                              O lote contém apenas texto. Cada conquista leva nome, descrição, arquivo, matriz visual e o brief visual textual analisado pelo site.
+                              O conteúdo copiado contém somente texto. Cada conquista é montada em duas camadas: <span className="font-black text-white/50">base original da conquista</span> + <span className="font-black text-white/50">ajuste visual textual derivado da referência</span>.
                             </p>
                           </div>
                         </div>
@@ -1615,10 +1486,10 @@ function PrepararJogoPage() {
                 </div>
 
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  <span className="font-black text-white/45">Fluxo novo:</span> Exophase → análise visual no site → brief textual salvo no rascunho → copiar prompt → gerar arte original sem enviar a imagem de referência.
+                  <span className="font-black text-white/45">Fluxo:</span> Exophase → leitura visual no site → brief salvo → base da conquista → ajuste visual → copiar prompt do lote.
                 </p>
               </section>
-            )}
+            )
 
             {selected.length > 0 && (
               <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
@@ -1673,27 +1544,19 @@ function PrepararJogoPage() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-[9px] uppercase text-white/25">
-                              Brief visual textual
+                              Camada de ajuste visual textual
                             </p>
                             <p className="mt-1 text-[10px] leading-relaxed text-white/35">
-                              O site registra somente atributos visuais amplos da referência: paleta, contraste, traço, composição, atmosfera, iluminação, textura, acabamento, densidade de detalhes e elementos gerais.
+                              O site registra somente atributos visuais amplos da referência para formar a camada de ajuste: paleta, contraste, traço, composição, atmosfera, iluminação, textura, acabamento, densidade de detalhes e elementos gerais.
                             </p>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => void copyAchievementPrompt(a)}
-                            disabled={analyzingReferences}
-                            className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-wait disabled:opacity-40"
-                          >
-                            {copiedAchievementId === a.id ? "Copiado" : "Copiar prompt"}
-                          </button>
                         </div>
 
                         <textarea
                           value={a.visualBrief ?? ""}
                           onChange={(e) => updateVisualBrief(a.id, e.target.value)}
                           rows={7}
-                          placeholder="O brief será preenchido automaticamente ao analisar a referência com IA. Você também pode revisar o texto manualmente."
+                          placeholder="A camada será preenchida automaticamente ao analisar a referência com IA. Você também pode revisar o texto manualmente."
                           className="mt-3 w-full resize-y rounded-xl border border-white/[.07] bg-black/30 px-3 py-3 text-xs leading-relaxed text-white/75 outline-none placeholder:text-white/15 focus:border-red-400/30"
                         />
 
