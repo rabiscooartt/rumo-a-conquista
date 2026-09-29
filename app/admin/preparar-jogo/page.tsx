@@ -78,6 +78,7 @@ function PrepararJogoPage() {
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
   const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
+  const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
   const [manualAchievement, setManualAchievement] = useState("");
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [similarCandidates, setSimilarCandidates] = useState<
@@ -737,6 +738,78 @@ function PrepararJogoPage() {
     } catch (error) {
       setError(error instanceof Error ? error.message : "Não foi possível copiar a conquista com a referência.");
     }
+  async function downloadBatchPackage(
+    batch: Prepared[],
+    batchIndex: number,
+    packageText: string
+  ) {
+    setDownloadingBatch(batchIndex);
+    setError("");
+
+    try {
+      const references = batch
+        .filter((achievement) => Boolean(achievement.visualReferenceUrl))
+        .map((achievement) => ({
+          filename: achievement.filename,
+          url: achievement.visualReferenceUrl as string,
+        }));
+
+      const response = await fetch("/api/admin/achievement-reference-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
+          packageText,
+          references,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = "Não foi possível montar o lote completo.";
+        try {
+          const payload = await response.json();
+          if (payload?.error) message = payload.error;
+        } catch {
+          // Mantém a mensagem padrão quando a resposta não é JSON.
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      if (blob.type !== "application/zip" && blob.size === 0) {
+        throw new Error("O arquivo do lote veio vazio.");
+      }
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+
+      const downloadedReferences =
+        response.headers.get("X-Rumo-Downloaded-Reference-Count") ?? String(references.length);
+      const totalReferences =
+        response.headers.get("X-Rumo-Reference-Count") ?? String(references.length);
+
+      if (downloadedReferences !== totalReferences) {
+        setError(
+          `Lote ${String(batchIndex + 1).padStart(2, "0")} baixado, mas ${totalReferences} referências foram solicitadas e ${downloadedReferences} foram incluídas. Veja o arquivo REFERENCIAS-COM-FALHA.txt dentro do ZIP.`
+        );
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível baixar o lote completo."
+      );
+    } finally {
+      setDownloadingBatch(null);
+    }
+  }
+
   }
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -1353,7 +1426,8 @@ function PrepararJogoPage() {
                             </p>
                           </div>
 
-                          <div className="flex flex-wrap justify-end gap-2">                            <button
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
                               type="button"
                               onClick={() => {
                                 void navigator.clipboard.writeText(packageText);
@@ -1363,6 +1437,18 @@ function PrepararJogoPage() {
                               className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100"
                             >
                               {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void downloadBatchPackage(batch, batchIndex, packageText)
+                              }
+                              disabled={downloadingBatch === batchIndex}
+                              className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:cursor-wait disabled:opacity-50"
+                            >
+                              {downloadingBatch === batchIndex
+                                ? "Montando ZIP..."
+                                : "Baixar lote completo"}
                             </button>
                           </div>
                           <details className="w-full rounded-xl border border-white/[.06] bg-white/[.015]">
@@ -1395,7 +1481,7 @@ function PrepararJogoPage() {
                 </div>
 
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  Cada conquista deve ser analisada individualmente. Quando houver referência visual individual do Exophase, ela é a principal base visual da arte: aproximadamente 80% da direção visual vem daquela referência específica e 20% é interpretação original. A imagem final deve preservar sua linguagem visual sem copiar ou reproduzir a arte. A simplificação deve servir à legibilidade sem descaracterizar a referência. Quando não houver referência, a arte será criada originalmente a partir dos dados da conquista e da identidade do jogo.
+                  <span className="font-black text-white/45">Baixar lote completo:</span> o ZIP contém o texto do lote e uma pasta <span className="font-black text-white/45">referencias/</span> com uma imagem individual para cada referência Exophase disponível. Use esse ZIP para transportar o lote; para gerar as artes no ChatGPT, extraia as imagens e anexe as referências individuais junto do texto do lote.
                 </p>
               </section>
             )}
