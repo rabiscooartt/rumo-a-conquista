@@ -901,30 +901,23 @@ function PrepararJogoPage() {
         }),
       });
 
-      const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Não foi possível montar o lote de texto.");
+        let message = "Não foi possível montar o lote de texto.";
+        const contentType = response.headers.get("content-type") ?? "";
+
+        if (contentType.includes("application/json")) {
+          try {
+            const payload = await response.json();
+            if (payload?.error) message = payload.error;
+          } catch {
+            // Mantém a mensagem padrão.
+          }
+        }
+
+        throw new Error(message);
       }
 
-      const blob = await new Response(JSON.stringify(payload)).blob();
-      void blob;
-
-      // A rota devolve ZIP binário; refazemos a requisição para ler o corpo
-      // como blob depois de validar erros pelo content-type.
-      const retryResponse = await fetch("/api/admin/achievement-reference-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: `Lote-${String(batchIndex + 1).padStart(2, "0")}.zip`,
-          packageText,
-        }),
-      });
-
-      if (!retryResponse.ok) {
-        throw new Error("Não foi possível baixar o lote de texto.");
-      }
-
-      const zipBlob = await retryResponse.blob();
+      const zipBlob = await response.blob();
       if (zipBlob.size === 0) {
         throw new Error("O arquivo do lote veio vazio.");
       }
