@@ -681,7 +681,7 @@ function PrepararJogoPage() {
     setSaved(true);
   }
 
-  async function setAchievementArtBorder(value: AchievementArtBorder) {
+  async function saveAchievementArtBorder(value: AchievementArtBorder) {
     setAchievementArtBorder(value);
     setSaved(false);
 
@@ -1636,7 +1636,7 @@ function PrepararJogoPage() {
                       onChange={(event) => {
                         const value = event.target.value;
                         if (value === "thin" || value === "none") {
-                          void setAchievementArtBorder(value);
+                          void saveAchievementArtBorder(value);
                         }
                       }}
                       className="min-w-[220px] rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-xs font-black text-white outline-none focus:border-emerald-400/30"
