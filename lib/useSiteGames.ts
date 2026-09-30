@@ -32,6 +32,10 @@ export type FirstJourneyState = {
   completedAt?: string;
 };
 
+export type AchievementArtConfig = {
+  border: "thin" | "none";
+};
+
 export type SiteGame = {
   slug: string;
   title: string;
@@ -51,6 +55,7 @@ export type SiteGame = {
   updatedAt?: string;
   manualTotalPlayedMinutes?: number | null;
   firstJourney?: FirstJourneyState;
+  achievementArtConfig?: AchievementArtConfig;
   finalBadge?: {
     title: string;
     icon: string;
@@ -426,6 +431,22 @@ function createFinalBadgeFromAchievements(
   };
 }
 
+function normalizeAchievementArtConfig(value: unknown): AchievementArtConfig | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const border = String((value as Record<string, unknown>).border || "")
+    .trim()
+    .toLowerCase();
+
+  if (border === "thin" || border === "none") {
+    return { border };
+  }
+
+  return undefined;
+}
+
 function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const finalSlug = readText(game.slug, slug);
   const title = readText(game.title, "Jogo sem nome");
@@ -518,6 +539,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     finalBadge,
     emblem,
     firstJourney,
+    achievementArtConfig: normalizeAchievementArtConfig(game.achievementArtConfig),
     createdAt: readText(game.createdAt, new Date().toISOString()),
     updatedAt: readText(game.updatedAt, ""),
   };
@@ -587,6 +609,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         isDeleted: Boolean(game.is_deleted),
         createdAt: game.created_at,
         updatedAt: game.updated_at,
+        achievementArtConfig: game.achievementArtConfig,
       });
     }
 
@@ -652,6 +675,7 @@ async function saveGameToSupabase(
     manualTotalPlayedMinutes:
       game.manualTotalPlayedMinutes ?? null,
     firstJourney: game.firstJourney,
+    achievementArtConfig: game.achievementArtConfig,
     isHidden: options?.isHidden === true,
     isDeleted: options?.isDeleted === true,
   });
