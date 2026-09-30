@@ -681,6 +681,21 @@ function PrepararJogoPage() {
     setSaved(true);
   }
 
+  async function saveAchievementArtBorder(value: AchievementArtBorder) {
+    setAchievementArtBorder(value);
+    setSaved(false);
+
+    try {
+      await persistPreparation(result?.achievements ?? [], value);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível salvar a identidade visual do jogo."
+      );
+    }
+  }
+
   async function savePreparation() {
     if (!result?.game.slug) return;
 
@@ -867,12 +882,20 @@ function PrepararJogoPage() {
   }
 
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
+    const borderInstruction =
+      achievementArtBorder === "thin"
+        ? "BORDA DO JOGO: usar borda fina e discreta em TODAS as conquistas deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+        : achievementArtBorder === "none"
+          ? "BORDA DO JOGO: NÃO usar borda em nenhuma conquista deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+          : "BORDA DO JOGO: ainda não definida. Analise o conjunto de referências e, ao final da análise, escolha entre borda fina ou sem borda para ESTE JOGO. Depois registre a decisão na preparação para mantê-la nos próximos lotes.";
+
     const lines = [
       "RUMO À CONQUISTA — PACOTE DE ANÁLISE VISUAL + PROMPTS",
       "",
       `JOGO: ${result?.game.name ?? ""}`,
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
+      borderInstruction,
       "",
       "OBJETIVO DESTE PACOTE:",
       "Usar este TXT junto com a pasta referencias/ para realizar uma análise visual em duas camadas e, somente depois, criar os prompts textuais finais das artes.",
