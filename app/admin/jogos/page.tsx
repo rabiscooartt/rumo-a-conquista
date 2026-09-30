@@ -367,6 +367,93 @@ export default function NewGamesAdminPage() {
                   </div>
                 </section>
 
+                <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">03</p>
+                      <h3 className="mt-1 text-xl font-black">Identidade visual das conquistas</h3>
+                      <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/40">
+                        Esta decisão é feita uma única vez por jogo e vale para todos os lotes desse jogo. A borda é opcional e, quando usada, será sempre fina e integrada à própria arte.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 md:grid-cols-2">
+                    <label
+                      className={`cursor-pointer rounded-2xl border p-4 transition ${
+                        selectedGame.achievementArtConfig?.border === "thin"
+                          ? "border-emerald-400/35 bg-emerald-400/[0.07]"
+                          : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name={`achievement-border-${selectedGame.slug}`}
+                          checked={selectedGame.achievementArtConfig?.border === "thin"}
+                          onChange={() => {
+                            setSaving(true);
+                            void updateGame(selectedGame.slug, {
+                              achievementArtConfig: { border: "thin" },
+                            }).finally(() => setSaving(false));
+                          }}
+                          className="mt-1 accent-emerald-400"
+                        />
+                        <span>
+                          <span className="block text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                            Borda fina
+                          </span>
+                          <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                            Aplicar em todas as conquistas e todos os lotes deste jogo.
+                          </span>
+                        </span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`cursor-pointer rounded-2xl border p-4 transition ${
+                        selectedGame.achievementArtConfig?.border === "none"
+                          ? "border-violet-400/35 bg-violet-400/[0.07]"
+                          : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name={`achievement-border-${selectedGame.slug}`}
+                          checked={selectedGame.achievementArtConfig?.border === "none"}
+                          onChange={() => {
+                            setSaving(true);
+                            void updateGame(selectedGame.slug, {
+                              achievementArtConfig: { border: "none" },
+                            }).finally(() => setSaving(false));
+                          }}
+                          className="mt-1 accent-violet-400"
+                        />
+                        <span>
+                          <span className="block text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                            Sem borda
+                          </span>
+                          <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                            Nenhuma conquista deste jogo receberá borda.
+                          </span>
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="mt-4 rounded-xl border border-white/[0.07] bg-black/20 p-3">
+                    <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/25">Estado atual</p>
+                    <p className="mt-1 text-xs font-bold text-white/65">
+                      {selectedGame.achievementArtConfig?.border === "thin"
+                        ? "Borda fina definida para este jogo."
+                        : selectedGame.achievementArtConfig?.border === "none"
+                          ? "Sem borda definido para este jogo."
+                          : "Ainda não definido. Escolha uma opção antes de fechar a identidade visual do jogo."}
+                    </p>
+                  </div>
+                </section>
+
                 <NewGameAchievementsEditor
                   key={selectedGame.slug}
                   game={selectedGame}
@@ -375,7 +462,7 @@ export default function NewGamesAdminPage() {
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">04</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">06</p>
                     <h3 className="mt-1 text-xl font-black">Emblema</h3>
                     <p className="mt-2 text-xs text-white/35">
                       {selectedGame.emblem?.image ? "Emblema configurado." : "Emblema pendente."}
