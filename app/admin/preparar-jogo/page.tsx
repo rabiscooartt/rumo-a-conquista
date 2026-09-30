@@ -8,6 +8,8 @@ import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ImportArtBatchUpload from "./ImportArtBatchUpload";
 
+type AchievementArtBorder = "thin" | "none";
+
 type A = {
   id: string;
   name: string;
@@ -82,6 +84,8 @@ function PrepararJogoPage() {
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
   const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
+  const [achievementArtBorder, setAchievementArtBorder] =
+    useState<AchievementArtBorder | null>(null);
   const [analyzingReferences, setAnalyzingReferences] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ done: 0, total: 0 });
   const [manualAchievement, setManualAchievement] = useState("");
@@ -196,6 +200,12 @@ function PrepararJogoPage() {
           const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
           const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
           const customAchievements: A[] = draft.customAchievements ?? [];
+          setAchievementArtBorder(
+            draft.achievementArtBorder === "thin" ||
+              draft.achievementArtBorder === "none"
+              ? draft.achievementArtBorder
+              : null
+          );
 
           setResult((current) =>
             current
@@ -629,7 +639,10 @@ function PrepararJogoPage() {
     setMergeTitle("");
     setMergeDescription("");
   }
-  async function persistPreparation(achievements: A[]) {
+  async function persistPreparation(
+    achievements: A[],
+    borderOverride?: AchievementArtBorder | null
+  ) {
     if (!result?.game.slug) return;
 
     const response = await fetch("/api/admin/achievement-prep-draft", {
@@ -650,6 +663,11 @@ function PrepararJogoPage() {
               .map((a) => [a.id, a.visualBrief?.trim() ?? ""])
           ),
           customAchievements: achievements.filter((a) => a.isCustom),
+          ...(borderOverride === "thin" || borderOverride === "none"
+            ? { achievementArtBorder: borderOverride }
+            : achievementArtBorder
+              ? { achievementArtBorder }
+              : {}),
         },
       }),
     });
@@ -1030,6 +1048,7 @@ function PrepararJogoPage() {
 
       localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
       setDraftUpdatedAt(null);
+      setAchievementArtBorder(null);
       setSaved(false);
       await search(result.game.slug);
     } catch (error) {
