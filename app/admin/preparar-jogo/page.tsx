@@ -1562,41 +1562,20 @@ function PrepararJogoPage() {
                     <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
                       05 • Material para ChatGPT
                     </p>
-                    <h2 className="mt-1 text-xl font-black">Copiar prompts e preparar lotes</h2>
+                    <h2 className="mt-1 text-xl font-black">Copiar instruções e preparar lotes</h2>
                     <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
-                      O site monta um ZIP com o texto do lote e as imagens de referência do Exophase. Depois, o ZIP pode ser enviado ao ChatGPT para análise visual geral + análise individual de cada conquista.
+                      O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
                     </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => void analyzeVisualBriefs(selected)}
-                    disabled={
-                      analyzingReferences ||
-                      selected.every(
-                        (achievement) =>
-                          !achievement.visualReferenceUrl ||
-                          Boolean(achievement.visualBrief?.trim())
-                      )
-                    }
-                    className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-3 text-xs font-black uppercase tracking-[.1em] text-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {analyzingReferences
-                      ? `🧠 Analisando ${analysisProgress.done}/${analysisProgress.total}...`
-                      : "🧠 Analisar referências com IA"}
-                  </button>
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] text-white/35">
-                  <span className="rounded-full border border-white/10 px-3 py-1.5">
-                    {selected.filter((a) => a.visualBrief?.trim()).length}/{selected.length} briefs prontos
-                  </span>
-                  <span className="rounded-full border border-white/10 px-3 py-1.5">
-                    {selected.filter((a) => a.visualReferenceUrl && !a.visualBrief?.trim()).length} aguardando análise
-                  </span>
-                  <span className="rounded-full border border-white/10 px-3 py-1.5">
-                    geração = texto, não imagem
-                  </span>
+                <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/[.035] p-4">
+                  <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-300">
+                    Fluxo
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-white/45">
+                    1. <span className="font-black text-white/65">Copiar instruções</span> → 2. <span className="font-black text-white/65">Baixar ZIP + referências</span> → 3. <span className="font-black text-white/65">Enviar os dois juntos ao ChatGPT</span> → 4. DNA visual geral + análise individual → 5. prompts finais → 6. geração das artes, uma por vez.
+                  </p>
                 </div>
 
                 <div className="mt-5 flex items-center gap-3">
@@ -1648,10 +1627,9 @@ function PrepararJogoPage() {
                               <button
                                 type="button"
                                 onClick={() => void copyBatchPrompt(batch, batchIndex)}
-                                disabled={analyzingReferences}
-                                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100 disabled:cursor-wait disabled:opacity-40"
+                                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-[9px] font-black uppercase text-red-100"
                               >
-                                {copiedBatch === batchIndex ? "Copiado" : "Copiar lote"}
+                                {copiedBatch === batchIndex ? "Copiado" : "📋 Copiar instruções"}
                               </button>
                               <button
                                 type="button"
@@ -1668,7 +1646,7 @@ function PrepararJogoPage() {
 
                           <div className="mt-3 rounded-lg border border-white/[.05] bg-black/20 p-3">
                             <p className="text-[9px] leading-relaxed text-white/30">
-                              O lote contém apenas texto. Cada conquista leva nome, descrição, arquivo, matriz visual e o brief visual textual analisado pelo site.
+                              O texto contém as instruções completas do lote, as conquistas, as descrições, os nomes dos arquivos e o caminho de cada referência dentro do ZIP.
                             </p>
                           </div>
                         </div>
@@ -1678,7 +1656,7 @@ function PrepararJogoPage() {
                 </div>
 
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
-                  <span className="font-black text-white/45">Fluxo novo:</span> Exophase → análise visual no site → brief textual salvo no rascunho → copiar prompt → gerar arte original sem enviar a imagem de referência.
+                  <span className="font-black text-white/45">Fluxo:</span> Exophase → ZIP + instruções → análise visual no ChatGPT → prompts finais → geração individual das artes.
                 </p>
               </section>
             )}
@@ -1733,51 +1711,26 @@ function PrepararJogoPage() {
                       </div>
 
                       <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-[9px] uppercase text-white/25">
-                              Brief visual textual
-                            </p>
-                            <p className="mt-1 text-[10px] leading-relaxed text-white/35">
-                              O site registra somente atributos visuais amplos da referência: paleta, contraste, traço, composição, atmosfera, iluminação, textura, acabamento, densidade de detalhes e elementos gerais.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => void copyAchievementPrompt(a)}
-                            disabled={analyzingReferences}
-                            className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100 disabled:cursor-wait disabled:opacity-40"
+                        <p className="text-[9px] uppercase text-white/25">
+                          Referência visual
+                        </p>
+                        <p className="mt-1 text-[10px] leading-relaxed text-white/35">
+                          Esta referência será incluída no ZIP e analisada visualmente junto com as demais. O site não tenta interpretar a imagem nem envia a referência para geração.
+                        </p>
+                        {a.visualReferenceUrl ? (
+                          <a
+                            href={a.visualReferenceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-2 inline-block text-red-200 underline underline-offset-2 text-[10px]"
                           >
-                            {copiedAchievementId === a.id ? "Copiado" : "Copiar prompt"}
-                          </button>
-                        </div>
-
-                        <textarea
-                          value={a.visualBrief ?? ""}
-                          onChange={(e) => updateVisualBrief(a.id, e.target.value)}
-                          rows={7}
-                          placeholder="O brief será preenchido automaticamente ao analisar a referência com IA. Você também pode revisar o texto manualmente."
-                          className="mt-3 w-full resize-y rounded-xl border border-white/[.07] bg-black/30 px-3 py-3 text-xs leading-relaxed text-white/75 outline-none placeholder:text-white/15 focus:border-red-400/30"
-                        />
-
-                        <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-white/35">
-                          <span className="rounded-full border border-white/10 px-3 py-1.5">
-                            {a.visualBrief?.trim() ? "✓ Brief analisado/salvo" : "Pendente"}
-                          </span>
-                          <span className="rounded-full border border-white/10 px-3 py-1.5">
-                            Fonte: Exophase (somente análise)
-                          </span>
-                          {a.visualReferenceUrl && (
-                            <a
-                              href={a.visualReferenceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-red-200 underline underline-offset-2"
-                            >
-                              abrir fonte visual
-                            </a>
-                          )}
-                        </div>
+                            abrir fonte visual
+                          </a>
+                        ) : (
+                          <p className="mt-2 text-[10px] text-white/25">
+                            Referência visual não disponível.
+                          </p>
+                        )}
                       </div>
 
                       <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
