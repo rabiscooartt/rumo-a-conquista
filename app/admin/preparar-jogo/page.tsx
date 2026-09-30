@@ -1620,6 +1620,15 @@ function PrepararJogoPage() {
                   </p>
                 </div>
 
+                <div className="mt-5 rounded-2xl border border-white/[.07] bg-black/20 p-4">
+                  <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/25">
+                    Identidade visual do jogo
+                  </p>
+                  <p className="mt-1 text-xs text-white/40">
+                    A decisão de borda será única para este jogo e valerá para todos os seus lotes.
+                  </p>
+                </div>
+
                 <div className="mt-5 flex items-center gap-3">
                   <label
                     htmlFor="batch-size"
