@@ -1597,6 +1597,72 @@ function PrepararJogoPage() {
                   </p>
                 </div>
 
+                <div className="mt-5 rounded-2xl border border-white/[.07] bg-black/20 p-4">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/25">
+                        Identidade visual do jogo
+                      </p>
+                      <p className="mt-1 text-xs font-bold text-white/65">
+                        Borda das conquistas: uma decisão única para este jogo e todos os seus lotes.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-white/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                      {achievementArtBorder ? "✓ Definida" : "Pendente"}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    <button
+                      type="button"
+                      disabled={saving || draftLoading}
+                      onClick={() => {
+                        setAchievementArtBorder("thin");
+                        setSaved(false);
+                        void persistPreparation(result?.achievements ?? [], "thin");
+                      }}
+                      className={
+                        achievementArtBorder === "thin"
+                          ? "rounded-xl border border-emerald-400/35 bg-emerald-400/[.08] px-4 py-3 text-left"
+                          : "rounded-xl border border-white/10 bg-white/[.02] px-4 py-3 text-left hover:border-white/20"
+                      }
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-[.12em] text-white">
+                        Borda fina
+                      </span>
+                      <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                        Todas as conquistas deste jogo usarão uma borda fina e discreta.
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={saving || draftLoading}
+                      onClick={() => {
+                        setAchievementArtBorder("none");
+                        setSaved(false);
+                        void persistPreparation(result?.achievements ?? [], "none");
+                      }}
+                      className={
+                        achievementArtBorder === "none"
+                          ? "rounded-xl border border-violet-400/35 bg-violet-400/[.08] px-4 py-3 text-left"
+                          : "rounded-xl border border-white/10 bg-white/[.02] px-4 py-3 text-left hover:border-white/20"
+                      }
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-[.12em] text-white">
+                        Sem borda
+                      </span>
+                      <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                        Nenhuma conquista deste jogo terá borda.
+                      </span>
+                    </button>
+                  </div>
+
+                  <p className="mt-3 text-[9px] leading-relaxed text-white/25">
+                    Esta escolha é salva por <span className="font-black text-white/45">jogo</span>, não por lote.
+                  </p>
+                </div>
+
                 <div className="mt-5 flex items-center gap-3">
                   <label
                     htmlFor="batch-size"
