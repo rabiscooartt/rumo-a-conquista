@@ -23,6 +23,8 @@ type A = {
   visualBrief?: string;
 };
 
+type AchievementArtBorder = "thin" | "none";
+
 type R = {
   game: {
     name: string;
@@ -82,6 +84,8 @@ function PrepararJogoPage() {
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
   const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
+  const [achievementArtBorder, setAchievementArtBorder] =
+    useState<AchievementArtBorder | null>(null);
   const [analyzingReferences, setAnalyzingReferences] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ done: 0, total: 0 });
   const [manualAchievement, setManualAchievement] = useState("");
@@ -196,6 +200,13 @@ function PrepararJogoPage() {
           const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
           const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
           const customAchievements: A[] = draft.customAchievements ?? [];
+          const savedAchievementArtBorder =
+            draft.achievementArtBorder === "thin" ||
+            draft.achievementArtBorder === "none"
+              ? draft.achievementArtBorder
+              : null;
+
+          setAchievementArtBorder(savedAchievementArtBorder);
 
           setResult((current) =>
             current
@@ -629,7 +640,10 @@ function PrepararJogoPage() {
     setMergeTitle("");
     setMergeDescription("");
   }
-  async function persistPreparation(achievements: A[]) {
+  async function persistPreparation(
+    achievements: A[],
+    borderOverride?: AchievementArtBorder | null
+  ) {
     if (!result?.game.slug) return;
 
     const response = await fetch("/api/admin/achievement-prep-draft", {
@@ -650,6 +664,9 @@ function PrepararJogoPage() {
               .map((a) => [a.id, a.visualBrief?.trim() ?? ""])
           ),
           customAchievements: achievements.filter((a) => a.isCustom),
+          ...(borderOverride ?? achievementArtBorder
+            ? { achievementArtBorder: borderOverride ?? achievementArtBorder }
+            : {}),
         },
       }),
     });
@@ -849,12 +866,20 @@ function PrepararJogoPage() {
   }
 
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
+    const borderInstruction =
+      achievementArtBorder === "thin"
+        ? "BORDA DO JOGO: usar borda fina e discreta em TODAS as conquistas deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+        : achievementArtBorder === "none"
+          ? "BORDA DO JOGO: NÃO usar borda em nenhuma conquista deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+          : "BORDA DO JOGO: ainda não definida. Analise o conjunto de referências, escolha entre borda fina ou sem borda para ESTE JOGO e, depois da análise, registre essa decisão na preparação do jogo para mantê-la em todos os lotes seguintes.";
+
     const lines = [
       "RUMO À CONQUISTA — PACOTE DE ANÁLISE VISUAL + PROMPTS",
       "",
       `JOGO: ${result?.game.name ?? ""}`,
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
+      borderInstruction,
       "",
       "OBJETIVO DESTE PACOTE:",
       "Usar este TXT junto com a pasta referencias/ para realizar uma análise visual em duas camadas e, somente depois, criar os prompts textuais finais das artes.",
@@ -1030,6 +1055,7 @@ function PrepararJogoPage() {
 
       localStorage.removeItem(`rumo-preparador:${result.game.slug}`);
       setDraftUpdatedAt(null);
+      setAchievementArtBorder(null);
       setSaved(false);
       await search(result.game.slug);
     } catch (error) {
@@ -1575,6 +1601,68 @@ function PrepararJogoPage() {
                   </p>
                   <p className="mt-2 text-xs leading-relaxed text-white/45">
                     1. <span className="font-black text-white/65">Copiar instruções</span> → 2. <span className="font-black text-white/65">Baixar ZIP + referências</span> → 3. <span className="font-black text-white/65">Enviar os dois juntos ao ChatGPT</span> → 4. DNA visual geral + análise individual → 5. prompts finais → 6. geração das artes, uma por vez.
+                  </p>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-white/[.07] bg-black/20 p-4">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/25">
+                        Identidade visual do jogo
+                      </p>
+                      <p className="mt-1 text-xs font-bold text-white/65">
+                        Borda das conquistas: decisão única para este jogo e todos os seus lotes.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-white/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                      {achievementArtBorder ? "✓ Definida" : "Pendente"}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    <button
+                      type="button"
+                      disabled={saving || draftLoading}
+                      onClick={() => {
+                        setAchievementArtBorder("thin");
+                        setSaved(false);
+                        void persistPreparation(result?.achievements ?? [], "thin");
+                      }}
+                      className={achievementArtBorder === "thin"
+                        ? "rounded-xl border border-emerald-400/35 bg-emerald-400/[.08] px-4 py-3 text-left"
+                        : "rounded-xl border border-white/10 bg-white/[.02] px-4 py-3 text-left hover:border-white/20"}
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-[.12em] text-white">
+                        Borda fina
+                      </span>
+                      <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                        Uma borda fina e discreta em todas as conquistas deste jogo.
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={saving || draftLoading}
+                      onClick={() => {
+                        setAchievementArtBorder("none");
+                        setSaved(false);
+                        void persistPreparation(result?.achievements ?? [], "none");
+                      }}
+                      className={achievementArtBorder === "none"
+                        ? "rounded-xl border border-violet-400/35 bg-violet-400/[.08] px-4 py-3 text-left"
+                        : "rounded-xl border border-white/10 bg-white/[.02] px-4 py-3 text-left hover:border-white/20"}
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-[.12em] text-white">
+                        Sem borda
+                      </span>
+                      <span className="mt-1 block text-[10px] leading-relaxed text-white/35">
+                        Nenhuma conquista deste jogo terá borda.
+                      </span>
+                    </button>
+                  </div>
+
+                  <p className="mt-3 text-[9px] leading-relaxed text-white/25">
+                    Esta escolha fica salva por <span className="font-black text-white/45">jogo</span>, não por lote.
                   </p>
                 </div>
 
