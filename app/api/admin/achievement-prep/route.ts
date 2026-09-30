@@ -570,13 +570,30 @@ async function fetchExophaseAchievements(url: string) {
   return null;
 }
 
+function extractAchievementArtBorder(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return undefined;
+  }
+
+  const config = (review as Record<string, unknown>).__achievementArtConfig;
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    return undefined;
+  }
+
+  const border = String((config as Record<string, unknown>).border || "")
+    .trim()
+    .toLowerCase();
+
+  return border === "thin" || border === "none" ? border : undefined;
+}
+
 async function resolveGameTitle(slugParam: string | null, titleParam: string) {
   if (slugParam) {
     const client = createAdminSupabaseClient();
 
     const { data, error } = await client
       .from("games")
-      .select("slug, title")
+      .select("slug, title, review")
       .eq("slug", slugParam)
       .eq("is_deleted", false)
       .maybeSingle();
@@ -584,12 +601,16 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
     if (error) throw error;
     if (!data) throw new Error("Jogo cadastrado não encontrado.");
 
-    return { slug: String(data.slug), title: String(data.title) };
+    return {
+      slug: String(data.slug),
+      title: String(data.title),
+      review: data.review,
+    };
   }
 
   if (!titleParam) throw new Error("O nome do jogo é obrigatório.");
 
-  return { slug: slug(titleParam), title: titleParam };
+  return { slug: slug(titleParam), title: titleParam, review: null };
 }
 
 export async function GET(req: NextRequest) {
@@ -659,6 +680,7 @@ export async function GET(req: NextRequest) {
         name: registeredGame.title,
         slug: registeredGame.slug,
         source: "Exophase",
+        achievementArtBorder: extractAchievementArtBorder(registeredGame.review),
         registered: Boolean(slugParam),
         exophase: {
           found: true,
