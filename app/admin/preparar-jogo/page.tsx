@@ -1620,6 +1620,42 @@ function PrepararJogoPage() {
                   </p>
                 </div>
 
+                <div className="mt-5 rounded-2xl border border-white/[.07] bg-black/20 p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/25">
+                        Identidade visual do jogo
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-white/40">
+                        A borda é uma decisão única para este jogo e vale para todos os seus lotes.
+                      </p>
+                    </div>
+                    <select
+                      aria-label="Borda das conquistas deste jogo"
+                      value={achievementArtBorder ?? ""}
+                      disabled={draftLoading}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        if (value === "thin" || value === "none") {
+                          void saveAchievementArtBorder(value);
+                        }
+                      }}
+                      className="min-w-[210px] rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-xs font-black text-white outline-none focus:border-emerald-400/30"
+                    >
+                      <option value="">Escolher borda...</option>
+                      <option value="thin">Borda fina</option>
+                      <option value="none">Sem borda</option>
+                    </select>
+                  </div>
+                  <p className="mt-3 text-[9px] leading-relaxed text-white/25">
+                    {achievementArtBorder === "thin"
+                      ? "✓ Todas as conquistas deste jogo usarão uma borda fina e discreta."
+                      : achievementArtBorder === "none"
+                        ? "✓ Nenhuma conquista deste jogo usará borda."
+                        : "Pendente: deixe o ChatGPT analisar o primeiro lote e depois registre aqui a decisão para fixá-la no jogo."}
+                  </p>
+                </div>
+
                 <div className="mt-5 flex items-center gap-3">
                   <label
                     htmlFor="batch-size"
