@@ -681,6 +681,21 @@ function PrepararJogoPage() {
     setSaved(true);
   }
 
+  async function setAchievementArtBorder(value: AchievementArtBorder) {
+    setAchievementArtBorder(value);
+    setSaved(false);
+
+    try {
+      await persistPreparation(result?.achievements ?? [], value);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível salvar a identidade visual do jogo."
+      );
+    }
+  }
+
   async function savePreparation() {
     if (!result?.game.slug) return;
 
@@ -867,12 +882,20 @@ function PrepararJogoPage() {
   }
 
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
+    const borderInstruction =
+      achievementArtBorder === "thin"
+        ? "BORDA DO JOGO: usar borda fina e discreta em TODAS as conquistas deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+        : achievementArtBorder === "none"
+          ? "BORDA DO JOGO: NÃO usar borda em nenhuma conquista deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+          : "BORDA DO JOGO: ainda não definida. Analise o conjunto de referências e, ao final da análise, escolha entre borda fina ou sem borda para ESTE JOGO. Depois registre a decisão na preparação para mantê-la nos próximos lotes.";
+
     const lines = [
       "RUMO À CONQUISTA — PACOTE DE ANÁLISE VISUAL + PROMPTS",
       "",
       `JOGO: ${result?.game.name ?? ""}`,
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
+      borderInstruction,
       "",
       "OBJETIVO DESTE PACOTE:",
       "Usar este TXT junto com a pasta referencias/ para realizar uma análise visual em duas camadas e, somente depois, criar os prompts textuais finais das artes.",
@@ -1594,6 +1617,42 @@ function PrepararJogoPage() {
                   </p>
                   <p className="mt-2 text-xs leading-relaxed text-white/45">
                     1. <span className="font-black text-white/65">Copiar instruções</span> → 2. <span className="font-black text-white/65">Baixar ZIP + referências</span> → 3. <span className="font-black text-white/65">Enviar os dois juntos ao ChatGPT</span> → 4. DNA visual geral + análise individual → 5. prompts finais → 6. geração das artes, uma por vez.
+                  </p>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-white/[.07] bg-black/20 p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/25">
+                        Identidade visual do jogo
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-white/40">
+                        A borda é definida uma única vez por jogo e vale para todos os lotes desse jogo.
+                      </p>
+                    </div>
+                    <select
+                      value={achievementArtBorder ?? ""}
+                      disabled={draftLoading || saving}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        if (value === "thin" || value === "none") {
+                          void setAchievementArtBorder(value);
+                        }
+                      }}
+                      className="min-w-[220px] rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-xs font-black text-white outline-none focus:border-emerald-400/30"
+                    >
+                      <option value="">Escolher borda...</option>
+                      <option value="thin">Borda fina</option>
+                      <option value="none">Sem borda</option>
+                    </select>
+                  </div>
+
+                  <p className="mt-3 text-[9px] leading-relaxed text-white/25">
+                    {achievementArtBorder === "thin"
+                      ? "✓ Este jogo está configurado para usar borda fina em todas as conquistas."
+                      : achievementArtBorder === "none"
+                        ? "✓ Este jogo está configurado para não usar borda."
+                        : "Pendente: após analisar o primeiro lote, registre aqui a decisão visual do jogo."}
                   </p>
                 </div>
 
