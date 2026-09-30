@@ -471,7 +471,7 @@ export default function NewGamesAdminPage() {
                   </section>
 
                   <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">05</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">07</p>
                     <h3 className="mt-1 text-xl font-black">Review</h3>
                     <p className="mt-2 text-xs text-white/35">
                       Status, nota e conteúdo da review serão migrados para este módulo.
