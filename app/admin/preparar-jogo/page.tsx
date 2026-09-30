@@ -29,6 +29,9 @@ type R = {
     source: string;
     slug?: string;
     registered?: boolean;
+    achievementArtConfig?: {
+      border: "thin" | "none";
+    };
     exophase?: {
       found: boolean;
       url: string | null;
@@ -849,12 +852,22 @@ function PrepararJogoPage() {
   }
 
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
+    const borderDecision = result?.game.achievementArtConfig?.border;
+
+    const borderInstruction =
+      borderDecision === "thin"
+        ? "BORDA DO JOGO: usar borda fina e discreta em TODAS as conquistas deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+        : borderDecision === "none"
+          ? "BORDA DO JOGO: NÃO usar borda em nenhuma conquista deste jogo, inclusive nos próximos lotes. Essa decisão é por JOGO, não por lote."
+          : "BORDA DO JOGO: ainda não definida. Nesta primeira análise, observe o DNA visual geral do jogo e decida entre borda fina ou sem borda; depois essa decisão deve ser registrada no cadastro do jogo e mantida em todos os lotes seguintes.";
+
     const lines = [
       "RUMO À CONQUISTA — PACOTE DE ANÁLISE VISUAL + PROMPTS",
       "",
       `JOGO: ${result?.game.name ?? ""}`,
       `LOTE: ${String(batchIndex + 1).padStart(2, "0")}`,
       `QUANTIDADE: ${batch.length}`,
+      borderInstruction,
       "",
       "OBJETIVO DESTE PACOTE:",
       "Usar este TXT junto com a pasta referencias/ para realizar uma análise visual em duas camadas e, somente depois, criar os prompts textuais finais das artes.",
@@ -1606,7 +1619,6 @@ function PrepararJogoPage() {
                     (_, batchIndex) => {
                       const start = batchIndex * batchSize;
                       const batch = selected.slice(start, start + batchSize);
-                      const readyCount = batch.filter((a) => a.visualBrief?.trim()).length;
 
                       return (
                         <div
