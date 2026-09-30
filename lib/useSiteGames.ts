@@ -121,6 +121,7 @@ type DatabaseGame = {
   manual_total_played_minutes: number | null;
   first_journey?: FirstJourneyState;
   firstJourney?: FirstJourneyState;
+  achievementArtConfig?: AchievementArtConfig;
   achievementsList?: FlexibleAchievementInput[];
 };
 
