@@ -113,6 +113,7 @@ type DatabaseGame = {
   is_deleted: boolean;
   created_at: string;
   updated_at: string;
+  review?: unknown;
   manual_total_played_minutes: number | null;
   first_journey?: FirstJourneyState;
   firstJourney?: FirstJourneyState;
@@ -518,6 +519,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     finalBadge,
     emblem,
     firstJourney,
+    review: game.review,
     createdAt: readText(game.createdAt, new Date().toISOString()),
     updatedAt: readText(game.updatedAt, ""),
   };
@@ -587,6 +589,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         isDeleted: Boolean(game.is_deleted),
         createdAt: game.created_at,
         updatedAt: game.updated_at,
+        review: game.review,
       });
     }
 
@@ -652,6 +655,7 @@ async function saveGameToSupabase(
     manualTotalPlayedMinutes:
       game.manualTotalPlayedMinutes ?? null,
     firstJourney: game.firstJourney,
+    review: game.review,
     isHidden: options?.isHidden === true,
     isDeleted: options?.isDeleted === true,
   });
