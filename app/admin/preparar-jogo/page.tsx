@@ -41,6 +41,50 @@ type R = {
 
 type Prepared = A & { filename: string; visualConcept: string };
 
+const CHATGPT_NEW_CONVERSATION_PROMPT = `Você é o responsável pela criação das artes de conquistas do projeto Rumo à Conquista.
+
+Vou fornecer:
+1. As instruções completas do lote copiadas diretamente do site.
+2. Um ZIP contendo as referências visuais correspondentes às conquistas.
+
+PRIMEIRO, faça somente a análise do material:
+- leia todas as instruções;
+- analise todas as referências;
+- identifique o DNA visual geral;
+- transforme cada referência em uma descrição visual textual individual;
+- crie um prompt final específico para cada conquista.
+
+NÃO gere imagens durante essa primeira etapa.
+
+Depois de concluir a análise, aguarde meu comando para gerar uma conquista específica.
+
+Quando eu disser, por exemplo:
+“GERAR #03”
+
+gere SOMENTE a conquista #03.
+
+REGRAS DA GERAÇÃO:
+- 1 conquista = 1 imagem = 1 arquivo;
+- 1024 × 1024 px;
+- 1:1;
+- PNG;
+- legibilidade é prioridade absoluta;
+- 1 elemento principal dominante;
+- poucos elementos secundários;
+- composição simples e imediatamente compreensível;
+- sem texto, letras, números ou logos;
+- sem grade, mosaico, contact sheet, painel ou múltiplas conquistas;
+- usar a referência somente como fonte para a descrição visual textual;
+- NÃO usar a imagem da referência como input direto para geração;
+- criar uma composição nova e independente;
+- respeitar rigorosamente a paleta e o DNA visual identificados nas referências;
+- não adicionar cores apenas por preferência estética.
+
+IMPORTANTE:
+Não tente gerar todas as conquistas automaticamente.
+Não repita uma conquista.
+Quando eu pedir uma conquista específica, gere exclusivamente aquela conquista.`;
+
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -80,6 +124,7 @@ function PrepararJogoPage() {
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
+  const [copiedNewConversationPrompt, setCopiedNewConversationPrompt] = useState(false);
   const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
   const [analyzingReferences, setAnalyzingReferences] = useState(false);
@@ -848,6 +893,20 @@ function PrepararJogoPage() {
     }
   }
 
+  async function copyNewConversationPrompt() {
+    try {
+      await navigator.clipboard.writeText(CHATGPT_NEW_CONVERSATION_PROMPT);
+      setCopiedNewConversationPrompt(true);
+      setTimeout(() => setCopiedNewConversationPrompt(false), 2200);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível copiar o prompt para nova conversa."
+      );
+    }
+  }
+
   function buildBatchPackageText(batch: Prepared[], batchIndex: number) {
     const lines = [
       "RUMO À CONQUISTA — PACOTE DE ANÁLISE VISUAL + DESCRIÇÕES TEXTUAIS + PROMPTS",
@@ -1591,6 +1650,26 @@ function PrepararJogoPage() {
                     <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
                       O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
                     </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-violet-400/15 bg-violet-400/[.025] p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[.14em] text-violet-300">
+                        Prompt base para nova conversa
+                      </p>
+                      <p className="mt-1 max-w-[900px] text-xs leading-relaxed text-white/40">
+                        Use este texto sempre que abrir uma conversa nova para criação de conquistas. Ele define o fluxo: analisar primeiro e gerar somente a conquista específica que você pedir.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void copyNewConversationPrompt()}
+                      className="shrink-0 rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-[9px] font-black uppercase text-violet-100"
+                    >
+                      {copiedNewConversationPrompt ? "Copiado" : "📋 Copiar prompt base"}
+                    </button>
                   </div>
                 </div>
 
