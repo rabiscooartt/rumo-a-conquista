@@ -892,7 +892,7 @@ function PrepararJogoPage() {
       "B) DESCRIÇÃO VISUAL TEXTUAL — descrição textual abstrata criada a partir da referência específica, sem transportar elementos reconhecíveis da imagem.",
       "C) DNA VISUAL GERAL DO LOTE — características compartilhadas que mantêm a coleção coerente.",
       "D) MATRIZ VISUAL OFICIAL — regras de composição, legibilidade, edge-to-edge, originalidade e saída.",
-      "E) REGRA DE GERAÇÃO — usar somente texto. NÃO anexar, enviar ou usar a imagem de referência como input direto do gerador."
+      "E) REGRA DE GERAÇÃO — usar somente texto. NÃO anexar, enviar ou usar a imagem de referência como input direto do gerador.",
       "",
       "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA:",
       "• Uma conquista = uma imagem individual.",
