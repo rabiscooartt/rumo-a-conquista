@@ -52,11 +52,11 @@ function slugify(value: string) {
 
 function prepareAchievement(a: A, index: number): Prepared {
   const visualReferenceInstruction = a.visualReferenceUrl
-    ? "REFERÊNCIA EXOPHASE: usar somente como material de análise. A referência NÃO deve ser enviada ao gerador de imagens, transformada, redesenhada ou reproduzida. Primeiro extraia dela características amplas do jogo — paleta, contraste, enquadramento, atmosfera, iluminação, textura, linha/traço, densidade de detalhes e linguagem gráfica — e converta essas características em um brief textual próprio. A arte final deve ser gerada exclusivamente a partir desse brief, do nome, da descrição e da Matriz Visual Oficial do Rumo à Conquista. Se a referência for monocromática ou usar uma paleta muito restrita, preserve essa característica no brief. Não introduza vermelho, dourado, metal ou 3D por preferência estética."
+    ? "REFERÊNCIA EXOPHASE: usar exclusivamente como material de análise visual. A referência NÃO é um molde, NÃO deve ser enviada diretamente ao gerador, transformada, redesenhada, recortada, filtrada ou reproduzida. Extraia somente características visuais abstratas e gerais — paleta, contraste, luminosidade, tratamento de sombras, linha/traço, espessura dos contornos, acabamento, textura, atmosfera, ritmo visual, densidade de detalhes e equilíbrio entre figura e fundo — e converta essas características em um brief textual próprio. NÃO reproduza personagens específicos, criaturas reconhecíveis, poses, rostos, roupas características, objetos exclusivos ou distintivos, símbolos específicos, ícones exclusivos, logos, textos, composições reconhecíveis ou enquadramentos idênticos da referência. A arte final deve ser uma composição nova e independente, criada a partir do significado da conquista, do nome, da descrição, do contexto do jogo, do brief visual abstrato e da Matriz Visual Oficial do Rumo à Conquista. Se a referência for monocromática ou usar uma paleta muito restrita, preserve essa característica. NÃO introduza novas cores por preferência estética."
     : "SEM REFERÊNCIA EXOPHASE: criar o brief visual e a arte originalmente a partir do nome, descrição e universo visual do jogo, seguindo a Matriz Visual Oficial do Rumo à Conquista.";
 
   const baseOutputRules =
-    "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA: a coleção usa uma linguagem de conquista própria, mas não uma fórmula visual fixa. Cada imagem deve funcionar como um emblema/arte colecionável de leitura imediata, com um foco principal forte, hierarquia clara, acabamento gráfico consistente e composição edge-to-edge. O conteúdo visual deve alcançar os quatro limites da imagem. NUNCA deixar margem, faixa, canvas vazio ou área preta sobrando ao redor da arte. Se houver moldura, ela deve tocar diretamente as quatro bordas e funcionar como parte do desenho; não deve existir uma moldura interna cercada por um campo preto externo. O jogo define os eixos visuais variáveis — paleta, contraste, traço, textura, atmosfera, iluminação, enquadramento e densidade de detalhes. A referência do Exophase serve somente para análise desses eixos e não é entrada direta da geração. UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. Não inserir texto, letras, números ou nomes. Não fazer colagem, painel, mosaico, triptico, contact sheet, grade ou múltiplas conquistas na mesma imagem. PRIORIDADE DE LEGIBILIDADE: a conquista precisa ser entendida à primeira vista. SIMPLIFICAÇÃO INTELIGENTE: poucos elementos bem escolhidos são preferíveis a uma composição confusa.";
+    "MATRIZ VISUAL OFICIAL DO RUMO À CONQUISTA: a coleção usa uma linguagem de conquista própria, mas não uma fórmula visual fixa. Cada imagem deve funcionar como um emblema/arte colecionável de leitura imediata, com um foco principal forte, hierarquia clara, acabamento gráfico consistente e composição edge-to-edge. O conteúdo visual deve alcançar os quatro limites da imagem. NUNCA deixar margem, faixa, canvas vazio ou área preta sobrando ao redor da arte. Se houver moldura, ela deve tocar diretamente as quatro bordas e funcionar como parte do desenho; não deve existir uma moldura interna cercada por um campo preto externo. O jogo define os eixos visuais variáveis — paleta, contraste, traço, textura, atmosfera, iluminação, enquadramento e densidade de detalhes — a partir do DNA visual identificado nas referências. UMA conquista = UMA imagem individual. Formato 1:1, preferencialmente 1024x1024. PNG com fundo fechado/opaco, sem transparência externa. Não inserir texto, letras, números ou nomes. Não fazer colagem, painel, mosaico, triptico, contact sheet, grade, sprite sheet ou múltiplas conquistas na mesma imagem. PRIORIDADE ABSOLUTA DE LEGIBILIDADE: a conquista precisa ser entendida à primeira vista e continuar clara quando reduzida. Um elemento principal dominante é obrigatório; usar poucos elementos secundários e somente quando ajudarem a comunicar a conquista. SIMPLIFICAÇÃO INTELIGENTE: poucos elementos bem escolhidos são preferíveis a uma composição confusa. PALETA: respeitar rigorosamente a paleta identificada nas referências; se a linguagem for preto/branco/cinza ou outra paleta restrita, preservá-la e NÃO introduzir vermelho, dourado, azul, verde ou outras cores apenas por preferência estética. ORIGINALIDADE: a referência fornece somente linguagem estética abstrata; a composição final deve ser nova e independente.";
 
   return {
     ...a,
@@ -814,9 +814,9 @@ function PrepararJogoPage() {
       "3. EDGE-TO-EDGE: formato 1:1 e arte ocupando 100% do canvas, tocando diretamente as quatro bordas. Não criar margem, faixa ou fundo externo preto.",
       "4. PALETA: seguir o perfil visual do brief. Se monocromática ou muito restrita, preservar essa característica.",
       "5. SEM TEXTO: não inserir texto, letras, números, nomes ou logotipos.",
-      "6. ORIGINALIDADE: composição nova e independente; não copiar, recortar, filtrar, redesenhar ou reproduzir elementos reconhecíveis da referência.",
-      "7. SAÍDA: exatamente UMA imagem PNG individual, preferencialmente 1024x1024.",
-      "8. LEGIBILIDADE: simplificar quando necessário para que o significado seja imediato.",
+      "6. ORIGINALIDADE: a referência é somente fonte de análise estética abstrata. Não copiar, recortar, filtrar, transformar, redesenhar ou reproduzir personagens, objetos exclusivos, símbolos específicos, poses, textos, logos ou composições reconhecíveis da referência. A arte final deve ser uma composição nova e independente.",
+      "7. SAÍDA: exatamente UMA imagem PNG individual de 1024x1024 px.",
+      "8. LEGIBILIDADE: prioridade absoluta. Usar 1 elemento principal dominante, poucos elementos secundários, silhueta clara e alto contraste; a imagem deve continuar compreensível quando reduzida para aproximadamente 150–200 px.",
       "",
       "BRIEF VISUAL TEXTUAL — AJUSTE DA REFERÊNCIA:",
       brief,
@@ -858,6 +858,7 @@ function PrepararJogoPage() {
       "",
       "OBJETIVO DESTE PACOTE:",
       "Usar este TXT junto com a pasta referencias/ para realizar uma análise visual em duas camadas e, somente depois, criar os prompts textuais finais das artes.",
+      "REGRA DE SAÍDA DAS ARTES: cada conquista será gerada como um arquivo individual de 1024x1024 px, com legibilidade como prioridade absoluta. Quando a geração começar, seguir estritamente a ordem #01 → #02 → #03 → ... → última conquista, sem repetir uma conquista já concluída e sem pular números. Nunca criar uma imagem contendo várias conquistas.",
       "",
       "FLUXO OBRIGATÓRIO:",
       "1. Analise TODAS as referências do lote em conjunto para identificar o DNA VISUAL GERAL do jogo/lote.",
@@ -870,10 +871,12 @@ function PrepararJogoPage() {
       "",
       "ANÁLISE — REGRAS IMPORTANTES:",
       "• A pasta referencias/ contém imagens para análise visual. Não usar nenhuma referência como input direto na geração da arte.",
-      "• A análise deve abstrair atributos visuais amplos: paleta, contraste, linha/traço, acabamento, composição, enquadramento, atmosfera, iluminação, textura, densidade de detalhes e elementos gerais.",
-      "• Não copiar, redesenhar, recortar, filtrar ou reproduzir personagens, ícones, logos, textos, poses ou composições reconhecíveis das referências.",
+      "• A referência é somente uma fonte de linguagem estética abstrata. Ela NÃO é um molde para transformação ou reprodução.",
+      "• A análise deve abstrair atributos visuais amplos: paleta, contraste, luminosidade, linha/traço, espessura dos contornos, acabamento, textura, composição geral, enquadramento, atmosfera, iluminação, ritmo visual, densidade de detalhes e equilíbrio entre figura e fundo.",
+      "• NÃO reproduzir personagens específicos, criaturas reconhecíveis, poses, rostos, roupas características, objetos exclusivos, símbolos específicos, ícones exclusivos, logos, textos ou composições/enquadramentos reconhecíveis das referências.",
+      "• Cada arte final deve ser uma composição nova e independente, criada a partir do significado da conquista e apenas influenciada pela linguagem estética abstrata da referência correspondente.",
       "• Não inventar detalhes que não estejam sustentados pelo nome, descrição, contexto do jogo ou pela própria referência.",
-      "• Se uma referência for monocromática ou tiver uma paleta muito restrita, registrar isso e preservar a característica no prompt final.",
+      "• Se uma referência for monocromática ou tiver uma paleta muito restrita, registrar isso e preservar rigorosamente essa característica no prompt final. Não introduzir novas cores por preferência estética.",
       "• Se uma referência estiver ausente ou ilegível, registrar a limitação e trabalhar somente com o material disponível.",
       "",
       "ETAPA 1 — DNA VISUAL GERAL DO LOTE:",
@@ -896,7 +899,7 @@ function PrepararJogoPage() {
       "• Arte edge-to-edge, tocando diretamente os quatro limites do canvas.",
       "• Não criar margem, faixa, canvas vazio ou área preta externa ao redor da arte.",
       "• Se houver moldura, ela deve fazer parte da composição e tocar diretamente as quatro bordas.",
-      "• Um elemento principal forte deve comunicar a conquista imediatamente; simplificar quando necessário.",
+      "• Legibilidade é prioridade absoluta: 1 elemento principal dominante, poucos elementos secundários e simplificação agressiva de detalhes pequenos quando necessário. A conquista deve ser compreensível mesmo em aproximadamente 150–200 px.",
       "• Não inserir texto, letras, números, nomes ou logotipos.",
       "• Não fazer colagem, painel, mosaico, tríptico, contact sheet, grade, sprite sheet ou múltiplas conquistas na mesma imagem.",
       "• Não usar uma fórmula global fixa de vermelho, dourado, metal, medalha ou 3D. A linguagem deve seguir o DNA e a referência de cada jogo.",
@@ -905,6 +908,7 @@ function PrepararJogoPage() {
       "",
       "NÃO GERAR IMAGENS NESTA ETAPA.",
       "Primeiro entregue a análise geral, as análises individuais e os prompts finais. A geração das imagens acontecerá separadamente, uma conquista por vez, usando apenas o prompt textual correspondente.",
+      "REGRA DE GERAÇÃO POSTERIOR: quando todas as artes forem geradas, cada conquista deve ser um arquivo individual de 1024x1024 px. Gerar na ordem numérica recebida, sem repetir conquistas já concluídas e sem pular nenhuma. Nunca juntar várias conquistas na mesma imagem.",
       "",
     ];
 
