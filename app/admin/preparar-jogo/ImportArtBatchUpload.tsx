@@ -8,6 +8,12 @@ type PreparedAchievement = {
   rank: string;
 };
 
+type SavedAchievement = {
+  filename: string;
+  title: string;
+  image: string;
+};
+
 type FileStatus = {
   file: File;
   achievement: PreparedAchievement | null;
@@ -27,9 +33,11 @@ function normalize(value: string) {
 export default function ImportArtBatchUpload({
   achievements,
   gameSlug,
+  onSaved,
 }: {
   achievements: PreparedAchievement[];
   gameSlug: string;
+  onSaved?: (saved: SavedAchievement[]) => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
@@ -125,6 +133,21 @@ export default function ImportArtBatchUpload({
         }
 
         savedCount += Number(payload.count ?? 1);
+      }
+
+      if (Array.isArray(payload.saved) && onSaved) {
+        onSaved(
+          payload.saved.filter(
+            (item: unknown): item is SavedAchievement =>
+              Boolean(
+                item &&
+                  typeof item === "object" &&
+                  typeof (item as SavedAchievement).filename === "string" &&
+                  typeof (item as SavedAchievement).title === "string" &&
+                  typeof (item as SavedAchievement).image === "string"
+              )
+          )
+        );
       }
 
       setMessage(
