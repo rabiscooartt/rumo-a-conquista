@@ -176,17 +176,19 @@ export default function ImportArtBatchUpload({
   }
 
   return (
-    <section className="mt-5 rounded-[20px] border border-white/[.07] bg-black/25 p-5">
-      <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
-        06 • Importar artes
-      </p>
-      <h2 className="mt-1 text-xl font-black">
-        Adicionar imagens das conquistas
-      </h2>
-      <p className="mt-2 text-xs leading-relaxed text-white/35">
-        Selecione as imagens do lote. O nome do arquivo identifica
-        automaticamente cada conquista; você pode importar um lote por vez.
-      </p>
+    <details open className="mt-5 rounded-[20px] border border-white/[.07] bg-black/25 p-5">
+      <summary className="cursor-pointer list-none">
+        <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
+          06 • Importar artes
+        </p>
+        <h2 className="mt-1 text-xl font-black">
+          Adicionar imagens das conquistas
+        </h2>
+        <p className="mt-2 text-xs leading-relaxed text-white/35">
+          Selecione as imagens do lote. O nome do arquivo identifica
+          automaticamente cada conquista; você pode importar um lote por vez.
+        </p>
+      </summary>
 
       <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[.02] px-5 py-8 text-center hover:border-red-500/30">
         <span className="text-sm font-black">Selecionar imagens</span>
@@ -302,6 +304,6 @@ export default function ImportArtBatchUpload({
           )}
         </div>
       )}
-    </section>
+    </details>
   );
 }
