@@ -58,20 +58,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const missing = (achievements ?? []).filter(
-      (achievement) => !matches.some((item) => item.achievement?.id === achievement.id)
-    );
-
-    if (missing.length > 0) {
-      return NextResponse.json(
-        {
-          error: "Existem conquistas sem imagem no lote.",
-          achievements: missing.map((achievement) => achievement.title),
-        },
-        { status: 400 }
-      );
-    }
-
+    // A importação é incremental: cada lote pode conter somente as conquistas
+    // que o usuário acabou de gerar. As imagens restantes podem ser enviadas depois.
     const { error: bucketError } = await client.storage.createBucket(BUCKET, {
       public: true,
       allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
