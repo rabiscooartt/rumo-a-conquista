@@ -626,6 +626,23 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const { data: savedAchievements, error: savedAchievementsError } = await createAdminSupabaseClient()
+      .from("achievements")
+      .select("title, image, sort_order")
+      .eq("game_slug", registeredGame.slug)
+      .order("sort_order", { ascending: true });
+
+    if (savedAchievementsError) throw savedAchievementsError;
+
+    const savedByTitle = new Map(
+      (savedAchievements ?? []).map((item) => [norm(item.title), String(item.image ?? "")])
+    );
+    const savedByOrder = new Map(
+      (savedAchievements ?? [])
+        .filter((item) => Number.isFinite(Number(item.sort_order)))
+        .map((item) => [Number(item.sort_order), String(item.image ?? "")])
+    );
+
     const achievements = exophaseData.achievements.map((a, i) => {
       const name = a.name?.trim() || "";
       const description = a.description?.trim() || "";
@@ -643,6 +660,10 @@ export async function GET(req: NextRequest) {
         journey,
         notDoing: false,
         visualReferenceUrl: a.visualReferenceUrl ?? null,
+        image:
+          savedByTitle.get(norm(name)) ||
+          savedByOrder.get(i) ||
+          "",
         id:
           "exophase-" +
           slug(registeredGame.slug) +
