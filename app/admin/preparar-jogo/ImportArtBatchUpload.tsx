@@ -70,8 +70,8 @@ export default function ImportArtBatchUpload({
 
   const ready =
     results.length > 0 &&
+    okCount > 0 &&
     unknownCount === 0 &&
-    missing.length === 0 &&
     duplicateCount === 0 &&
     !uploading;
 
@@ -124,8 +124,8 @@ export default function ImportArtBatchUpload({
         Adicionar imagens das conquistas
       </h2>
       <p className="mt-2 text-xs leading-relaxed text-white/35">
-        Selecione todas as imagens do lote de uma vez. O nome do arquivo
-        identifica automaticamente a conquista.
+        Selecione as imagens do lote. O nome do arquivo identifica
+        automaticamente cada conquista; você pode importar um lote por vez.
       </p>
 
       <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[.02] px-5 py-8 text-center hover:border-red-500/30">
@@ -187,12 +187,12 @@ export default function ImportArtBatchUpload({
           </div>
 
           {missing.length > 0 && (
-            <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/[.04] p-3">
-              <p className="text-[9px] font-black uppercase tracking-wider text-amber-300">
-                Conquistas sem imagem
+            <div className="mt-4 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
+              <p className="text-[9px] font-black uppercase tracking-wider text-white/35">
+                Outras conquistas ainda sem imagem
               </p>
-              <p className="mt-2 text-xs text-white/45">
-                {missing.map((item) => item.name).join(" • ")}
+              <p className="mt-2 text-xs text-white/35">
+                Isso é normal ao importar um lote parcial. Você pode salvar as imagens reconhecidas agora e importar as restantes depois.
               </p>
             </div>
           )}
