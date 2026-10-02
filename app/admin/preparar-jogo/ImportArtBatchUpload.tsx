@@ -80,29 +80,57 @@ export default function ImportArtBatchUpload({
     setMessage("");
 
     try {
-      const body = new FormData();
-      body.append("gameSlug", gameSlug);
-      body.append(
-        "expectedFilenames",
-        JSON.stringify(achievements.map((item) => item.filename))
-      );
-      files.forEach((file) => body.append("files", file));
+      let savedCount = 0;
 
-      const response = await fetch("/api/admin/achievement-art", {
-        method: "POST",
-        body,
-      });
+      // A Vercel limita o corpo de uma requisição de Function a 4,5 MB.
+      // Enviar uma imagem por requisição evita que 10 PNGs somados ultrapassem esse limite.
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
 
-      const payload = await response.json();
+        if (file.size > 4 * 1024 * 1024) {
+          throw new Error(
+            `A imagem "${file.name}" tem ${(file.size / 1024 / 1024).toFixed(2)} MB. Para este envio, cada arquivo precisa ter no máximo 4 MB.`
+          );
+        }
 
-      if (!response.ok) {
-        throw new Error(payload.error || "Não foi possível salvar as artes.");
+        setMessage(`Salvando ${index + 1}/${files.length}: ${file.name}`);
+
+        const body = new FormData();
+        body.append("gameSlug", gameSlug);
+        body.append("expectedFilenames", JSON.stringify([file.name]));
+        body.append("files", file);
+
+        const response = await fetch("/api/admin/achievement-art", {
+          method: "POST",
+          body,
+        });
+
+        const raw = await response.text();
+        let payload: { error?: string; count?: number } = {};
+
+        try {
+          payload = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error(
+            response.status === 413
+              ? "O arquivo enviado é grande demais para a Vercel. Reduza o tamanho da imagem e tente novamente."
+              : raw.trim() || "O servidor não retornou uma resposta válida."
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            payload.error || `Não foi possível salvar "${file.name}".`
+          );
+        }
+
+        savedCount += Number(payload.count ?? 1);
       }
 
       setMessage(
-        payload.count === 1
+        savedCount === 1
           ? "1 arte salva com sucesso."
-          : payload.count + " artes salvas com sucesso."
+          : savedCount + " artes salvas com sucesso."
       );
     } catch (error) {
       setMessage(
@@ -131,7 +159,7 @@ export default function ImportArtBatchUpload({
       <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[.02] px-5 py-8 text-center hover:border-red-500/30">
         <span className="text-sm font-black">Selecionar imagens</span>
         <span className="mt-1 text-[9px] uppercase tracking-wider text-white/25">
-          PNG, JPG ou WEBP • seleção múltipla
+          PNG, JPG ou WEBP • seleção múltipla • até 4 MB por arquivo
         </span>
         <input
           type="file"
