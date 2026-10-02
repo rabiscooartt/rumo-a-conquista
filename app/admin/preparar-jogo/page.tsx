@@ -1308,7 +1308,8 @@ function PrepararJogoPage() {
               </div>
             </section>
 
-            <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
+            <details open className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
+              <summary className="cursor-pointer list-none">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[9px] uppercase tracking-[.18em] text-white/25">
@@ -1325,6 +1326,7 @@ function PrepararJogoPage() {
                   </span>
                 </div>
               </div>
+              </summary>
 
               <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3 text-xs leading-relaxed text-white/45">
                 <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
@@ -1655,20 +1657,22 @@ function PrepararJogoPage() {
                   {saved ? "Preparação salva" : "Salvar rascunho"}
                 </button>
               </div>
-            </section>
+            </details>
 
             {selected.length > 0 && (
-              <section className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
+              <details open className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
-                      05 • Material para ChatGPT
-                    </p>
-                    <h2 className="mt-1 text-xl font-black">Copiar instruções e preparar lotes</h2>
-                    <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
-                      O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
-                    </p>
-                  </div>
+                  <summary className="cursor-pointer list-none">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
+                        05 • Material para ChatGPT
+                      </p>
+                      <h2 className="mt-1 text-xl font-black">Copiar instruções e preparar lotes</h2>
+                      <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
+                        O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
+                      </p>
+                    </div>
+                  </summary>
                 </div>
 
                 <div className="mt-4 rounded-xl border border-violet-400/15 bg-violet-400/[.025] p-4">
@@ -1780,17 +1784,19 @@ function PrepararJogoPage() {
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
                   <span className="font-black text-white/45">Fluxo:</span> Exophase → ZIP + instruções → análise visual no ChatGPT → prompts finais → geração individual das artes.
                 </p>
-              </section>
+              </details>
             )}
 
             {selected.length > 0 && (
-              <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
-                <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
-                  04 • Dados preparados
-                </p>
-                <h2 className="mt-1 text-xl font-black">
-                  Pacote de cada conquista
-                </h2>
+              <details open className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
+                <summary className="cursor-pointer list-none">
+                  <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
+                    04 • Dados preparados
+                  </p>
+                  <h2 className="mt-1 text-xl font-black">
+                    Pacote de cada conquista
+                  </h2>
+                </summary>
                 <p className="mt-2 text-xs text-white/35">
                   Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
                 </p>
@@ -1881,7 +1887,7 @@ function PrepararJogoPage() {
                     </div>
                   ))}
                 </div>
-              </section>
+              </details>
             )}
 
             {selected.length > 0 && (
