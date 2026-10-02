@@ -115,7 +115,11 @@ export default function ImportArtBatchUpload({
         });
 
         const raw = await response.text();
-        let payload: { error?: string; count?: number } = {};
+        let payload: {
+          error?: string;
+          count?: number;
+          saved?: SavedAchievement[];
+        } = {};
 
         try {
           payload = raw ? JSON.parse(raw) : {};
