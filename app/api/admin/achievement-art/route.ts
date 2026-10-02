@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const { data: achievements, error: achievementsError } = await client
       .from("achievements")
-      .select("id, title")
+      .select("id, title, sort_order")
       .eq("game_slug", gameSlug);
 
     if (achievementsError) throw achievementsError;
@@ -41,11 +41,29 @@ export async function POST(request: NextRequest) {
     const achievementByFilename = new Map(
       (achievements ?? []).map((achievement) => [normalize(achievement.title), achievement])
     );
+    const achievementBySortOrder = new Map(
+      (achievements ?? [])
+        .filter((achievement) => Number.isFinite(Number(achievement.sort_order)))
+        .map((achievement) => [Number(achievement.sort_order), achievement])
+    );
 
-    const matches = files.map((file) => ({
-      file,
-      achievement: achievementByFilename.get(normalize(file.name)),
-    }));
+    const matches = files.map((file) => {
+      const normalizedName = normalize(file.name);
+      const direct = achievementByFilename.get(normalizedName);
+
+      // As conquistas preparadas pelo Exophase usam a ordem original no nome
+      // do arquivo (01-, 02-, ...). A tabela local pode ter títulos
+      // normalizados/diferentes, então usamos a posição como fallback.
+      const prefixMatch = file.name.match(/^(\d+)[-_\s]/);
+      const sortOrder = prefixMatch ? Number(prefixMatch[1]) - 1 : null;
+      const byOrder =
+        sortOrder !== null ? achievementBySortOrder.get(sortOrder) : undefined;
+
+      return {
+        file,
+        achievement: direct ?? byOrder,
+      };
+    });
 
     const unknown = matches.filter((item) => !item.achievement);
     if (unknown.length > 0) {
