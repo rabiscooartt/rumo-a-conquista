@@ -89,6 +89,7 @@ export default function ImportArtBatchUpload({
 
     try {
       let savedCount = 0;
+      const savedResults: SavedAchievement[] = [];
 
       // A Vercel limita o corpo de uma requisição de Function a 4,5 MB.
       // Enviar uma imagem por requisição evita que 10 PNGs somados ultrapassem esse limite.
@@ -133,21 +134,25 @@ export default function ImportArtBatchUpload({
         }
 
         savedCount += Number(payload.count ?? 1);
+
+        if (Array.isArray(payload.saved)) {
+          savedResults.push(
+            ...payload.saved.filter(
+              (item: unknown): item is SavedAchievement =>
+                Boolean(
+                  item &&
+                    typeof item === "object" &&
+                    typeof (item as SavedAchievement).filename === "string" &&
+                    typeof (item as SavedAchievement).title === "string" &&
+                    typeof (item as SavedAchievement).image === "string"
+                )
+            )
+          );
+        }
       }
 
-      if (Array.isArray(payload.saved) && onSaved) {
-        onSaved(
-          payload.saved.filter(
-            (item: unknown): item is SavedAchievement =>
-              Boolean(
-                item &&
-                  typeof item === "object" &&
-                  typeof (item as SavedAchievement).filename === "string" &&
-                  typeof (item as SavedAchievement).title === "string" &&
-                  typeof (item as SavedAchievement).image === "string"
-              )
-          )
-        );
+      if (savedResults.length > 0 && onSaved) {
+        onSaved(savedResults);
       }
 
       setMessage(
