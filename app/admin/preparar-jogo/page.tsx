@@ -21,6 +21,7 @@ type A = {
   isCustom?: boolean;
   visualReferenceUrl?: string | null;
   visualBrief?: string;
+  image?: string;
 };
 
 type R = {
@@ -1534,17 +1535,33 @@ function PrepararJogoPage() {
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      {a.isCustom ? (
-                        <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
-                          <p className="text-[9px] uppercase text-sky-300/60">
-                            Conquista manual
-                          </p>
-                          <input
-                            value={a.name}
-                            onChange={(e) => updateCustomAchievement(a.id, "name", e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-sm font-black outline-none"
-                            aria-label="Título da conquista manual"
-                          />
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/40">
+                          {a.image ? (
+                            <img
+                              src={a.image}
+                              alt={`Arte da conquista ${a.name}`}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-lg font-black text-white/30">
+                              ??
+                            </div>
+                          )}
+                        </div>
+
+                        {a.isCustom ? (
+                          <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
+                            <p className="text-[9px] uppercase text-sky-300/60">
+                              Conquista manual
+                            </p>
+                            <input
+                              value={a.name}
+                              onChange={(e) => updateCustomAchievement(a.id, "name", e.target.value)}
+                              className="mt-1 w-full rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-sm font-black outline-none"
+                              aria-label="Título da conquista manual"
+                            />
                           <textarea
                             value={a.description}
                             onChange={(e) => updateCustomAchievement(a.id, "description", e.target.value)}
@@ -1562,23 +1579,24 @@ function PrepararJogoPage() {
                             <option value="Prata">Prata</option>
                             <option value="Ouro">Ouro</option>
                           </select>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => toggle(a.id)}
-                          disabled={a.notDoing}
-                          className="min-w-0 flex-1 text-left disabled:cursor-default"
-                        >
-                          <p className="text-[9px] uppercase text-white/25">
-                            Conquista {i + 1}
-                          </p>
-                          <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                          <p className="mt-2 text-xs text-white/35">
-                            {a.description || "Sem descrição disponível."}
-                          </p>
-                        </button>
-                      )}
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => toggle(a.id)}
+                            disabled={a.notDoing}
+                            className="min-w-0 flex-1 text-left disabled:cursor-default"
+                          >
+                            <p className="text-[9px] uppercase text-white/25">
+                              Conquista {i + 1}
+                            </p>
+                            <h3 className="mt-1 text-sm font-black">{a.name}</h3>
+                            <p className="mt-2 text-xs text-white/35">
+                              {a.description || "Sem descrição disponível."}
+                            </p>
+                          </button>
+                        )}
+                      </div>
 
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
@@ -1874,6 +1892,27 @@ function PrepararJogoPage() {
                   filename: a.filename,
                   rank: a.rank,
                 }))}
+                onSaved={(saved) => {
+                  setResult((current) =>
+                    current
+                      ? {
+                          ...current,
+                          achievements: current.achievements.map((achievement, achievementIndex) => {
+                            const prepared = prepareAchievement(
+                              achievement,
+                              achievementIndex
+                            );
+                            const match = saved.find(
+                              (item) => item.filename === prepared.filename
+                            );
+                            return match
+                              ? { ...achievement, image: match.image }
+                              : achievement;
+                          }),
+                        }
+                      : current
+                  );
+                }}
               />
             )}
           </>
