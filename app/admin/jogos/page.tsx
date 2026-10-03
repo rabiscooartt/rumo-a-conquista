@@ -50,6 +50,7 @@ export default function NewGamesAdminPage() {
             selectedGame.currentObjective || selectedGame.objective
               ? "manual"
               : "automatic",
+          youtubePlaylistUrl: selectedGame.youtubePlaylistUrl || "",
         }
     : null;
 
@@ -84,6 +85,23 @@ export default function NewGamesAdminPage() {
           values.nextAchievementMode === "manual"
             ? values.nextAchievement.trim()
             : "",
+        review: (() => {
+          const review =
+            selectedGame.review &&
+            typeof selectedGame.review === "object" &&
+            !Array.isArray(selectedGame.review)
+              ? { ...(selectedGame.review as Record<string, unknown>) }
+              : {};
+          const playlist = String(values.youtubePlaylistUrl || "").trim();
+
+          if (playlist) {
+            review.__youtubePlaylistUrl = playlist;
+          } else {
+            delete review.__youtubePlaylistUrl;
+          }
+
+          return Object.keys(review).length > 0 ? review : null;
+        })(),
       });
     } finally {
       setSaving(false);
@@ -210,6 +228,26 @@ export default function NewGamesAdminPage() {
                         </label>
                       );
                     })}
+
+                    <label>
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
+                        Playlist das Lives
+                      </span>
+                      <input
+                        value={values.youtubePlaylistUrl}
+                        onChange={(event) =>
+                          setDraft({
+                            ...values,
+                            youtubePlaylistUrl: event.target.value,
+                          })
+                        }
+                        placeholder="https://www.youtube.com/playlist?list=..."
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none placeholder:text-white/20 focus:border-red-500/40"
+                      />
+                      <span className="mt-1 block text-[9px] leading-relaxed text-white/25">
+                        Usada pelo botão INÍCIO DAS LIVES da Jornada de Estreia.
+                      </span>
+                    </label>
 
                     <label>
                       <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
