@@ -818,13 +818,9 @@ export async function GET(req: NextRequest) {
       const description = a.description?.trim() || "";
       const online = isOnline(name, description);
       const momentary = isMomentary(name, description);
-      const journeyAnalysis = !online
-        ? analyzeJourney(registeredGame.title, name, description)
-        : {
-            journey: false,
-            reason: "Conquista online não entra na Jornada de Estreia.",
-          };
-      const journey = journeyAnalysis.journey;
+      // A Jornada de Estreia é uma decisão exclusivamente manual do preparador.
+      // Nenhuma conquista importada é selecionada automaticamente.
+      const journey = false;
 
       return {
         name,
@@ -832,7 +828,7 @@ export async function GET(req: NextRequest) {
         rank: exophaseRanks[i] ?? "Bronze",
         online,
         momentary,
-        journeySuggestion: journey,
+        journeySuggestion: false,
         journey,
         notDoing: false,
         visualReferenceUrl: a.visualReferenceUrl ?? null,
