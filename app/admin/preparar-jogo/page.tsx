@@ -36,14 +36,14 @@ function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achiev
 
   if (achievement.isCustom || !imageSrc || failed) {
     return (
-      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-2xl">
+      <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-2xl">
         {achievement.isCustom ? "⭐" : "🏆"}
       </div>
     );
   }
 
   return (
-    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/30">
+    <div className="h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/30">
       <img
         src={imageSrc}
         alt={`Arte da conquista: ${achievement.name}`}
@@ -1634,7 +1634,7 @@ function PrepararJogoPage() {
                             Conquista {i + 1}
                           </p>
                           <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                          <p className="mt-1.5 text-sm leading-relaxed text-white/45">
+                          <p className="mt-0.5 text-sm leading-relaxed text-white/45">
                             {a.description || "Sem descrição disponível."}
                           </p>
                         </button>
