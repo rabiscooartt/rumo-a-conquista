@@ -23,9 +23,52 @@ function slug(v: string) {
   return norm(v).replace(/\s+/g, "-");
 }
 
-function rank(p?: number): "Bronze" | "Prata" | "Ouro" {
-  if (typeof p !== "number") return "Bronze";
-  return p < 5 ? "Ouro" : p < 20 ? "Prata" : "Bronze";
+function balancedRanks(achievements: ExophaseAchievement[]) {
+  const total = achievements.length;
+  const ranks: ("Bronze" | "Prata" | "Ouro")[] = Array.from(
+    { length: total },
+    () => "Bronze"
+  );
+
+  if (total === 0) return ranks;
+
+  // A raridade é relativa ao próprio jogo. Isso evita que um jogo com
+  // conquistas naturalmente mais fáceis fique sem Ouro só porque nenhuma
+  // delas ficou abaixo de um limite absoluto de porcentagem.
+  const ordered = achievements
+    .map((achievement, index) => ({
+      index,
+      percent:
+        typeof achievement.percent === "number"
+          ? achievement.percent
+          : Number.POSITIVE_INFINITY,
+    }))
+    .sort((a, b) => {
+      if (a.percent !== b.percent) return a.percent - b.percent;
+      return a.index - b.index;
+    });
+
+  // Distribuição oficial do Rumo à Conquista:
+  // aproximadamente 15% Ouro, 35% Prata e 50% Bronze.
+  // Sempre existe pelo menos 1 Ouro quando o jogo possui conquistas.
+  const goldCount = Math.min(
+    total,
+    Math.max(1, Math.round(total * 0.15))
+  );
+  const silverCount = Math.min(
+    total - goldCount,
+    Math.max(0, Math.round(total * 0.35))
+  );
+
+  ordered.forEach((item, position) => {
+    if (position < goldCount) {
+      ranks[item.index] = "Ouro";
+    } else if (position < goldCount + silverCount) {
+      ranks[item.index] = "Prata";
+    }
+  });
+
+  return ranks;
 }
 
 function isOnline(name: string, description: string) {
@@ -626,6 +669,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const exophaseRanks = balancedRanks(exophaseData.achievements);
+
     const achievements = exophaseData.achievements.map((a, i) => {
       const name = a.name?.trim() || "";
       const description = a.description?.trim() || "";
@@ -636,7 +681,7 @@ export async function GET(req: NextRequest) {
       return {
         name,
         description,
-        rank: rank(a.percent),
+        rank: exophaseRanks[i] ?? "Bronze",
         online,
         momentary,
         journeySuggestion: journey,
