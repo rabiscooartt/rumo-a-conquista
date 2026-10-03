@@ -223,7 +223,7 @@ function PrepararJogoPage() {
     };
   }, [result, saved]);
 
-  async function search(gameSlug = registeredSlug, gameTitle = title) {
+  async function search(gameSlug = registeredSlug, gameTitle = title) {\n    setJourneyPreparedCount(null);
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
       return;
@@ -1414,7 +1414,7 @@ function PrepararJogoPage() {
                     Decisão preparada da Jornada
                   </p>
                   <p className="mt-1 text-xs text-white/45">
-                    Analisa a lista e marca automaticamente apenas as conquistas que fazem parte da primeira jornada.
+                    Analisa cada conquista com a regra 200%: só confirma o que tiver evidência positiva; dúvida permanece amarela.
                   </p>
                   {journeyPreparedCount !== null && (
                     <p className="mt-1 text-[10px] font-bold text-emerald-200/80">
