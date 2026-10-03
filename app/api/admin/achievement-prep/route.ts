@@ -164,17 +164,17 @@ function analyzeJourney(
   ];
 
   const hasNumericRequirement =
-    /\\b\\d+\\s+(?:enemies?|inimigos?|seconds?|minutes?|segundos?|minutos?|cards?|cartas?|clues?|pistas?|jobs?|trabalhos?|comic|comics|tirinhas?|newspapers?|jornais?)\\b/.test(
+    /\b\d+\s+(?:enemies?|inimigos?|seconds?|minutes?|segundos?|minutos?|cards?|cartas?|clues?|pistas?|jobs?|trabalhos?|comic|comics|tirinhas?|newspapers?|jornais?)\b/.test(
       text
     );
 
   const hasExtraAction =
     hasNumericRequirement ||
     extraActionPatterns.some((pattern) => text.includes(pattern)) ||
-    /\\bin \\d+ seconds?\\b/.test(text) ||
-    /\\bin \\d+ minutes?\\b/.test(text) ||
-    /\\bem \\d+ segundos?\\b/.test(text) ||
-    /\\bem \\d+ minutos?\\b/.test(text);
+    /\bin \d+ seconds?\b/.test(text) ||
+    /\bin \d+ minutes?\b/.test(text) ||
+    /\bem \d+ segundos?\b/.test(text) ||
+    /\bem \d+ minutos?\b/.test(text);
 
   // Exceções específicas verificadas em fontes externas atuais.
   const verifiedJourneyByGame: Record<string, Record<string, string>> = {
