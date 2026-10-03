@@ -1575,7 +1575,7 @@ function PrepararJogoPage() {
                 </div>
               )}
 
-              <div className="mt-4 space-y-1">
+              <div className="mt-4 space-y-0.5">
                 {[...result.achievements]
                   .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom)))
                   .map((a, i) => (
@@ -1634,7 +1634,7 @@ function PrepararJogoPage() {
                             Conquista {i + 1}
                           </p>
                           <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                          <p className="mt-0.5 text-sm leading-relaxed text-white/45">
+                          <p className="mt-0.5 text-sm leading-relaxed text-white/50">
                             {a.description || "Sem descrição disponível."}
                           </p>
                         </button>
