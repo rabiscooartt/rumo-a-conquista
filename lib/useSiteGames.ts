@@ -46,6 +46,7 @@ export type SiteGame = {
   cardImage?: string;
   platform?: string;
   youtubePlaylistUrl?: string;
+  youtubeFirstLiveUrl?: string;
   achievementsList?: FlexibleAchievementInput[];
   achievementsUnlocked?: number;
   achievementsTotal?: number;
@@ -117,6 +118,7 @@ type DatabaseGame = {
   manual_total_played_minutes: number | null;
   review?: unknown;
   youtubePlaylistUrl?: string;
+  youtubeFirstLiveUrl?: string;
   first_journey?: FirstJourneyState;
   firstJourney?: FirstJourneyState;
   achievementsList?: FlexibleAchievementInput[];
@@ -142,6 +144,15 @@ function extractYoutubePlaylistUrl(review: unknown) {
   }
 
   const value = (review as Record<string, unknown>).__youtubePlaylistUrl;
+  return readText(value, "").trim();
+}
+
+function extractYoutubeFirstLiveUrl(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubeFirstLiveUrl;
   return readText(value, "").trim();
 }
 
@@ -461,6 +472,9 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const youtubePlaylistUrl =
     readText(game.youtubePlaylistUrl, "").trim() ||
     extractYoutubePlaylistUrl(game.review);
+  const youtubeFirstLiveUrl =
+    readText(game.youtubeFirstLiveUrl, "").trim() ||
+    extractYoutubeFirstLiveUrl(game.review);
 
   // A lista vinda do Supabase é a fonte oficial quando existe.
   // Jogos finalizados históricos, porém, podem ainda não ter suas conquistas
@@ -531,6 +545,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     cardImage,
     platform,
     youtubePlaylistUrl,
+    youtubeFirstLiveUrl,
     achievementsList,
     achievementsUnlocked: progressStats.completed,
     achievementsTotal: progressStats.total,
@@ -597,6 +612,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         cardImage: game.card_image ?? "",
         platform: game.platform ?? "Steam",
         youtubePlaylistUrl: game.youtubePlaylistUrl ?? "",
+        youtubeFirstLiveUrl: game.youtubeFirstLiveUrl ?? "",
         review: game.review,
         achievementsList: Array.isArray(game.achievementsList)
           ? game.achievementsList
