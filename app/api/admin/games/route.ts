@@ -21,7 +21,7 @@ type IncomingAchievement = {
 };
 
 const OWNER_KEY = "default";
-const VALID_RANKS = new Set(["Bronze", "Prata", "Ouro", "Diamante"]);
+const VALID_RANKS = new Set(["Bronze", "Prata", "Ouro"]);
 const VALID_STATUSES = new Set(["locked", "progress", "completed"]);
 
 function normalizeText(value: unknown, fallback = "") {
@@ -52,6 +52,9 @@ function normalizeNumber(value: unknown, fallback = 0) {
 }
 
 function normalizeRank(value?: string) {
+  // Compatibilidade com dados antigos: Diamante/Extrema deixou de ser um
+  // quarto rank. A recompensa máxima agora é o Emblema.
+  if (value === "Diamante" || value === "Extrema") return "Ouro";
   return value && VALID_RANKS.has(value) ? value : "Bronze";
 }
 
