@@ -63,6 +63,7 @@ type R = {
     source: string;
     slug?: string;
     registered?: boolean;
+    youtubePlaylistUrl?: string;
     exophase?: {
       found: boolean;
       url: string | null;
@@ -1793,9 +1794,26 @@ function PrepararJogoPage() {
                                 Registro da conquista
                               </p>
                               {a.journey ? (
-                                <p className="mt-0.5 truncate text-[10px] font-black uppercase tracking-[.06em] text-emerald-200/80">
-                                  🟢 Jornada de Estreia · adquirida nas primeiras lives
-                                </p>
+                                <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-2">
+                                  <p className="truncate text-[10px] font-black uppercase tracking-[.06em] text-emerald-200/80">
+                                    🟢 Jornada de Estreia · adquirida nas primeiras lives
+                                  </p>
+                                  {result.game.youtubePlaylistUrl ? (
+                                    <a
+                                      href={result.game.youtubePlaylistUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="shrink-0 rounded-md border border-emerald-400/20 bg-emerald-400/[.06] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
+                                      onClick={(event) => event.stopPropagation()}
+                                    >
+                                      ▶ INÍCIO DAS LIVES
+                                    </a>
+                                  ) : (
+                                    <span className="shrink-0 rounded-md border border-yellow-400/15 bg-yellow-400/[.04] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-yellow-200/45">
+                                      Playlist não cadastrada
+                                    </span>
+                                  )}
+                                </div>
                               ) : a.episode?.trim() || a.earnedDate?.trim() ? (
                                 <p className="mt-0.5 truncate text-[10px] font-black text-white/45">
                                   {a.episode?.trim() || "EP pendente"} · {a.earnedDate?.trim() || "Data pendente"}
@@ -1823,6 +1841,17 @@ function PrepararJogoPage() {
                                 <p className="mt-1 text-[10px] leading-relaxed text-white/30">
                                   Esta conquista faz parte da Jornada de Estreia, portanto não precisa de EP nem data individual.
                                 </p>
+                                {result.game.youtubePlaylistUrl ? (
+                                  <a
+                                    href={result.game.youtubePlaylistUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="mt-3 inline-flex rounded-lg border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    ▶ INÍCIO DAS LIVES
+                                  </a>
+                                ) : null}
                               </div>
                             ) : (
                               <div className="grid w-full gap-2 rounded-xl border border-white/[.07] bg-black/20 p-2 lg:grid-cols-[1fr_1fr_auto]">
