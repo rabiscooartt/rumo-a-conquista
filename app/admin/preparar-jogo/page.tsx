@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ImportArtBatchUpload from "./ImportArtBatchUpload";
+import TrophyIcon from "@/components/TrophyIcon";
 
 type A = {
   id: string;
@@ -1357,15 +1358,20 @@ function PrepararJogoPage() {
                   <h2 className="text-xl font-black">Seleção da Jornada</h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase">
-                  <span className="rounded-full border border-yellow-300/20 bg-yellow-400/[.05] px-3 py-2 text-yellow-100">
-                    🥉 Bronze {rankCounts.Bronze}
-                  </span>
-                  <span className="rounded-full border border-slate-300/20 bg-slate-200/[.05] px-3 py-2 text-slate-100">
-                    🥈 Prata {rankCounts.Prata}
-                  </span>
-                  <span className="rounded-full border border-amber-300/20 bg-amber-400/[.05] px-3 py-2 text-amber-100">
-                    🥇 Ouro {rankCounts.Ouro}
-                  </span>
+                  {([
+                    ["Bronze", rankCounts.Bronze],
+                    ["Prata", rankCounts.Prata],
+                    ["Ouro", rankCounts.Ouro],
+                  ] as const).map(([rank, count]) => (
+                    <span
+                      key={rank}
+                      title={rank}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-2"
+                    >
+                      <TrophyIcon rank={rank} className="h-4 w-4" />
+                      <span className="text-[10px] font-black">{count}</span>
+                    </span>
+                  ))}
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-black uppercase">
                   <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3.5 py-2 text-emerald-200">
@@ -1636,8 +1642,11 @@ function PrepararJogoPage() {
                       </div>
 
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
-                        <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
-                          {a.rank}
+                        <span
+                          title={a.rank}
+                          className="inline-flex items-center justify-center rounded-full border border-white/10 bg-black/20 px-3.5 py-2"
+                        >
+                          <TrophyIcon rank={a.rank} className="h-4 w-4" />
                         </span>
                         {a.online && (
                           <span className="rounded-full border border-sky-400/25 bg-sky-400/[.05] px-3.5 py-2 text-[10px] font-black text-sky-200">
@@ -1845,8 +1854,11 @@ function PrepararJogoPage() {
                           </p>
                           <h3 className="mt-1 text-sm font-black">{a.name}</h3>
                         </div>
-                        <span className="rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2 text-[10px] font-black text-red-100">
-                          {a.rank}
+                        <span
+                          title={a.rank}
+                          className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2"
+                        >
+                          <TrophyIcon rank={a.rank} className="h-4 w-4" />
                         </span>
                       </div>
 
