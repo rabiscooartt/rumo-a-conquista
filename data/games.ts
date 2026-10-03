@@ -13,6 +13,7 @@ export type Achievement = {
   image?: string;
   isCustom?: boolean;
   isHidden?: boolean;
+  isEmblem?: boolean;
 };
 
 export type Review = {
@@ -43,7 +44,7 @@ export type TrophySummary = {
   bronze: number;
   silver: number;
   gold: number;
-  platinum: number;
+  emblem: number;
 };
 
 export type FinalBadge = {
@@ -122,11 +123,11 @@ export const games = {
       "bronze": 3,
       "silver": 2,
       "gold": 1,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Ídolo Absoluto",
-      "icon": "💎",
+      "icon": "🏆",
       "image": "/images/games/crisol-theater-of-idols/achievements/maestria-final.png"
     },
     "emblem": {
@@ -276,10 +277,11 @@ export const games = {
         "id": "crisol-theater-of-idols-achievement-1780097124900",
         "title": "Ídolo Absoluto",
         "description": "Conclua todas as conquistas de Crisol: Theater of Idols.",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "completed",
         "image": "/images/games/crisol-theater-of-idols/achievements/maestria-final.png",
         "isCustom": true,
@@ -308,11 +310,11 @@ export const games = {
       "bronze": 2,
       "silver": 1,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Legado Completo",
-      "icon": "💎",
+      "icon": "🏆",
       "image": "/images/games/howgarts-legacy/achievements/guardiao-do-legado.png"
     },
     "emblem": {
@@ -426,10 +428,11 @@ export const games = {
         "id": "howgarts-legacy-achievement-1780164653722",
         "title": "Legado Completo",
         "description": "Conclua todas as conquistas de Hogwarts Legacy.",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "completed",
         "image": "/images/games/howgarts-legacy/achievements/guardiao-do-legado.png",
         "isCustom": true,
@@ -459,11 +462,11 @@ export const games = {
       "bronze": 10,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Caçada Suprema",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -645,10 +648,11 @@ export const games = {
         "id": "monster-hunter-world-iceborne-achievement-1780874605952",
         "title": "Caçada Suprema",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -679,11 +683,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Caso Encerrado",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -729,10 +733,11 @@ export const games = {
         "id": "mouse-p-i-for-hire-achievement-1780853371335",
         "title": "Caso Encerrado",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -763,11 +768,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Amizade Inquebrável",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -817,10 +822,11 @@ export const games = {
         "id": "song-of-nunu-achievement-1780870466594",
         "title": "Amizade Inquebrável",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -851,11 +857,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Vazio Absoluto",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -905,10 +911,11 @@ export const games = {
         "id": "hollow-knight-achievement-1780871731352",
         "title": "Vazio Absoluto",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -939,11 +946,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Sobrevivente dos Túneis",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -993,10 +1000,11 @@ export const games = {
         "id": "metro-last-light-achievement-1780870550593",
         "title": "Sobrevivente dos Túneis",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -1027,11 +1035,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Sistema Dominado",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -1081,10 +1089,11 @@ export const games = {
         "id": "the-surge-achievement-1780873100093",
         "title": "Sistema Dominado",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -1115,11 +1124,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Última Linha de Defesa",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -1169,10 +1178,11 @@ export const games = {
         "id": "tom-clancy-s-the-division-achievement-1780870589001",
         "title": "Última Linha de Defesa",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
@@ -1203,11 +1213,11 @@ export const games = {
       "bronze": 0,
       "silver": 0,
       "gold": 0,
-      "platinum": 1
+      "emblem": 1
     },
     "finalBadge": {
       "title": "Fuga Definitiva",
-      "icon": "💎",
+      "icon": "🏆",
       "image": ""
     },
     "emblem": {
@@ -1257,10 +1267,11 @@ export const games = {
         "id": "hades-achievement-1780858190849",
         "title": "Fuga Definitiva",
         "description": "",
-        "trophy": "💎",
-        "icon": "💎",
-        "difficulty": "Diamante",
-        "rank": "Diamante",
+        "trophy": "🏆",
+        "icon": "🏆",
+        "difficulty": "Ouro",
+        "rank": "Ouro",
+        "isEmblem": true,
         "status": "locked",
         "image": "",
         "isCustom": true,
