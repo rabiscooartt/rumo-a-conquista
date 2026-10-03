@@ -6,6 +6,7 @@ import {
   type SiteGame,
   slugify,
 } from "@/lib/useSiteGames";
+import TrophyIcon from "@/components/TrophyIcon";
 
 type AchievementRank = "Bronze" | "Prata" | "Ouro";
 type AchievementStatus = "locked" | "progress" | "completed";
@@ -188,6 +189,15 @@ export default function NewGameAchievementsEditor({
 
   const completedCount = achievements.filter((item) => item.status === "completed").length;
 
+  const rankCounts = useMemo(() => {
+    const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
+    for (const achievement of achievements) {
+      const rank = achievement.difficulty;
+      if (rank !== "Diamante" && rank in counts) counts[rank] += 1;
+    }
+    return counts;
+  }, [achievements]);
+
   const filteredAchievements = useMemo(() => {
     const q = normalizeText(search);
 
@@ -338,6 +348,18 @@ export default function NewGameAchievementsEditor({
           <p className="mt-1 text-xs text-white/35">
             {completedCount}/{achievements.length} concluídas
           </p>
+          <div className="mt-3 flex items-center gap-3">
+            {([
+              ["Bronze", rankCounts.Bronze],
+              ["Prata", rankCounts.Prata],
+              ["Ouro", rankCounts.Ouro],
+            ] as const).map(([rank, count]) => (
+              <span key={rank} title={rank} className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-2.5 py-1.5 text-[10px] font-black">
+                <TrophyIcon rank={rank} className="h-4 w-4" />
+                {count}
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -411,7 +433,7 @@ export default function NewGameAchievementsEditor({
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black text-white">{achievement.title}</p>
                       <p className="mt-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
-                        {achievement.trophy} {achievement.difficulty}
+                        <TrophyIcon rank={achievement.difficulty} className="inline-block h-4 w-4 align-middle" />
                         {achievement.isExophase ? " • Exophase" : ""}
                         {achievement.isHidden ? " • Oculta" : ""}
                       </p>
@@ -456,7 +478,7 @@ export default function NewGameAchievementsEditor({
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
                         <select value={achievement.difficulty} disabled={saving} onChange={(event) => { void changeAchievementRank(achievement.id, event.target.value as AchievementRank); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-50">
-                          {(["Bronze", "Prata", "Ouro"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
+                          {(["Bronze", "Prata", "Ouro"] as const).map((rank) => <option key={rank} value={rank}>{rankLabel(rank)}</option>)}
                         </select>
                       </label>
                       <label>
