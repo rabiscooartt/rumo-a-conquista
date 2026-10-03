@@ -69,34 +69,6 @@ function normalizeEpisode(value?: string) {
   return String(Number(match[0])).padStart(2, "0");
 }
 
-function extractYoutubeVideoId(value?: string) {
-  const raw = String(value ?? "").trim();
-  if (!raw) return "";
-
-  try {
-    const parsed = new URL(raw);
-    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
-
-    if (host === "youtu.be") {
-      return parsed.pathname.split("/").filter(Boolean)[0] ?? "";
-    }
-
-    if (host === "youtube.com" || host === "m.youtube.com") {
-      const queryId = parsed.searchParams.get("v");
-      if (queryId) return queryId;
-
-      const pathParts = parsed.pathname.split("/").filter(Boolean);
-      if (pathParts[0] === "embed" || pathParts[0] === "shorts") {
-        return pathParts[1] ?? "";
-      }
-    }
-  } catch {
-    return "";
-  }
-
-  return "";
-}
-
 function matchesEpisode(video: YouTubeVideo, episode: string) {
   const normalized = normalizeText(`${video.title} ${video.description}`);
   const ep = normalizeEpisode(episode);
