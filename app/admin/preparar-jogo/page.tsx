@@ -191,6 +191,7 @@ function PrepararJogoPage() {
     { achievement: A; score: number }[]
   >([]);
   const [showRealizedMatches, setShowRealizedMatches] = useState(false);
+  const [focusedAchievementId, setFocusedAchievementId] = useState<string | null>(null);
 
   const selected = useMemo(
     () =>
@@ -682,6 +683,22 @@ function PrepararJogoPage() {
     setRealizedRank("Bronze");
     setRealizedCandidates([]);
     setShowRealizedMatches(false);
+    setFocusedAchievementId(null);
+  }
+
+  function focusAchievement(achievementId: string) {
+    setFocusedAchievementId(achievementId);
+    setExpandedRecordIds((current) => {
+      const next = new Set(current);
+      next.add(achievementId);
+      return next;
+    });
+
+    window.setTimeout(() => {
+      document
+        .getElementById("achievement-" + achievementId)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   }
 
   function analyzeRealizedAchievement() {
@@ -1809,14 +1826,23 @@ function PrepararJogoPage() {
                                     Correspondência {realizedMatchLabel(score)} · {Math.round(score * 100)}% na busca
                                   </p>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => registerRealizedAchievement(achievement.id)}
-                                  disabled={!realizedEpisode.trim() || !realizedDate.trim()}
-                                  className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-400/[.10] px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:opacity-35"
-                                >
-                                  ✓ Relacionar e registrar
-                                </button>
+                                <div className="flex shrink-0 flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => focusAchievement(achievement.id)}
+                                    className="rounded-lg border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-[9px] font-black uppercase text-violet-100"
+                                  >
+                                    ↗ Ir para conquista
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => registerRealizedAchievement(achievement.id)}
+                                    disabled={!realizedEpisode.trim() || !realizedDate.trim()}
+                                    className="rounded-lg border border-emerald-400/30 bg-emerald-400/[.10] px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:opacity-35"
+                                  >
+                                    ✓ Relacionar e registrar
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -2092,9 +2118,12 @@ function PrepararJogoPage() {
                   .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom)))
                   .map((a, i) => (
                   <div
+                    id={"achievement-" + a.id}
                     key={a.id}
                     className={
-                      a.notDoing
+                      focusedAchievementId === a.id
+                        ? "w-full rounded-2xl border border-violet-300/70 bg-violet-500/[.12] p-3 shadow-[0_0_30px_rgba(167,139,250,.12)]"
+                        : a.notDoing
                         ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3"
                         : a.isCustom
                           ? "w-full rounded-2xl border border-sky-400/40 bg-sky-500/[.10] p-3"
