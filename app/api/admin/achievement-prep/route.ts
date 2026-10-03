@@ -626,23 +626,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { data: savedAchievements, error: savedAchievementsError } = await createAdminSupabaseClient()
-      .from("achievements")
-      .select("title, image, sort_order")
-      .eq("game_slug", registeredGame.slug)
-      .order("sort_order", { ascending: true });
-
-    if (savedAchievementsError) throw savedAchievementsError;
-
-    const savedByTitle = new Map(
-      (savedAchievements ?? []).map((item) => [norm(item.title), String(item.image ?? "")])
-    );
-    const savedByOrder = new Map(
-      (savedAchievements ?? [])
-        .filter((item) => Number.isFinite(Number(item.sort_order)))
-        .map((item) => [Number(item.sort_order), String(item.image ?? "")])
-    );
-
     const achievements = exophaseData.achievements.map((a, i) => {
       const name = a.name?.trim() || "";
       const description = a.description?.trim() || "";
@@ -654,17 +637,12 @@ export async function GET(req: NextRequest) {
         name,
         description,
         rank: rank(a.percent),
-        percent: a.percent,
         online,
         momentary,
         journeySuggestion: journey,
         journey,
         notDoing: false,
         visualReferenceUrl: a.visualReferenceUrl ?? null,
-        image:
-          savedByTitle.get(norm(name)) ||
-          savedByOrder.get(i) ||
-          "",
         id:
           "exophase-" +
           slug(registeredGame.slug) +
@@ -674,6 +652,47 @@ export async function GET(req: NextRequest) {
           slug(name || "conquista-" + (i + 1)),
       };
     });
+
+    // Sincroniza automaticamente os ranks calculados a partir da porcentagem
+    // atual do Exophase com os registros já existentes do jogo.
+    try {
+      const client = createAdminSupabaseClient();
+      const { data: savedRows, error: savedRowsError } = await client
+        .from("achievements")
+        .select("id, title, sort_order")
+        .eq("game_slug", registeredGame.slug)
+        .order("sort_order", { ascending: true });
+
+      if (savedRowsError) throw savedRowsError;
+
+      const byTitle = new Map(
+        (savedRows ?? []).map((row) => [norm(row.title), row])
+      );
+      const byOrder = new Map(
+        (savedRows ?? [])
+          .filter((row) => Number.isFinite(Number(row.sort_order)))
+          .map((row) => [Number(row.sort_order), row])
+      );
+
+      for (const [index, achievement] of achievements.entries()) {
+        const row =
+          byTitle.get(norm(achievement.name)) ??
+          byOrder.get(index);
+
+        if (!row) continue;
+
+        const { error: updateError } = await client
+          .from("achievements")
+          .update({ rank: achievement.rank })
+          .eq("id", row.id)
+          .eq("game_slug", registeredGame.slug);
+
+        if (updateError) throw updateError;
+      }
+    } catch (rankSyncError) {
+      console.error("[Achievement Prep Rank Sync]", rankSyncError);
+      // A falha de rank não impede o preparador de carregar as conquistas.
+    }
 
     return NextResponse.json({
       ok: true,
