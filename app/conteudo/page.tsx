@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
 type FilterType = "all" | "video" | "live" | "short";
@@ -52,6 +53,24 @@ function normalizeText(value?: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]/g, "");
+}
+
+function normalizeEpisode(value?: string) {
+  const match = String(value ?? "").match(/\d+/);
+  if (!match) return "";
+  return String(Number(match[0])).padStart(2, "0");
+}
+
+function matchesEpisode(video: YouTubeVideo, episode: string) {
+  const normalized = normalizeText(`${video.title} ${video.description}`);
+  const ep = normalizeEpisode(episode);
+  if (!ep) return true;
+
+  const number = String(Number(ep));
+  return (
+    new RegExp(`(?:ep|episodio|episode)0*(?:${number})(?!\\d)`).test(normalized) ||
+    new RegExp(`(?:ep|episodio|episode)[^a-z0-9]?0*(?:${number})(?!\\d)`).test(normalized)
+  );
 }
 
 function normalizeDate(date?: string) {
@@ -339,8 +358,12 @@ export default function ConteudoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [requestedEpisode, setRequestedEpisode] = useState("");
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRequestedEpisode(normalizeEpisode(params.get("ep") ?? ""));
+    
     const controller = new AbortController();
 
     async function loadYouTubeVideos() {
@@ -349,7 +372,7 @@ export default function ConteudoPage() {
         setError("");
 
         const response = await fetch(
-          "/api/youtube/channel?handle=@orabiisco&maxResults=5",
+          "/api/youtube/channel?handle=@orabiisco&maxResults=50",
           {
             signal: controller.signal,
           }
@@ -386,12 +409,17 @@ export default function ConteudoPage() {
   }, []);
 
   const filteredVideos = useMemo(() => {
-    if (activeFilter === "all") {
-      return videos;
+    const byType =
+      activeFilter === "all"
+        ? videos
+        : videos.filter((video) => getVideoType(video) === activeFilter);
+
+    if (!requestedEpisode) {
+      return byType;
     }
 
-    return videos.filter((video) => getVideoType(video) === activeFilter);
-  }, [activeFilter, videos]);
+    return byType.filter((video) => matchesEpisode(video, requestedEpisode));
+  }, [activeFilter, requestedEpisode, videos]);
 
   const featuredVideo = videos[0];
 
@@ -461,6 +489,27 @@ export default function ConteudoPage() {
             </div>
           </div>
         </header>
+
+        {requestedEpisode ? (
+          <section className="mt-8 rounded-2xl border border-blue-400/20 bg-blue-500/[.06] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[.2em] text-blue-300">
+                  Episódio selecionado
+                </p>
+                <p className="mt-1 text-sm font-black text-white">
+                  EP {requestedEpisode}
+                </p>
+              </div>
+              <Link
+                href="/conteudo"
+                className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
+              >
+                Limpar filtro
+              </Link>
+            </div>
+          </section>
+        ) : null}
 
         <section className="mt-8">
           <div className="flex flex-wrap gap-3">
