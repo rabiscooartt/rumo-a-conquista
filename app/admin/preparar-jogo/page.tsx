@@ -641,6 +641,18 @@ function PrepararJogoPage() {
     return Math.min(1, base * 0.55 + conceptScore * 0.45 + overlapBonus);
   }
 
+  function realizedMatchLabel(score: number) {
+    if (score >= 0.5) return "Muito provável";
+    if (score >= 0.4) return "Provável";
+    return "Possível";
+  }
+
+  function realizedMatchTone(score: number) {
+    if (score >= 0.5) return "text-emerald-200";
+    if (score >= 0.4) return "text-yellow-200";
+    return "text-white/50";
+  }
+
   function findRealizedMatches(value: string) {
     if (!result || !value.trim()) return [];
 
@@ -1793,8 +1805,8 @@ function PrepararJogoPage() {
                                   <p className="mt-1 text-xs leading-relaxed text-white/40">
                                     {achievement.description || "Sem descrição disponível."}
                                   </p>
-                                  <p className="mt-2 text-[9px] font-black uppercase tracking-[.1em] text-violet-200/65">
-                                    Compatibilidade: {Math.round(score * 100)}%
+                                  <p className={`mt-2 text-[9px] font-black uppercase tracking-[.1em] ${realizedMatchTone(score)}`}>
+                                    Correspondência {realizedMatchLabel(score)} · {Math.round(score * 100)}% na busca
                                   </p>
                                 </div>
                                 <button
