@@ -23,6 +23,7 @@ type HeroAchievement = {
   earnedDate?: string;
   image?: string;
   isCustom?: boolean;
+  isEmblem?: boolean;
   [key: string]: unknown;
 };
 
@@ -166,18 +167,11 @@ function normalizeRank(value?: string, trophy?: string) {
   const trophyText = trophy ?? "";
 
   if (
-    rank === "diamante" ||
-    rank === "extrema" ||
-    trophyText.includes("💎")
-  ) {
-    return "Diamante";
-  }
-
-  if (
     rank === "ouro" ||
     rank === "dificil" ||
-    trophyText.includes("🥇") ||
-    trophyText.includes("🏆")
+    rank === "diamante" ||
+    rank === "extrema" ||
+    trophyText.includes("🥇")
   ) {
     return "Ouro";
   }
@@ -190,7 +184,6 @@ function normalizeRank(value?: string, trophy?: string) {
 }
 
 function getRankIcon(rank?: string) {
-  if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
   if (rank === "Prata") return "🥈";
   return "🥉";
@@ -380,9 +373,11 @@ function isMasteryAchievement(
   );
 
   return (
-    rank === "Diamante" ||
+    achievement.isEmblem === true ||
     title.includes("maestria") ||
-    title.includes("mastery")
+    title.includes("mastery") ||
+    title.includes("emblema") ||
+    title.includes("final")
   );
 }
 
@@ -419,7 +414,7 @@ function getFinalBadgeFromGame(game: HeroGame): FinalBadgeData {
   const masteryAchievement = completedMastery ?? anyMastery;
 
   if (masteryAchievement) {
-    const title = readText(masteryAchievement.title, "Maestria Final");
+    const title = readText(masteryAchievement.title, "Emblema");
     const manualState = manualStates[title];
 
     const rank = normalizeRank(
@@ -435,8 +430,11 @@ function getFinalBadgeFromGame(game: HeroGame): FinalBadgeData {
       title,
       icon:
         readText(masteryAchievement.icon, "") ||
-        readText(masteryAchievement.trophy, "") ||
-        getRankIcon(rank),
+        masteryAchievement.isEmblem === true
+          ? "🏆"
+          : readText(masteryAchievement.icon, "") ||
+            readText(masteryAchievement.trophy, "") ||
+            getRankIcon(rank),
       image:
         readText(manualState?.image, "") ||
         readText(masteryAchievement.image, "") ||
@@ -446,8 +444,8 @@ function getFinalBadgeFromGame(game: HeroGame): FinalBadgeData {
   }
 
   return {
-    title: readText(game.finalBadge?.title, "Maestria Final"),
-    icon: readText(game.finalBadge?.icon, "💎"),
+    title: readText(game.finalBadge?.title, "Emblema"),
+    icon: readText(game.finalBadge?.icon, "🏆"),
     image:
       readText(game.finalBadge?.image, "") ||
       `/images/games/${game.slug}/achievements/maestria-final.png`,
@@ -460,7 +458,7 @@ function getObjective(
   finalBadge: FinalBadgeData
 ) {
   if (isCompleted) {
-    return finalBadge.title || readText(game.mastery, "") || "Maestria Final";
+    return finalBadge.title || readText(game.mastery, "") || "Emblema";
   }
 
   return (
@@ -710,7 +708,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                 color: "var(--hero-accent)",
               }}
             >
-              {completed ? "Última maestria" : "Jogando agora"}
+              {completed ? "Último emblema" : "Jogando agora"}
             </span>
 
             <h1 className="mt-7 max-w-[760px] text-6xl font-black uppercase leading-none text-white">
@@ -782,7 +780,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                   className="text-[10px] font-black uppercase tracking-[0.25em]"
                   style={{ color: "var(--hero-accent)" }}
                 >
-                  {completed ? "Maestria final" : "Objetivo atual"}
+                  {completed ? "Emblema" : "Objetivo atual"}
                 </p>
 
                 <p className="mt-1 text-lg font-black text-white">
