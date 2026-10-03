@@ -115,6 +115,7 @@ type GamePayload = {
   review?: unknown;
   firstJourney?: FirstJourneyState;
   youtubePlaylistUrl?: string;
+  youtubeFirstLiveUrl?: string;
   manualTotalPlayedMinutes?: number | null;
   achievementsList?: IncomingAchievement[];
   isHidden?: boolean;
@@ -200,6 +201,49 @@ function extractYoutubePlaylistUrl(review: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function withYoutubeFirstLiveInReview(
+  review: unknown,
+  youtubeFirstLiveUrl?: string
+) {
+  if (youtubeFirstLiveUrl === undefined) {
+    return review ?? null;
+  }
+
+  const normalizedUrl = String(youtubeFirstLiveUrl).trim();
+
+  if (review && typeof review === "object" && !Array.isArray(review)) {
+    const next = {
+      ...(review as Record<string, unknown>),
+    };
+
+    if (normalizedUrl) {
+      next.__youtubeFirstLiveUrl = normalizedUrl;
+    } else {
+      delete next.__youtubeFirstLiveUrl;
+    }
+
+    return Object.keys(next).length > 0 ? next : null;
+  }
+
+  if (!normalizedUrl) {
+    return review ?? null;
+  }
+
+  return {
+    __youtubeFirstLiveUrl: normalizedUrl,
+    value: review ?? null,
+  };
+}
+
+function extractYoutubeFirstLiveUrl(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubeFirstLiveUrl;
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function extractFirstJourney(review: unknown): FirstJourneyState | undefined {
   if (!review || typeof review !== "object" || Array.isArray(review)) {
     return undefined;
@@ -254,9 +298,12 @@ function buildGameData(game: GamePayload) {
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
-    review: withYoutubePlaylistInReview(
-      withFirstJourneyInReview(game.review, game.firstJourney),
-      game.youtubePlaylistUrl
+    review: withYoutubeFirstLiveInReview(
+      withYoutubePlaylistInReview(
+        withFirstJourneyInReview(game.review, game.firstJourney),
+        game.youtubePlaylistUrl
+      ),
+      game.youtubeFirstLiveUrl
     ),
     ...(manualTimeProvided
       ? { manual_total_played_minutes: manualTotalPlayedMinutes }
@@ -629,6 +676,7 @@ async function fetchEnrichedGame(
     ...game,
     firstJourney: extractFirstJourney(game.review),
     youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
+    youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
     achievementsList: achievementRows.map((achievement) =>
       normalizeAchievementFromDatabase(
         achievement,
