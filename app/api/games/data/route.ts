@@ -40,6 +40,15 @@ function readText(value: unknown, fallback = "") {
   return fallback;
 }
 
+function extractYoutubeFirstLiveUrl(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubeFirstLiveUrl;
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function extractFirstJourney(review: unknown) {
   if (!review || typeof review !== "object" || Array.isArray(review)) {
     return undefined;
@@ -217,6 +226,7 @@ export async function GET(request: NextRequest) {
           trophies: game.trophies ?? undefined,
           review: game.review ?? undefined,
           firstJourney: extractFirstJourney(game.review),
+          youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
           manualTotalPlayedMinutes: game.manual_total_played_minutes ?? null,
           achievementsList,
         },
