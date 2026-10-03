@@ -1420,7 +1420,7 @@ function PrepararJogoPage() {
                 </button>
               </div>
 
-              <div className="mt-5 rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5"> rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5">
+              <div className="mt-5 rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-300">
