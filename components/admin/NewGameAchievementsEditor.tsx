@@ -192,8 +192,7 @@ export default function NewGameAchievementsEditor({
   const rankCounts = useMemo(() => {
     const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
     for (const achievement of achievements) {
-      const rank = achievement.difficulty;
-      if (rank !== "Diamante" && rank in counts) counts[rank] += 1;
+      counts[achievement.difficulty] += 1;
     }
     return counts;
   }, [achievements]);
