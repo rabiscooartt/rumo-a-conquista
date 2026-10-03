@@ -21,13 +21,15 @@ type A = {
   isCustom?: boolean;
   visualReferenceUrl?: string | null;
   visualBrief?: string;
+  image?: string;
 };
 
 function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achievement: A }) {
   const [failed, setFailed] = useState(false);
   const imageName = slugify(achievement.name || "");
-  const imageSrc =
-    gameSlug && imageName
+  const imageSrc = achievement.image?.trim()
+    ? achievement.image.trim()
+    : gameSlug && imageName
       ? `/images/games/${slugify(gameSlug)}/achievements/${imageName}.png`
       : "";
 
@@ -1927,6 +1929,27 @@ function PrepararJogoPage() {
                   filename: a.filename,
                   rank: a.rank,
                 }))}
+                onSaved={(saved) => {
+                  setResult((current) =>
+                    current
+                      ? {
+                          ...current,
+                          achievements: current.achievements.map((achievement) => {
+                            const match = saved.find(
+                              (item) =>
+                                item.title.trim().toLocaleLowerCase("pt-BR") ===
+                                achievement.name.trim().toLocaleLowerCase("pt-BR")
+                            );
+
+                            return match
+                              ? { ...achievement, image: match.image }
+                              : achievement;
+                          }),
+                        }
+                      : current
+                  );
+                  setSaved(false);
+                }}
               />
             )}
           </>
