@@ -187,10 +187,6 @@ function analyzeJourney(
         "Confirmada como conclusão da história e impossível de perder.",
       "ponta do queijobergue":
         "Confirmada: corresponde a Tip of the Cheeseberg, conclusão da história e impossível de perder.",
-      "so whodunit":
-        "Mantida fora da Jornada pela regra 200%: exige colocar todas as pistas no quadro.",
-      "entao quem foi":
-        "Mantida fora da Jornada pela regra 200%: exige colocar todas as pistas no quadro.",
       "guns lots of guns":
         "Confirmada: as armas necessárias são dadas automaticamente ou ficam diretamente no caminho da história.",
       "armas muitas armas":
