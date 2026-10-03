@@ -689,6 +689,7 @@ export async function GET(req: NextRequest) {
         journey,
         notDoing: false,
         visualReferenceUrl: a.visualReferenceUrl ?? null,
+        image: null as string | null,
         id:
           "exophase-" +
           slug(registeredGame.slug) +
