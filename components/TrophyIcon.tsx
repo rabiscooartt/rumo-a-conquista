@@ -23,12 +23,28 @@ export default function TrophyIcon({
       {...props}
     >
       <path
-        fill={rankColors[rank]}
-        d="M11 4h10v3h3v3c0 4.32-2.27 7.62-6 8.68V22h4v3H10v-3h4v-3.32C10.27 17.62 8 14.32 8 10V7h3V4Zm-1 6c0 2.55 1.18 4.78 3.04 5.73A8.18 8.18 0 0 1 13 13H10Zm12 0v3c0 1.01-.36 1.94-1.04 2.73C22.82 14.78 24 12.55 24 10v-1h-2v1ZM8 7H4v3c0 3.82 2.54 7 6 7.86v-3.08C8.89 14.12 8 11.73 8 9.5V7Zm16 0v2.5c0 2.23-.89 4.62-2 5.28v3.08C25.46 17 28 13.82 28 10V7h-4Z"
+        d="M9 4h14v6.8c0 4.35-2.75 7.2-7 7.2s-7-2.85-7-7.2V4Z"
+        fill="none"
+        stroke={rankColors[rank]}
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
-        fill={rankColors[rank]}
-        d="M7 25h18v3H7z"
+        d="M9 6H5.5v3.1c0 3.15 1.95 5.55 5.15 5.95M23 6h3.5v3.1c0 3.15-1.95 5.55-5.15 5.95"
+        fill="none"
+        stroke={rankColors[rank]}
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 18v4M11 25h10"
+        fill="none"
+        stroke={rankColors[rank]}
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
