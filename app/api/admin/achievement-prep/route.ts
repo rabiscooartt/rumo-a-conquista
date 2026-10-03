@@ -654,6 +654,7 @@ export async function GET(req: NextRequest) {
         name,
         description,
         rank: rank(a.percent),
+        percent: a.percent,
         online,
         momentary,
         journeySuggestion: journey,
