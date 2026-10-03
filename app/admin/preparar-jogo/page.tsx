@@ -1641,12 +1641,15 @@ function PrepararJogoPage() {
                       <div className="flex min-w-0 flex-1 items-center gap-3">
                         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/40">
                           {a.image ? (
-                            <img
-                              src={a.image}
-                              alt={`Arte da conquista ${a.name}`}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
+                            <>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={a.image}
+                                alt={`Arte da conquista ${a.name}`}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            </>
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-lg font-black text-white/30">
                               ??
