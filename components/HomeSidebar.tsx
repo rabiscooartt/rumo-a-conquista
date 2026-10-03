@@ -740,7 +740,7 @@ function getActivityItems(games: SidebarGame[]) {
       activities.push({
         id: `${slug}-${type}-${readText(achievement.id, achievementTitle)}`,
         href: `/games/${slug}`,
-        label: isMastery ? "Última maestria" : "Último troféu",
+        label: isMastery ? "Último emblema" : "Último troféu",
         title: achievementTitle,
         gameTitle,
         subtitle: gameSubtitle,
@@ -762,8 +762,8 @@ function getActivityItems(games: SidebarGame[]) {
       activities.push({
         id: `mastery-${slug}`,
         href: `/games/${slug}`,
-        label: "Última maestria",
-        title: readText(game.finalBadge?.title, "Maestria Final"),
+        label: "Último emblema",
+        title: readText(game.finalBadge?.title, "Emblema"),
         gameTitle,
         subtitle: gameSubtitle,
         icon: readText(game.finalBadge?.icon, "💎"),
