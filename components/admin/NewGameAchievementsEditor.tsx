@@ -7,7 +7,7 @@ import {
   slugify,
 } from "@/lib/useSiteGames";
 
-type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
+type AchievementRank = "Bronze" | "Prata" | "Ouro";
 type AchievementStatus = "locked" | "progress" | "completed";
 type AchievementFilter = "all" | "completed" | "locked";
 
@@ -22,6 +22,7 @@ type EditableAchievement = FlexibleAchievementInput & {
   isCustom: boolean;
   isHidden: boolean;
   isExophase: boolean;
+  isEmblem: boolean;
 };
 
 function readText(value: unknown, fallback = "") {
@@ -49,18 +50,17 @@ function readBoolean(value: unknown, fallback = false) {
 }
 
 function rankLabel(rank: AchievementRank) {
-  return rank === "Diamante" ? "Maestria" : rank;
+  return rank;
 }
 
 function rankToTrophy(rank: AchievementRank) {
-  if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
   if (rank === "Prata") return "🥈";
   return "🥉";
 }
 
 function normalizeRank(value?: string): AchievementRank {
-  if (value === "Diamante") return "Diamante";
+  if (value === "Diamante" || value === "Extrema") return "Ouro";
   if (value === "Ouro") return "Ouro";
   if (value === "Prata") return "Prata";
   return "Bronze";
@@ -86,9 +86,20 @@ function normalizeAchievements(
     };
 
     const title = readText(achievement.title, `Conquista ${index + 1}`);
-    const rank = normalizeRank(
-      readText(achievement.difficulty, readText(achievement.rank, "Bronze"))
+    const rawRank = readText(
+      achievement.difficulty,
+      readText(achievement.rank, "Bronze")
     );
+    const rawTrophy =
+      readText(achievement.trophy, "") ||
+      readText(achievement.icon, "");
+    const isEmblem =
+      Boolean(achievement.isEmblem) ||
+      rawRank === "Diamante" ||
+      rawRank === "Extrema" ||
+      rawTrophy.includes("💎") ||
+      normalizeText(title) === "emblema";
+    const rank = normalizeRank(rawRank);
 
     return {
       ...achievement,
@@ -97,16 +108,14 @@ function normalizeAchievements(
         `${slug}-achievement-${index + 1}-${slugify(title)}`,
       title,
       description: readText(achievement.description, ""),
-      trophy:
-        readText(achievement.trophy, "") ||
-        readText(achievement.icon, "") ||
-        rankToTrophy(rank),
+      trophy: isEmblem ? "🏆" : rawTrophy || rankToTrophy(rank),
       difficulty: rank,
       status: normalizeStatus(readText(achievement.status, "locked")),
       image: readText(achievement.image, ""),
       isCustom: Boolean(achievement.isCustom ?? false),
       isHidden: readBoolean(raw.isHidden ?? raw.hidden, false),
       isExophase: readBoolean(raw.isExophase, false),
+      isEmblem,
     };
   });
 }
@@ -130,6 +139,7 @@ function toSavePayload(achievements: EditableAchievement[]): FlexibleAchievement
       isCustom: Boolean(achievement.isCustom),
       isHidden: Boolean(achievement.isHidden),
       isExophase: Boolean(achievement.isExophase),
+      isEmblem: Boolean(achievement.isEmblem),
     };
   });
 }
@@ -454,7 +464,7 @@ export default function NewGameAchievementsEditor({
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
                         <select value={achievement.difficulty} disabled={saving} onChange={(event) => { void changeAchievementRank(achievement.id, event.target.value as AchievementRank); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-50">
-                          {(["Bronze", "Prata", "Ouro", "Diamante"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
+                          {(["Bronze", "Prata", "Ouro"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
                         </select>
                       </label>
                       <label>
