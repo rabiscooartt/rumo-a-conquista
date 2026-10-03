@@ -704,7 +704,7 @@ export async function GET(req: NextRequest) {
       const client = createAdminSupabaseClient();
       const { data: savedRows, error: savedRowsError } = await client
         .from("achievements")
-        .select("id, title, sort_order")
+        .select("id, title, sort_order, image")
         .eq("game_slug", registeredGame.slug)
         .order("sort_order", { ascending: true });
 
@@ -725,6 +725,10 @@ export async function GET(req: NextRequest) {
           byOrder.get(index);
 
         if (!row) continue;
+
+        if (typeof row.image === "string" && row.image.trim()) {
+          achievement.image = row.image.trim();
+        }
 
         const { error: updateError } = await client
           .from("achievements")
