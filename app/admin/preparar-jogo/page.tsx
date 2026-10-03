@@ -1575,7 +1575,7 @@ function PrepararJogoPage() {
                 </div>
               )}
 
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-1">
                 {[...result.achievements]
                   .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom)))
                   .map((a, i) => (
@@ -1644,9 +1644,9 @@ function PrepararJogoPage() {
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <span
                           title={a.rank}
-                          className="inline-flex items-center justify-center rounded-full border border-white/10 bg-black/20 px-3.5 py-2"
+                          className="inline-flex h-7 w-7 items-center justify-center"
                         >
-                          <TrophyIcon rank={a.rank} className="h-4 w-4" />
+                          <TrophyIcon rank={a.rank} className="h-5 w-5" />
                         </span>
                         {a.online && (
                           <span className="rounded-full border border-sky-400/25 bg-sky-400/[.05] px-3.5 py-2 text-[10px] font-black text-sky-200">
