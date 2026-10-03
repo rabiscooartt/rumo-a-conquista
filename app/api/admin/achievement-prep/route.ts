@@ -135,10 +135,9 @@ function analyzeJourney(
   const title = norm(name);
   const text = norm(name + " " + description);
 
+  // Regra do preparador:
   // CONFIRMADA + PROVAVELMENTE FEITA = VERDE.
-  // A interface não diferencia as duas: ambas pertencem à Jornada de Estreia.
-  // OUTSIDE = amarelo, ficando para fora da Jornada.
-
+  // O Admin mostra as duas categorias juntas como Jornada de Estreia.
   const verifiedJourneyByGame: Record<string, Set<string>> = {
     "mouse-p-i-for-hire": new Set([
       "mestre dos macetes",
@@ -150,78 +149,53 @@ function analyzeJourney(
     ]),
   };
 
+  // Lista consolidada a partir da análise manual da primeira jornada:
+  // são conquistas que foram consideradas plausivelmente obtidas durante
+  // a primeira run, junto das conquistas confirmadas acima.
   const probableJourneyByGame: Record<string, Set<string>> = {
     "mouse-p-i-for-hire": new Set([
-      // Casos/pistas principais: na primeira jornada foram feitas apenas as
-      // pistas necessárias para avançar os casos.
-      "encontre as pistas principais do caso blue betty",
-      "encontre as pistas principais do caso da escassez de musaranhos",
-      "encontre as pistas principais do caso do magico desaparecido",
-      "encontre as pistas chave do caso da betty borocoxo",
-      "encontre as pistas chave do caso do magico misterioso",
-      "concluir o caso do magico desaparecido",
-      "concluir o caso da escassez de musaranhos",
-      "concluir o caso blue betty",
-      "resolva o caso da mingua do musaranho",
-      "resolva o caso da betty borocoxo",
-      "resolva o caso do magico misterioso",
-      "concluir a historia",
-      "finalizar o jogo na dificuldade normal",
-      "caso encerrado",
-      "descansar tranquilo detetive caso encerrado ou sera que nao",
-
-      // Conquistas que podem ter acontecido naturalmente durante a primeira
-      // jornada, conforme a análise do preparador.
-      "coletar 10 cartas de beisebol",
       "taco tudo",
-      "coletar 5 cartas de beisebol",
-      "colete 5 cartas de beisebol",
-      "vencer uma partida de cartas de beisebol",
-      "vença uma partida de cartas de beisebol",
+      "babe got bat",
+      "balada de betty borocoxo",
+      "burdens of blue betty",
+      "alivio comico",
+      "comic relief",
+      "detetive de romance de banca de jornal",
+      "dime novel sleuth",
+      "o martirio do magico misterioso",
+      "smoked cheese and mirrors",
+      "misterios da mingua dos musaranhos",
+      "our lesser brothers",
+      "essa e a minha espingarda",
+      "de capa a capa",
+      "cover to cover",
+      "romance muito grafico",
+      "extremely graphic novel",
+      "pessoal de papel",
+      "paper person",
       "as de bolso",
       "pocket aces",
       "baralho de iniciante",
       "starter deck",
-      "coletar 5 historias em quadrinhos",
-      "colete 5 tirinhas",
-      "alivio comico",
-      "comic relief",
-      "coletar 10 historias em quadrinhos",
-      "colete 10 tirinhas",
-      "coletar 5 edicoes do mouseburg herald",
-      "colete 5 edicoes do mouseburg herald",
-      "coletar 10 edicoes do mouseburg herald",
-      "colete 10 edicoes do mouseburg herald",
-      "de capa a capa",
-      "cover to cover",
-      "pessoal de papel",
-      "paper person",
-      "concluir 5 trabalhos paralelos",
-      "complete 5 trabalhos secundarios",
-      "concluir 5 trabalhos secundários",
-      "complete 5 trabalhos secundários",
-      "detetive de romance de banca de jornal",
-      "dime novel sleuth",
-      "melhorar uma arma ate o nivel 3",
-      "aprimorar uma arma para o nivel 3",
-      "essa e a minha espingarda",
-      "this is my boomstick",
-      "a faca e o queijo",
-      "comic relief",
-      "q q queijociniooo",
+      "queijo e fumaca",
+      "tinsel boulevard",
       "felicidade do quint",
       "quints delight",
-      "16 toneladas de spike d",
-      "spike d 16 tons",
-      "mortissima trindade",
-      "hole y trinity",
-      "boom bastico",
-      "boom town",
-      "ta pegando fogo bicho",
-      "firestarter",
-      "com um estalar de pulsos",
-      "herr flick of the wrist",
-      "chutar o tubarao de wallop bay ate ele deixar cair a placa",
+      "resolva o caso da mingua do musaranho",
+      "resolva o caso da betty borocoxo",
+      "resolva o caso do magico misterioso",
+      "concluir o caso da escassez de musaranhos",
+      "concluir o caso blue betty",
+      "concluir o caso do magico desaparecido",
+      "encontre as pistas principais do caso blue betty",
+      "encontre as pistas principais do caso da escassez de musaranhos",
+      "encontre as pistas principais do caso do magico desaparecido",
+      "encontre as pistas chaves do caso da betty borocoxo",
+      "encontre as pistas chaves do caso do magico misterioso",
+      "concluir a historia",
+      "descansar tranquilo detetive caso encerrado ou sera que nao",
+      "tip of the cheeseberg",
+      "chutar o tubarao de wallop bay ate que ele deixe cair a placa de carro",
     ]),
   };
 
@@ -235,37 +209,52 @@ function analyzeJourney(
     return { journey: true, confidence: "probable" };
   }
 
-  // Requisitos que explicitamente colocam a conquista fora da primeira jornada
-  // segundo o critério adotado para o preparador.
+  // Conquistas que, pela análise fornecida para a primeira jornada, ficam
+  // explicitamente fora: metas de completar tudo, grandes coleções,
+  // dezenas de partidas, todas as pistas, dificuldade específica etc.
   const outsidePatterns = [
     "conquistar todos os trofeus",
     "all trophies",
-    "fixar todas as pistas",
+    "tá tudo nas cartas",
+    "ta tudo nas cartas",
+    "s all in the cards",
+    "entao quem foi",
+    "so whodunit",
     "pendure todas as pistas",
+    "fixar todas as pistas",
     "todas as pistas",
-    "todos os trabalhos paralelos",
+    "extra extra",
     "todos os trabalhos secundarios",
+    "todo trabalho secundario",
     "all side jobs",
-    "todas as armas disponiveis",
-    "all weapons",
-    "todas as armas que nao estao bloqueadas",
-    "todas as armas nao bloqueadas",
+    "hora do bang",
+    "hora do b a n g",
+    "o prologo",
+    "the prologue",
+    "verdadeiro detetive",
+    "real deal gumshoe",
+    "melhorar todas as armas",
+    "aprimorar todas as armas",
+    "hora do b a n g",
+    "todas as historias em quadrinhos",
+    "colete todas as tirinhas",
     "todas as edicoes do mouseburg herald",
     "colete todas as edicoes",
-    "todas as historias em quadrinhos",
-    "coletar todas as historias em quadrinhos",
-    "colete todas as tirinhas",
+    "rato de baralho",
+    "card shark",
+    "cole t todas as cartas",
+    "coletar todas as cartas",
     "todas as cartas de beisebol",
-    "colete todas as cartas",
-    "vença 30 partidas",
+    "vencer 30 partidas",
     "venca 30 partidas",
     "win 30",
-    "melhorar todas as armas ate o nivel 3",
-    "aprimorar todas as armas",
+    "todas as armas disponiveis",
+    "todas as armas que nao estao bloqueadas",
+    "all weapons",
     "finalizar o jogo na dificuldade dificil",
     "finalize o jogo na dificuldade dificil",
-    "todas as 10 estatuetas",
     "10 estatuetas secretas",
+    "estatuetas secretas",
     "x1 d ratificador",
     "x1 d mousifier",
     "arma exclusiva",
@@ -273,14 +262,15 @@ function analyzeJourney(
     "desbloqueie a x1",
     "desbloquear a x1",
     "concluir todos os casos",
+    "complete all cases",
   ];
 
   if (outsidePatterns.some((pattern) => text.includes(pattern))) {
     return { journey: false, confidence: "outside" };
   }
 
-  // Fora do Mouse, somente a confirmação textual inequívoca da conclusão da
-  // campanha permite verde automático; o restante permanece amarelo.
+  // Fora do Mouse, somente uma conclusão textual inequívoca da campanha
+  // entra automaticamente como provável. O restante fica para revisão.
   const explicitCompletionPatterns = [
     "complete the game",
     "finish the game",
