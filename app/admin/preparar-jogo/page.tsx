@@ -22,6 +22,7 @@ type A = {
   visualReferenceUrl?: string | null;
   visualBrief?: string;
   image?: string;
+  percent?: number;
 };
 
 type R = {
@@ -128,6 +129,8 @@ function PrepararJogoPage() {
   const [copiedNewConversationPrompt, setCopiedNewConversationPrompt] = useState(false);
   const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
+  const [syncingRanks, setSyncingRanks] = useState(false);
+  const [rankSyncMessage, setRankSyncMessage] = useState("");
   const [analyzingReferences, setAnalyzingReferences] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ done: 0, total: 0 });
   const [manualAchievement, setManualAchievement] = useState("");
@@ -180,6 +183,91 @@ function PrepararJogoPage() {
           : "As artes ainda precisam ser validadas antes da publicação.",
     };
   }, [result, saved]);
+
+  async function syncRanksFromExophase() {
+    if (!result?.game.slug || syncingRanks) return;
+
+    setSyncingRanks(true);
+    setRankSyncMessage("");
+    setError("");
+
+    try {
+      const prepResponse = await fetch(
+        "/api/admin/achievement-prep?slug=" +
+          encodeURIComponent(result.game.slug),
+        { cache: "no-store" }
+      );
+      const prepPayload = await prepResponse.json();
+
+      if (!prepResponse.ok) {
+        throw new Error(
+          prepPayload.error || "Não foi possível consultar o Exophase."
+        );
+      }
+
+      const exophaseAchievements = Array.isArray(prepPayload.achievements)
+        ? prepPayload.achievements
+        : [];
+
+      const rankResponse = await fetch("/api/admin/achievement-ranks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameSlug: result.game.slug,
+          achievements: exophaseAchievements.map(
+            (achievement: A, index: number) => ({
+              title: achievement.name,
+              rank: achievement.rank,
+              sortOrder: index,
+            })
+          ),
+        }),
+      });
+
+      const rankPayload = await rankResponse.json();
+
+      if (!rankResponse.ok) {
+        throw new Error(
+          rankPayload.error || "Não foi possível salvar os ranks."
+        );
+      }
+
+      const rankByTitle = new Map(
+        exophaseAchievements.map((achievement: A) => [
+          slugify(achievement.name),
+          achievement.rank,
+        ])
+      );
+
+      setResult((current) =>
+        current
+          ? {
+              ...current,
+              achievements: current.achievements.map((achievement) => ({
+                ...achievement,
+                rank:
+                  rankByTitle.get(slugify(achievement.name)) ?? achievement.rank,
+              })),
+            }
+          : current
+      );
+
+      setRankSyncMessage(
+        rankPayload.count === 1
+          ? "1 rank atualizado pelo Exophase."
+          : `${rankPayload.count ?? 0} ranks atualizados pelo Exophase.`
+      );
+    } catch (e) {
+      setRankSyncMessage("");
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível atualizar os ranks pelo Exophase."
+      );
+    } finally {
+      setSyncingRanks(false);
+    }
+  }
 
   async function search(gameSlug = registeredSlug, gameTitle = title) {
     if (!gameSlug && !gameTitle.trim()) {
@@ -1295,6 +1383,19 @@ function PrepararJogoPage() {
                     ? `Jogo localizado • ${result.game.exophase.achievementCount ?? result.achievements.length} conquistas`
                     : "Jogo não localizado"}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => void syncRanksFromExophase()}
+                  disabled={syncingRanks}
+                  className="rounded-full border border-emerald-400/20 bg-emerald-400/[.06] px-4 py-2 text-[10px] font-black text-emerald-200 disabled:cursor-wait disabled:opacity-50"
+                >
+                  {syncingRanks ? "Atualizando ranks..." : "🏆 Atualizar ranks pelo Exophase"}
+                </button>
+                {rankSyncMessage && (
+                  <span className="text-[10px] font-black text-emerald-300">
+                    {rankSyncMessage}
+                  </span>
+                )}
                 {result.game.exophase?.url && (
                   <a
                     href={result.game.exophase.url}
