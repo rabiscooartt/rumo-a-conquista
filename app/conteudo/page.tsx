@@ -31,7 +31,7 @@ type YouTubeChannelResponse = {
 type JourneyGameResponse = {
   game?: {
     title?: string;
-    youtubeFirstLiveUrl?: string;
+    youtubeFirstLiveEpisode?: string;
   };
   error?: string;
 };
@@ -397,7 +397,6 @@ export default function ConteudoPage() {
   const [requestedEpisode, setRequestedEpisode] = useState("");
   const [journeyStartRequested, setJourneyStartRequested] = useState(false);
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
-  const [journeyFirstLiveUrl, setJourneyFirstLiveUrl] = useState("");
   const [journeyError, setJourneyError] = useState("");
 
   useEffect(() => {
@@ -409,7 +408,6 @@ export default function ConteudoPage() {
     setRequestedEpisode(episode);
     setJourneyStartRequested(Boolean(gameSlug && isJourneyStart));
     setJourneyGameTitle("");
-    setJourneyFirstLiveUrl("");
     setJourneyError("");
 
     const controller = new AbortController();
@@ -432,11 +430,15 @@ export default function ConteudoPage() {
           throw new Error(data.error || "Não foi possível localizar o jogo da Jornada de Estreia.");
         }
 
-        setJourneyGameTitle(data.game.title?.trim() || gameSlug);
-        setJourneyFirstLiveUrl(data.game.youtubeFirstLiveUrl?.trim() || "");
+        const firstEpisode = normalizeEpisode(
+          data.game.youtubeFirstLiveEpisode?.trim() || ""
+        );
 
-        if (!data.game.youtubeFirstLiveUrl?.trim()) {
-          setJourneyError("A primeira live da Jornada de Estreia ainda não foi cadastrada para este jogo.");
+        setJourneyGameTitle(data.game.title?.trim() || gameSlug);
+        setRequestedEpisode(firstEpisode);
+
+        if (!firstEpisode) {
+          setJourneyError("O EP de início da Jornada de Estreia ainda não foi cadastrado para este jogo.");
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -511,39 +513,12 @@ export default function ConteudoPage() {
   const featuredVideo = videos[0];
 
   const journeyStartVideo = useMemo(() => {
-    if (!journeyStartRequested || !journeyFirstLiveUrl) {
+    if (!journeyStartRequested || !requestedEpisode) {
       return null;
     }
 
-    const videoId = extractYoutubeVideoId(journeyFirstLiveUrl);
-    const matchedVideo = videoId
-      ? videos.find((video) => video.id === videoId)
-      : undefined;
-
-    if (matchedVideo) {
-      return matchedVideo;
-    }
-
-    return {
-      id: videoId || "journey-start",
-      title:
-        "Início das lives — " +
-        (journeyGameTitle || "Jogo da Jornada de Estreia"),
-      description:
-        "Primeira live do jogo registrada para a Jornada de Estreia.",
-      publishedAt: "",
-      thumbnail: videoId
-        ? "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg"
-        : "",
-      url: journeyFirstLiveUrl,
-      type: "video" as const,
-    };
-  }, [
-    journeyStartRequested,
-    journeyFirstLiveUrl,
-    journeyGameTitle,
-    videos,
-  ]);
+    return filteredVideos[0] ?? null;
+  }, [journeyStartRequested, requestedEpisode, filteredVideos]);
 
   const totalLives = videos.filter(
     (video) => getVideoType(video) === "live"
@@ -620,7 +595,7 @@ export default function ConteudoPage() {
                   Jornada de Estreia
                 </p>
                 <p className="mt-1 text-sm font-black text-white">
-                  Início das lives{journeyGameTitle ? " · " + journeyGameTitle : ""}
+                  Início da Jornada{journeyGameTitle ? " · " + journeyGameTitle : ""}{requestedEpisode ? " · EP " + requestedEpisode : ""}
                 </p>
                 {journeyError ? (
                   <p className="mt-1 text-[10px] font-bold text-yellow-200/70">
@@ -628,7 +603,7 @@ export default function ConteudoPage() {
                   </p>
                 ) : (
                   <p className="mt-1 text-[10px] text-white/35">
-                    A primeira live registrada para este jogo aparece em destaque abaixo.
+                    O conteúdo do episódio de início da Jornada aparece abaixo.
                   </p>
                 )}
               </div>
