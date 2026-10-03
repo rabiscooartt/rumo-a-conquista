@@ -122,55 +122,141 @@ function isMomentary(name: string, description: string) {
   ].some((pattern) => text.includes(pattern));
 }
 
-function isJourneyByCompletion(gameTitle: string, name: string, description: string) {
+function analyzeJourney(
+  gameTitle: string,
+  name: string,
+  description: string
+): { journey: boolean; reason: string } {
   const gameKey = slug(gameTitle);
   const title = norm(name);
   const text = norm(name + " " + description);
 
-  // Regras negativas: qualquer requisito explícito de procura, coleção,
-  // atividade opcional ou desafio específico deixa a conquista FORA da
-  // Jornada de Estreia, salvo uma exceção conhecida do próprio jogo.
+  // REGRA 200%:
+  // - Verde exige evidência positiva.
+  // - Qualquer requisito adicional força amarelo.
+  // - Falta de evidência = amarelo.
+  // - Regras específicas só entram após verificação externa atualizada.
   const extraActionPatterns = [
-    "collect", "colecion", "colet", "gather", "recolha", "junte",
+    "collect", "collection", "collectible", "colecion", "colet", "colecao",
+    "gather", "recolha", "junte",
     "find", "encontre", "buscar", "procure", "pegue", "obtenha",
     "pick up", "buy", "compre", "adquira",
     "clue", "clues", "evidence", "evidencia", "evidencias", "pista", "pistas",
     "secondary", "side quest", "side quests", "optional", "opcional",
-    "trabalho secundario", "trabalhos secundarios", "missao secundaria",
-    "missoes secundarias",
-    "minigame", "mini game", "partida de cartas", "cartas de beisebol",
-    "in a single", "in one", "em uma unica", "em um unico",
-    "em uma partida", "em uma jogada", "em uma tentativa",
-    "in \d+ seconds", "em \d+ segundos", "em \d+ minutos",
-    "within the time", "within the time limit", "antes do tempo",
+    "side job", "side jobs", "trabalho secundario", "trabalhos secundarios",
+    "missao secundaria", "missoes secundarias",
+    "minigame", "mini game", "partida de cartas", "baseball card",
+    "single playthrough", "single run", "in a single", "in one",
+    "em uma unica", "em um unico", "em uma partida", "em uma jogada",
+    "em uma tentativa", "uma unica vez",
+    "within the time", "within the time limit", "before the timer", "antes do tempo",
     "sem ser atingido", "sem tomar dano",
     "kill", "mate", "matar", "elimine", "eliminar", "esmague", "exploda",
     "punch", "soco", "kick", "chute",
-    "upgrade", "aprimor", "melhore", "nivel 3",
-    "all comics", "all newspapers", "all baseball cards",
+    "upgrade", "upgraded", "aprimor", "melhore", "nivel 3",
+    "all comics", "all newspapers", "all baseball cards", "all weapons",
     "todas as tirinhas", "todos os jornais", "todas as cartas",
-    "todas as edicoes", "todas as pistas", "todos os trabalhos secundarios",
+    "todas as edicoes", "todas as pistas", "todas as armas",
+    "win ", "vença", "venca", "ganhe", "derrote", "defeat ",
+    "perform", "execute", "realize",
+    "requires ", "require ", "required ", "necessita", "necessario",
+    "precisa de", "precise de",
   ];
 
+  const hasNumericRequirement =
+    /\\b\\d+\\s+(?:enemies?|inimigos?|seconds?|minutes?|segundos?|minutos?|cards?|cartas?|clues?|pistas?|jobs?|trabalhos?|comic|comics|tirinhas?|newspapers?|jornais?)\\b/.test(
+      text
+    );
+
   const hasExtraAction =
+    hasNumericRequirement ||
     extraActionPatterns.some((pattern) => text.includes(pattern)) ||
     /\\bin \\d+ seconds?\\b/.test(text) ||
-    /\\bin \\d+ minutes?\\b/.test(text);
+    /\\bin \\d+ minutes?\\b/.test(text) ||
+    /\\bem \\d+ segundos?\\b/.test(text) ||
+    /\\bem \\d+ minutos?\\b/.test(text);
 
-  // Exceções verificadas por jogo. São usadas somente quando a evidência
-  // externa deixa claro que a conquista acompanha a progressão normal.
-  const verifiedJourneyByGame: Record<string, string[]> = {
-    "mouse-p-i-for-hire": [
-      "mestre dos macetes",
-      "armas muitas armas",
-      "ponta do queijoberg",
-    ],
+  // Exceções específicas verificadas em fontes externas atuais.
+  const verifiedJourneyByGame: Record<string, Record<string, string>> = {
+    "mouse-p-i-for-hire": {
+      "tricks of the trade":
+        "Confirmada como relacionada à história e impossível de perder.",
+      "mestre dos macetes":
+        "Confirmada: corresponde a Tricks of the Trade e faz parte da progressão da história.",
+      "tip of the cheeseberg":
+        "Confirmada como conclusão da história e impossível de perder.",
+      "ponta do queijoberg":
+        "Confirmada como conclusão da história e impossível de perder.",
+      "so whodunit":
+        "Confirmada como relacionada à história e impossível de perder.",
+      "guns lots of guns":
+        "Confirmada: as armas necessárias são dadas automaticamente ou ficam diretamente no caminho da história.",
+      "armas muitas armas":
+        "Confirmada: as armas necessárias são dadas automaticamente ou ficam diretamente no caminho da história.",
+    },
   };
 
-  const verifiedJourney = verifiedJourneyByGame[gameKey] ?? [];
-  if (verifiedJourney.some((item) => title === item)) return true;
+  const verifiedOutsideJourneyByGame: Record<string, Set<string>> = {
+    "mouse-p-i-for-hire": new Set([
+      "smoked cheese and mirrors",
+      "burdens of blue betty",
+      "misfortunes of the missing magician",
+      "secrets of the shrew shortage",
+      "our lesser brothers",
+      "tinsel boulevard",
+      "we ll bang ok",
+      "we ll bang ok?",
+      "we will bang ok",
+      "we will bang ok?",
+      "everybody loves rayguns",
+      "dime novel sleuth",
+      "real deal gumshoe",
+      "s all in the cards",
+      "babe got bat",
+      "comic relief",
+      "extra extra",
+      "the prequel",
+      "cover to cover",
+      "paper person",
+      "pocket aces",
+      "card shark",
+      "starter deck",
+      "boom town",
+      "firestarter",
+      "goud em",
+      "goudem",
+      "m m m muenster kill",
+      "spike d 16 tons",
+      "hole y trinity",
+      "extremely graphic novel",
+      "quints delight",
+      "quint s delight",
+      "herr flick of the wrist",
+      "this is my boomstick",
+    ]),
+  };
 
-  // Conclusão explícita do jogo/campanha/final.
+  const verifiedJourney = verifiedJourneyByGame[gameKey]?.[title];
+  if (verifiedJourney) {
+    return { journey: true, reason: verifiedJourney };
+  }
+
+  if (verifiedOutsideJourneyByGame[gameKey]?.has(title)) {
+    return {
+      journey: false,
+      reason: "Verificada como conquista que exige ação adicional, coleta, condição específica ou conteúdo opcional.",
+    };
+  }
+
+  if (hasExtraAction) {
+    return {
+      journey: false,
+      reason: "A conquista contém requisito adicional; não é garantida pela primeira jornada.",
+    };
+  }
+
+  // Modo genérico: somente verde quando a própria descrição confirma
+  // diretamente a conclusão do jogo/campanha/história.
   const explicitCompletionPatterns = [
     "complete the game",
     "finish the game",
@@ -187,55 +273,24 @@ function isJourneyByCompletion(gameTitle: string, name: string, description: str
     "finalizar a historia",
     "complete o jogo",
     "finalize o jogo",
-    "reached the ending",
     "reach the ending",
+    "reached the ending",
     "reach the final",
     "alcance o final",
     "chegue ao final",
-    "finalize a historia",
-    "caso encerrado",
   ];
 
-  const explicitCompletion = explicitCompletionPatterns.some((pattern) =>
-    text.includes(pattern)
-  );
-
-  if (explicitCompletion && !hasExtraAction) return true;
-
-  // Progressão inequívoca de campanha: capítulos/missões finais e habilidades
-  // concedidas como parte do avanço, desde que não haja requisito extra.
-  const progressionPatterns = [
-    "unlock all special abilities",
-    "unlock all abilities",
-    "desbloqueie todas as habilidades especiais",
-    "desbloqueie todas as habilidades",
-    "todas as habilidades especiais",
-    "all special abilities",
-    "complete chapter",
-    "finish chapter",
-    "complete the chapter",
-    "finish the chapter",
-    "concluir o capitulo",
-    "finalizar o capitulo",
-    "complete mission",
-    "finish mission",
-    "concluir a missao",
-    "finalizar a missao",
-    "final boss",
-    "ultimo chefe",
-    "ultimo chefe",
-    "chefao final",
-    "chefe final",
-  ];
-
-  if (!hasExtraAction && progressionPatterns.some((pattern) => text.includes(pattern))) {
-    return true;
+  if (explicitCompletionPatterns.some((pattern) => text.includes(pattern))) {
+    return {
+      journey: true,
+      reason: "A própria descrição confirma a conclusão do jogo/campanha/história.",
+    };
   }
 
-  // “Resolver o caso” não é suficiente por si só: investigações podem exigir
-  // pistas, evidências ou trabalhos secundários. Sem evidência forte de
-  // progressão obrigatória, fica amarelo para revisão humana.
-  return false;
+  return {
+    journey: false,
+    reason: "Sem evidência positiva suficiente de progressão obrigatória. Regra 200%: dúvida permanece amarela.",
+  };
 }
 function decodeHtml(value: string) {
   return value
@@ -765,7 +820,13 @@ export async function GET(req: NextRequest) {
       const description = a.description?.trim() || "";
       const online = isOnline(name, description);
       const momentary = isMomentary(name, description);
-      const journey = !online && isJourneyByCompletion(registeredGame.title, name, description);
+      const journeyAnalysis = !online
+        ? analyzeJourney(registeredGame.title, name, description)
+        : {
+            journey: false,
+            reason: "Conquista online não entra na Jornada de Estreia.",
+          };
+      const journey = journeyAnalysis.journey;
 
       return {
         name,
