@@ -2299,7 +2299,11 @@ function PrepararJogoPage() {
                                     href={
                                       "/conteudo?game=" +
                                       encodeURIComponent(result.game.slug ?? "") +
-                                      "&inicio=1"
+                                      "&ep=" +
+                                      encodeURIComponent(
+                                        normalizeEpisode(result.game.youtubeFirstLiveEpisode) ||
+                                          result.game.youtubeFirstLiveEpisode.trim()
+                                      )
                                     }
                                     className="mt-3 inline-flex rounded-lg border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
                                     onClick={(event) => event.stopPropagation()}
