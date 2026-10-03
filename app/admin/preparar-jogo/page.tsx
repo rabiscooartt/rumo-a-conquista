@@ -2341,7 +2341,12 @@ function PrepararJogoPage() {
                                 <div className="flex items-end gap-2">
                                   {normalizeEpisode(a.episode) ? (
                                     <Link
-                                      href={"/conteudo?ep=" + encodeURIComponent(normalizeEpisode(a.episode))}
+                                      href={
+                                        "/conteudo?game=" +
+                                        encodeURIComponent(result.game.slug ?? "") +
+                                        "&ep=" +
+                                        encodeURIComponent(normalizeEpisode(a.episode))
+                                      }
                                       className="rounded-lg border border-blue-400/20 bg-blue-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-blue-200 transition hover:border-blue-400/40 hover:bg-blue-400/10"
                                       onClick={(event) => event.stopPropagation()}
                                     >
