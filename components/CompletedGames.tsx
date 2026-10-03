@@ -231,7 +231,7 @@ export default function CompletedGames() {
           <h2 className="text-4xl font-black text-white">Jogos Concluídos</h2>
 
           <p className="mt-2 text-sm text-white/50">
-            Coleção de jornadas finalizadas e emblemas conquistados
+            Coleção de jornadas finalizadas e maestrias conquistadas
           </p>
         </div>
 
