@@ -23,6 +23,35 @@ type A = {
   visualBrief?: string;
 };
 
+function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achievement: A }) {
+  const [failed, setFailed] = useState(false);
+  const imageName = slugify(achievement.name || "");
+  const imageSrc =
+    gameSlug && imageName
+      ? `/images/games/${slugify(gameSlug)}/achievements/${imageName}.png`
+      : "";
+
+  if (achievement.isCustom || !imageSrc || failed) {
+    return (
+      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-2xl">
+        {achievement.isCustom ? "⭐" : "🏆"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/30">
+      <img
+        src={imageSrc}
+        alt={`Arte da conquista: ${achievement.name}`}
+        className="h-full w-full object-cover"
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
 type R = {
   game: {
     name: string;
@@ -146,6 +175,16 @@ function PrepararJogoPage() {
         .map((a, index) => prepareAchievement(a, index)) ?? [],
     [result]
   );
+
+  const rankCounts = useMemo(() => {
+    const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
+
+    for (const achievement of result?.achievements ?? []) {
+      if (!achievement.notDoing) counts[achievement.rank] += 1;
+    }
+
+    return counts;
+  }, [result]);
 
   const publicationStatus = useMemo(() => {
     if (!result) {
@@ -1308,12 +1347,23 @@ function PrepararJogoPage() {
             </section>
 
             <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div>
                   <p className="text-[9px] uppercase tracking-[.18em] text-white/25">
                     03
                   </p>
                   <h2 className="text-xl font-black">Seleção da Jornada</h2>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase">
+                  <span className="rounded-full border border-yellow-300/20 bg-yellow-400/[.05] px-3 py-2 text-yellow-100">
+                    🥉 Bronze {rankCounts.Bronze}
+                  </span>
+                  <span className="rounded-full border border-slate-300/20 bg-slate-200/[.05] px-3 py-2 text-slate-100">
+                    🥈 Prata {rankCounts.Prata}
+                  </span>
+                  <span className="rounded-full border border-amber-300/20 bg-amber-400/[.05] px-3 py-2 text-amber-100">
+                    🥇 Ouro {rankCounts.Ouro}
+                  </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-black uppercase">
                   <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3.5 py-2 text-emerald-200">
@@ -1534,7 +1584,9 @@ function PrepararJogoPage() {
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      {a.isCustom ? (
+                      <div className="flex min-w-0 flex-1 items-center gap-4">
+                        <AchievementThumb gameSlug={result.game.slug} achievement={a} />
+                        {a.isCustom ? (
                         <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
                           <p className="text-[9px] uppercase text-sky-300/60">
                             Conquista manual
@@ -1579,6 +1631,7 @@ function PrepararJogoPage() {
                           </p>
                         </button>
                       )}
+                      </div>
 
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
