@@ -64,6 +64,7 @@ type R = {
     slug?: string;
     registered?: boolean;
     youtubePlaylistUrl?: string;
+    youtubeFirstLiveUrl?: string;
     exophase?: {
       found: boolean;
       url: string | null;
@@ -1798,19 +1799,21 @@ function PrepararJogoPage() {
                                   <p className="truncate text-[10px] font-black uppercase tracking-[.06em] text-emerald-200/80">
                                     🟢 Jornada de Estreia · adquirida nas primeiras lives
                                   </p>
-                                  {result.game.youtubePlaylistUrl ? (
-                                    <a
-                                      href={result.game.youtubePlaylistUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
+                                  {result.game.youtubeFirstLiveUrl ? (
+                                    <Link
+                                      href={
+                                        "/conteudo?game=" +
+                                        encodeURIComponent(result.game.slug ?? "") +
+                                        "&inicio=1"
+                                      }
                                       className="shrink-0 rounded-md border border-emerald-400/20 bg-emerald-400/[.06] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
                                       onClick={(event) => event.stopPropagation()}
                                     >
                                       ▶ INÍCIO DAS LIVES
-                                    </a>
+                                    </Link>
                                   ) : (
                                     <span className="shrink-0 rounded-md border border-yellow-400/15 bg-yellow-400/[.04] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-yellow-200/45">
-                                      Playlist não cadastrada
+                                      Primeira live não cadastrada
                                     </span>
                                   )}
                                 </div>
@@ -1841,16 +1844,18 @@ function PrepararJogoPage() {
                                 <p className="mt-1 text-[10px] leading-relaxed text-white/30">
                                   Esta conquista faz parte da Jornada de Estreia, portanto não precisa de EP nem data individual.
                                 </p>
-                                {result.game.youtubePlaylistUrl ? (
-                                  <a
-                                    href={result.game.youtubePlaylistUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                {result.game.youtubeFirstLiveUrl ? (
+                                  <Link
+                                    href={
+                                      "/conteudo?game=" +
+                                      encodeURIComponent(result.game.slug ?? "") +
+                                      "&inicio=1"
+                                    }
                                     className="mt-3 inline-flex rounded-lg border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
                                     onClick={(event) => event.stopPropagation()}
                                   >
                                     ▶ INÍCIO DAS LIVES
-                                  </a>
+                                  </Link>
                                 ) : null}
                               </div>
                             ) : (
