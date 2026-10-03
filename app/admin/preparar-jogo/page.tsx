@@ -128,6 +128,12 @@ function slugify(value: string) {
     .replace(/^-|-$/g, "");
 }
 
+function normalizeEpisode(value?: string) {
+  const match = String(value ?? "").match(/\d+/);
+  if (!match) return "";
+  return String(Number(match[0])).padStart(2, "0");
+}
+
 function prepareAchievement(a: A, index: number): Prepared {
   const visualReferenceInstruction = a.visualReferenceUrl
     ? "REFERÊNCIA EXOPHASE: usar exclusivamente como material de análise visual. A referência NÃO é um molde, NÃO deve ser enviada diretamente ao gerador, transformada, redesenhada, recortada, filtrada ou reproduzida. Extraia somente características visuais abstratas e gerais — paleta, contraste, luminosidade, tratamento de sombras, linha/traço, espessura dos contornos, acabamento, textura, atmosfera, ritmo visual, densidade de detalhes e equilíbrio entre figura e fundo — e converta essas características em um brief textual próprio. NÃO reproduza personagens específicos, criaturas reconhecíveis, poses, rostos, roupas características, objetos exclusivos ou distintivos, símbolos específicos, ícones exclusivos, logos, textos, composições reconhecíveis ou enquadramentos idênticos da referência. A arte final deve ser uma composição nova e independente, criada a partir do significado da conquista, do nome, da descrição, do contexto do jogo, do brief visual abstrato e da Matriz Visual Oficial do Rumo à Conquista. Se a referência for monocromática ou usar uma paleta muito restrita, preserve essa característica. NÃO introduza novas cores por preferência estética."
@@ -1669,8 +1675,9 @@ function PrepararJogoPage() {
                             : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
                     }
                   >
-                    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
                         <AchievementThumb gameSlug={result.game.slug} achievement={a} />
                         {a.isCustom ? (
                         <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
@@ -1758,9 +1765,10 @@ function PrepararJogoPage() {
                             </button>
                           </>
                         )}
+                        </div>
                       </div>
                       {!a.notDoing && (
-                        <div className="mt-2 grid w-full gap-2 rounded-xl border border-white/[.07] bg-black/20 p-2 lg:grid-cols-[1fr_1fr_auto]">
+                        <div className="grid w-full gap-2 rounded-xl border border-white/[.07] bg-black/20 p-2 lg:grid-cols-[1fr_1fr_auto]">
                           <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
                             🎬 EP da live
                             <input
@@ -1784,7 +1792,20 @@ function PrepararJogoPage() {
                               className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none"
                             />
                           </label>
-                          <div className="flex items-end">
+                          <div className="flex items-end gap-2">
+                            {normalizeEpisode(a.episode) ? (
+                              <Link
+                                href={"/conteudo?ep=" + encodeURIComponent(normalizeEpisode(a.episode))}
+                                className="rounded-lg border border-blue-400/20 bg-blue-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-blue-200 transition hover:border-blue-400/40 hover:bg-blue-400/10"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                🔗 Abrir EP {normalizeEpisode(a.episode)} em Conteúdo
+                              </Link>
+                            ) : (
+                              <span className="rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/25">
+                                Informe o EP para criar o link
+                              </span>
+                            )}
                             <span className="rounded-lg border border-emerald-400/15 bg-emerald-400/[.05] px-3 py-2 text-[9px] font-black uppercase text-emerald-200/70">
                               {a.episode?.trim() && a.earnedDate?.trim()
                                 ? "✓ Registro completo"
