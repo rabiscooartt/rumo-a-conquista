@@ -116,6 +116,7 @@ type GamePayload = {
   firstJourney?: FirstJourneyState;
   youtubePlaylistUrl?: string;
   youtubeFirstLiveUrl?: string;
+  youtubeFirstLiveEpisode?: string;
   manualTotalPlayedMinutes?: number | null;
   achievementsList?: IncomingAchievement[];
   isHidden?: boolean;
@@ -198,6 +199,49 @@ function extractYoutubePlaylistUrl(review: unknown) {
   }
 
   const value = (review as Record<string, unknown>).__youtubePlaylistUrl;
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function withYoutubeFirstLiveEpisodeInReview(
+  review: unknown,
+  youtubeFirstLiveEpisode?: string
+) {
+  if (youtubeFirstLiveEpisode === undefined) {
+    return review ?? null;
+  }
+
+  const normalizedEpisode = String(youtubeFirstLiveEpisode).trim();
+
+  if (review && typeof review === "object" && !Array.isArray(review)) {
+    const next = {
+      ...(review as Record<string, unknown>),
+    };
+
+    if (normalizedEpisode) {
+      next.__youtubeFirstLiveEpisode = normalizedEpisode;
+    } else {
+      delete next.__youtubeFirstLiveEpisode;
+    }
+
+    return Object.keys(next).length > 0 ? next : null;
+  }
+
+  if (!normalizedEpisode) {
+    return review ?? null;
+  }
+
+  return {
+    __youtubeFirstLiveEpisode: normalizedEpisode,
+    value: review ?? null,
+  };
+}
+
+function extractYoutubeFirstLiveEpisode(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubeFirstLiveEpisode;
   return typeof value === "string" ? value.trim() : "";
 }
 
@@ -298,12 +342,15 @@ function buildGameData(game: GamePayload) {
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
-    review: withYoutubeFirstLiveInReview(
-      withYoutubePlaylistInReview(
-        withFirstJourneyInReview(game.review, game.firstJourney),
-        game.youtubePlaylistUrl
+    review: withYoutubeFirstLiveEpisodeInReview(
+      withYoutubeFirstLiveInReview(
+        withYoutubePlaylistInReview(
+          withFirstJourneyInReview(game.review, game.firstJourney),
+          game.youtubePlaylistUrl
+        ),
+        game.youtubeFirstLiveUrl
       ),
-      game.youtubeFirstLiveUrl
+      game.youtubeFirstLiveEpisode
     ),
     ...(manualTimeProvided
       ? { manual_total_played_minutes: manualTotalPlayedMinutes }
@@ -677,6 +724,7 @@ async function fetchEnrichedGame(
     firstJourney: extractFirstJourney(game.review),
     youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
     youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
+    youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(game.review),
     achievementsList: achievementRows.map((achievement) =>
       normalizeAchievementFromDatabase(
         achievement,
@@ -829,6 +877,7 @@ export async function GET() {
       firstJourney: extractFirstJourney(game.review),
       youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
       youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
+      youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(game.review),
       achievementsList:
         achievementsByGameSlug.get(game.slug) ?? [],
     }));
