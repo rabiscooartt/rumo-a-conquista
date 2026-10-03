@@ -50,7 +50,7 @@ export default function NewGamesAdminPage() {
             selectedGame.currentObjective || selectedGame.objective
               ? "manual"
               : "automatic",
-          youtubePlaylistUrl: selectedGame.youtubePlaylistUrl || "",
+          youtubeFirstLiveUrl: selectedGame.youtubeFirstLiveUrl || "",
         }
     : null;
 
@@ -92,12 +92,12 @@ export default function NewGamesAdminPage() {
             !Array.isArray(selectedGame.review)
               ? { ...(selectedGame.review as Record<string, unknown>) }
               : {};
-          const playlist = String(values.youtubePlaylistUrl || "").trim();
+          const firstLive = String(values.youtubeFirstLiveUrl || "").trim();
 
-          if (playlist) {
-            review.__youtubePlaylistUrl = playlist;
+          if (firstLive) {
+            review.__youtubeFirstLiveUrl = firstLive;
           } else {
-            delete review.__youtubePlaylistUrl;
+            delete review.__youtubeFirstLiveUrl;
           }
 
           return Object.keys(review).length > 0 ? review : null;
@@ -231,21 +231,21 @@ export default function NewGamesAdminPage() {
 
                     <label>
                       <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
-                        Playlist das Lives
+                        Primeira Live — Jornada de Estreia
                       </span>
                       <input
-                        value={values.youtubePlaylistUrl}
+                        value={values.youtubeFirstLiveUrl}
                         onChange={(event) =>
                           setDraft({
                             ...values,
-                            youtubePlaylistUrl: event.target.value,
+                            youtubeFirstLiveUrl: event.target.value,
                           })
                         }
-                        placeholder="https://www.youtube.com/playlist?list=..."
+                        placeholder="https://www.youtube.com/watch?v=...&list=..."
                         className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none placeholder:text-white/20 focus:border-red-500/40"
                       />
                       <span className="mt-1 block text-[9px] leading-relaxed text-white/25">
-                        Usada pelo botão INÍCIO DAS LIVES da Jornada de Estreia.
+                        Link da primeira live do jogo, copiado de dentro da playlist do YouTube. Usado pelo botão INÍCIO DAS LIVES da Jornada de Estreia.
                       </span>
                     </label>
 
