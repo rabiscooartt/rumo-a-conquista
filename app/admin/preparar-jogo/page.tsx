@@ -170,7 +170,6 @@ function PrepararJogoPage() {
   const [mergeCandidate, setMergeCandidate] = useState<A | null>(null);
   const [mergeTitle, setMergeTitle] = useState("");
   const [mergeDescription, setMergeDescription] = useState("");
-  const [journeyPreparedCount, setJourneyPreparedCount] = useState<number | null>(null);
 
   const selected = useMemo(
     () =>
@@ -224,7 +223,6 @@ function PrepararJogoPage() {
   }, [result, saved]);
 
   async function search(gameSlug = registeredSlug, gameTitle = title) {
-    setJourneyPreparedCount(null);
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
       return;
@@ -356,25 +354,6 @@ function PrepararJogoPage() {
       cancelled = true;
     };
   }, [result?.game.slug]);
-  function prepareJourneyDecision() {
-    const preparedCount = result?.achievements.filter(
-      (a) => !a.notDoing && a.journeySuggestion
-    ).length ?? 0;
-
-    setJourneyPreparedCount(preparedCount);
-    setSaved(false);
-    setResult((current) =>
-      current
-        ? {
-            ...current,
-            achievements: current.achievements.map((a) => ({
-              ...a,
-              journey: !a.notDoing && a.journeySuggestion,
-            })),
-          }
-        : current
-    );
-  }
 
   function toggle(id: string) {
     setSaved(false);
@@ -1397,40 +1376,19 @@ function PrepararJogoPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-black uppercase">
                   <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[.06] px-3.5 py-2 text-emerald-200">
-                    Verde = decisão do preparador: Jornada
+                    Verde = decisão manual: Jornada
                   </span>
                   <span className="rounded-full border border-yellow-400/25 bg-yellow-400/[.06] px-3.5 py-2 text-yellow-100">
-                    Amarelo = decisão do preparador: Fora
+                    Amarelo = decisão manual: Fora
                   </span>
                 </div>
               </div>
 
-              <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3 text-xs leading-relaxed text-white/45">
-                <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
+              <div className="mt-3 rounded-xl border border-emerald-400/[.10] bg-emerald-400/[.025] p-3 text-xs leading-relaxed text-white/45">
+                <span className="font-black text-white/70">👤 Decisão manual:</span> todas as conquistas começam fora da Jornada. Clique em cada conquista que você realmente fez na sua primeira jornada para colocá-la em verde. Se não fez na primeira jornada, deixe amarelo.
               </div>
 
-              <div className="mt-3 flex flex-col gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[.03] p-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-200/70">
-                    Decisão preparada da Jornada
-                  </p>
-                  <p className="mt-1 text-xs text-white/45">
-                    Analisa cada conquista com a regra 200%: só confirma o que tiver evidência positiva; dúvida permanece amarela.
-                  </p>
-                  {journeyPreparedCount !== null && (
-                    <p className="mt-1 text-[10px] font-bold text-emerald-200/80">
-                      {journeyPreparedCount} {journeyPreparedCount === 1 ? "conquista marcada" : "conquistas marcadas"} como Jornada de Estreia.
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={prepareJourneyDecision}
-                  className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 hover:bg-emerald-400/20"
-                >
-                  ⚡ Analisar e Preparar Jornada
-                </button>
-              </div>
+
 
               <div className="mt-5 rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -1715,9 +1673,6 @@ function PrepararJogoPage() {
                           <>
                             <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
                               👤 {a.journey ? "Decisão: Jornada de Estreia" : "Decisão: Fora da Jornada"}
-                            </span>
-                            <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black text-white/45">
-                              🤖 {a.journeySuggestion ? "Sugestão: Jornada" : "Sugestão: Fora"}
                             </span>
                             <button
                               type="button"
