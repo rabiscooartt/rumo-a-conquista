@@ -152,11 +152,10 @@ function isJourneyByCompletion(gameTitle: string, name: string, description: str
     "todas as edicoes", "todas as pistas", "todos os trabalhos secundarios",
   ];
 
-  const hasExtraAction = extraActionPatterns.some((pattern) =>
-    pattern.startsWith("in ") && /\\d/.test(pattern)
-      ? new RegExp(pattern).test(text)
-      : text.includes(pattern)
-  );
+  const hasExtraAction =
+    extraActionPatterns.some((pattern) => text.includes(pattern)) ||
+    /\\bin \\d+ seconds?\\b/.test(text) ||
+    /\\bin \\d+ minutes?\\b/.test(text);
 
   // Exceções verificadas por jogo. São usadas somente quando a evidência
   // externa deixa claro que a conquista acompanha a progressão normal.
@@ -224,7 +223,7 @@ function isJourneyByCompletion(gameTitle: string, name: string, description: str
     "finalizar a missao",
     "final boss",
     "ultimo chefe",
-    "último chefe",
+    "ultimo chefe",
     "chefao final",
     "chefe final",
   ];
