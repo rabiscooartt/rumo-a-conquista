@@ -283,19 +283,13 @@ function normalizeAchievement(
   const rawTrophy =
     readText(achievement.trophy, "") ||
     readText(achievement.icon, "");
-  const descriptionNormalized = normalizeText(
-    readText(achievement.description, "")
-  );
   const titleNormalized = normalizeText(title);
   const isEmblem =
     Boolean(achievement.isEmblem) ||
     rawRank === "Diamante" ||
     rawRank === "Extrema" ||
     rawTrophy.includes("💎") ||
-    titleNormalized.includes("maestriafinal") ||
-    titleNormalized === "emblema" ||
-    descriptionNormalized.includes("concluatodasasconquistas") ||
-    descriptionNormalized.includes("completetodasasconquistas");
+    titleNormalized.includes("maestriafinal");
 
   const rank = normalizeRank(rawRank);
 
@@ -487,19 +481,13 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     game.progress
   );
 
-  const emblem = normalizeEmblem(game.emblem);
-
   const finalBadge = createFinalBadgeFromAchievements(
     finalSlug,
     activeAchievementsForBadge,
-    emblem
-      ? {
-          title: emblem.title,
-          icon: "🏆",
-          image: emblem.image,
-        }
-      : game.finalBadge
+    game.finalBadge
   );
+
+  const emblem = normalizeEmblem(game.emblem);
   const firstJourney =
     game.firstJourney && typeof game.firstJourney === "object"
       ? (game.firstJourney as FirstJourneyState)
