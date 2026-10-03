@@ -146,7 +146,7 @@ function isJourneyByCompletion(gameTitle: string, name: string, description: str
     "sem ser atingido", "sem tomar dano",
     "kill", "mate", "matar", "elimine", "eliminar", "esmague", "exploda",
     "punch", "soco", "kick", "chute",
-    "upgrade", "aprimor", "melhore", "nível 3", "nivel 3",
+    "upgrade", "aprimor", "melhore", "nivel 3",
     "all comics", "all newspapers", "all baseball cards",
     "todas as tirinhas", "todos os jornais", "todas as cartas",
     "todas as edicoes", "todas as pistas", "todos os trabalhos secundarios",
@@ -766,7 +766,7 @@ export async function GET(req: NextRequest) {
       const description = a.description?.trim() || "";
       const online = isOnline(name, description);
       const momentary = isMomentary(name, description);
-      const journey = !online && isJourneyByCompletion(name, description);
+      const journey = !online && isJourneyByCompletion(registeredGame.title, name, description);
 
       return {
         name,
