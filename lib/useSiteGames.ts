@@ -45,6 +45,7 @@ export type SiteGame = {
   image?: string;
   cardImage?: string;
   platform?: string;
+  youtubePlaylistUrl?: string;
   achievementsList?: FlexibleAchievementInput[];
   achievementsUnlocked?: number;
   achievementsTotal?: number;
@@ -114,6 +115,8 @@ type DatabaseGame = {
   created_at: string;
   updated_at: string;
   manual_total_played_minutes: number | null;
+  review?: unknown;
+  youtubePlaylistUrl?: string;
   first_journey?: FirstJourneyState;
   firstJourney?: FirstJourneyState;
   achievementsList?: FlexibleAchievementInput[];
@@ -131,6 +134,15 @@ export function slugify(text: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function extractYoutubePlaylistUrl(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubePlaylistUrl;
+  return readText(value, "").trim();
 }
 
 function readNumber(value: unknown, fallback = 0) {
@@ -446,6 +458,9 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     readText(game.cardImage, "") || `/images/games/${finalSlug}/cover.jpg`;
 
   const platform = readText(game.platform, "Steam").trim() || "Steam";
+  const youtubePlaylistUrl =
+    readText(game.youtubePlaylistUrl, "").trim() ||
+    extractYoutubePlaylistUrl(game.review);
 
   // A lista vinda do Supabase é a fonte oficial quando existe.
   // Jogos finalizados históricos, porém, podem ainda não ter suas conquistas
@@ -515,6 +530,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     image,
     cardImage,
     platform,
+    youtubePlaylistUrl,
     achievementsList,
     achievementsUnlocked: progressStats.completed,
     achievementsTotal: progressStats.total,
@@ -580,6 +596,8 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
           (game as DatabaseGame).first_journey,
         cardImage: game.card_image ?? "",
         platform: game.platform ?? "Steam",
+        youtubePlaylistUrl: game.youtubePlaylistUrl ?? "",
+        review: game.review,
         achievementsList: Array.isArray(game.achievementsList)
           ? game.achievementsList
           : [],
@@ -648,6 +666,7 @@ async function saveGameToSupabase(
     image: game.image,
     cardImage: game.cardImage,
     platform: game.platform,
+    review: game.review,
     finalBadge: game.finalBadge,
     emblem: game.emblem,
     trophies: game.trophies,
