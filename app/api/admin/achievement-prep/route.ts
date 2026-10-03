@@ -7,6 +7,7 @@ type ExophaseAchievement = {
   percent?: number;
   visualReferenceUrl?: string | null;
   detailUrl?: string | null;
+  image?: string;
 };
 
 function norm(v: unknown) {
