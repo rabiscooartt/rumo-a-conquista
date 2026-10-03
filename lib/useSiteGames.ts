@@ -16,6 +16,7 @@ export type FlexibleAchievementInput = {
   earnedDate?: string;
   image?: string;
   isCustom?: boolean;
+  isEmblem?: boolean;
   [key: string]: unknown;
 };
 
@@ -61,11 +62,10 @@ export type SiteGame = {
     bronze?: number;
     silver?: number;
     gold?: number;
-    diamond?: number;
     Bronze?: number;
     Prata?: number;
     Ouro?: number;
-    Diamante?: number;
+    emblem?: number;
   };
   [key: string]: unknown;
 };
@@ -251,15 +251,15 @@ function normalizeAchievementStatus(status?: string) {
 function normalizeRank(value?: string) {
   const text = readText(value, "Bronze");
 
-  if (text === "Diamante") return "Diamante";
-  if (text === "Ouro") return "Ouro";
+  // "Diamante" era o nome legado da recompensa final. Hoje a recompensa
+  // final é o Emblema e os únicos ranks das conquistas são Bronze/Prata/Ouro.
+  if (text === "Ouro" || text === "Diamante" || text === "Extrema") return "Ouro";
   if (text === "Prata") return "Prata";
 
   return "Bronze";
 }
 
 function rankToTrophy(rank: string) {
-  if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
   if (rank === "Prata") return "🥈";
 
@@ -276,16 +276,26 @@ function normalizeAchievement(
     `Conquista ${index + 1}`
   ).trim();
 
-  const rank = normalizeRank(
+  const rawRank =
     readText(achievement.difficulty, "") ||
-      readText(achievement.rank, "") ||
-      "Bronze"
-  );
-
-  const trophy =
+    readText(achievement.rank, "") ||
+    "Bronze";
+  const rawTrophy =
     readText(achievement.trophy, "") ||
-    readText(achievement.icon, "") ||
-    rankToTrophy(rank);
+    readText(achievement.icon, "");
+  const titleNormalized = normalizeText(title);
+  const isEmblem =
+    Boolean(achievement.isEmblem) ||
+    rawRank === "Diamante" ||
+    rawRank === "Extrema" ||
+    rawTrophy.includes("💎") ||
+    titleNormalized.includes("maestriafinal");
+
+  const rank = normalizeRank(rawRank);
+
+  const trophy = isEmblem
+    ? "🏆"
+    : rawTrophy || rankToTrophy(rank);
 
   return {
     ...achievement,
@@ -302,6 +312,7 @@ function normalizeAchievement(
     earnedDate: readText(achievement.earnedDate, ""),
     image: readText(achievement.image, "").trim(),
     isCustom: Boolean(achievement.isCustom ?? true),
+    isEmblem,
   };
 }
 
@@ -353,12 +364,9 @@ function isCompletedAchievement(achievement: FlexibleAchievementInput) {
 
 function isMasteryAchievement(achievement: FlexibleAchievementInput) {
   const title = normalizeText(readText(achievement.title, ""));
-  const rank = normalizeRank(
-    readText(achievement.rank, readText(achievement.difficulty, "Bronze"))
-  );
 
   return (
-    rank === "Diamante" ||
+    achievement.isEmblem === true ||
     title.includes("maestria") ||
     title.includes("mastery") ||
     title.includes("final")
@@ -392,27 +400,22 @@ function createFinalBadgeFromAchievements(
   const masteryAchievement = getBestMasteryAchievement(achievementsList);
 
   if (masteryAchievement) {
-    const rank = normalizeRank(
-      readText(
-        masteryAchievement.rank,
-        readText(masteryAchievement.difficulty, "Diamante")
-      )
-    );
-
     return {
-      title: readText(masteryAchievement.title, "Maestria Final"),
+      title: readText(masteryAchievement.title, "Emblema"),
       icon:
-        readText(masteryAchievement.icon, "") ||
-        readText(masteryAchievement.trophy, "") ||
-        rankToTrophy(rank),
+        masteryAchievement.isEmblem === true
+          ? "🏆"
+          : readText(masteryAchievement.icon, "") ||
+            readText(masteryAchievement.trophy, "") ||
+            rankToTrophy("Ouro"),
       image: readText(masteryAchievement.image, ""),
     };
   }
 
   if (fallback && typeof fallback === "object") {
     return {
-      title: readText(fallback.title, "Maestria Final"),
-      icon: readText(fallback.icon, "💎"),
+      title: readText(fallback.title, "Emblema"),
+      icon: readText(fallback.icon, "🏆"),
       image:
         readText(fallback.image, "") ||
         `/images/games/${finalSlug}/achievements/maestria-final.png`,
@@ -420,8 +423,8 @@ function createFinalBadgeFromAchievements(
   }
 
   return {
-    title: "Maestria Final",
-    icon: "💎",
+    title: "Emblema",
+    icon: "🏆",
     image: `/images/games/${finalSlug}/achievements/maestria-final.png`,
   };
 }
