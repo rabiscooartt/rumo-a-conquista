@@ -258,6 +258,7 @@ export default function NewGameAchievementsEditor({
       isCustom: true,
       isHidden: false,
       isExophase: false,
+      isEmblem: false,
     };
 
     const next = [newAchievement, ...achievements];
@@ -419,7 +420,9 @@ export default function NewGameAchievementsEditor({
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black text-white">{achievement.title}</p>
                       <p className="mt-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
-                        {achievement.trophy} {achievement.difficulty}
+                        {achievement.isEmblem
+                          ? "🏆 Emblema"
+                          : `${achievement.trophy} ${achievement.difficulty}`}
                         {achievement.isExophase ? " • Exophase" : ""}
                         {achievement.isHidden ? " • Oculta" : ""}
                       </p>
@@ -462,10 +465,32 @@ export default function NewGameAchievementsEditor({
                         <input value={achievement.title} onChange={(event) => updateAchievement(achievement.id, { title: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40" />
                       </label>
                       <label>
-                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
-                        <select value={achievement.difficulty} disabled={saving} onChange={(event) => { void changeAchievementRank(achievement.id, event.target.value as AchievementRank); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-50">
-                          {(["Bronze", "Prata", "Ouro"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
-                        </select>
+                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">
+                          {achievement.isEmblem ? "Recompensa" : "Rank"}
+                        </span>
+                        {achievement.isEmblem ? (
+                          <div className="mt-2 flex h-[42px] items-center rounded-xl border border-amber-400/20 bg-amber-400/[.05] px-3 text-sm font-black text-amber-100">
+                            🏆 Emblema
+                          </div>
+                        ) : (
+                          <select
+                            value={achievement.difficulty}
+                            disabled={saving}
+                            onChange={(event) => {
+                              void changeAchievementRank(
+                                achievement.id,
+                                event.target.value as AchievementRank
+                              );
+                            }}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-50"
+                          >
+                            {(["Bronze", "Prata", "Ouro"] as const).map((rank) => (
+                              <option key={rank} value={rank}>
+                                {rankToTrophy(rank)} {rankLabel(rank)}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </label>
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Status</span>
