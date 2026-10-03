@@ -122,33 +122,122 @@ function isMomentary(name: string, description: string) {
   ].some((pattern) => text.includes(pattern));
 }
 
-function isJourneyByCompletion(name: string, description: string) {
+function isJourneyByCompletion(gameTitle: string, name: string, description: string) {
+  const gameKey = slug(gameTitle);
+  const title = norm(name);
   const text = norm(name + " " + description);
 
-  return [
-    "complete the campaign",
-    "complete the story",
+  // Regras negativas: qualquer requisito explícito de procura, coleção,
+  // atividade opcional ou desafio específico deixa a conquista FORA da
+  // Jornada de Estreia, salvo uma exceção conhecida do próprio jogo.
+  const extraActionPatterns = [
+    "collect", "colecion", "colet", "gather", "recolha", "junte",
+    "find", "encontre", "buscar", "procure", "pegue", "obtenha",
+    "pick up", "buy", "compre", "adquira",
+    "clue", "clues", "evidence", "evidencia", "evidencias", "pista", "pistas",
+    "secondary", "side quest", "side quests", "optional", "opcional",
+    "trabalho secundario", "trabalhos secundarios", "missao secundaria",
+    "missoes secundarias",
+    "minigame", "mini game", "partida de cartas", "cartas de beisebol",
+    "in a single", "in one", "em uma unica", "em um unico",
+    "em uma partida", "em uma jogada", "em uma tentativa",
+    "in \d+ seconds", "em \d+ segundos", "em \d+ minutos",
+    "within the time", "within the time limit", "antes do tempo",
+    "sem ser atingido", "sem tomar dano",
+    "kill", "mate", "matar", "elimine", "eliminar", "esmague", "exploda",
+    "punch", "soco", "kick", "chute",
+    "upgrade", "aprimor", "melhore", "nível 3", "nivel 3",
+    "all comics", "all newspapers", "all baseball cards",
+    "todas as tirinhas", "todos os jornais", "todas as cartas",
+    "todas as edicoes", "todas as pistas", "todos os trabalhos secundarios",
+  ];
+
+  const hasExtraAction = extraActionPatterns.some((pattern) =>
+    pattern.startsWith("in ") && /\\d/.test(pattern)
+      ? new RegExp(pattern).test(text)
+      : text.includes(pattern)
+  );
+
+  // Exceções verificadas por jogo. São usadas somente quando a evidência
+  // externa deixa claro que a conquista acompanha a progressão normal.
+  const verifiedJourneyByGame: Record<string, string[]> = {
+    "mouse-p-i-for-hire": [
+      "mestre dos macetes",
+      "armas muitas armas",
+      "ponta do queijoberg",
+    ],
+  };
+
+  const verifiedJourney = verifiedJourneyByGame[gameKey] ?? [];
+  if (verifiedJourney.some((item) => title === item)) return true;
+
+  // Conclusão explícita do jogo/campanha/final.
+  const explicitCompletionPatterns = [
     "complete the game",
-    "finish the campaign",
-    "finish the story",
     "finish the game",
     "beat the game",
-    "wrap up the",
-    "resolve the case",
-    "concluir a campanha",
-    "concluir a historia",
+    "complete the campaign",
+    "finish the campaign",
+    "complete the story",
+    "finish the story",
     "concluir o jogo",
-    "finalizar a campanha",
-    "finalizar a historia",
     "finalizar o jogo",
-    "resolver o caso",
-    "resolva o caso",
-    "complete o caso",
-    "conclua o caso",
-    "finalize o caso",
-  ].some((pattern) => text.includes(pattern));
-}
+    "concluir a campanha",
+    "finalizar a campanha",
+    "concluir a historia",
+    "finalizar a historia",
+    "complete o jogo",
+    "finalize o jogo",
+    "reached the ending",
+    "reach the ending",
+    "reach the final",
+    "alcance o final",
+    "chegue ao final",
+    "finalize a historia",
+    "caso encerrado",
+  ];
 
+  const explicitCompletion = explicitCompletionPatterns.some((pattern) =>
+    text.includes(pattern)
+  );
+
+  if (explicitCompletion && !hasExtraAction) return true;
+
+  // Progressão inequívoca de campanha: capítulos/missões finais e habilidades
+  // concedidas como parte do avanço, desde que não haja requisito extra.
+  const progressionPatterns = [
+    "unlock all special abilities",
+    "unlock all abilities",
+    "desbloqueie todas as habilidades especiais",
+    "desbloqueie todas as habilidades",
+    "todas as habilidades especiais",
+    "all special abilities",
+    "complete chapter",
+    "finish chapter",
+    "complete the chapter",
+    "finish the chapter",
+    "concluir o capitulo",
+    "finalizar o capitulo",
+    "complete mission",
+    "finish mission",
+    "concluir a missao",
+    "finalizar a missao",
+    "final boss",
+    "ultimo chefe",
+    "último chefe",
+    "chefao final",
+    "chefe final",
+  ];
+
+  if (!hasExtraAction && progressionPatterns.some((pattern) => text.includes(pattern))) {
+    return true;
+  }
+
+  // “Resolver o caso” não é suficiente por si só: investigações podem exigir
+  // pistas, evidências ou trabalhos secundários. Sem evidência forte de
+  // progressão obrigatória, fica amarelo para revisão humana.
+  return false;
+}
 function decodeHtml(value: string) {
   return value
     .replace(/&nbsp;/gi, " ")
