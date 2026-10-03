@@ -21,8 +21,6 @@ type A = {
   isCustom?: boolean;
   visualReferenceUrl?: string | null;
   visualBrief?: string;
-  image?: string;
-  percent?: number;
 };
 
 type R = {
@@ -129,8 +127,6 @@ function PrepararJogoPage() {
   const [copiedNewConversationPrompt, setCopiedNewConversationPrompt] = useState(false);
   const [copiedAchievementId, setCopiedAchievementId] = useState<string | null>(null);
   const [downloadingBatch, setDownloadingBatch] = useState<number | null>(null);
-  const [syncingRanks, setSyncingRanks] = useState(false);
-  const [rankSyncMessage, setRankSyncMessage] = useState("");
   const [analyzingReferences, setAnalyzingReferences] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ done: 0, total: 0 });
   const [manualAchievement, setManualAchievement] = useState("");
@@ -183,91 +179,6 @@ function PrepararJogoPage() {
           : "As artes ainda precisam ser validadas antes da publicação.",
     };
   }, [result, saved]);
-
-  async function syncRanksFromExophase() {
-    if (!result?.game.slug || syncingRanks) return;
-
-    setSyncingRanks(true);
-    setRankSyncMessage("");
-    setError("");
-
-    try {
-      const prepResponse = await fetch(
-        "/api/admin/achievement-prep?slug=" +
-          encodeURIComponent(result.game.slug),
-        { cache: "no-store" }
-      );
-      const prepPayload = await prepResponse.json();
-
-      if (!prepResponse.ok) {
-        throw new Error(
-          prepPayload.error || "Não foi possível consultar o Exophase."
-        );
-      }
-
-      const exophaseAchievements = Array.isArray(prepPayload.achievements)
-        ? prepPayload.achievements
-        : [];
-
-      const rankResponse = await fetch("/api/admin/achievement-ranks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          gameSlug: result.game.slug,
-          achievements: exophaseAchievements.map(
-            (achievement: A, index: number) => ({
-              title: achievement.name,
-              rank: achievement.rank,
-              sortOrder: index,
-            })
-          ),
-        }),
-      });
-
-      const rankPayload = await rankResponse.json();
-
-      if (!rankResponse.ok) {
-        throw new Error(
-          rankPayload.error || "Não foi possível salvar os ranks."
-        );
-      }
-
-      const rankByTitle = new Map(
-        exophaseAchievements.map((achievement: A) => [
-          slugify(achievement.name),
-          achievement.rank,
-        ])
-      );
-
-      setResult((current) =>
-        current
-          ? {
-              ...current,
-              achievements: current.achievements.map((achievement) => ({
-                ...achievement,
-                rank:
-                  rankByTitle.get(slugify(achievement.name)) ?? achievement.rank,
-              })),
-            }
-          : current
-      );
-
-      setRankSyncMessage(
-        rankPayload.count === 1
-          ? "1 rank atualizado pelo Exophase."
-          : `${rankPayload.count ?? 0} ranks atualizados pelo Exophase.`
-      );
-    } catch (e) {
-      setRankSyncMessage("");
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Não foi possível atualizar os ranks pelo Exophase."
-      );
-    } finally {
-      setSyncingRanks(false);
-    }
-  }
 
   async function search(gameSlug = registeredSlug, gameTitle = title) {
     if (!gameSlug && !gameTitle.trim()) {
@@ -1383,19 +1294,6 @@ function PrepararJogoPage() {
                     ? `Jogo localizado • ${result.game.exophase.achievementCount ?? result.achievements.length} conquistas`
                     : "Jogo não localizado"}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => void syncRanksFromExophase()}
-                  disabled={syncingRanks}
-                  className="rounded-full border border-emerald-400/20 bg-emerald-400/[.06] px-4 py-2 text-[10px] font-black text-emerald-200 disabled:cursor-wait disabled:opacity-50"
-                >
-                  {syncingRanks ? "Atualizando ranks..." : "🏆 Atualizar ranks pelo Exophase"}
-                </button>
-                {rankSyncMessage && (
-                  <span className="text-[10px] font-black text-emerald-300">
-                    {rankSyncMessage}
-                  </span>
-                )}
                 {result.game.exophase?.url && (
                   <a
                     href={result.game.exophase.url}
@@ -1409,8 +1307,7 @@ function PrepararJogoPage() {
               </div>
             </section>
 
-            <details open className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
-              <summary className="cursor-pointer list-none">
+            <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[9px] uppercase tracking-[.18em] text-white/25">
@@ -1427,7 +1324,6 @@ function PrepararJogoPage() {
                   </span>
                 </div>
               </div>
-              </summary>
 
               <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3 text-xs leading-relaxed text-white/45">
                 <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
@@ -1638,36 +1534,17 @@ function PrepararJogoPage() {
                     }
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                          {a.image ? (
-                            <>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={a.image}
-                                alt={`Arte da conquista ${a.name}`}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            </>
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-lg font-black text-white/30">
-                              ??
-                            </div>
-                          )}
-                        </div>
-
-                        {a.isCustom ? (
-                          <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
-                            <p className="text-[9px] uppercase text-sky-300/60">
-                              Conquista manual
-                            </p>
-                            <input
-                              value={a.name}
-                              onChange={(e) => updateCustomAchievement(a.id, "name", e.target.value)}
-                              className="mt-1 w-full rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-sm font-black outline-none"
-                              aria-label="Título da conquista manual"
-                            />
+                      {a.isCustom ? (
+                        <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
+                          <p className="text-[9px] uppercase text-sky-300/60">
+                            Conquista manual
+                          </p>
+                          <input
+                            value={a.name}
+                            onChange={(e) => updateCustomAchievement(a.id, "name", e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-sm font-black outline-none"
+                            aria-label="Título da conquista manual"
+                          />
                           <textarea
                             value={a.description}
                             onChange={(e) => updateCustomAchievement(a.id, "description", e.target.value)}
@@ -1685,24 +1562,23 @@ function PrepararJogoPage() {
                             <option value="Prata">Prata</option>
                             <option value="Ouro">Ouro</option>
                           </select>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => toggle(a.id)}
-                            disabled={a.notDoing}
-                            className="min-w-0 flex-1 text-left disabled:cursor-default"
-                          >
-                            <p className="text-[9px] uppercase text-white/25">
-                              Conquista {i + 1}
-                            </p>
-                            <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                            <p className="mt-2 text-xs text-white/35">
-                              {a.description || "Sem descrição disponível."}
-                            </p>
-                          </button>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => toggle(a.id)}
+                          disabled={a.notDoing}
+                          className="min-w-0 flex-1 text-left disabled:cursor-default"
+                        >
+                          <p className="text-[9px] uppercase text-white/25">
+                            Conquista {i + 1}
+                          </p>
+                          <h3 className="mt-1 text-sm font-black">{a.name}</h3>
+                          <p className="mt-2 text-xs text-white/35">
+                            {a.description || "Sem descrição disponível."}
+                          </p>
+                        </button>
+                      )}
 
                       <div className="flex shrink-0 flex-wrap items-center gap-2">
                         <span className="rounded-full border border-white/10 px-3.5 py-2 text-[10px] font-black">
@@ -1761,22 +1637,20 @@ function PrepararJogoPage() {
                   {saved ? "Preparação salva" : "Salvar rascunho"}
                 </button>
               </div>
-            </details>
+            </section>
 
             {selected.length > 0 && (
-              <details open className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
+              <section className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <summary className="cursor-pointer list-none">
-                    <div>
-                      <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
-                        05 • Material para ChatGPT
-                      </p>
-                      <h2 className="mt-1 text-xl font-black">Copiar instruções e preparar lotes</h2>
-                      <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
-                        O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
-                      </p>
-                    </div>
-                  </summary>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
+                      05 • Material para ChatGPT
+                    </p>
+                    <h2 className="mt-1 text-xl font-black">Copiar instruções e preparar lotes</h2>
+                    <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
+                      O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-4 rounded-xl border border-violet-400/15 bg-violet-400/[.025] p-4">
@@ -1888,19 +1762,17 @@ function PrepararJogoPage() {
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
                   <span className="font-black text-white/45">Fluxo:</span> Exophase → ZIP + instruções → análise visual no ChatGPT → prompts finais → geração individual das artes.
                 </p>
-              </details>
+              </section>
             )}
 
             {selected.length > 0 && (
-              <details open className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
-                <summary className="cursor-pointer list-none">
-                  <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
-                    04 • Dados preparados
-                  </p>
-                  <h2 className="mt-1 text-xl font-black">
-                    Pacote de cada conquista
-                  </h2>
-                </summary>
+              <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
+                <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
+                  04 • Dados preparados
+                </p>
+                <h2 className="mt-1 text-xl font-black">
+                  Pacote de cada conquista
+                </h2>
                 <p className="mt-2 text-xs text-white/35">
                   Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
                 </p>
@@ -1991,7 +1863,7 @@ function PrepararJogoPage() {
                     </div>
                   ))}
                 </div>
-              </details>
+              </section>
             )}
 
             {selected.length > 0 && (
@@ -2002,27 +1874,6 @@ function PrepararJogoPage() {
                   filename: a.filename,
                   rank: a.rank,
                 }))}
-                onSaved={(saved) => {
-                  setResult((current) =>
-                    current
-                      ? {
-                          ...current,
-                          achievements: current.achievements.map((achievement, achievementIndex) => {
-                            const prepared = prepareAchievement(
-                              achievement,
-                              achievementIndex
-                            );
-                            const match = saved.find(
-                              (item) => item.filename === prepared.filename
-                            );
-                            return match
-                              ? { ...achievement, image: match.image }
-                              : achievement;
-                          }),
-                        }
-                      : current
-                  );
-                }}
               />
             )}
           </>
