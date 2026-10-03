@@ -223,7 +223,8 @@ function PrepararJogoPage() {
     };
   }, [result, saved]);
 
-  async function search(gameSlug = registeredSlug, gameTitle = title) {\n    setJourneyPreparedCount(null);
+  async function search(gameSlug = registeredSlug, gameTitle = title) {
+    setJourneyPreparedCount(null);
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
       return;
