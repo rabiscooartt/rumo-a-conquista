@@ -454,7 +454,7 @@ export default function NewGameAchievementsEditor({
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
                         <select value={achievement.difficulty} disabled={saving} onChange={(event) => { void changeAchievementRank(achievement.id, event.target.value as AchievementRank); }} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-50">
-                          {(["Bronze", "Prata", "Ouro", "Diamante"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
+                          {(["Bronze", "Prata", "Ouro"] as const).map((rank) => <option key={rank} value={rank}>{rankToTrophy(rank)} {rankLabel(rank)}</option>)}
                         </select>
                       </label>
                       <label>
