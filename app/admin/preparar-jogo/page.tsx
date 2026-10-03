@@ -179,6 +179,7 @@ function PrepararJogoPage() {
   const [mergeTitle, setMergeTitle] = useState("");
   const [mergeDescription, setMergeDescription] = useState("");
   const [journeyPreparedCount, setJourneyPreparedCount] = useState<number | null>(null);
+  const [expandedRecordIds, setExpandedRecordIds] = useState<Set<string>>(new Set());
 
   const selected = useMemo(
     () =>
@@ -233,6 +234,7 @@ function PrepararJogoPage() {
 
   async function search(gameSlug = registeredSlug, gameTitle = title) {
     setJourneyPreparedCount(null);
+    setExpandedRecordIds(new Set());
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
       return;
@@ -419,6 +421,18 @@ function PrepararJogoPage() {
           }
         : current
     );
+  }
+
+  function toggleRecordPanel(id: string) {
+    setExpandedRecordIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   function updateAchievementRecord(
@@ -1768,52 +1782,97 @@ function PrepararJogoPage() {
                         </div>
                       </div>
                       {!a.notDoing && (
-                        <div className="grid w-full gap-2 rounded-xl border border-white/[.07] bg-black/20 p-2 lg:grid-cols-[1fr_1fr_auto]">
-                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
-                            🎬 EP da live
-                            <input
-                              type="text"
-                              value={a.episode ?? ""}
-                              onChange={(e) =>
-                                updateAchievementRecord(a.id, "episode", e.target.value)
-                              }
-                              placeholder="Ex.: EP 04"
-                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20"
-                            />
-                          </label>
-                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
-                            📅 Data em que conseguiu
-                            <input
-                              type="date"
-                              value={a.earnedDate ?? ""}
-                              onChange={(e) =>
-                                updateAchievementRecord(a.id, "earnedDate", e.target.value)
-                              }
-                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none"
-                            />
-                          </label>
-                          <div className="flex items-end gap-2">
-                            {normalizeEpisode(a.episode) ? (
-                              <Link
-                                href={"/conteudo?ep=" + encodeURIComponent(normalizeEpisode(a.episode))}
-                                className="rounded-lg border border-blue-400/20 bg-blue-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-blue-200 transition hover:border-blue-400/40 hover:bg-blue-400/10"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                🔗 Abrir EP {normalizeEpisode(a.episode)} em Conteúdo
-                              </Link>
-                            ) : (
-                              <span className="rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/25">
-                                Informe o EP para criar o link
-                              </span>
-                            )}
-                            <span className="rounded-lg border border-emerald-400/15 bg-emerald-400/[.05] px-3 py-2 text-[9px] font-black uppercase text-emerald-200/70">
-                              {a.episode?.trim() && a.earnedDate?.trim()
-                                ? "✓ Registro completo"
-                                : "Registro da conquista"}
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => toggleRecordPanel(a.id)}
+                            className="mt-1 flex w-full items-center justify-between gap-3 rounded-xl border border-white/[.07] bg-black/15 px-3 py-2 text-left transition hover:border-white/15 hover:bg-white/[.025]"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-black uppercase tracking-[.12em] text-white/30">
+                                Registro da conquista
+                              </p>
+                              {a.journey ? (
+                                <p className="mt-0.5 truncate text-[10px] font-black uppercase tracking-[.06em] text-emerald-200/80">
+                                  🟢 Jornada de Estreia · adquirida nas primeiras lives
+                                </p>
+                              ) : a.episode?.trim() || a.earnedDate?.trim() ? (
+                                <p className="mt-0.5 truncate text-[10px] font-black text-white/45">
+                                  {a.episode?.trim() || "EP pendente"} · {a.earnedDate?.trim() || "Data pendente"}
+                                </p>
+                              ) : (
+                                <p className="mt-0.5 text-[10px] font-bold text-white/30">
+                                  EP + data ainda não registrados
+                                </p>
+                              )}
+                            </div>
+                            <span className="shrink-0 rounded-lg border border-white/10 bg-white/[.03] px-2.5 py-1.5 text-[10px] font-black text-white/45">
+                              {expandedRecordIds.has(a.id) ? "▲ Recolher" : "▼ Abrir"}
                             </span>
-                          </div>
-                        </div>
-                      )}                    </div>
+                          </button>
+
+                          {expandedRecordIds.has(a.id) &&
+                            (a.journey ? (
+                              <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[.04] px-3 py-2.5">
+                                <p className="text-[9px] font-black uppercase tracking-[.12em] text-emerald-200/75">
+                                  Jornada de Estreia
+                                </p>
+                                <p className="mt-1 text-xs font-black text-emerald-100/80">
+                                  Adquirida nas primeiras lives
+                                </p>
+                                <p className="mt-1 text-[10px] leading-relaxed text-white/30">
+                                  Esta conquista faz parte da Jornada de Estreia, portanto não precisa de EP nem data individual.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="grid w-full gap-2 rounded-xl border border-white/[.07] bg-black/20 p-2 lg:grid-cols-[1fr_1fr_auto]">
+                                <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                                  🎬 EP da live
+                                  <input
+                                    type="text"
+                                    value={a.episode ?? ""}
+                                    onChange={(e) =>
+                                      updateAchievementRecord(a.id, "episode", e.target.value)
+                                    }
+                                    placeholder="Ex.: EP 04"
+                                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20"
+                                  />
+                                </label>
+                                <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                                  📅 Data em que conseguiu
+                                  <input
+                                    type="date"
+                                    value={a.earnedDate ?? ""}
+                                    onChange={(e) =>
+                                      updateAchievementRecord(a.id, "earnedDate", e.target.value)
+                                    }
+                                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none"
+                                  />
+                                </label>
+                                <div className="flex items-end gap-2">
+                                  {normalizeEpisode(a.episode) ? (
+                                    <Link
+                                      href={"/conteudo?ep=" + encodeURIComponent(normalizeEpisode(a.episode))}
+                                      className="rounded-lg border border-blue-400/20 bg-blue-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-blue-200 transition hover:border-blue-400/40 hover:bg-blue-400/10"
+                                      onClick={(event) => event.stopPropagation()}
+                                    >
+                                      🔗 Abrir EP {normalizeEpisode(a.episode)}
+                                    </Link>
+                                  ) : (
+                                    <span className="rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/25">
+                                      Informe o EP para criar o link
+                                    </span>
+                                  )}
+                                  <span className="rounded-lg border border-emerald-400/15 bg-emerald-400/[.05] px-3 py-2 text-[9px] font-black uppercase text-emerald-200/70">
+                                    {a.episode?.trim() && a.earnedDate?.trim()
+                                      ? "✓ Registro completo"
+                                      : "Registro da conquista"}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                        </>
+                      )}                      )}                    </div>
                   </div>
                 ))}
               </div>
