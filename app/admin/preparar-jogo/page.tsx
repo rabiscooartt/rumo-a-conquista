@@ -560,6 +560,8 @@ function PrepararJogoPage() {
       melhorado: "melhorar",
       melhorada: "melhorar",
       aprimorar: "melhorar",
+      aprimore: "melhorar",
+      aprimora: "melhorar",
       aprimoramento: "melhorar",
       aprimorou: "melhorar",
       upgrade: "melhorar",
