@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import TrophyIcon, { type TrophyRank } from "@/components/TrophyIcon";
 
 type Achievement = {
   icon: string;
@@ -18,12 +19,19 @@ type AchievementListProps = {
 type SortKey = "title" | "difficulty" | "date";
 type SortDirection = "asc" | "desc";
 
+function getTrophyRank(trophy: string): TrophyRank {
+  if (trophy === "🥈") return "Prata";
+  if (trophy === "🥇") return "Ouro";
+  if (trophy === "🏆" || trophy === "💎") return "Emblema";
+  return "Bronze";
+}
+
 function getDifficultyValue(trophy: string) {
-  if (trophy === "🥉") return 1;
-  if (trophy === "🥈") return 2;
-  if (trophy === "🏆") return 3;
-  if (trophy === "💎") return 4;
-  return 0;
+  const rank = getTrophyRank(trophy);
+  if (rank === "Bronze") return 1;
+  if (rank === "Prata") return 2;
+  if (rank === "Ouro") return 3;
+  return 4;
 }
 
 function parseDate(date?: string) {
@@ -34,12 +42,11 @@ function parseDate(date?: string) {
 }
 
 function getTrophyStyle(trophy: string) {
-  if (trophy === "🥉") return "text-orange-300 drop-shadow-[0_0_8px_rgba(251,146,60,0.45)]";
-  if (trophy === "🥈") return "text-zinc-200 drop-shadow-[0_0_8px_rgba(228,228,231,0.45)]";
-  if (trophy === "🏆") return "text-yellow-300 drop-shadow-[0_0_10px_rgba(250,204,21,0.55)]";
-  if (trophy === "💎") return "text-cyan-300 drop-shadow-[0_0_12px_rgba(34,211,238,0.65)]";
-
-  return "text-white";
+  const rank = getTrophyRank(trophy);
+  if (rank === "Bronze") return "drop-shadow-[0_0_8px_rgba(205,127,50,0.35)]";
+  if (rank === "Prata") return "drop-shadow-[0_0_8px_rgba(199,203,209,0.35)]";
+  if (rank === "Ouro") return "drop-shadow-[0_0_10px_rgba(224,184,61,0.45)]";
+  return "drop-shadow-[0_0_10px_rgba(243,198,35,0.45)]";
 }
 
 function getStatusStyle(status: string) {
@@ -77,6 +84,15 @@ function getStatusStyle(status: string) {
 export default function AchievementList({ achievements }: AchievementListProps) {
   const [sortKey, setSortKey] = useState<SortKey>("title");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const rankCounts = useMemo(() => {
+    const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
+    for (const achievement of achievements) {
+      const rank = getTrophyRank(achievement.trophy);
+      if (rank !== "Emblema") counts[rank] += 1;
+    }
+    return counts;
+  }, [achievements]);
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -135,15 +151,21 @@ export default function AchievementList({ achievements }: AchievementListProps) 
             </p>
 
             <div className="flex items-center gap-4 text-sm">
-              <span title="Bronze - Simples">🥉 Simples</span>
-              <span title="Prata - Média">🥈 Média</span>
-              <span title="Ouro - Difícil">🏆 Difícil</span>
-              <span title="Emblema">🏆 Emblema</span>
+              {([
+                ["Bronze", rankCounts.Bronze],
+                ["Prata", rankCounts.Prata],
+                ["Ouro", rankCounts.Ouro],
+              ] as const).map(([rank, count]) => (
+                <span key={rank} title={rank} className="inline-flex items-center gap-1.5">
+                  <TrophyIcon rank={rank} className="h-5 w-5" />
+                  <span className="font-black">{count}</span>
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_140px_180px] px-8 py-4 border-b border-white/10 bg-white/[0.02] text-white/40 text-xs uppercase tracking-[0.22em]">
+        <div className="grid grid-cols-[1fr_96px_140px] px-8 py-4 border-b border-white/10 bg-white/[0.02] text-white/40 text-xs uppercase tracking-[0.22em]">
           <button
             onClick={() => handleSort("title")}
             className="text-left hover:text-white transition"
@@ -155,7 +177,7 @@ export default function AchievementList({ achievements }: AchievementListProps) 
             onClick={() => handleSort("difficulty")}
             className="text-center hover:text-white transition"
           >
-            Classe {sortIcon("difficulty")}
+            Troféu {sortIcon("difficulty")}
           </button>
 
           <button
@@ -173,21 +195,21 @@ export default function AchievementList({ achievements }: AchievementListProps) 
             return (
               <div
                 key={index}
-                className={`grid grid-cols-[1fr_140px_180px] items-center gap-6 px-8 py-6 border-b border-white/5 transition-all duration-300 hover:bg-white/[0.03] ${statusStyle.row}`}
+                className={`grid grid-cols-[1fr_96px_140px] items-center gap-6 px-8 py-5 border-b border-white/5 transition-all duration-300 hover:bg-white/[0.03] ${statusStyle.row}`}
               >
                 <div className="flex items-center gap-5">
                   <div
-                    className={`w-20 h-20 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-3xl transition-all duration-300 ${statusStyle.icon}`}
+                    className={`w-[72px] h-[72px] rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-3xl transition-all duration-300 ${statusStyle.icon}`}
                   >
                     {achievement.icon}
                   </div>
 
                   <div>
-                    <h3 className="text-2xl font-bold">
+                    <h3 className="text-xl font-bold">
                       {achievement.title}
                     </h3>
 
-                    <p className="text-white/60 mt-1 max-w-[700px]">
+                    <p className="text-base text-white/60 mt-1 max-w-[700px]">
                       {achievement.description}
                     </p>
                   </div>
@@ -198,7 +220,10 @@ export default function AchievementList({ achievements }: AchievementListProps) 
                     achievement.trophy
                   )} ${statusStyle.trophy}`}
                 >
-                  {achievement.trophy}
+                  <TrophyIcon
+                    rank={getTrophyRank(achievement.trophy)}
+                    className="h-6 w-6"
+                  />
                 </div>
 
                 <div className="text-right text-white/60 text-sm">
