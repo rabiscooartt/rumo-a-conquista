@@ -24,17 +24,13 @@ export default function TrophyIcon({
     >
       <path
         d="M9 4h14v6.8c0 4.35-2.75 7.2-7 7.2s-7-2.85-7-7.2V4Z"
-        fill="none"
-        stroke={rankColors[rank]}
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fill={rankColors[rank]}
       />
       <path
         d="M9 6H5.5v3.1c0 3.15 1.95 5.55 5.15 5.95M23 6h3.5v3.1c0 3.15-1.95 5.55-5.15 5.95"
         fill="none"
         stroke={rankColors[rank]}
-        strokeWidth="1.9"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -42,7 +38,7 @@ export default function TrophyIcon({
         d="M16 18v4M11 25h10"
         fill="none"
         stroke={rankColors[rank]}
-        strokeWidth="1.9"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
