@@ -772,7 +772,7 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
 
     const { data, error } = await client
       .from("games")
-      .select("slug, title")
+      .select("slug, title, review")
       .eq("slug", slugParam)
       .eq("is_deleted", false)
       .maybeSingle();
@@ -780,12 +780,23 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
     if (error) throw error;
     if (!data) throw new Error("Jogo cadastrado não encontrado.");
 
-    return { slug: String(data.slug), title: String(data.title) };
+    return {
+      slug: String(data.slug),
+      title: String(data.title),
+      youtubePlaylistUrl:
+        data.review &&
+        typeof data.review === "object" &&
+        !Array.isArray(data.review)
+          ? String(
+              (data.review as Record<string, unknown>).__youtubePlaylistUrl ?? ""
+            ).trim()
+          : "",
+    };
   }
 
   if (!titleParam) throw new Error("O nome do jogo é obrigatório.");
 
-  return { slug: slug(titleParam), title: titleParam };
+  return { slug: slug(titleParam), title: titleParam, youtubePlaylistUrl: "" };
 }
 
 export async function GET(req: NextRequest) {
@@ -907,6 +918,7 @@ export async function GET(req: NextRequest) {
         slug: registeredGame.slug,
         source: "Exophase",
         registered: Boolean(slugParam),
+        youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
         exophase: {
           found: true,
           url: exophaseData.url,
