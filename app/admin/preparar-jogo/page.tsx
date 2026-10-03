@@ -21,6 +21,7 @@ type A = {
   notDoing: boolean;
   episode?: string;
   earnedDate?: string;
+  earnedNote?: string;
   isCustom?: boolean;
   visualReferenceUrl?: string | null;
   visualBrief?: string;
@@ -182,6 +183,14 @@ function PrepararJogoPage() {
   const [mergeDescription, setMergeDescription] = useState("");
   const [journeyPreparedCount, setJourneyPreparedCount] = useState<number | null>(null);
   const [expandedRecordIds, setExpandedRecordIds] = useState<Set<string>>(new Set());
+  const [realizedDescription, setRealizedDescription] = useState("");
+  const [realizedEpisode, setRealizedEpisode] = useState("");
+  const [realizedDate, setRealizedDate] = useState("");
+  const [realizedRank, setRealizedRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
+  const [realizedCandidates, setRealizedCandidates] = useState<
+    { achievement: A; score: number }[]
+  >([]);
+  const [showRealizedMatches, setShowRealizedMatches] = useState(false);
 
   const selected = useMemo(
     () =>
@@ -237,6 +246,12 @@ function PrepararJogoPage() {
   async function search(gameSlug = registeredSlug, gameTitle = title) {
     setJourneyPreparedCount(null);
     setExpandedRecordIds(new Set());
+    setRealizedDescription("");
+    setRealizedEpisode("");
+    setRealizedDate("");
+    setRealizedRank("Bronze");
+    setRealizedCandidates([]);
+    setShowRealizedMatches(false);
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
       return;
@@ -298,6 +313,7 @@ function PrepararJogoPage() {
           const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
           const episodeById = (draft.episodeById ?? {}) as Record<string, string>;
           const earnedDateById = (draft.earnedDateById ?? {}) as Record<string, string>;
+          const earnedNoteById = (draft.earnedNoteById ?? {}) as Record<string, string>;
           const customAchievements: A[] = draft.customAchievements ?? [];
 
           setResult((current) =>
@@ -314,6 +330,7 @@ function PrepararJogoPage() {
                         visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
                         episode: episodeById[a.id] ?? a.episode ?? "",
                         earnedDate: earnedDateById[a.id] ?? a.earnedDate ?? "",
+                        earnedNote: earnedNoteById[a.id] ?? a.earnedNote ?? "",
                       })),
                     ...customAchievements,
                   ],
@@ -522,6 +539,204 @@ function PrepararJogoPage() {
       .filter(({ score }) => score >= 0.35)
       .sort((left, right) => right.score - left.score)
       .slice(0, 3);
+  }
+
+  function realizedMatchTokens(value: string) {
+    const stopWords = new Set([
+      "a","as","o","os","um","uma","uns","umas","de","do","da","dos","das",
+      "em","no","na","nos","nas","num","numa","nuns","numas","e","ou","que",
+      "com","sem","por","para","ao","aos","pelo","pela","pelos","pelas","se",
+      "sua","seu","suas","seus","isso","isto","essa","esse","estas","estes",
+      "the","of","and","to","in","an","on","with","without","your"
+    ]);
+
+    const concepts: Record<string, string> = {
+      melhoria: "melhorar",
+      melhorias: "melhorar",
+      melhora: "melhorar",
+      melhorar: "melhorar",
+      melhore: "melhorar",
+      melhorou: "melhorar",
+      melhorado: "melhorar",
+      melhorada: "melhorar",
+      aprimorar: "melhorar",
+      aprimoramento: "melhorar",
+      aprimorou: "melhorar",
+      upgrade: "melhorar",
+      upgrades: "melhorar",
+      arma: "arma",
+      armas: "arma",
+      armamento: "arma",
+      armamentos: "arma",
+      inimigo: "inimigo",
+      inimigos: "inimigo",
+      inimiga: "inimigo",
+      inimigas: "inimigo",
+      matar: "matar",
+      mata: "matar",
+      mate: "matar",
+      matou: "matar",
+      matando: "matar",
+      eliminar: "matar",
+      elimine: "matar",
+      eliminou: "matar",
+      derrotar: "derrotar",
+      derrota: "derrotar",
+      derrote: "derrotar",
+      derrotou: "derrotar",
+      vencer: "vencer",
+      venca: "vencer",
+      venceu: "vencer",
+      ganhar: "ganhar",
+      ganha: "ganhar",
+      ganhe: "ganhar",
+      ganhou: "ganhar",
+      colecionar: "coletar",
+      coletar: "coletar",
+      colete: "coletar",
+      coletou: "coletar",
+      coletado: "coletar",
+      encontrar: "encontrar",
+      encontre: "encontrar",
+      encontrou: "encontrar",
+      descobrir: "descobrir",
+      descubra: "descobrir",
+      descobriu: "descobrir",
+      explorar: "explorar",
+      explore: "explorar",
+      explorou: "explorar",
+      ajudar: "ajudar",
+      ajude: "ajudar",
+      ajudou: "ajudar",
+      salvar: "salvar",
+      salve: "salvar",
+      salvou: "salvar",
+      resgatar: "resgatar",
+      resgate: "resgatar",
+      resgatou: "resgatar",
+    };
+
+    return slugify(value)
+      .split("-")
+      .map((word) => concepts[word] ?? word)
+      .filter((word) => word.length > 2 && !stopWords.has(word));
+  }
+
+  function realizedSimilarityScore(left: string, right: string) {
+    const base = similarityScore(left, right);
+    const a = realizedMatchTokens(left);
+    const b = realizedMatchTokens(right);
+
+    if (!a.length || !b.length) return base;
+
+    const setA = new Set(a);
+    const setB = new Set(b);
+    const intersection = [...setA].filter((word) => setB.has(word)).length;
+    const union = new Set([...setA, ...setB]).size;
+    const conceptScore = union ? intersection / union : 0;
+    const overlapBonus = Math.min(0.2, intersection * 0.08);
+
+    return Math.min(1, base * 0.55 + conceptScore * 0.45 + overlapBonus);
+  }
+
+  function findRealizedMatches(value: string) {
+    if (!result || !value.trim()) return [];
+
+    return result.achievements
+      .filter((a) => !a.notDoing)
+      .map((achievement) => ({
+        achievement,
+        score: realizedSimilarityScore(
+          value,
+          achievement.name + " " + achievement.description
+        ),
+      }))
+      .filter(({ score }) => score >= 0.28)
+      .sort((left, right) => right.score - left.score)
+      .slice(0, 5);
+  }
+
+  function formatRecordedEpisode(value: string) {
+    const episode = normalizeEpisode(value);
+    return episode ? "EP " + episode : value.trim();
+  }
+
+  function clearRealizedRegister() {
+    setRealizedDescription("");
+    setRealizedEpisode("");
+    setRealizedDate("");
+    setRealizedRank("Bronze");
+    setRealizedCandidates([]);
+    setShowRealizedMatches(false);
+  }
+
+  function analyzeRealizedAchievement() {
+    const value = realizedDescription.trim();
+    if (!result || !value) return;
+
+    const candidates = findRealizedMatches(value);
+    setRealizedCandidates(candidates);
+    setShowRealizedMatches(true);
+  }
+
+  function registerRealizedAchievement(
+    achievementId: string,
+    createNew = false
+  ) {
+    const value = realizedDescription.trim();
+    if (!result || !value) return;
+
+    const episode = formatRecordedEpisode(realizedEpisode);
+    const date = realizedDate.trim();
+
+    if (createNew) {
+      const custom: A = {
+        id: "custom-realized-" + Date.now(),
+        name: generateManualTitle(value),
+        description: value,
+        rank: realizedRank,
+        online: false,
+        momentary: false,
+        journeySuggestion: false,
+        journey: false,
+        notDoing: false,
+        episode,
+        earnedDate: date,
+        earnedNote: value,
+        isCustom: true,
+      };
+
+      setSaved(false);
+      setResult((current) =>
+        current
+          ? { ...current, achievements: [...current.achievements, custom] }
+          : current
+      );
+      clearRealizedRegister();
+      return;
+    }
+
+    if (!achievementId) return;
+
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((achievement) =>
+              achievement.id === achievementId
+                ? {
+                    ...achievement,
+                    episode,
+                    earnedDate: date,
+                    earnedNote: value,
+                  }
+                : achievement
+            ),
+          }
+        : current
+    );
+    clearRealizedRegister();
   }
 
   function generateManualTitle(description: string) {
@@ -820,6 +1035,11 @@ function PrepararJogoPage() {
             achievements
               .filter((a) => a.earnedDate?.trim())
               .map((a) => [a.id, a.earnedDate?.trim() ?? ""])
+          ),
+          earnedNoteById: Object.fromEntries(
+            achievements
+              .filter((a) => a.earnedNote?.trim())
+              .map((a) => [a.id, a.earnedNote?.trim() ?? ""])
           ),
           customAchievements: achievements.filter((a) => a.isCustom),
         },
@@ -1486,6 +1706,184 @@ function PrepararJogoPage() {
                 </button>
               </div>
 
+
+              <div className="mt-5 rounded-2xl border border-violet-400/30 bg-violet-500/[.06] p-5">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[.18em] text-violet-300">
+                      Registro de conquista realizada
+                    </p>
+                    <h3 className="mt-1 text-lg font-black">O que você fez?</h3>
+                    <p className="mt-1 max-w-[900px] text-xs leading-relaxed text-white/45">
+                      Escreva do seu jeito. O sistema procura correspondências nas conquistas existentes antes de criar uma nova.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-violet-300/25 bg-violet-300/10 px-3 py-2 text-[9px] font-black uppercase text-violet-100">
+                    🔎 Primeiro relacionar
+                  </span>
+                </div>
+
+                <textarea
+                  value={realizedDescription}
+                  onChange={(e) => {
+                    setRealizedDescription(e.target.value);
+                    setShowRealizedMatches(false);
+                  }}
+                  rows={3}
+                  placeholder="Ex.: melhoria numa arma"
+                  className="mt-4 w-full resize-y rounded-xl border border-violet-300/20 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/20"
+                />
+
+                <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                  <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                    🎬 Episódio
+                    <input
+                      type="text"
+                      value={realizedEpisode}
+                      onChange={(e) => setRealizedEpisode(e.target.value)}
+                      placeholder="Ex.: 3 ou EP 03"
+                      className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20"
+                    />
+                  </label>
+
+                  <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                    📅 Data
+                    <input
+                      type="date"
+                      value={realizedDate}
+                      onChange={(e) => setRealizedDate(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none"
+                    />
+                  </label>
+
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      onClick={analyzeRealizedAchievement}
+                      disabled={!realizedDescription.trim()}
+                      className="w-full rounded-xl border border-violet-300/30 bg-violet-300/15 px-5 py-3 text-xs font-black uppercase text-violet-50 disabled:opacity-40"
+                    >
+                      🔎 Encontrar conquista
+                    </button>
+                  </div>
+                </div>
+
+                {showRealizedMatches && (
+                  <div className="mt-4 rounded-xl border border-white/[.08] bg-black/20 p-3">
+                    {realizedCandidates.length > 0 ? (
+                      <>
+                        <p className="text-[9px] font-black uppercase tracking-[.16em] text-emerald-200/75">
+                          Possíveis correspondências
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-white/40">
+                          Confirme manualmente a conquista encontrada antes de registrar o EP e a data.
+                        </p>
+
+                        <div className="mt-3 space-y-2">
+                          {realizedCandidates.map(({ achievement, score }) => (
+                            <div
+                              key={achievement.id}
+                              className="rounded-xl border border-white/[.07] bg-white/[.02] p-3"
+                            >
+                              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-black">{achievement.name}</p>
+                                  <p className="mt-1 text-xs leading-relaxed text-white/40">
+                                    {achievement.description || "Sem descrição disponível."}
+                                  </p>
+                                  <p className="mt-2 text-[9px] font-black uppercase tracking-[.1em] text-violet-200/65">
+                                    Compatibilidade: {Math.round(score * 100)}%
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => registerRealizedAchievement(achievement.id)}
+                                  disabled={!realizedEpisode.trim() || !realizedDate.trim()}
+                                  className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-400/[.10] px-4 py-2 text-[9px] font-black uppercase text-emerald-100 disabled:opacity-35"
+                                >
+                                  ✓ Relacionar e registrar
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/45">
+                            Rank da nova
+                            <select
+                              value={realizedRank}
+                              onChange={(e) =>
+                                setRealizedRank(e.target.value as "Bronze" | "Prata" | "Ouro")
+                              }
+                              className="rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-[10px] font-black text-white outline-none"
+                            >
+                              <option value="Bronze">Bronze</option>
+                              <option value="Prata">Prata</option>
+                              <option value="Ouro">Ouro</option>
+                            </select>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => registerRealizedAchievement("", true)}
+                            disabled={!realizedEpisode.trim() || !realizedDate.trim()}
+                            className="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-[9px] font-black uppercase text-sky-100 disabled:opacity-35"
+                          >
+                            ➕ Nenhuma corresponde — criar nova
+                          </button>
+                          <button
+                            type="button"
+                            onClick={clearRealizedRegister}
+                            className="rounded-lg border border-white/10 bg-white/[.03] px-4 py-2 text-[9px] font-black uppercase text-white/55"
+                          >
+                            Limpar
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[9px] font-black uppercase tracking-[.16em] text-yellow-200/75">
+                          Nenhuma correspondência encontrada
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-white/40">
+                          Não encontramos uma correspondência forte. Você pode criar uma nova conquista e registrar o episódio e a data.
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/45">
+                            Rank da nova
+                            <select
+                              value={realizedRank}
+                              onChange={(e) =>
+                                setRealizedRank(e.target.value as "Bronze" | "Prata" | "Ouro")
+                              }
+                              className="rounded-md border border-white/10 bg-black/40 px-2 py-1.5 text-[10px] font-black text-white outline-none"
+                            >
+                              <option value="Bronze">Bronze</option>
+                              <option value="Prata">Prata</option>
+                              <option value="Ouro">Ouro</option>
+                            </select>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => registerRealizedAchievement("", true)}
+                            disabled={!realizedEpisode.trim() || !realizedDate.trim()}
+                            className="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-[9px] font-black uppercase text-sky-100 disabled:opacity-35"
+                          >
+                            ➕ Criar nova conquista
+                          </button>
+                          <button
+                            type="button"
+                            onClick={clearRealizedRegister}
+                            className="rounded-lg border border-white/10 bg-white/[.03] px-4 py-2 text-[9px] font-black uppercase text-white/55"
+                          >
+                            Limpar
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
 
               <div className="mt-5 rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
