@@ -9,8 +9,6 @@ type Achievement = {
   trophy: string;
   status: string;
   earnedDate?: string;
-  rank?: string;
-  isEmblem?: boolean;
 };
 
 type AchievementListProps = {
@@ -20,11 +18,11 @@ type AchievementListProps = {
 type SortKey = "title" | "difficulty" | "date";
 type SortDirection = "asc" | "desc";
 
-function getDifficultyValue(trophy: string, isEmblem = false) {
-  if (isEmblem) return 4;
+function getDifficultyValue(trophy: string) {
   if (trophy === "🥉") return 1;
   if (trophy === "🥈") return 2;
-  if (trophy === "🥇") return 3;
+  if (trophy === "🏆") return 3;
+  if (trophy === "💎") return 4;
   return 0;
 }
 
@@ -38,7 +36,9 @@ function parseDate(date?: string) {
 function getTrophyStyle(trophy: string) {
   if (trophy === "🥉") return "text-orange-300 drop-shadow-[0_0_8px_rgba(251,146,60,0.45)]";
   if (trophy === "🥈") return "text-zinc-200 drop-shadow-[0_0_8px_rgba(228,228,231,0.45)]";
-  if (trophy === "🥇" || trophy === "🏆") return "text-yellow-300 drop-shadow-[0_0_10px_rgba(250,204,21,0.55)]";
+  if (trophy === "🏆") return "text-yellow-300 drop-shadow-[0_0_10px_rgba(250,204,21,0.55)]";
+  if (trophy === "💎") return "text-cyan-300 drop-shadow-[0_0_12px_rgba(34,211,238,0.65)]";
+
   return "text-white";
 }
 
@@ -99,8 +99,8 @@ export default function AchievementList({ achievements }: AchievementListProps) 
       }
 
       if (sortKey === "difficulty") {
-        valueA = getDifficultyValue(a.trophy, a.isEmblem);
-        valueB = getDifficultyValue(b.trophy, b.isEmblem);
+        valueA = getDifficultyValue(a.trophy);
+        valueB = getDifficultyValue(b.trophy);
       }
 
       if (sortKey === "date") {
@@ -135,10 +135,10 @@ export default function AchievementList({ achievements }: AchievementListProps) 
             </p>
 
             <div className="flex items-center gap-4 text-sm">
-              <span title="Bronze">🥉 Bronze</span>
-              <span title="Prata">🥈 Prata</span>
-              <span title="Ouro">🥇 Ouro</span>
-              <span title="Emblema">🏆 Emblema</span>
+              <span title="Bronze - Simples">🥉 Simples</span>
+              <span title="Prata - Média">🥈 Média</span>
+              <span title="Ouro - Difícil">🏆 Difícil</span>
+              <span title="Diamante - Extrema">💎 Extrema</span>
             </div>
           </div>
         </div>
