@@ -185,10 +185,12 @@ function analyzeJourney(
         "Confirmada: corresponde a Tricks of the Trade e faz parte da progressão da história.",
       "tip of the cheeseberg":
         "Confirmada como conclusão da história e impossível de perder.",
-      "ponta do queijoberg":
-        "Confirmada como conclusão da história e impossível de perder.",
+      "ponta do queijobergue":
+        "Confirmada: corresponde a Tip of the Cheeseberg, conclusão da história e impossível de perder.",
       "so whodunit":
-        "Confirmada como relacionada à história e impossível de perder.",
+        "Mantida fora da Jornada pela regra 200%: exige colocar todas as pistas no quadro.",
+      "entao quem foi":
+        "Mantida fora da Jornada pela regra 200%: exige colocar todas as pistas no quadro.",
       "guns lots of guns":
         "Confirmada: as armas necessárias são dadas automaticamente ou ficam diretamente no caminho da história.",
       "armas muitas armas":
