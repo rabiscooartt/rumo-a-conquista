@@ -1872,7 +1872,7 @@ function PrepararJogoPage() {
                               </div>
                             ))}
                         </>
-                      )}                      )}                    </div>
+                      )}                    </div>
                   </div>
                 ))}
               </div>
