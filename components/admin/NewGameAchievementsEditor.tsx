@@ -7,7 +7,7 @@ import {
   slugify,
 } from "@/lib/useSiteGames";
 
-type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
+type AchievementRank = "Bronze" | "Prata" | "Ouro";
 type AchievementStatus = "locked" | "progress" | "completed";
 type AchievementFilter = "all" | "completed" | "locked";
 
@@ -49,18 +49,20 @@ function readBoolean(value: unknown, fallback = false) {
 }
 
 function rankLabel(rank: AchievementRank) {
-  return rank === "Diamante" ? "Maestria" : rank;
+  return rank;
 }
 
 function rankToTrophy(rank: AchievementRank) {
-  if (rank === "Diamante") return "💎";
   if (rank === "Ouro") return "🥇";
   if (rank === "Prata") return "🥈";
   return "🥉";
 }
 
 function normalizeRank(value?: string): AchievementRank {
-  if (value === "Diamante") return "Diamante";
+  // Compatibilidade: registros antigos com "Diamante" passam a usar o
+  // Emblema como recompensa final; entre os ranks individuais, só existem
+  // Bronze, Prata e Ouro.
+  if (value === "Diamante") return "Ouro";
   if (value === "Ouro") return "Ouro";
   if (value === "Prata") return "Prata";
   return "Bronze";
