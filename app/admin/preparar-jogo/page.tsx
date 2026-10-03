@@ -170,6 +170,7 @@ function PrepararJogoPage() {
   const [mergeCandidate, setMergeCandidate] = useState<A | null>(null);
   const [mergeTitle, setMergeTitle] = useState("");
   const [mergeDescription, setMergeDescription] = useState("");
+  const [journeyPreparedCount, setJourneyPreparedCount] = useState<number | null>(null);
 
   const selected = useMemo(
     () =>
@@ -355,6 +356,11 @@ function PrepararJogoPage() {
     };
   }, [result?.game.slug]);
   function prepareJourneyDecision() {
+    const preparedCount = result?.achievements.filter(
+      (a) => !a.notDoing && a.journeySuggestion
+    ).length ?? 0;
+
+    setJourneyPreparedCount(preparedCount);
     setSaved(false);
     setResult((current) =>
       current
@@ -1402,21 +1408,26 @@ function PrepararJogoPage() {
                 <span className="font-black text-white/70">🤖 Sugestão automática:</span> o sistema indica inicialmente quais conquistas parecem fazer parte da conclusão normal da campanha/casos. <span className="font-black text-white/70">👤 Decisão do preparador:</span> você decide se cada uma entra ou não na Jornada de Estreia.
               </div>
 
-              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[.03] p-3">
+              <div className="mt-3 flex flex-col gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[.03] p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-200/70">
                     Decisão preparada da Jornada
                   </p>
                   <p className="mt-1 text-xs text-white/45">
-                    Usa a sugestão automática para marcar de uma vez as conquistas da Jornada de Estreia.
+                    Analisa a lista e marca automaticamente apenas as conquistas que fazem parte da primeira jornada.
                   </p>
+                  {journeyPreparedCount !== null && (
+                    <p className="mt-1 text-[10px] font-bold text-emerald-200/80">
+                      {journeyPreparedCount} {journeyPreparedCount === 1 ? "conquista marcada" : "conquistas marcadas"} como Jornada de Estreia.
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={prepareJourneyDecision}
                   className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 hover:bg-emerald-400/20"
                 >
-                  ⚡ Preparar Jornada
+                  ⚡ Analisar e Preparar Jornada
                 </button>
               </div>
 
