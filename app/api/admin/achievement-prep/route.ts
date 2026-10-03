@@ -791,12 +791,25 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
               (data.review as Record<string, unknown>).__youtubePlaylistUrl ?? ""
             ).trim()
           : "",
+      youtubeFirstLiveUrl:
+        data.review &&
+        typeof data.review === "object" &&
+        !Array.isArray(data.review)
+          ? String(
+              (data.review as Record<string, unknown>).__youtubeFirstLiveUrl ?? ""
+            ).trim()
+          : "",
     };
   }
 
   if (!titleParam) throw new Error("O nome do jogo é obrigatório.");
 
-  return { slug: slug(titleParam), title: titleParam, youtubePlaylistUrl: "" };
+  return {
+    slug: slug(titleParam),
+    title: titleParam,
+    youtubePlaylistUrl: "",
+    youtubeFirstLiveUrl: "",
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -919,6 +932,7 @@ export async function GET(req: NextRequest) {
         source: "Exophase",
         registered: Boolean(slugParam),
         youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
+        youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
         exophase: {
           found: true,
           url: exophaseData.url,
