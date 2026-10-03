@@ -123,6 +123,194 @@ function isMomentary(name: string, description: string) {
 }
 
 
+function analyzeJourney(
+  gameTitle: string,
+  name: string,
+  description: string
+): {
+  journey: boolean;
+  confidence: "confirmed" | "probable" | "outside";
+} {
+  const gameKey = slug(gameTitle);
+  const title = norm(name);
+  const text = norm(name + " " + description);
+
+  // CONFIRMADA + PROVAVELMENTE FEITA = VERDE.
+  // A interface não diferencia as duas: ambas pertencem à Jornada de Estreia.
+  // OUTSIDE = amarelo, ficando para fora da Jornada.
+
+  const verifiedJourneyByGame: Record<string, Set<string>> = {
+    "mouse-p-i-for-hire": new Set([
+      "mestre dos macetes",
+      "tricks of the trade",
+      "armas muitas armas",
+      "guns lots of guns",
+      "ponta do queijobergue",
+      "tip of the cheeseberg",
+    ]),
+  };
+
+  const probableJourneyByGame: Record<string, Set<string>> = {
+    "mouse-p-i-for-hire": new Set([
+      // Casos/pistas principais: na primeira jornada foram feitas apenas as
+      // pistas necessárias para avançar os casos.
+      "encontre as pistas principais do caso blue betty",
+      "encontre as pistas principais do caso da escassez de musaranhos",
+      "encontre as pistas principais do caso do magico desaparecido",
+      "encontre as pistas chave do caso da betty borocoxo",
+      "encontre as pistas chave do caso do magico misterioso",
+      "concluir o caso do magico desaparecido",
+      "concluir o caso da escassez de musaranhos",
+      "concluir o caso blue betty",
+      "resolva o caso da mingua do musaranho",
+      "resolva o caso da betty borocoxo",
+      "resolva o caso do magico misterioso",
+      "concluir a historia",
+      "finalizar o jogo na dificuldade normal",
+      "caso encerrado",
+      "descansar tranquilo detetive caso encerrado ou sera que nao",
+
+      // Conquistas que podem ter acontecido naturalmente durante a primeira
+      // jornada, conforme a análise do preparador.
+      "coletar 10 cartas de beisebol",
+      "taco tudo",
+      "coletar 5 cartas de beisebol",
+      "colete 5 cartas de beisebol",
+      "vencer uma partida de cartas de beisebol",
+      "vença uma partida de cartas de beisebol",
+      "as de bolso",
+      "pocket aces",
+      "baralho de iniciante",
+      "starter deck",
+      "coletar 5 historias em quadrinhos",
+      "colete 5 tirinhas",
+      "alivio comico",
+      "comic relief",
+      "coletar 10 historias em quadrinhos",
+      "colete 10 tirinhas",
+      "coletar 5 edicoes do mouseburg herald",
+      "colete 5 edicoes do mouseburg herald",
+      "coletar 10 edicoes do mouseburg herald",
+      "colete 10 edicoes do mouseburg herald",
+      "de capa a capa",
+      "cover to cover",
+      "pessoal de papel",
+      "paper person",
+      "concluir 5 trabalhos paralelos",
+      "complete 5 trabalhos secundarios",
+      "concluir 5 trabalhos secundários",
+      "complete 5 trabalhos secundários",
+      "detetive de romance de banca de jornal",
+      "dime novel sleuth",
+      "melhorar uma arma ate o nivel 3",
+      "aprimorar uma arma para o nivel 3",
+      "essa e a minha espingarda",
+      "this is my boomstick",
+      "a faca e o queijo",
+      "comic relief",
+      "q q queijociniooo",
+      "felicidade do quint",
+      "quints delight",
+      "16 toneladas de spike d",
+      "spike d 16 tons",
+      "mortissima trindade",
+      "hole y trinity",
+      "boom bastico",
+      "boom town",
+      "ta pegando fogo bicho",
+      "firestarter",
+      "com um estalar de pulsos",
+      "herr flick of the wrist",
+      "chutar o tubarao de wallop bay ate ele deixar cair a placa",
+    ]),
+  };
+
+  const verified = verifiedJourneyByGame[gameKey];
+  if (verified?.has(title)) {
+    return { journey: true, confidence: "confirmed" };
+  }
+
+  const probable = probableJourneyByGame[gameKey];
+  if (probable?.has(title)) {
+    return { journey: true, confidence: "probable" };
+  }
+
+  // Requisitos que explicitamente colocam a conquista fora da primeira jornada
+  // segundo o critério adotado para o preparador.
+  const outsidePatterns = [
+    "conquistar todos os trofeus",
+    "all trophies",
+    "fixar todas as pistas",
+    "pendure todas as pistas",
+    "todas as pistas",
+    "todos os trabalhos paralelos",
+    "todos os trabalhos secundarios",
+    "all side jobs",
+    "todas as armas disponiveis",
+    "all weapons",
+    "todas as armas que nao estao bloqueadas",
+    "todas as armas nao bloqueadas",
+    "todas as edicoes do mouseburg herald",
+    "colete todas as edicoes",
+    "todas as historias em quadrinhos",
+    "coletar todas as historias em quadrinhos",
+    "colete todas as tirinhas",
+    "todas as cartas de beisebol",
+    "colete todas as cartas",
+    "vença 30 partidas",
+    "venca 30 partidas",
+    "win 30",
+    "melhorar todas as armas ate o nivel 3",
+    "aprimorar todas as armas",
+    "finalizar o jogo na dificuldade dificil",
+    "finalize o jogo na dificuldade dificil",
+    "todas as 10 estatuetas",
+    "10 estatuetas secretas",
+    "x1 d ratificador",
+    "x1 d mousifier",
+    "arma exclusiva",
+    "arma quase exclusiva",
+    "desbloqueie a x1",
+    "desbloquear a x1",
+    "concluir todos os casos",
+  ];
+
+  if (outsidePatterns.some((pattern) => text.includes(pattern))) {
+    return { journey: false, confidence: "outside" };
+  }
+
+  // Fora do Mouse, somente a confirmação textual inequívoca da conclusão da
+  // campanha permite verde automático; o restante permanece amarelo.
+  const explicitCompletionPatterns = [
+    "complete the game",
+    "finish the game",
+    "beat the game",
+    "complete the campaign",
+    "finish the campaign",
+    "complete the story",
+    "finish the story",
+    "concluir o jogo",
+    "finalizar o jogo",
+    "concluir a campanha",
+    "finalizar a campanha",
+    "concluir a historia",
+    "finalizar a historia",
+    "complete o jogo",
+    "finalize o jogo",
+    "reach the ending",
+    "reached the ending",
+    "reach the final",
+    "alcance o final",
+    "chegue ao final",
+  ];
+
+  if (explicitCompletionPatterns.some((pattern) => text.includes(pattern))) {
+    return { journey: true, confidence: "probable" };
+  }
+
+  return { journey: false, confidence: "outside" };
+}
+
 function decodeHtml(value: string) {
   return value
     .replace(/&nbsp;/gi, " ")
@@ -651,9 +839,10 @@ export async function GET(req: NextRequest) {
       const description = a.description?.trim() || "";
       const online = isOnline(name, description);
       const momentary = isMomentary(name, description);
-      // A Jornada de Estreia é uma decisão exclusivamente manual do preparador.
-      // Nenhuma conquista importada é selecionada automaticamente.
-      const journey = false;
+      const journeyAnalysis = !online
+        ? analyzeJourney(registeredGame.title, name, description)
+        : { journey: false, confidence: "outside" as const };
+      const journey = journeyAnalysis.journey;
 
       return {
         name,
