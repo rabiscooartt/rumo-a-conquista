@@ -114,6 +114,7 @@ type GamePayload = {
   trophies?: unknown;
   review?: unknown;
   firstJourney?: FirstJourneyState;
+  youtubePlaylistUrl?: string;
   manualTotalPlayedMinutes?: number | null;
   achievementsList?: IncomingAchievement[];
   isHidden?: boolean;
@@ -154,6 +155,49 @@ function withFirstJourneyInReview(
     __firstJourney: normalized,
     value: review ?? null,
   };
+}
+
+function withYoutubePlaylistInReview(
+  review: unknown,
+  youtubePlaylistUrl?: string
+) {
+  if (youtubePlaylistUrl === undefined) {
+    return review ?? null;
+  }
+
+  const normalizedUrl = String(youtubePlaylistUrl).trim();
+
+  if (review && typeof review === "object" && !Array.isArray(review)) {
+    const next = {
+      ...(review as Record<string, unknown>),
+    };
+
+    if (normalizedUrl) {
+      next.__youtubePlaylistUrl = normalizedUrl;
+    } else {
+      delete next.__youtubePlaylistUrl;
+    }
+
+    return Object.keys(next).length > 0 ? next : null;
+  }
+
+  if (!normalizedUrl) {
+    return review ?? null;
+  }
+
+  return {
+    __youtubePlaylistUrl: normalizedUrl,
+    value: review ?? null,
+  };
+}
+
+function extractYoutubePlaylistUrl(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubePlaylistUrl;
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function extractFirstJourney(review: unknown): FirstJourneyState | undefined {
@@ -210,7 +254,10 @@ function buildGameData(game: GamePayload) {
     final_badge: game.finalBadge ?? null,
     emblem: game.emblem ?? null,
     trophies: game.trophies ?? null,
-    review: withFirstJourneyInReview(game.review, game.firstJourney),
+    review: withYoutubePlaylistInReview(
+      withFirstJourneyInReview(game.review, game.firstJourney),
+      game.youtubePlaylistUrl
+    ),
     ...(manualTimeProvided
       ? { manual_total_played_minutes: manualTotalPlayedMinutes }
       : {}),
@@ -581,6 +628,7 @@ async function fetchEnrichedGame(
   return {
     ...game,
     firstJourney: extractFirstJourney(game.review),
+    youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
     achievementsList: achievementRows.map((achievement) =>
       normalizeAchievementFromDatabase(
         achievement,
@@ -731,6 +779,7 @@ export async function GET() {
     const enrichedGames = gameRows.map((game) => ({
       ...game,
       firstJourney: extractFirstJourney(game.review),
+      youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
       achievementsList:
         achievementsByGameSlug.get(game.slug) ?? [],
     }));
