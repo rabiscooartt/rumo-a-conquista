@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 
-type Rank = "Bronze" | "Prata" | "Ouro";
+type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
 type BacklogStatus = "next" | "waiting" | "future";
 
@@ -27,7 +27,6 @@ type SidebarAchievement = {
   earnedDate?: string;
   image?: string;
   isCustom?: boolean;
-  isEmblem?: boolean;
 };
 
 type ManualAchievementState = {
@@ -199,6 +198,7 @@ const rankIcon: Record<Rank, string> = {
   Bronze: "🥉",
   Prata: "🥈",
   Ouro: "🥇",
+  Diamante: "💎",
 };
 
 function createId() {
@@ -475,9 +475,11 @@ function getDefaultRank(achievement: SidebarAchievement): Rank {
 
   const trophy = readText(achievement.trophy || achievement.icon, "");
 
-  if (difficulty === "dificil" || difficulty === "ouro" || difficulty === "diamante" || difficulty === "extrema") return "Ouro";
+  if (difficulty === "extrema" || difficulty === "diamante") return "Diamante";
+  if (difficulty === "dificil" || difficulty === "ouro") return "Ouro";
   if (difficulty === "media" || difficulty === "prata") return "Prata";
 
+  if (trophy.includes("💎")) return "Diamante";
   if (trophy.includes("🥇") || trophy.includes("🏆")) return "Ouro";
   if (trophy.includes("🥈")) return "Prata";
 
@@ -488,11 +490,9 @@ function isMasteryAchievement(achievement: SidebarAchievement, rank: Rank) {
   const title = normalizeText(readText(achievement.title, ""));
 
   return (
-    achievement.isEmblem === true ||
+    rank === "Diamante" ||
     title.includes("maestria") ||
-    title.includes("mastery") ||
-    title.includes("emblema") ||
-    title.includes("final")
+    title.includes("mastery")
   );
 }
 
@@ -740,7 +740,7 @@ function getActivityItems(games: SidebarGame[]) {
       activities.push({
         id: `${slug}-${type}-${readText(achievement.id, achievementTitle)}`,
         href: `/games/${slug}`,
-        label: isMastery ? "Último emblema" : "Último troféu",
+        label: isMastery ? "Última maestria" : "Último troféu",
         title: achievementTitle,
         gameTitle,
         subtitle: gameSubtitle,
@@ -762,14 +762,14 @@ function getActivityItems(games: SidebarGame[]) {
       activities.push({
         id: `mastery-${slug}`,
         href: `/games/${slug}`,
-        label: "Último emblema",
-        title: readText(game.finalBadge?.title, "Emblema"),
+        label: "Última maestria",
+        title: readText(game.finalBadge?.title, "Maestria Final"),
         gameTitle,
         subtitle: gameSubtitle,
-        icon: readText(game.finalBadge?.icon, "🏆"),
+        icon: readText(game.finalBadge?.icon, "💎"),
         image: readText(game.finalBadge?.image, ""),
         date: "",
-        rank: "Ouro",
+        rank: "Diamante",
         type: "mastery",
         sortOrder: gameRecency * 10000 + 9000,
       });
