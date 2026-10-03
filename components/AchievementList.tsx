@@ -138,7 +138,7 @@ export default function AchievementList({ achievements }: AchievementListProps) 
               <span title="Bronze - Simples">🥉 Simples</span>
               <span title="Prata - Média">🥈 Média</span>
               <span title="Ouro - Difícil">🏆 Difícil</span>
-              <span title="Diamante - Extrema">💎 Extrema</span>
+              <span title="Emblema">🏆 Emblema</span>
             </div>
           </div>
         </div>
