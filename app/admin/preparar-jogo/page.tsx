@@ -1435,8 +1435,8 @@ function PrepararJogoPage() {
               </div>
 
               {showSimilarity && (
-                <div className="mt-4 rounded-2xl border border-yellow-400/30 bg-yellow-400/[.05] p-4">
-                  <div className="flex items-start justify-between gap-4">
+                <div className="mt-4 rounded-2xl border border-yellow-400/30 bg-yellow-400/[.05] p-3">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-[.18em] text-yellow-200/70">
                         ⚠️ Possíveis duplicatas
@@ -1462,7 +1462,7 @@ function PrepararJogoPage() {
 
                   <div className="mt-4 space-y-3">
                     {similarCandidates.map(({ achievement, score }) => (
-                      <div key={achievement.id} className="rounded-xl border border-white/[.08] bg-black/25 p-4">
+                      <div key={achievement.id} className="rounded-xl border border-white/[.08] bg-black/25 p-3">
                         <div className="grid gap-3 md:grid-cols-2">
                           <div>
                             <p className="text-[9px] uppercase text-violet-200/60">Sua conquista</p>
@@ -1509,7 +1509,7 @@ function PrepararJogoPage() {
 
               {mergeCandidate && (
                 <div className="mt-4 rounded-2xl border border-violet-400/40 bg-violet-500/[.08] p-5">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-[.2em] text-violet-300">
                         Confirmar mesclagem
@@ -1583,16 +1583,16 @@ function PrepararJogoPage() {
                     key={a.id}
                     className={
                       a.notDoing
-                        ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-4"
+                        ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3"
                         : a.isCustom
-                          ? "w-full rounded-2xl border border-sky-400/40 bg-sky-500/[.10] p-4"
+                          ? "w-full rounded-2xl border border-sky-400/40 bg-sky-500/[.10] p-3"
                           : a.journey
-                            ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-4"
-                            : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-4"
+                            ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3"
+                            : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
                     }
                   >
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
                         <AchievementThumb gameSlug={result.game.slug} achievement={a} />
                         {a.isCustom ? (
                         <div className="min-w-0 flex-1" onClick={(e) => e.stopPropagation()}>
@@ -1634,7 +1634,7 @@ function PrepararJogoPage() {
                             Conquista {i + 1}
                           </p>
                           <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                          <p className="mt-2 text-xs text-white/35">
+                          <p className="mt-1.5 text-sm leading-relaxed text-white/45">
                             {a.description || "Sem descrição disponível."}
                           </p>
                         </button>
@@ -1717,7 +1717,7 @@ function PrepararJogoPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-xl border border-violet-400/15 bg-violet-400/[.025] p-4">
+                <div className="mt-4 rounded-xl border border-violet-400/15 bg-violet-400/[.025] p-3">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-[.14em] text-violet-300">
@@ -1737,7 +1737,7 @@ function PrepararJogoPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/[.035] p-4">
+                <div className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/[.035] p-3">
                   <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-300">
                     Fluxo
                   </p>
@@ -1845,7 +1845,7 @@ function PrepararJogoPage() {
                   {selected.map((a, i) => (
                     <div
                       key={a.id}
-                      className="rounded-2xl border border-white/[.07] bg-black/25 p-4"
+                      className="rounded-2xl border border-white/[.07] bg-black/25 p-3"
                     >
                       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                         <div>
