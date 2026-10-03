@@ -828,6 +828,7 @@ export async function GET() {
       ...game,
       firstJourney: extractFirstJourney(game.review),
       youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
+      youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
       achievementsList:
         achievementsByGameSlug.get(game.slug) ?? [],
     }));
