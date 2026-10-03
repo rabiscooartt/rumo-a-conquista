@@ -419,7 +419,7 @@ function getFinalBadgeFromGame(game: HeroGame): FinalBadgeData {
   const masteryAchievement = completedMastery ?? anyMastery;
 
   if (masteryAchievement) {
-    const title = readText(masteryAchievement.title, "Maestria Final");
+    const title = readText(masteryAchievement.title, "Emblema");
     const manualState = manualStates[title];
 
     const rank = normalizeRank(
@@ -446,7 +446,7 @@ function getFinalBadgeFromGame(game: HeroGame): FinalBadgeData {
   }
 
   return {
-    title: readText(game.finalBadge?.title, "Maestria Final"),
+    title: readText(game.finalBadge?.title, "Emblema"),
     icon: readText(game.finalBadge?.icon, "💎"),
     image:
       readText(game.finalBadge?.image, "") ||
@@ -460,7 +460,7 @@ function getObjective(
   finalBadge: FinalBadgeData
 ) {
   if (isCompleted) {
-    return finalBadge.title || readText(game.mastery, "") || "Maestria Final";
+    return finalBadge.title || readText(game.mastery, "") || "Emblema";
   }
 
   return (
@@ -710,7 +710,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                 color: "var(--hero-accent)",
               }}
             >
-              {completed ? "Última maestria" : "Jogando agora"}
+              {completed ? "Último emblema" : "Jogando agora"}
             </span>
 
             <h1 className="mt-7 max-w-[760px] text-6xl font-black uppercase leading-none text-white">
@@ -782,7 +782,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                   className="text-[10px] font-black uppercase tracking-[0.25em]"
                   style={{ color: "var(--hero-accent)" }}
                 >
-                  {completed ? "Maestria final" : "Objetivo atual"}
+                  {completed ? "Emblema" : "Objetivo atual"}
                 </p>
 
                 <p className="mt-1 text-lg font-black text-white">
