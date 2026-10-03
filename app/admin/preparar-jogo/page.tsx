@@ -19,6 +19,8 @@ type A = {
   journeySuggestion: boolean;
   journey: boolean;
   notDoing: boolean;
+  episode?: string;
+  earnedDate?: string;
   isCustom?: boolean;
   visualReferenceUrl?: string | null;
   visualBrief?: string;
@@ -284,6 +286,8 @@ function PrepararJogoPage() {
           const journeyIds = new Set<string>(draft.journeyIds ?? []);
           const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
           const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
+          const episodeById = (draft.episodeById ?? {}) as Record<string, string>;
+          const earnedDateById = (draft.earnedDateById ?? {}) as Record<string, string>;
           const customAchievements: A[] = draft.customAchievements ?? [];
 
           setResult((current) =>
@@ -298,6 +302,8 @@ function PrepararJogoPage() {
                         journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
                         notDoing: notDoingIds.has(a.id),
                         visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
+                        episode: episodeById[a.id] ?? a.episode ?? "",
+                        earnedDate: earnedDateById[a.id] ?? a.earnedDate ?? "",
                       })),
                     ...customAchievements,
                   ],
@@ -403,6 +409,24 @@ function PrepararJogoPage() {
               a.id === id
                 ? { ...a, notDoing: !a.notDoing, journey: false }
                 : a
+            ),
+          }
+        : current
+    );
+  }
+
+  function updateAchievementRecord(
+    id: string,
+    field: "episode" | "earnedDate",
+    value: string
+  ) {
+    setSaved(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.map((a) =>
+              a.id === id ? { ...a, [field]: value } : a
             ),
           }
         : current
@@ -611,6 +635,8 @@ function PrepararJogoPage() {
       journeySuggestion: false,
       journey: true,
       notDoing: false,
+      episode: "",
+      earnedDate: "",
       isCustom: true,
     };
 
@@ -656,6 +682,8 @@ function PrepararJogoPage() {
       journeySuggestion: false,
       journey: true,
       notDoing: false,
+      episode: "",
+      earnedDate: "",
       isCustom: true,
     };
 
@@ -716,6 +744,8 @@ function PrepararJogoPage() {
       journeySuggestion: candidate.journeySuggestion,
       journey: true,
       notDoing: false,
+      episode: "",
+      earnedDate: "",
       isCustom: true,
     };
 
@@ -758,6 +788,16 @@ function PrepararJogoPage() {
             achievements
               .filter((a) => a.visualBrief?.trim())
               .map((a) => [a.id, a.visualBrief?.trim() ?? ""])
+          ),
+          episodeById: Object.fromEntries(
+            achievements
+              .filter((a) => a.episode?.trim())
+              .map((a) => [a.id, a.episode?.trim() ?? ""])
+          ),
+          earnedDateById: Object.fromEntries(
+            achievements
+              .filter((a) => a.earnedDate?.trim())
+              .map((a) => [a.id, a.earnedDate?.trim() ?? ""])
           ),
           customAchievements: achievements.filter((a) => a.isCustom),
         },
@@ -1719,7 +1759,40 @@ function PrepararJogoPage() {
                           </>
                         )}
                       </div>
-                    </div>
+                      {!a.notDoing && (
+                        <div className="mt-2 grid w-full gap-2 rounded-xl border border-white/[.07] bg-black/20 p-2 lg:grid-cols-[1fr_1fr_auto]">
+                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                            🎬 EP da live
+                            <input
+                              type="text"
+                              value={a.episode ?? ""}
+                              onChange={(e) =>
+                                updateAchievementRecord(a.id, "episode", e.target.value)
+                              }
+                              placeholder="Ex.: EP 04"
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20"
+                            />
+                          </label>
+                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/35">
+                            📅 Data em que conseguiu
+                            <input
+                              type="date"
+                              value={a.earnedDate ?? ""}
+                              onChange={(e) =>
+                                updateAchievementRecord(a.id, "earnedDate", e.target.value)
+                              }
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none"
+                            />
+                          </label>
+                          <div className="flex items-end">
+                            <span className="rounded-lg border border-emerald-400/15 bg-emerald-400/[.05] px-3 py-2 text-[9px] font-black uppercase text-emerald-200/70">
+                              {a.episode?.trim() && a.earnedDate?.trim()
+                                ? "✓ Registro completo"
+                                : "Registro da conquista"}
+                            </span>
+                          </div>
+                        </div>
+                      )}                    </div>
                   </div>
                 ))}
               </div>
