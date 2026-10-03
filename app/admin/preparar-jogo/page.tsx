@@ -1812,9 +1812,10 @@ function PrepararJogoPage() {
 
                         <div className="mt-3 space-y-2">
                           {realizedCandidates.map(({ achievement, score }) => (
-                            <div
-                              key={achievement.id}
-                              className="rounded-xl border border-white/[.07] bg-white/[.02] p-3"
+                            <button
+                              type="button"
+                              onClick={() => focusAchievement(achievement.id)}
+                              className="w-full rounded-xl border border-white/[.07] bg-white/[.02] p-3 text-left transition hover:border-violet-300/30 hover:bg-violet-400/[.05]"
                             >
                               <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                                 <div className="min-w-0">
@@ -1824,6 +1825,9 @@ function PrepararJogoPage() {
                                   </p>
                                   <p className={`mt-2 text-[9px] font-black uppercase tracking-[.1em] ${realizedMatchTone(score)}`}>
                                     Correspondência {realizedMatchLabel(score)} · {Math.round(score * 100)}% na busca
+                                  </p>
+                                  <p className="mt-2 text-[9px] font-black uppercase tracking-[.12em] text-violet-200/55">
+                                    Clique para abrir a conquista e editar EP + data
                                   </p>
                                 </div>
                                 <div className="flex shrink-0 flex-wrap gap-2">
@@ -1844,7 +1848,7 @@ function PrepararJogoPage() {
                                   </button>
                                 </div>
                               </div>
-                            </div>
+                            </button>
                           ))}
                         </div>
 
