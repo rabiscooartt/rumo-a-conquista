@@ -50,7 +50,7 @@ export default function NewGamesAdminPage() {
             selectedGame.currentObjective || selectedGame.objective
               ? "manual"
               : "automatic",
-          youtubeFirstLiveUrl: selectedGame.youtubeFirstLiveUrl || "",
+          youtubeFirstLiveEpisode: selectedGame.youtubeFirstLiveEpisode || "",
         }
     : null;
 
@@ -92,12 +92,14 @@ export default function NewGamesAdminPage() {
             !Array.isArray(selectedGame.review)
               ? { ...(selectedGame.review as Record<string, unknown>) }
               : {};
-          const firstLive = String(values.youtubeFirstLiveUrl || "").trim();
+          const firstLiveEpisode = String(
+            values.youtubeFirstLiveEpisode || ""
+          ).trim();
 
-          if (firstLive) {
-            review.__youtubeFirstLiveUrl = firstLive;
+          if (firstLiveEpisode) {
+            review.__youtubeFirstLiveEpisode = firstLiveEpisode;
           } else {
-            delete review.__youtubeFirstLiveUrl;
+            delete review.__youtubeFirstLiveEpisode;
           }
 
           return Object.keys(review).length > 0 ? review : null;
@@ -231,21 +233,21 @@ export default function NewGamesAdminPage() {
 
                     <label>
                       <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
-                        Primeira Live — Jornada de Estreia
+                        EP de início — Jornada de Estreia
                       </span>
                       <input
-                        value={values.youtubeFirstLiveUrl}
+                        value={values.youtubeFirstLiveEpisode}
                         onChange={(event) =>
                           setDraft({
                             ...values,
-                            youtubeFirstLiveUrl: event.target.value,
+                            youtubeFirstLiveEpisode: event.target.value,
                           })
                         }
-                        placeholder="https://www.youtube.com/watch?v=...&list=..."
+                        placeholder="Ex.: EP 01 ou 1"
                         className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none placeholder:text-white/20 focus:border-red-500/40"
                       />
                       <span className="mt-1 block text-[9px] leading-relaxed text-white/25">
-                        Link da primeira live do jogo, copiado de dentro da playlist do YouTube. Usado pelo botão INÍCIO DAS LIVES da Jornada de Estreia.
+                        Informe somente o episódio em que a Jornada começa. Ex.: EP 01. O botão INÍCIO DAS LIVES abrirá a aba Conteúdo já filtrada pelo jogo e por esse episódio.
                       </span>
                     </label>
 
