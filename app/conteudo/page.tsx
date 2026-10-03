@@ -28,6 +28,14 @@ type YouTubeChannelResponse = {
   error?: string;
 };
 
+type JourneyGameResponse = {
+  game?: {
+    title?: string;
+    youtubeFirstLiveUrl?: string;
+  };
+  error?: string;
+};
+
 const filters: { label: string; value: FilterType }[] = [
   {
     label: "Todos",
@@ -59,6 +67,34 @@ function normalizeEpisode(value?: string) {
   const match = String(value ?? "").match(/\d+/);
   if (!match) return "";
   return String(Number(match[0])).padStart(2, "0");
+}
+
+function extractYoutubeVideoId(value?: string) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+
+  try {
+    const parsed = new URL(raw);
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      return parsed.pathname.split("/").filter(Boolean)[0] ?? "";
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const queryId = parsed.searchParams.get("v");
+      if (queryId) return queryId;
+
+      const pathParts = parsed.pathname.split("/").filter(Boolean);
+      if (pathParts[0] === "embed" || pathParts[0] === "shorts") {
+        return pathParts[1] ?? "";
+      }
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
 }
 
 function matchesEpisode(video: YouTubeVideo, episode: string) {
@@ -359,13 +395,64 @@ export default function ConteudoPage() {
   const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [requestedEpisode, setRequestedEpisode] = useState("");
+  const [journeyStartRequested, setJourneyStartRequested] = useState(false);
+  const [journeyGameTitle, setJourneyGameTitle] = useState("");
+  const [journeyFirstLiveUrl, setJourneyFirstLiveUrl] = useState("");
+  const [journeyError, setJourneyError] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setRequestedEpisode(normalizeEpisode(params.get("ep") ?? ""));
-    
+    const episode = normalizeEpisode(params.get("ep") ?? "");
+    const gameSlug = params.get("game")?.trim() ?? "";
+    const isJourneyStart = params.get("inicio") === "1";
+
+    setRequestedEpisode(episode);
+    setJourneyStartRequested(Boolean(gameSlug && isJourneyStart));
+    setJourneyGameTitle("");
+    setJourneyFirstLiveUrl("");
+    setJourneyError("");
+
     const controller = new AbortController();
 
+    async function loadJourneyGame() {
+      if (!gameSlug || !isJourneyStart) return;
+
+      try {
+        const response = await fetch(
+          "/api/games/data?slug=" + encodeURIComponent(gameSlug),
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          }
+        );
+
+        const data = (await response.json()) as JourneyGameResponse;
+
+        if (!response.ok || !data.game) {
+          throw new Error(data.error || "Não foi possível localizar o jogo da Jornada de Estreia.");
+        }
+
+        setJourneyGameTitle(data.game.title?.trim() || gameSlug);
+        setJourneyFirstLiveUrl(data.game.youtubeFirstLiveUrl?.trim() || "");
+
+        if (!data.game.youtubeFirstLiveUrl?.trim()) {
+          setJourneyError("A primeira live da Jornada de Estreia ainda não foi cadastrada para este jogo.");
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setJourneyError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível carregar o início da Jornada de Estreia."
+        );
+      }
+    }
+
+    void loadJourneyGame();
+    
     async function loadYouTubeVideos() {
       try {
         setIsLoading(true);
@@ -422,6 +509,41 @@ export default function ConteudoPage() {
   }, [activeFilter, requestedEpisode, videos]);
 
   const featuredVideo = videos[0];
+
+  const journeyStartVideo = useMemo(() => {
+    if (!journeyStartRequested || !journeyFirstLiveUrl) {
+      return null;
+    }
+
+    const videoId = extractYoutubeVideoId(journeyFirstLiveUrl);
+    const matchedVideo = videoId
+      ? videos.find((video) => video.id === videoId)
+      : undefined;
+
+    if (matchedVideo) {
+      return matchedVideo;
+    }
+
+    return {
+      id: videoId || "journey-start",
+      title:
+        "Início das lives — " +
+        (journeyGameTitle || "Jogo da Jornada de Estreia"),
+      description:
+        "Primeira live do jogo registrada para a Jornada de Estreia.",
+      publishedAt: "",
+      thumbnail: videoId
+        ? "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg"
+        : "",
+      url: journeyFirstLiveUrl,
+      type: "video" as const,
+    };
+  }, [
+    journeyStartRequested,
+    journeyFirstLiveUrl,
+    journeyGameTitle,
+    videos,
+  ]);
 
   const totalLives = videos.filter(
     (video) => getVideoType(video) === "live"
@@ -490,7 +612,35 @@ export default function ConteudoPage() {
           </div>
         </header>
 
-        {requestedEpisode ? (
+        {journeyStartRequested ? (
+          <section className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-400/[.05] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[.2em] text-emerald-300">
+                  Jornada de Estreia
+                </p>
+                <p className="mt-1 text-sm font-black text-white">
+                  Início das lives{journeyGameTitle ? " · " + journeyGameTitle : ""}
+                </p>
+                {journeyError ? (
+                  <p className="mt-1 text-[10px] font-bold text-yellow-200/70">
+                    {journeyError}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[10px] text-white/35">
+                    A primeira live registrada para este jogo aparece em destaque abaixo.
+                  </p>
+                )}
+              </div>
+              <Link
+                href="/conteudo"
+                className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
+              >
+                Voltar para Conteúdo
+              </Link>
+            </div>
+          </section>
+        ) : requestedEpisode ? (
           <section className="mt-8 rounded-2xl border border-blue-400/20 bg-blue-500/[.06] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -534,7 +684,20 @@ export default function ConteudoPage() {
           </div>
         </section>
 
-        {featuredVideo && activeFilter === "all" ? (
+        {journeyStartRequested ? (
+          <section className="mt-8">
+            {journeyStartVideo ? (
+              <FeaturedVideo video={journeyStartVideo} />
+            ) : (
+              <EmptyState
+                error={
+                  journeyError ||
+                  "A primeira live da Jornada de Estreia ainda não foi cadastrada para este jogo."
+                }
+              />
+            )}
+          </section>
+        ) : featuredVideo && activeFilter === "all" ? (
           <section className="mt-8">
             <FeaturedVideo video={featuredVideo} />
           </section>
