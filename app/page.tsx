@@ -11,8 +11,19 @@ export default function Home() {
       <Navbar />
 
       <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
-          <div className="min-w-0 space-y-8">
+        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 gap-0 xl:grid-cols-[290px_minmax(0,1fr)_290px]">
+          <aside className="hidden border-r border-white/[0.08] px-4 py-5 xl:block">
+            <div className="sticky top-20">
+              <div className="border-b border-white/[0.08] pb-4 pt-2">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <span className="text-red-500">✣</span>
+                  Perfil
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <div className="min-w-0 space-y-8 px-5">
             <section id="perfil" className="space-y-8">
               <HeroBanner />
 
@@ -34,7 +45,7 @@ export default function Home() {
 
           <aside
             id="backlog"
-            className="min-w-0 xl:sticky xl:top-20 xl:self-start"
+            className="min-w-0 border-l border-white/[0.08] px-4 py-5 xl:sticky xl:top-20 xl:self-start"
           >
             <HomeSidebar />
           </aside>
