@@ -507,7 +507,7 @@ export default function ConteudoPage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
             <div>
