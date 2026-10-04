@@ -1070,7 +1070,9 @@ function PrepararJogoPage() {
       journeySuggestion: false,
       journey: true,
       notDoing: false,
-      episode: "",
+      episode: normalizeEpisode(result.game.youtubeFirstLiveEpisode)
+        ? "EP " + normalizeEpisode(result.game.youtubeFirstLiveEpisode)
+        : "",
       earnedDate: "",
       isCustom: true,
     };
@@ -1087,18 +1089,29 @@ function PrepararJogoPage() {
 
   function useExophaseCandidate(candidate: A) {
     setSaved(false);
-    setResult((current) =>
-      current
-        ? {
-            ...current,
-            achievements: current.achievements.map((a) =>
-              a.id === candidate.id
-                ? { ...a, journey: true, notDoing: false }
-                : a
-            ),
-          }
-        : current
-    );
+    setResult((current) => {
+      if (!current) return current;
+
+      const journeyEpisode = normalizeEpisode(
+        current.game.youtubeFirstLiveEpisode
+      );
+
+      return {
+        ...current,
+        achievements: current.achievements.map((a) =>
+          a.id === candidate.id
+            ? {
+                ...a,
+                journey: true,
+                notDoing: false,
+                episode: journeyEpisode
+                  ? "EP " + journeyEpisode
+                  : a.episode ?? "",
+              }
+            : a
+        ),
+      };
+    });
     setManualAchievement("");
     setShowSimilarity(false);
     setSimilarCandidates([]);
@@ -1132,7 +1145,9 @@ function PrepararJogoPage() {
       journeySuggestion: candidate.journeySuggestion,
       journey: true,
       notDoing: false,
-      episode: "",
+      episode: normalizeEpisode(result.game.youtubeFirstLiveEpisode)
+        ? "EP " + normalizeEpisode(result.game.youtubeFirstLiveEpisode)
+        : "",
       earnedDate: "",
       isCustom: true,
     };
