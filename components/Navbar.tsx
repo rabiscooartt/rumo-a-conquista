@@ -271,7 +271,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#05070a]/90 backdrop-blur-xl">
-      <nav className="mx-auto flex h-[74px] w-full max-w-[1500px] items-center justify-between px-8">
+      <nav className="mx-auto flex h-[64px] w-full max-w-[1500px] items-center justify-between px-8">
         <Link href="/" className="flex items-center gap-3">
           <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 shadow-[0_0_24px_rgba(239,68,68,0.12)]">
             <LogoTrophyIcon className="h-5 w-5" />
