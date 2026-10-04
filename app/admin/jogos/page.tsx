@@ -199,7 +199,18 @@ export default function NewGamesAdminPage() {
                   {restoringMouse ? "Restaurando..." : "Restaurar dados do Mouse"}
                 </button>
               )}
-            <Link href="/admin/preparar-jogo" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20">Preparar novo jogo</Link> className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20">Preparar novo jogo</Link><Link href="/admin/jogos" className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white">
+            <Link
+              href="/admin/preparar-jogo"
+              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20"
+            >
+              Preparar novo jogo
+            </Link>
+            <Link
+              href="/admin/jogos"
+              className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white"
+            >
+              Admin antigo
+            </Link>
             Admin antigo
           </Link></div>
         </div>
