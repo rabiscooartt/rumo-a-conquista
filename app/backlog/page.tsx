@@ -96,7 +96,7 @@ export default function BacklogPage() {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1560px] px-8 py-8">
+      <section className="mx-auto w-full max-w-[1360px] px-6 py-6">
         <div className="flex items-center justify-between gap-5">
           <Link
             href="/"
@@ -106,8 +106,8 @@ export default function BacklogPage() {
           </Link>
         </div>
 
-        <header className="mt-8 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-8">
+        <header className="mt-5 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
+          <div className="relative p-6">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_32%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),transparent_40%,rgba(255,255,255,0.02))]" />
 
@@ -117,7 +117,7 @@ export default function BacklogPage() {
                   Próximas Maestrias
                 </p>
 
-                <h1 className="mt-3 text-5xl font-black text-white">
+                <h1 className="mt-3 text-[34px] font-black text-white">
                   Fila de Maestrias
                 </h1>
 
@@ -148,7 +148,7 @@ export default function BacklogPage() {
           </div>
         </header>
 
-        <section className="mt-8 rounded-[32px] border border-white/10 bg-zinc-950/80 p-6 shadow-xl">
+        <section className="mt-4 rounded-[14px] border border-white/10 bg-zinc-950/80 p-6 shadow-xl">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
