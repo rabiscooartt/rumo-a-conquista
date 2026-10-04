@@ -885,7 +885,7 @@ export default function SagasPage() {
         </button>
       )}
 
-      <section className="mx-auto w-full max-w-[1360px] px-6 py-6">
+      <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
         <Link
           href="/"
           className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
