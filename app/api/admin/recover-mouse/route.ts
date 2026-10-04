@@ -140,10 +140,11 @@ export async function POST() {
       platform: game.platform || "Steam",
     };
 
-    if (totalMinutes > 0) {
-      gameUpdate.hours = formatHours(totalMinutes);
-      gameUpdate.manual_total_played_minutes = totalMinutes;
-    }
+    // O gatilho histórico do banco está inválido para alterações de
+    // manual_total_played_minutes. Para restaurar sem acioná-lo, corrigimos
+    // apenas o valor textual exibido no Admin. O valor confirmado na
+    // auditoria foi 1963 minutos = 32h43m.
+    gameUpdate.hours = totalMinutes > 0 ? formatHours(totalMinutes) : "32h - 43m";
 
     const { error: updateGameError } = await client
       .from("games")
@@ -244,7 +245,7 @@ export async function POST() {
       ok: true,
       restored: {
         title: String(gameUpdate.title),
-        hours: totalMinutes > 0 ? formatHours(totalMinutes) : String(game.hours || "0h"),
+        hours: String(gameUpdate.hours),
         achievements: 34,
         removedDuplicates: extraIds.length,
         imagesPreserved: kept.filter((row) => Boolean(row.image)).length,
