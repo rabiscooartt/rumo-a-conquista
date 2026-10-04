@@ -10,8 +10,8 @@ export default function Home() {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1700px] px-8 py-8">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="mx-auto w-full max-w-[1360px] px-6 py-6">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
           <div className="min-w-0 space-y-8">
             <section id="perfil" className="space-y-8">
               <HeroBanner />
