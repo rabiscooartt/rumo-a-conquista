@@ -666,7 +666,7 @@ export default function HistoricoPage() {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1360px] px-6 py-6">
+      <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <Link
             href="/"
