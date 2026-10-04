@@ -503,12 +503,76 @@ export default function ConteudoPage() {
   const totalVideos = videos.filter(
     (video) => getVideoType(video) === "video"
   ).length;
-
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
+    <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1500px] px-8 py-10">
+      <div className="mx-auto grid w-full max-w-[1360px] grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)]">
+        <aside className="hidden min-h-[calc(100vh-56px)] border-r border-white/[0.08] px-6 py-7 lg:block">
+          <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
+            <div>
+              <div className="border-t border-white/[0.08] pt-5">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <span className="text-red-400">▶</span>
+                  Conteúdo
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
+                  Organização
+                </p>
+                <div className="mt-3 space-y-1.5">
+                  <div className="rounded-lg bg-red-500/10 px-2.5 py-2.5 text-[11px] font-black text-red-300">
+                    Visão geral
+                  </div>
+                  <div className="px-2.5 py-2.5 text-[11px] font-bold text-white/45">
+                    Por jogo
+                  </div>
+                  <div className="px-2.5 py-2.5 text-[11px] font-bold text-white/45">
+                    Episódios
+                  </div>
+                  <div className="px-2.5 py-2.5 text-[11px] font-bold text-white/45">
+                    Lives
+                  </div>
+                  <div className="px-2.5 py-2.5 text-[11px] font-bold text-white/45">
+                    Vídeos
+                  </div>
+                  <div className="px-2.5 py-2.5 text-[11px] font-bold text-white/45">
+                    Shorts
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-7 border-t border-white/[0.08] pt-5">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
+                  Período
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-white/45">◷</span>
+                  <span className="text-[11px] font-semibold text-white/65">
+                    Conteúdo recente
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-8">
+              <Link
+                href="/configuracoes"
+                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55 transition hover:text-white"
+              >
+                <span className="text-sm">◉</span>
+                Configurações
+              </Link>
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
+            <div className="min-w-0">
+
         <header className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
           <div className="relative p-8">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.2),transparent_36%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_32%)]" />
@@ -665,7 +729,77 @@ export default function ConteudoPage() {
             </div>
           )}
         </section>
-      </section>
+            </div>
+
+            <aside className="space-y-3 xl:sticky xl:top-20">
+              <section className="rounded-[14px] border border-emerald-400/20 bg-[#090f0b] p-3.5">
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-300">
+                  Jornada de Estreia
+                </p>
+                <p className="mt-2 text-[14px] font-black text-white">
+                  {requestedEpisode ? "EP " + requestedEpisode : "EP inicial por jogo"}
+                </p>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/35">
+                  O jogo e o episódio conectam a Jornada ao conteúdo.
+                </p>
+              </section>
+
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                  Playlist do jogo
+                </p>
+                <p className="mt-2 text-[10px] leading-relaxed text-white/35">
+                  A playlist específica entra na próxima etapa da V2.
+                </p>
+              </section>
+
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                  Estatísticas
+                </p>
+                <div className="mt-3 space-y-2.5">
+                  <div className="flex items-center justify-between border-t border-white/[0.06] pt-2.5 first:border-t-0 first:pt-0">
+                    <span className="text-[10px] font-semibold text-white/45">Conteúdos</span>
+                    <strong className="text-[12px] font-black text-white">{isLoading ? "..." : videos.length}</strong>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-white/[0.06] pt-2.5">
+                    <span className="text-[10px] font-semibold text-white/45">Lives</span>
+                    <strong className="text-[12px] font-black text-white">{isLoading ? "..." : totalLives}</strong>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-white/[0.06] pt-2.5">
+                    <span className="text-[10px] font-semibold text-white/45">Shorts</span>
+                    <strong className="text-[12px] font-black text-white">{isLoading ? "..." : totalShorts}</strong>
+                  </div>
+                </div>
+              </section>
+
+              {featuredVideo ? (
+                <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                  <p className="text-[11px] font-black uppercase tracking-[0.12em] text-white">
+                    Último conteúdo
+                  </p>
+                  <div className="mt-3 overflow-hidden rounded-xl border border-white/[0.08] bg-black">
+                    <div className="aspect-video">
+                      <VideoThumbnail
+                        src={featuredVideo.thumbnail}
+                        title={featuredVideo.title}
+                      />
+                    </div>
+                    <div className="p-3">
+                      <p className="line-clamp-2 text-[11px] font-black text-white">
+                        {featuredVideo.title}
+                      </p>
+                      <p className="mt-1 text-[9px] font-semibold text-white/35">
+                        {formatDate(featuredVideo.publishedAt)}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+            </aside>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
