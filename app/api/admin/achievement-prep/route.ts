@@ -465,115 +465,148 @@ function extractVisualReference(block: string) {
   return null;
 }
 
+function parseExophaseAchievementLinks(html: string) {
+  const matches = Array.from(
+    html.matchAll(
+      /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*\/achievement\/[^""]+)"|'([^']*\/achievement\/[^']+)'|([^\s>]*\/achievement\/[^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
+    )
+  );
+
+  if (!matches.length) return null;
+
+  const achievements: ExophaseAchievement[] = [];
+  const seen = new Set<string>();
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index];
+    const href = match[1] || match[2] || match[3] || "";
+    const name = stripHtml(decodeHtml(match[4] || ""))
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!href || !name) continue;
+
+    const key = norm(name);
+    if (!key || seen.has(key)) continue;
+
+    const anchorEnd = (match.index ?? 0) + match[0].length;
+    const nextAnchorStart =
+      index + 1 < matches.length
+        ? matches[index + 1].index ?? html.length
+        : html.length;
+
+    const followingText = stripHtml(
+      decodeHtml(html.slice(anchorEnd, nextAnchorStart))
+    )
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const percentMatch = followingText.match(/(\d+(?:\.\d+)?)%/);
+    const percent = percentMatch ? Number(percentMatch[1]) : undefined;
+
+    let description = percentMatch
+      ? followingText.slice(0, percentMatch.index).trim()
+      : followingText;
+
+    description = description
+      .replace(/^(?:Image|Imagem)\s*/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!description) continue;
+
+    const cardStart = Math.max(0, (match.index ?? 0) - 5000);
+    const visualReferenceUrl = extractVisualReference(
+      html.slice(cardStart, nextAnchorStart)
+    );
+
+    seen.add(key);
+    achievements.push({
+      name,
+      description,
+      percent,
+      visualReferenceUrl,
+      detailUrl: resolveExophaseUrl(href),
+    });
+  }
+
+  return achievements.length ? achievements : null;
+}
+
 function parseExophaseHtml(html: string) {
-  // Procuramos a abertura do elemento .award-title, e não o primeiro
-  // fechamento de tag. Assim títulos com <span>/<a> internos não quebram.
+  // Mantém compatibilidade com o formato antigo do Exophase.
   const titleOpenMatches = Array.from(
     html.matchAll(
       /<([a-z0-9]+)\b[^>]*class=["'][^"']*\baward-title\b[^"']*["'][^>]*>/gi
     )
   );
 
-  if (!titleOpenMatches.length) return null;
+  if (titleOpenMatches.length) {
+    const achievements: ExophaseAchievement[] = titleOpenMatches
+      .map((match, index) => {
+        const titleStart = (match.index ?? 0) + match[0].length;
+        const nextTitleStart =
+          index + 1 < titleOpenMatches.length
+            ? titleOpenMatches[index + 1].index ?? html.length
+            : html.length;
+        const chunk = html.slice(titleStart, nextTitleStart);
+        const titlePart = chunk.split(/<\/[^>]+>/i)[0];
+        const title = stripHtml(titlePart);
+        if (!title) return null;
 
-  const achievements: ExophaseAchievement[] = titleOpenMatches
-    .map((match, index) => {
-      const titleStart = (match.index ?? 0) + match[0].length;
-      const nextTitleStart =
-        index + 1 < titleOpenMatches.length
-          ? titleOpenMatches[index + 1].index ?? html.length
-          : html.length;
+        const previousTitleEnd =
+          index > 0
+            ? (titleOpenMatches[index - 1].index ?? 0) +
+              titleOpenMatches[index - 1][0].length
+            : 0;
+        const cardStart = Math.max(previousTitleEnd, (match.index ?? 0) - 8000);
+        const cardBlock = html.slice(cardStart, nextTitleStart);
+        const visualReferenceUrl = extractVisualReference(cardBlock);
 
-      const chunk = html.slice(titleStart, nextTitleStart);
-
-      // O primeiro fechamento de tag depois da abertura normalmente encerra
-      // o <span>/<a> que contém o nome. O stripHtml cuida do restante.
-      const titlePart = chunk.split(/<\/[^>]+>/i)[0];
-      const title = stripHtml(titlePart);
-
-      if (!title) return null;
-
-      const previousTitleEnd =
-        index > 0
-          ? (titleOpenMatches[index - 1].index ?? 0) +
-            titleOpenMatches[index - 1][0].length
-          : 0;
-
-      // O ícone e o link da conquista podem ficar ANTES do .award-title,
-      // dentro do mesmo card. Por isso o parser precisa olhar para a janela
-      // inteira do card, e não somente para o HTML depois do título.
-      const cardStart = Math.max(
-        previousTitleEnd,
-        (match.index ?? 0) - 8000
-      );
-      const cardBlock = html.slice(cardStart, nextTitleStart);
-
-      const visualReferenceUrl = extractVisualReference(cardBlock);
-
-      // A página individual da conquista é o fallback mais confiável quando
-      // o card da listagem só expõe o texto "Image".
-      const detailLinkCandidates = Array.from(
-        cardBlock.matchAll(
-          /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>/gi
+        const detailLinkCandidates = Array.from(
+          cardBlock.matchAll(
+            /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>/gi
+          )
         )
-      )
-        .map((a) => a[1] || a[2] || a[3])
-        .filter(Boolean);
+          .map((a) => a[1] || a[2] || a[3])
+          .filter(Boolean);
 
-      const detailLink =
-        detailLinkCandidates.find((href) =>
-          /\/achievement\//i.test(href as string)
-        ) ||
-        extractAttribute(match[0], "href") ||
-        detailLinkCandidates[0] ||
-        null;
+        const detailLink =
+          detailLinkCandidates.find((href) => /\/achievement\//i.test(href as string)) ||
+          extractAttribute(match[0], "href") ||
+          detailLinkCandidates[0] ||
+          null;
 
-      const detailUrl = resolveExophaseUrl(detailLink);
+        const detailUrl = resolveExophaseUrl(detailLink);
+        const visible = stripHtml(chunk);
+        let detailText = visible;
 
-      const visible = stripHtml(chunk);
-      let detailText = visible;
+        if (detailText.toLowerCase().startsWith(title.toLowerCase())) {
+          detailText = detailText.slice(title.length).trim();
+        }
 
-      if (detailText.toLowerCase().startsWith(title.toLowerCase())) {
-        detailText = detailText.slice(title.length).trim();
-      }
+        const percentMatch = detailText.match(/(\d+(?:\.\d+)?)%/);
+        const percent = percentMatch ? Number(percentMatch[1]) : undefined;
 
-      const percentMatch = detailText.match(/(\d+(?:\.\d+)?)%/);
-      const percent = percentMatch ? Number(percentMatch[1]) : undefined;
+        const description = (percentMatch
+          ? detailText.slice(0, percentMatch.index).trim()
+          : detailText.trim()
+        )
+          .replace(/^(?:Image|Imagem)\s+/i, "")
+          .replace(/\s+/g, " ")
+          .trim();
 
-      let description = percentMatch
-        ? detailText.slice(0, percentMatch.index).trim()
-        : detailText.trim();
+        return { name: title, description, percent, visualReferenceUrl, detailUrl };
+      })
+      .filter(Boolean) as ExophaseAchievement[];
 
-      description = description
-        .replace(/^(?:Image|Imagem)\s+/i, "")
-        .replace(/\s+/g, " ")
-        .trim();
+    if (achievements.length) return achievements;
+  }
 
-      return {
-        name: title,
-        description,
-        percent,
-        visualReferenceUrl,
-        detailUrl,
-      };
-    })
-    .filter(
-      (achievement): achievement is {
-        name: string;
-        description: string;
-        percent: number | undefined;
-        visualReferenceUrl: string | null;
-        detailUrl: string | null;
-      } => Boolean(achievement)
-    );
-
-  return achievements.length ? achievements : null;
+  return parseExophaseAchievementLinks(html);
 }
 
-async function fetchJinaHtml(
-  url: string,
-  waitForSelector = ".award-title"
-) {
+async function fetchJinaHtml(url: string) {
   const readerUrl = "https://r.jina.ai/" + url;
 
   try {
@@ -583,8 +616,6 @@ async function fetchJinaHtml(
         Accept: "text/html",
         "X-Engine": "browser",
         "X-Respond-With": "html",
-        "X-Respond-Timing": "network-idle",
-        "X-Wait-For-Selector": waitForSelector,
         "X-No-Cache": "true",
         "X-Timeout": "30",
       },
@@ -592,20 +623,18 @@ async function fetchJinaHtml(
 
     if (browserResponse.ok) {
       const html = await browserResponse.text();
-      if (html && html.includes("award-title")) return html;
+      if (html && /\/achievement\//i.test(html)) return html;
     }
   } catch (error) {
     console.error("[Jina Browser]", error);
   }
 
-  // Fallback de compatibilidade: nem toda resposta do Jina/Exophase
-  // aceita o modo browser/selector. Mantemos o Reader simples como segunda
-  // tentativa para não transformar uma falha do browser em erro da preparação.
   const plainResponse = await fetch(readerUrl, {
     cache: "no-store",
     headers: {
       Accept: "text/html",
       "X-Respond-With": "html",
+      "X-No-Cache": "true",
       "X-Timeout": "20",
     },
   });
@@ -733,7 +762,7 @@ async function fetchExophaseAchievements(url: string) {
       const html = await response.text();
 
       if (isPortugueseExophasePage(html)) {
-        const achievements = parseExophaseHtml(html);
+        const achievements = parseExophaseHtml(html) ?? parseExophaseAchievementLinks(html);
 
         if (achievements) {
           const hydrated = await hydrateExophaseVisualReferences(achievements);
