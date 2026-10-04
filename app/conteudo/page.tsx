@@ -195,12 +195,12 @@ function StatCard({
       : "border-white/10 bg-white/[0.04]";
 
   return (
-    <div className={`rounded-2xl border px-5 py-4 ${className}`}>
+    <div className={`rounded-xl border px-4 py-3 ${className}`}>
       <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/35">
         {label}
       </p>
 
-      <p className="mt-1 text-3xl font-black text-white">{value}</p>
+      <p className="mt-1 text-2xl font-black text-white">{value}</p>
     </div>
   );
 }
@@ -227,9 +227,9 @@ function FeaturedVideo({ video }: { video: YouTubeVideo }) {
       rel="noreferrer"
       className="block"
     >
-      <article className="group overflow-hidden rounded-[32px] border border-red-500/20 bg-zinc-950/85 shadow-xl transition hover:border-red-500/40 hover:shadow-[0_0_48px_rgba(239,68,68,0.16)]">
-        <div className="grid lg:grid-cols-[1.25fr_0.75fr]">
-          <div className="relative min-h-[320px] overflow-hidden bg-black">
+      <article className="group overflow-hidden rounded-[16px] border border-red-500/20 bg-zinc-950/85 shadow-xl transition hover:border-red-500/40 hover:shadow-[0_0_48px_rgba(239,68,68,0.16)]">
+        <div className="grid lg:grid-cols-[1.35fr_0.65fr]">
+          <div className="relative min-h-[270px] overflow-hidden bg-black">
             <VideoThumbnail src={video.thumbnail} title={video.title} />
 
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/70" />
@@ -243,7 +243,7 @@ function FeaturedVideo({ video }: { video: YouTubeVideo }) {
             </div>
           </div>
 
-          <div className="flex flex-col justify-center p-7">
+          <div className="flex flex-col justify-center p-6">
             <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
               Último conteúdo
             </p>
@@ -252,7 +252,7 @@ function FeaturedVideo({ video }: { video: YouTubeVideo }) {
               YouTube • @orabiisco
             </p>
 
-            <h2 className="mt-2 text-4xl font-black leading-tight text-white">
+            <h2 className="mt-2 text-3xl font-black leading-tight text-white">
               {video.title}
             </h2>
 
@@ -508,12 +508,12 @@ export default function ConteudoPage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_290px]">
+      <div className="mx-auto grid w-full max-w-[1540px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_290px]">
         {/* SIDEBAR ESQUERDA — estrutura-base da V2 */}
-        <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-5 py-7 lg:block">
-          <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
+        <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.10] px-4 py-5 lg:block">
+          <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
             <div>
-              <div className="border-t border-b border-white/[0.08] pb-5 pt-5">
+              <div className="border-b border-white/[0.08] pb-4 pt-2">
                 <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
                   <span className="text-red-400">▶</span>
                   Conteúdo
@@ -612,9 +612,9 @@ export default function ConteudoPage() {
         </aside>
 
         {/* CONTEÚDO CENTRAL */}
-        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-6">
-          <header className="overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
-            <div className="relative min-h-[220px] overflow-hidden px-6 py-7">
+        <div className="min-w-0 border-r border-white/[0.10] px-4 py-5 md:px-5 lg:px-6">
+          <header className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090b0f]">
+            <div className="relative min-h-[190px] overflow-hidden px-6 py-6">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.16),transparent_38%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_34%)]" />
               <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(5,6,9,0.72))]" />
 
@@ -623,16 +623,16 @@ export default function ConteudoPage() {
                   Sua jornada em conteúdo
                 </p>
 
-                <h1 className="mt-2 text-[36px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                <h1 className="mt-2 text-[30px] font-black leading-none tracking-tight text-white md:text-[34px]">
                   CONTEÚDOS DA JORNADA
                 </h1>
 
-                <p className="mt-3 max-w-[680px] text-[12px] font-medium leading-[1.45] text-white/55">
+                <p className="mt-3 max-w-[620px] text-[11px] font-medium leading-[1.45] text-white/55">
                   Últimos conteúdos públicos do canal {channelTitle}. A página
                   atualiza automaticamente conforme novos vídeos são publicados.
                 </p>
 
-                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                   <StatCard label="Total" value={isLoading ? "..." : videos.length} />
                   <StatCard label="Vídeos" value={isLoading ? "..." : totalVideos} accent="blue" />
                   <StatCard label="Lives" value={isLoading ? "..." : totalLives} accent="red" />
@@ -716,7 +716,7 @@ export default function ConteudoPage() {
           ) : null}
 
           {journeyStartRequested ? (
-            <section className="mt-4">
+            <section className="mt-3">
               {journeyStartVideo ? (
                 <FeaturedVideo video={journeyStartVideo} />
               ) : (
@@ -729,12 +729,12 @@ export default function ConteudoPage() {
               )}
             </section>
           ) : featuredVideo && activeFilter === "all" ? (
-            <section className="mt-4">
+            <section className="mt-3">
               <FeaturedVideo video={featuredVideo} />
             </section>
           ) : null}
 
-          <section className="mt-4">
+          <section className="mt-3">
             {isLoading ? (
               <div className="rounded-[14px] border border-white/10 bg-[#090b0f] p-8 text-white/50">
                 Carregando vídeos do YouTube...
@@ -752,9 +752,9 @@ export default function ConteudoPage() {
         </div>
 
         {/* SIDEBAR DIREITA — área auxiliar da V2 */}
-        <aside className="hidden space-y-3 px-4 py-5 xl:block">
+        <aside className="hidden px-4 py-5 xl:block">
           <div className="sticky top-20 space-y-3">
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="mb-3 flex items-center gap-2 px-1">
                 <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                 <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
@@ -782,7 +782,7 @@ export default function ConteudoPage() {
               </div>
             </section>
 
-            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="mb-3 flex items-center gap-2 px-1">
                 <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                 <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
@@ -835,7 +835,7 @@ export default function ConteudoPage() {
             </section>
 
             {featuredVideo ? (
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="mb-3 flex items-center gap-2 px-1">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
