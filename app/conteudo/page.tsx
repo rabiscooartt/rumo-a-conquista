@@ -613,37 +613,28 @@ export default function ConteudoPage() {
 
         {/* CONTEÚDO CENTRAL */}
         <div className="min-w-0 border-r border-white/[0.10] px-4 py-5 md:px-5 lg:px-6">
-          <header className="relative overflow-hidden border-b border-white/[0.10] bg-[#07090d]">
-            {featuredVideo ? (
-              <div
-                className="absolute inset-y-0 right-0 w-[58%] bg-cover bg-right-center bg-no-repeat"
-                style={{ backgroundImage: `url("${featuredVideo.thumbnail}")` }}
-                aria-hidden="true"
-              />
-            ) : null}
+          <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.18),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.10),transparent_38%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.96)_45%,rgba(5,6,9,0.84)_72%,rgba(5,6,9,0.96)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,9,13,1)_0%,rgba(7,9,13,0.98)_28%,rgba(7,9,13,0.88)_48%,rgba(7,9,13,0.48)_72%,rgba(7,9,13,0.18)_100%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_38%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_34%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,rgba(5,6,9,0.90))]" />
-
-            <div className="relative min-h-[235px] px-6 py-6 md:px-7 md:py-7">
-              <div className="max-w-[640px]">
+            <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
+              <div className="max-w-[400px]">
                 <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                   <span className="text-[10px] leading-none">✣</span>
                   Sua jornada em conteúdo
                 </p>
 
-                <h1 className="mt-2 text-[32px] font-black leading-none tracking-tight text-white md:text-[36px]">
-                  CONTEÚDOS DA JORNADA
+                <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                  CONTEÚDO
                 </h1>
 
-                <p className="mt-3 max-w-[520px] text-[11px] font-medium leading-[1.4] text-white/65">
-                  Últimos conteúdos públicos do canal {channelTitle}. Acompanhe
-                  vídeos, lives e shorts da sua jornada.
+                <p className="mt-3 max-w-[340px] text-[12px] font-medium leading-[1.35] text-white/70">
+                  Acompanhe vídeos, lives e shorts publicados ao longo da sua jornada.
                 </p>
               </div>
 
-              <div className="absolute bottom-7 left-6 right-6 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
+              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
                 <div className="min-w-0 pr-3">
                   <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
                     Total
@@ -693,9 +684,7 @@ export default function ConteudoPage() {
                 </div>
               </div>
             </div>
-          </header>
-
-          {/* Filtros para telas sem sidebar */}
+          </header>          {/* Filtros para telas sem sidebar */}
           <section className="mt-4 lg:hidden">
             <div className="flex flex-wrap gap-2">
               {filters.map((filter) => {
