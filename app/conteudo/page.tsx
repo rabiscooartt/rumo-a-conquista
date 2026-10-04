@@ -508,7 +508,7 @@ export default function ConteudoPage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_290px]">
+      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[290px_minmax(0,1fr)_290px]">
         {/* SIDEBAR ESQUERDA — estrutura-base da V2 */}
         <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.10] px-4 py-5 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
