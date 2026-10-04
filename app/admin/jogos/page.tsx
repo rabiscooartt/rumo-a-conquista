@@ -22,6 +22,7 @@ export default function NewGamesAdminPage() {
   const [selectedSlug, setSelectedSlug] = useState("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
 
   const filteredGames = useMemo(() => {
@@ -66,6 +67,49 @@ export default function NewGamesAdminPage() {
 
   const manualNextAchievementTitle =
     values?.nextAchievementMode === "manual" ? values.nextAchievement : "";
+
+  async function restoreMouseData() {
+    if (restoringMouse) return;
+
+    const confirmed = window.confirm(
+      "Restaurar os dados do Mouse P.I. para as 34 conquistas ligadas às artes 01-34? As 28 duplicatas extras serão removidas. Progresso, Jornada e artes serão preservados."
+    );
+    if (!confirmed) return;
+
+    setRestoringMouse(true);
+
+    try {
+      const response = await fetch("/api/admin/recover-mouse", {
+        method: "POST",
+        cache: "no-store",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Não foi possível restaurar os dados.");
+      }
+
+      window.alert(
+        "Restauração concluída: " +
+          payload.restored.achievements +
+          " conquistas, " +
+          payload.restored.removedDuplicates +
+          " duplicatas removidas e " +
+          payload.restored.imagesPreserved +
+          " artes preservadas."
+      );
+
+      window.location.reload();
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível restaurar os dados."
+      );
+    } finally {
+      setRestoringMouse(false);
+    }
+  }
 
   async function saveBasics() {
     if (!selectedGame || !values) return;
@@ -141,7 +185,21 @@ export default function NewGamesAdminPage() {
               Nova estrutura administrativa. O visual daqui para frente será a base para migrar as funções do Admin antigo.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2"><Link href="/admin/preparar-jogo" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20">Preparar novo jogo</Link><Link href="/admin/jogos" className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white">
+          <div className="flex flex-wrap gap-2">
+            {selectedGame?.slug === "mouse-p-i-for-hire" &&
+              (selectedGame.title === "Jogo sem nome" ||
+                !selectedGame.image ||
+                selectedGame.hours === "0h") && (
+                <button
+                  type="button"
+                  onClick={() => void restoreMouseData()}
+                  disabled={restoringMouse}
+                  className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-amber-100 transition hover:bg-amber-500/20 disabled:opacity-50"
+                >
+                  {restoringMouse ? "Restaurando..." : "Restaurar dados do Mouse"}
+                </button>
+              )}
+            <Link href="/admin/preparar-jogo" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20">Preparar novo jogo</Link> className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20">Preparar novo jogo</Link><Link href="/admin/jogos" className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-white/55 transition hover:border-white/20 hover:text-white">
             Admin antigo
           </Link></div>
         </div>
