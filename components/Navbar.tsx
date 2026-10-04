@@ -293,7 +293,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={targetHref}
-                className={`group relative flex items-center gap-2 py-7 text-sm font-black transition ${
+                className={`group relative flex items-center gap-2 py-5 text-sm font-black transition ${
                   isActive
                     ? "text-red-400"
                     : "text-white/70 hover:text-white"
