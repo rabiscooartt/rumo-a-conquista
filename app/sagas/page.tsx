@@ -885,7 +885,7 @@ export default function SagasPage() {
         </button>
       )}
 
-      <section className="mx-auto w-full max-w-[1500px] px-8 py-8">
+      <section className="mx-auto w-full max-w-[1360px] px-6 py-6">
         <Link
           href="/"
           className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
@@ -893,8 +893,8 @@ export default function SagasPage() {
           ← Voltar para Home
         </Link>
 
-        <header className="mt-8 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-8">
+        <header className="mt-5 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
+          <div className="relative p-6">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_32%)]" />
 
             <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
@@ -903,7 +903,7 @@ export default function SagasPage() {
                   Emblemas
                 </p>
 
-                <h1 className="mt-3 text-5xl font-black text-white">
+                <h1 className="mt-3 text-[34px] font-black text-white">
                   Coleção de Emblemas
                 </h1>
 
@@ -940,7 +940,7 @@ export default function SagasPage() {
           </div>
         </header>
 
-        <section className="mt-8 rounded-[24px] border border-white/10 bg-zinc-950/70 p-4">
+        <section className="mt-4 rounded-[14px] border border-white/10 bg-zinc-950/70 p-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.28em] text-red-400">
@@ -1048,7 +1048,7 @@ export default function SagasPage() {
           </div>
         </section>
 
-        <section className="mt-8">
+        <section className="mt-4">
           {!isLoaded ? (
             <div className="rounded-[24px] border border-white/10 bg-zinc-950/80 p-8 text-white/50">
               Carregando emblemas...
