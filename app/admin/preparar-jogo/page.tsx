@@ -183,6 +183,8 @@ function PrepararJogoPage() {
   const [mergeTitle, setMergeTitle] = useState("");
   const [mergeDescription, setMergeDescription] = useState("");
   const [journeyPreparedCount, setJourneyPreparedCount] = useState<number | null>(null);
+  const [journeyStartEpisode, setJourneyStartEpisode] = useState("");
+  const [journeyEpisodeSaving, setJourneyEpisodeSaving] = useState(false);
   const [expandedRecordIds, setExpandedRecordIds] = useState<Set<string>>(new Set());
   const [realizedDescription, setRealizedDescription] = useState("");
   const [realizedEpisode, setRealizedEpisode] = useState("");
@@ -277,6 +279,9 @@ function PrepararJogoPage() {
 
       if (!response.ok) throw new Error(payload.error || "Erro na busca.");
 
+      setJourneyStartEpisode(
+        payload.game?.youtubeFirstLiveEpisode?.trim() ?? ""
+      );
       setResult(payload);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro na busca.");
@@ -325,15 +330,26 @@ function PrepararJogoPage() {
                   achievements: [
                     ...current.achievements
                       .filter((a) => !customAchievements.some((custom) => custom.id === a.id))
-                      .map((a) => ({
-                        ...a,
-                        journey: journeyIds.has(a.id) && !notDoingIds.has(a.id),
-                        notDoing: notDoingIds.has(a.id),
-                        visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
-                        episode: episodeById[a.id] ?? a.episode ?? "",
-                        earnedDate: earnedDateById[a.id] ?? a.earnedDate ?? "",
-                        earnedNote: earnedNoteById[a.id] ?? a.earnedNote ?? "",
-                      })),
+                      .map((a) => {
+                        const isJourney =
+                          journeyIds.has(a.id) && !notDoingIds.has(a.id);
+                        const globalEpisode = normalizeEpisode(
+                          current.game.youtubeFirstLiveEpisode
+                        );
+
+                        return {
+                          ...a,
+                          journey: isJourney,
+                          notDoing: notDoingIds.has(a.id),
+                          visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
+                          episode:
+                            isJourney && globalEpisode
+                              ? "EP " + globalEpisode
+                              : episodeById[a.id] ?? a.episode ?? "",
+                          earnedDate: earnedDateById[a.id] ?? a.earnedDate ?? "",
+                          earnedNote: earnedNoteById[a.id] ?? a.earnedNote ?? "",
+                        };
+                      }),
                     ...customAchievements,
                   ],
                 }
@@ -397,10 +413,22 @@ function PrepararJogoPage() {
 
     setSaved(false);
 
-    const nextAchievements = result.achievements.map((a) => ({
-      ...a,
-      journey: a.notDoing ? false : a.journey || a.journeySuggestion,
-    }));
+    const journeyEpisode = normalizeEpisode(
+      result.game.youtubeFirstLiveEpisode
+    );
+
+    const nextAchievements = result.achievements.map((a) => {
+      const journey = a.notDoing ? false : a.journey || a.journeySuggestion;
+
+      return {
+        ...a,
+        journey,
+        episode:
+          journey && journeyEpisode
+            ? "EP " + journeyEpisode
+            : a.episode ?? "",
+      };
+    });
 
     setJourneyPreparedCount(
       nextAchievements.filter((a) => !a.notDoing && a.journey).length
@@ -414,18 +442,107 @@ function PrepararJogoPage() {
 
   function toggle(id: string) {
     setSaved(false);
+    setResult((current) => {
+      if (!current) return current;
+
+      const journeyEpisode = normalizeEpisode(
+        current.game.youtubeFirstLiveEpisode
+      );
+
+      return {
+        ...current,
+        achievements: current.achievements.map((a) => {
+          if (a.id !== id || a.notDoing) return a;
+
+          const journey = !a.journey;
+
+          return {
+            ...a,
+            journey,
+            episode:
+              journey && journeyEpisode
+                ? "EP " + journeyEpisode
+                : a.episode ?? "",
+          };
+        }),
+      };
+    });
+  }
+
+  function updateJourneyStartEpisode(value: string) {
+    const normalized = normalizeEpisode(value);
+    const displayValue = normalized ? "EP " + normalized : value.trim();
+
+    setJourneyStartEpisode(displayValue);
+    setSaved(false);
+
     setResult((current) =>
       current
         ? {
             ...current,
-            achievements: current.achievements.map((a) =>
-              a.id === id && !a.notDoing
-                ? { ...a, journey: !a.journey }
-                : a
-            ),
+            game: {
+              ...current.game,
+              youtubeFirstLiveEpisode: displayValue,
+            },
+            achievements: current.achievements.map((a) => ({
+              ...a,
+              episode:
+                a.journey && !a.notDoing
+                  ? normalized
+                    ? "EP " + normalized
+                    : ""
+                  : a.episode ?? "",
+            })),
           }
         : current
     );
+  }
+
+  async function saveJourneyStartEpisode() {
+    if (!result?.game.slug) return;
+
+    const normalized = normalizeEpisode(journeyStartEpisode);
+    const value = normalized
+      ? "EP " + normalized
+      : journeyStartEpisode.trim();
+
+    if (value && !normalized) {
+      setError("Informe um episódio válido, como EP 01.");
+      return;
+    }
+
+    setJourneyEpisodeSaving(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/games", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: result.game.slug,
+          youtubeFirstLiveEpisode: value,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            "Não foi possível salvar o EP inicial da Jornada."
+        );
+      }
+
+      setJourneyStartEpisode(value);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar o EP inicial da Jornada."
+      );
+    } finally {
+      setJourneyEpisodeSaving(false);
+    }
   }
 
   function toggleNotDoing(id: string) {
@@ -904,7 +1021,9 @@ function PrepararJogoPage() {
       journeySuggestion: false,
       journey: true,
       notDoing: false,
-      episode: "",
+      episode: normalizeEpisode(result.game.youtubeFirstLiveEpisode)
+        ? "EP " + normalizeEpisode(result.game.youtubeFirstLiveEpisode)
+        : "",
       earnedDate: "",
       isCustom: true,
     };
@@ -1738,6 +1857,41 @@ function PrepararJogoPage() {
                 </button>
               </div>
 
+
+              <div className="mt-3 rounded-xl border border-blue-400/[.12] bg-blue-400/[.035] p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-black uppercase tracking-[.18em] text-blue-200/80">
+                      EP de início da Jornada
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/45">
+                      Cadastre o episódio uma única vez. Todas as conquistas da Jornada de Estreia usam automaticamente este mesmo EP e o mesmo link para o Conteúdo.
+                    </p>
+                  </div>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                    <input
+                      type="text"
+                      value={journeyStartEpisode}
+                      onChange={(e) => updateJourneyStartEpisode(e.target.value)}
+                      onBlur={() => void saveJourneyStartEpisode()}
+                      placeholder="Ex.: EP 01"
+                      className="w-full rounded-xl border border-blue-300/20 bg-black/30 px-4 py-3 text-sm font-black text-white outline-none placeholder:text-white/20 sm:w-[150px]"
+                    />
+                    <span className="text-[9px] font-black uppercase text-blue-200/55">
+                      {journeyEpisodeSaving
+                        ? "Salvando..."
+                        : normalizeEpisode(journeyStartEpisode)
+                          ? "✓ Aplicado automaticamente"
+                          : "Informe o EP inicial"}
+                    </span>
+                  </div>
+                </div>
+                {normalizeEpisode(journeyStartEpisode) && (
+                  <p className="mt-3 text-[9px] font-bold uppercase tracking-[.12em] text-emerald-200/65">
+                    EP {normalizeEpisode(journeyStartEpisode)} será usado por todas as conquistas marcadas como Jornada de Estreia.
+                  </p>
+                )}
+              </div>
 
               <div className="mt-5 rounded-2xl border border-violet-400/30 bg-violet-500/[.06] p-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
