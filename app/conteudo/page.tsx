@@ -613,30 +613,83 @@ export default function ConteudoPage() {
 
         {/* CONTEÚDO CENTRAL */}
         <div className="min-w-0 border-r border-white/[0.10] px-4 py-5 md:px-5 lg:px-6">
-          <header className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090b0f]">
-            <div className="relative min-h-[190px] overflow-hidden px-6 py-6">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.16),transparent_38%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_34%)]" />
-              <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(5,6,9,0.72))]" />
+          <header className="relative overflow-hidden border-b border-white/[0.10] bg-[#07090d]">
+            {featuredVideo ? (
+              <div
+                className="absolute inset-y-0 right-0 w-[58%] bg-cover bg-right-center bg-no-repeat"
+                style={{ backgroundImage: `url("${featuredVideo.thumbnail}")` }}
+                aria-hidden="true"
+              />
+            ) : null}
 
-              <div className="relative z-10">
-                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,9,13,1)_0%,rgba(7,9,13,0.98)_28%,rgba(7,9,13,0.88)_48%,rgba(7,9,13,0.48)_72%,rgba(7,9,13,0.18)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_38%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_34%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,rgba(5,6,9,0.90))]" />
+
+            <div className="relative min-h-[235px] px-6 py-6 md:px-7 md:py-7">
+              <div className="max-w-[640px]">
+                <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+                  <span className="text-[10px] leading-none">✣</span>
                   Sua jornada em conteúdo
                 </p>
 
-                <h1 className="mt-2 text-[30px] font-black leading-none tracking-tight text-white md:text-[34px]">
+                <h1 className="mt-2 text-[32px] font-black leading-none tracking-tight text-white md:text-[36px]">
                   CONTEÚDOS DA JORNADA
                 </h1>
 
-                <p className="mt-3 max-w-[620px] text-[11px] font-medium leading-[1.45] text-white/55">
-                  Últimos conteúdos públicos do canal {channelTitle}. A página
-                  atualiza automaticamente conforme novos vídeos são publicados.
+                <p className="mt-3 max-w-[520px] text-[11px] font-medium leading-[1.4] text-white/65">
+                  Últimos conteúdos públicos do canal {channelTitle}. Acompanhe
+                  vídeos, lives e shorts da sua jornada.
                 </p>
+              </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                  <StatCard label="Total" value={isLoading ? "..." : videos.length} />
-                  <StatCard label="Vídeos" value={isLoading ? "..." : totalVideos} accent="blue" />
-                  <StatCard label="Lives" value={isLoading ? "..." : totalLives} accent="red" />
-                  <StatCard label="Shorts" value={isLoading ? "..." : totalShorts} accent="purple" />
+              <div className="absolute bottom-7 left-6 right-6 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
+                <div className="min-w-0 pr-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
+                    Total
+                  </p>
+                  <p className="mt-1 text-[23px] font-black leading-none text-white">
+                    {isLoading ? "..." : videos.length}
+                  </p>
+                  <p className="mt-1 text-[9px] font-medium text-white/40">
+                    conteúdos
+                  </p>
+                </div>
+
+                <div className="min-w-0 border-l border-white/[0.10] px-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
+                    Vídeos
+                  </p>
+                  <p className="mt-1 text-[23px] font-black leading-none text-blue-300">
+                    {isLoading ? "..." : totalVideos}
+                  </p>
+                  <p className="mt-1 text-[9px] font-medium text-white/40">
+                    vídeos
+                  </p>
+                </div>
+
+                <div className="min-w-0 border-l border-white/[0.10] px-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
+                    Lives
+                  </p>
+                  <p className="mt-1 text-[23px] font-black leading-none text-red-300">
+                    {isLoading ? "..." : totalLives}
+                  </p>
+                  <p className="mt-1 text-[9px] font-medium text-white/40">
+                    transmissões
+                  </p>
+                </div>
+
+                <div className="min-w-0 border-l border-white/[0.10] pl-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
+                    Shorts
+                  </p>
+                  <p className="mt-1 text-[23px] font-black leading-none text-purple-300">
+                    {isLoading ? "..." : totalShorts}
+                  </p>
+                  <p className="mt-1 text-[9px] font-medium text-white/40">
+                    shorts
+                  </p>
                 </div>
               </div>
             </div>
