@@ -214,6 +214,7 @@ export default function NewGamesAdminPage() {
               Admin antigo
             </Link>
           </div>
+        </div>
 
         <div className="mt-7 grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-4">
