@@ -916,6 +916,105 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
   };
 }
 
+async function buildAchievementPreparation(
+  registeredGame: Awaited<ReturnType<typeof resolveGameTitle>>,
+  exophaseData: { url: string; achievements: ExophaseAchievement[] }
+) {
+  const exophaseRanks = balancedRanks(exophaseData.achievements);
+
+  const achievements = exophaseData.achievements.map((a, i) => {
+    const name = a.name?.trim() || "";
+    const description = a.description?.trim() || "";
+    const online = isOnline(name, description);
+    const momentary = isMomentary(name, description);
+    const journeyAnalysis = !online
+      ? analyzeJourney(registeredGame.title, name, description)
+      : { journey: false, confidence: "outside" as const };
+
+    return {
+      name,
+      description,
+      rank: exophaseRanks[i] ?? "Bronze",
+      online,
+      momentary,
+      journeySuggestion: false,
+      journey: journeyAnalysis.journey,
+      notDoing: false,
+      visualReferenceUrl: a.visualReferenceUrl ?? null,
+      image: null as string | null,
+      id:
+        "exophase-" +
+        slug(registeredGame.slug) +
+        "-achievement-" +
+        (i + 1) +
+        "-" +
+        slug(name || "conquista-" + (i + 1)),
+    };
+  });
+
+  try {
+    const client = createAdminSupabaseClient();
+    const { data: savedRows, error: savedRowsError } = await client
+      .from("achievements")
+      .select("id, title, sort_order, image")
+      .eq("game_slug", registeredGame.slug)
+      .order("sort_order", { ascending: true });
+
+    if (savedRowsError) throw savedRowsError;
+
+    const byTitle = new Map(
+      (savedRows ?? []).map((row) => [norm(row.title), row])
+    );
+    const byOrder = new Map(
+      (savedRows ?? [])
+        .filter((row) => Number.isFinite(Number(row.sort_order)))
+        .map((row) => [Number(row.sort_order), row])
+    );
+
+    for (const [index, achievement] of achievements.entries()) {
+      const row = byTitle.get(norm(achievement.name)) ?? byOrder.get(index);
+      if (!row) continue;
+
+      if (typeof row.image === "string" && row.image.trim()) {
+        achievement.image = row.image.trim();
+      }
+
+      const { error: updateError } = await client
+        .from("achievements")
+        .update({ rank: achievement.rank })
+        .eq("id", row.id)
+        .eq("game_slug", registeredGame.slug);
+
+      if (updateError) throw updateError;
+    }
+  } catch (rankSyncError) {
+    console.error("[Achievement Prep Rank Sync]", rankSyncError);
+  }
+
+  return NextResponse.json({
+    ok: true,
+    game: {
+      name: registeredGame.title,
+      slug: registeredGame.slug,
+      source: "Exophase",
+      registered: Boolean(registeredGame.slug),
+      youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
+      youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
+      youtubeFirstLiveEpisode: registeredGame.youtubeFirstLiveEpisode,
+      exophase: {
+        found: true,
+        url: exophaseData.url,
+        achievementCount: achievements.length,
+      },
+    },
+    achievements,
+    warnings: [
+      "Exophase é a fonte única desta preparação: nome, descrição e raridade vêm diretamente da página do jogo.",
+      "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",
+    ],
+  });
+}
+
 export async function GET(req: NextRequest) {
   const titleParam = req.nextUrl.searchParams.get("title")?.trim() ?? "";
   const slugParam = req.nextUrl.searchParams.get("slug")?.trim() ?? "";
@@ -945,111 +1044,15 @@ export async function GET(req: NextRequest) {
         {
           error:
             "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas em PT-BR dessa página.",
+          browserFallbackAvailable: true,
+          exophaseUrl: exophaseGame.url,
         },
         { status: 502 }
       );
     }
 
-    const exophaseRanks = balancedRanks(exophaseData.achievements);
+    return buildAchievementPreparation(registeredGame, exophaseData);
 
-    const achievements = exophaseData.achievements.map((a, i) => {
-      const name = a.name?.trim() || "";
-      const description = a.description?.trim() || "";
-      const online = isOnline(name, description);
-      const momentary = isMomentary(name, description);
-      const journeyAnalysis = !online
-        ? analyzeJourney(registeredGame.title, name, description)
-        : { journey: false, confidence: "outside" as const };
-      const journey = journeyAnalysis.journey;
-
-      return {
-        name,
-        description,
-        rank: exophaseRanks[i] ?? "Bronze",
-        online,
-        momentary,
-        journeySuggestion: false,
-        journey,
-        notDoing: false,
-        visualReferenceUrl: a.visualReferenceUrl ?? null,
-        image: null as string | null,
-        id:
-          "exophase-" +
-          slug(registeredGame.slug) +
-          "-achievement-" +
-          (i + 1) +
-          "-" +
-          slug(name || "conquista-" + (i + 1)),
-      };
-    });
-
-    // Sincroniza automaticamente os ranks calculados a partir da porcentagem
-    // atual do Exophase com os registros já existentes do jogo.
-    try {
-      const client = createAdminSupabaseClient();
-      const { data: savedRows, error: savedRowsError } = await client
-        .from("achievements")
-        .select("id, title, sort_order, image")
-        .eq("game_slug", registeredGame.slug)
-        .order("sort_order", { ascending: true });
-
-      if (savedRowsError) throw savedRowsError;
-
-      const byTitle = new Map(
-        (savedRows ?? []).map((row) => [norm(row.title), row])
-      );
-      const byOrder = new Map(
-        (savedRows ?? [])
-          .filter((row) => Number.isFinite(Number(row.sort_order)))
-          .map((row) => [Number(row.sort_order), row])
-      );
-
-      for (const [index, achievement] of achievements.entries()) {
-        const row =
-          byTitle.get(norm(achievement.name)) ??
-          byOrder.get(index);
-
-        if (!row) continue;
-
-        if (typeof row.image === "string" && row.image.trim()) {
-          achievement.image = row.image.trim();
-        }
-
-        const { error: updateError } = await client
-          .from("achievements")
-          .update({ rank: achievement.rank })
-          .eq("id", row.id)
-          .eq("game_slug", registeredGame.slug);
-
-        if (updateError) throw updateError;
-      }
-    } catch (rankSyncError) {
-      console.error("[Achievement Prep Rank Sync]", rankSyncError);
-      // A falha de rank não impede o preparador de carregar as conquistas.
-    }
-
-    return NextResponse.json({
-      ok: true,
-      game: {
-        name: registeredGame.title,
-        slug: registeredGame.slug,
-        source: "Exophase",
-        registered: Boolean(slugParam),
-        youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
-        youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
-        youtubeFirstLiveEpisode: registeredGame.youtubeFirstLiveEpisode,
-        exophase: {
-          found: true,
-          url: exophaseData.url,
-          achievementCount: achievements.length,
-        },
-      },
-      achievements,
-      warnings: [
-        "Exophase é a fonte única desta preparação: nome, descrição e raridade vêm diretamente da página do jogo.",
-        "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",
-      ],
-    });
   } catch (e) {
     console.error("[Achievement Prep]", e);
 
@@ -1057,5 +1060,53 @@ export async function GET(req: NextRequest) {
       e instanceof Error ? e.message : "Não foi possível preparar o jogo.";
 
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+export async function POST(req: NextRequest) {
+  try {
+    const body = (await req.json()) as {
+      slug?: string;
+      title?: string;
+      exophaseUrl?: string;
+      achievements?: ExophaseAchievement[];
+    };
+
+    const achievements = Array.isArray(body.achievements)
+      ? body.achievements.filter((item) => item?.name && item?.description)
+      : [];
+
+    if (achievements.length === 0) {
+      return NextResponse.json(
+        { error: "Nenhuma conquista estruturada foi recebida do Exophase." },
+        { status: 422 }
+      );
+    }
+
+    const registeredGame = await resolveGameTitle(
+      body.slug?.trim() || null,
+      body.title?.trim() || ""
+    );
+
+    const exophaseUrl = body.exophaseUrl?.trim();
+    if (!exophaseUrl || !resolveExophaseUrl(exophaseUrl)) {
+      return NextResponse.json(
+        { error: "A URL do Exophase recebida é inválida." },
+        { status: 400 }
+      );
+    }
+
+    return buildAchievementPreparation(registeredGame, {
+      url: exophaseUrl,
+      achievements,
+    });
+  } catch (e) {
+    console.error("[Achievement Prep Browser]", e);
+    return NextResponse.json(
+      {
+        error:
+          e instanceof Error ? e.message : "Não foi possível preparar o jogo.",
+      },
+      { status: 500 }
+    );
   }
 }
