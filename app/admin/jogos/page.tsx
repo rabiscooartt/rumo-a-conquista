@@ -196,7 +196,9 @@ export default function NewGamesAdminPage() {
                   disabled={restoringMouse}
                   className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-amber-100 transition hover:bg-amber-500/20 disabled:opacity-50"
                 >
-                  {restoringMouse ? "Restaurando..." : "Restaurar dados do Mouse"}
+                  {restoringMouse
+                    ? "Restaurando..."
+                    : "Restaurar dados do Mouse"}
                 </button>
               )}
             <Link
@@ -211,9 +213,7 @@ export default function NewGamesAdminPage() {
             >
               Admin antigo
             </Link>
-            Admin antigo
-          </Link></div>
-        </div>
+          </div>div>
 
         <div className="mt-7 grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-4">
