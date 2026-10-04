@@ -606,7 +606,10 @@ function parseExophaseHtml(html: string) {
   return parseExophaseAchievementLinks(html);
 }
 
-async function fetchJinaHtml(url: string) {
+async function fetchJinaHtml(
+  url: string,
+  _legacyWaitForSelector?: string
+) {
   const readerUrl = "https://r.jina.ai/" + url;
 
   try {
@@ -765,8 +768,7 @@ async function fetchExophaseAchievements(url: string) {
         const achievements = parseExophaseHtml(html) ?? parseExophaseAchievementLinks(html);
 
         if (achievements) {
-          const hydrated = await hydrateExophaseVisualReferences(achievements);
-          return { url: targetUrl, achievements: hydrated };
+          return { url: targetUrl, achievements };
         }
       }
     }
@@ -781,11 +783,12 @@ async function fetchExophaseAchievements(url: string) {
     const html = await fetchJinaHtml(targetUrl, ".award-title");
 
     if (isPortugueseExophasePage(html)) {
-      const achievements = parseExophaseHtml(html);
+      const achievements =
+        parseExophaseHtml(html) ??
+        parseExophaseAchievementLinks(html);
 
       if (achievements) {
-        const hydrated = await hydrateExophaseVisualReferences(achievements);
-        return { url: targetUrl, achievements: hydrated };
+        return { url: targetUrl, achievements };
       }
     }
   } catch (error) {
