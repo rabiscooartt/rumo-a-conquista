@@ -97,6 +97,19 @@ export default function BacklogPage() {
       <Navbar />
 
       <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
+        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 xl:grid-cols-[290px_minmax(0,1fr)_290px]">
+          <aside className="hidden border-r border-white/[0.08] px-4 py-5 xl:block">
+            <div className="sticky top-20">
+              <div className="border-b border-white/[0.08] pb-4 pt-2">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <span className="text-red-500">✣</span>
+                  Próximas Maestrias
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <div className="min-w-0 px-1">
         <div className="flex items-center justify-between gap-5">
           <Link
             href="/"
@@ -275,6 +288,16 @@ export default function BacklogPage() {
             </div>
           )}
         </section>
+          </div>
+
+          <aside className="hidden border-l border-white/[0.08] px-4 py-5 xl:block">
+            <div className="sticky top-20">
+              <div className="border-b border-white/[0.08] pb-4 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/30">
+                Área auxiliar
+              </div>
+            </div>
+          </aside>
+        </div>
       </section>
     </main>
   );
