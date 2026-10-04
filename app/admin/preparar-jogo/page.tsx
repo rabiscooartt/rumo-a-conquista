@@ -277,19 +277,126 @@ function PrepararJogoPage() {
       );
       const payload = await response.json();
 
-      if (!response.ok) throw new Error(payload.error || "Erro na busca.");
+      if (response.ok) {
+        setJourneyStartEpisode(
+          payload.game?.youtubeFirstLiveEpisode?.trim() ?? ""
+        );
+        setResult(payload);
+        return;
+      }
 
-      setJourneyStartEpisode(
-        payload.game?.youtubeFirstLiveEpisode?.trim() ?? ""
-      );
-      setResult(payload);
+      if (response.status === 502 && payload.browserFallbackAvailable) {
+        const exophaseUrl = payload.exophaseUrl as string;
+        const readerResponse = await fetch(
+          "https://r.jina.ai/" + exophaseUrl,
+          {
+            cache: "no-store",
+            headers: { Accept: "text/plain" },
+          }
+        );
+
+        if (!readerResponse.ok) {
+          throw new Error(
+            `Não foi possível ler o Exophase pelo navegador (Jina ${readerResponse.status}).`
+          );
+        }
+
+        const raw = await readerResponse.text();
+        const lines = raw
+          .replace(/\r/g, "")
+          .replace(/<[^>]+>/g, "\n")
+          .replace(/!\[[^\]]*\]\([^)]*\)/g, "Image")
+          .replace(/\[([^\]]+)\]\((?:https?:\/\/[^)]+)\)/g, "$1")
+          .split("\n")
+          .map((line) => line.replace(/^\s*[-*+]\s+/, "").trim())
+          .filter(Boolean);
+
+        const cleanLine = (value: string) =>
+          value
+            .replace(/^#+\s+/, "")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        const preparedLines = lines.map(cleanLine);
+        const percentRegex = /\b\d+(?:[.,]\d+)?%\b/;
+        const ignored = new Set([
+          "Image",
+          "Imagem",
+          "My Stats",
+          "Game Info",
+          "List Options",
+        ]);
+        const parsed = [];
+        const seen = new Set<string>();
+
+        for (let i = 0; i < preparedLines.length; i += 1) {
+          const percentLine = preparedLines[i];
+          if (!percentRegex.test(percentLine)) continue;
+
+          const candidates: string[] = [];
+          for (let cursor = i - 1; cursor >= 0 && candidates.length < 8; cursor -= 1) {
+            const value = preparedLines[cursor];
+            if (!value || ignored.has(value)) continue;
+            if (percentRegex.test(value)) break;
+            if (/^https?:\/\//i.test(value)) continue;
+            candidates.unshift(value);
+          }
+
+          if (candidates.length < 2) continue;
+
+          const name = candidates[candidates.length - 2];
+          const description = candidates[candidates.length - 1];
+          const key = name.toLocaleLowerCase("pt-BR").trim();
+          if (!name || !description || seen.has(key)) continue;
+
+          const pct = percentLine.match(/(\d+(?:[.,]\d+)?)%/);
+          parsed.push({
+            name,
+            description,
+            percent: pct ? Number(pct[1].replace(",", ".")) : undefined,
+            visualReferenceUrl: null,
+            detailUrl: null,
+          });
+          seen.add(key);
+        }
+
+        if (parsed.length === 0) {
+          throw new Error(
+            "Recebi a página do Exophase, mas não consegui identificar as conquistas nela."
+          );
+        }
+
+        const browserResponse = await fetch("/api/admin/achievement-prep", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({
+            slug: gameSlug,
+            title: gameTitle,
+            exophaseUrl,
+            achievements: parsed,
+          }),
+        });
+
+        const browserPayload = await browserResponse.json();
+        if (!browserResponse.ok) {
+          throw new Error(browserPayload.error || "Falha ao preparar as conquistas.");
+        }
+
+        setJourneyStartEpisode(
+          browserPayload.game?.youtubeFirstLiveEpisode?.trim() ?? ""
+        );
+        setResult(browserPayload);
+        return;
+      }
+
+      throw new Error(payload.error || "Erro na busca.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro na busca.");
     } finally {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     if (registeredSlug) {
       void search(registeredSlug);
