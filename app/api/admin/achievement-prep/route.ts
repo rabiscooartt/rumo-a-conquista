@@ -799,6 +799,14 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
               (data.review as Record<string, unknown>).__youtubeFirstLiveUrl ?? ""
             ).trim()
           : "",
+      youtubeFirstLiveEpisode:
+        data.review &&
+        typeof data.review === "object" &&
+        !Array.isArray(data.review)
+          ? String(
+              (data.review as Record<string, unknown>).__youtubeFirstLiveEpisode ?? ""
+            ).trim()
+          : "",
     };
   }
 
@@ -809,6 +817,7 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
     title: titleParam,
     youtubePlaylistUrl: "",
     youtubeFirstLiveUrl: "",
+    youtubeFirstLiveEpisode: "",
   };
 }
 
@@ -933,6 +942,7 @@ export async function GET(req: NextRequest) {
         registered: Boolean(slugParam),
         youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
         youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
+        youtubeFirstLiveEpisode: registeredGame.youtubeFirstLiveEpisode,
         exophase: {
           found: true,
           url: exophaseData.url,
