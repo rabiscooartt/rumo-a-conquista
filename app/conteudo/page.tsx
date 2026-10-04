@@ -505,167 +505,370 @@ export default function ConteudoPage() {
   ).length;
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
+    <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1500px] px-8 py-10">
-        <header className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-8">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.2),transparent_36%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_32%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),transparent_35%,rgba(255,255,255,0.02))]" />
-
-            <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
+      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_290px]">
+        {/* SIDEBAR ESQUERDA — estrutura-base da V2 */}
+        <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-5 py-7 lg:block">
+          <div className="sticky top-20 flex min-h-[calc(100vh-100px)] flex-col">
+            <div>
+              <div className="border-t border-b border-white/[0.08] pb-5 pt-5">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <span className="text-red-400">▶</span>
                   Conteúdo
+                </div>
+              </div>
+
+              <div className="mt-6 border-b border-white/[0.08] pb-6">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">
+                    FILTRO
+                  </h2>
+                </div>
+
+                <div className="mt-3 space-y-1.5">
+                  {filters.map((filter) => {
+                    const isActive = activeFilter === filter.value;
+
+                    return (
+                      <button
+                        key={filter.value}
+                        type="button"
+                        onClick={() => setActiveFilter(filter.value)}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-[10px] font-black transition ${
+                          isActive
+                            ? "border border-red-500/30 bg-red-500/10 text-red-300"
+                            : "border border-transparent text-white/45 hover:bg-white/[0.04] hover:text-white"
+                        }`}
+                      >
+                        <span>{filter.label}</span>
+                        <span className="text-[9px] text-white/25">
+                          {filter.value === "all"
+                            ? videos.length
+                            : filter.value === "video"
+                            ? totalVideos
+                            : filter.value === "live"
+                            ? totalLives
+                            : totalShorts}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">
+                    JORNADA
+                  </h2>
+                </div>
+
+                <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-white/30">
+                    {journeyStartRequested ? "Início da Jornada" : requestedEpisode ? "Episódio selecionado" : "Conteúdo geral"}
+                  </p>
+
+                  <p className="mt-1.5 text-[12px] font-black leading-tight text-white">
+                    {journeyStartRequested
+                      ? journeyGameTitle || "Jornada de Estreia"
+                      : requestedEpisode
+                      ? `EP ${requestedEpisode}`
+                      : "Todos os conteúdos"}
+                  </p>
+
+                  {journeyStartRequested && requestedEpisode ? (
+                    <p className="mt-1 text-[9px] font-bold text-emerald-300/80">
+                      EP {requestedEpisode}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto space-y-2 pt-8">
+              <Link
+                href="/configuracoes"
+                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45 transition hover:text-white"
+              >
+                <span className="text-white/35">⚙</span>
+                Configurações
+              </Link>
+
+              <a
+                href="https://www.youtube.com/@orabiisco"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-red-400 transition hover:text-red-300"
+              >
+                <span>▶</span>
+                Canal no YouTube
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        {/* CONTEÚDO CENTRAL */}
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-6">
+          <header className="overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
+            <div className="relative min-h-[220px] overflow-hidden px-6 py-7">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.16),transparent_38%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.10),transparent_34%)]" />
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,transparent,rgba(5,6,9,0.72))]" />
+
+              <div className="relative z-10">
+                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+                  Sua jornada em conteúdo
                 </p>
 
-                <h1 className="mt-3 text-5xl font-black text-white">
-                  Conteúdos da Jornada
+                <h1 className="mt-2 text-[36px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                  CONTEÚDOS DA JORNADA
                 </h1>
 
-                <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
-                  Últimos vídeos do canal {channelTitle}. Essa página puxa
-                  automaticamente os conteúdos públicos do YouTube e atualiza
-                  conforme novos vídeos forem publicados.
+                <p className="mt-3 max-w-[680px] text-[12px] font-medium leading-[1.45] text-white/55">
+                  Últimos conteúdos públicos do canal {channelTitle}. A página
+                  atualiza automaticamente conforme novos vídeos são publicados.
                 </p>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                <StatCard
-                  label="Total"
-                  value={isLoading ? "..." : videos.length}
-                />
-
-                <StatCard
-                  label="Vídeos"
-                  value={isLoading ? "..." : totalVideos}
-                  accent="blue"
-                />
-
-                <StatCard
-                  label="Lives"
-                  value={isLoading ? "..." : totalLives}
-                  accent="red"
-                />
-
-                <StatCard
-                  label="Shorts"
-                  value={isLoading ? "..." : totalShorts}
-                  accent="purple"
-                />
+                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <StatCard label="Total" value={isLoading ? "..." : videos.length} />
+                  <StatCard label="Vídeos" value={isLoading ? "..." : totalVideos} accent="blue" />
+                  <StatCard label="Lives" value={isLoading ? "..." : totalLives} accent="red" />
+                  <StatCard label="Shorts" value={isLoading ? "..." : totalShorts} accent="purple" />
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {journeyStartRequested ? (
-          <section className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-400/[.05] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[.2em] text-emerald-300">
-                  Jornada de Estreia
-                </p>
-                <p className="mt-1 text-sm font-black text-white">
-                  Início da Jornada{journeyGameTitle ? " · " + journeyGameTitle : ""}{requestedEpisode ? " · EP " + requestedEpisode : ""}
-                </p>
-                {journeyError ? (
-                  <p className="mt-1 text-[10px] font-bold text-yellow-200/70">
-                    {journeyError}
-                  </p>
-                ) : (
-                  <p className="mt-1 text-[10px] text-white/35">
-                    O conteúdo do episódio de início da Jornada aparece abaixo.
-                  </p>
-                )}
-              </div>
-              <Link
-                href="/conteudo"
-                className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
-              >
-                Voltar para Conteúdo
-              </Link>
+          {/* Filtros para telas sem sidebar */}
+          <section className="mt-4 lg:hidden">
+            <div className="flex flex-wrap gap-2">
+              {filters.map((filter) => {
+                const isActive = activeFilter === filter.value;
+
+                return (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    onClick={() => setActiveFilter(filter.value)}
+                    className={`rounded-lg border px-3 py-2 text-[10px] font-black transition ${
+                      isActive
+                        ? "border-red-500/35 bg-red-500/10 text-red-200"
+                        : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
             </div>
           </section>
-        ) : requestedEpisode ? (
-          <section className="mt-8 rounded-2xl border border-blue-400/20 bg-blue-500/[.06] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[.2em] text-blue-300">
-                  Episódio selecionado
-                </p>
-                <p className="mt-1 text-sm font-black text-white">
-                  EP {requestedEpisode}
-                </p>
-              </div>
-              <Link
-                href="/conteudo"
-                className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
-              >
-                Limpar filtro
-              </Link>
-            </div>
-          </section>
-        ) : null}
 
-        <section className="mt-8">
-          <div className="flex flex-wrap gap-3">
-            {filters.map((filter) => {
-              const isActive = activeFilter === filter.value;
-
-              return (
-                <button
-                  key={filter.value}
-                  type="button"
-                  onClick={() => setActiveFilter(filter.value)}
-                  className={`rounded-xl border px-5 py-3 text-sm font-black transition ${
-                    isActive
-                      ? "border-red-500/45 bg-red-500/15 text-red-100 shadow-[0_0_24px_rgba(239,68,68,0.12)]"
-                      : "border-white/10 bg-white/[0.03] text-white/60 hover:border-red-500/30 hover:bg-red-500/10 hover:text-white"
-                  }`}
+          {journeyStartRequested ? (
+            <section className="mt-4 rounded-[14px] border border-emerald-400/20 bg-emerald-400/[.05] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-emerald-300">
+                    Jornada de Estreia
+                  </p>
+                  <p className="mt-1 text-sm font-black text-white">
+                    Início da Jornada{journeyGameTitle ? " · " + journeyGameTitle : ""}{requestedEpisode ? " · EP " + requestedEpisode : ""}
+                  </p>
+                  {journeyError ? (
+                    <p className="mt-1 text-[10px] font-bold text-yellow-200/70">
+                      {journeyError}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[10px] text-white/35">
+                      O conteúdo do episódio de início da Jornada aparece abaixo.
+                    </p>
+                  )}
+                </div>
+                <Link
+                  href="/conteudo"
+                  className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
                 >
-                  {filter.label}
-                </button>
-              );
-            })}
-          </div>
-        </section>
+                  Voltar
+                </Link>
+              </div>
+            </section>
+          ) : requestedEpisode ? (
+            <section className="mt-4 rounded-[14px] border border-blue-400/20 bg-blue-500/[0.06] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-blue-300">
+                    Episódio selecionado
+                  </p>
+                  <p className="mt-1 text-sm font-black text-white">
+                    EP {requestedEpisode}
+                  </p>
+                </div>
+                <Link
+                  href="/conteudo"
+                  className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
+                >
+                  Limpar filtro
+                </Link>
+              </div>
+            </section>
+          ) : null}
 
-        {journeyStartRequested ? (
-          <section className="mt-8">
-            {journeyStartVideo ? (
-              <FeaturedVideo video={journeyStartVideo} />
+          {journeyStartRequested ? (
+            <section className="mt-4">
+              {journeyStartVideo ? (
+                <FeaturedVideo video={journeyStartVideo} />
+              ) : (
+                <EmptyState
+                  error={
+                    journeyError ||
+                    "A primeira live da Jornada de Estreia ainda não foi cadastrada para este jogo."
+                  }
+                />
+              )}
+            </section>
+          ) : featuredVideo && activeFilter === "all" ? (
+            <section className="mt-4">
+              <FeaturedVideo video={featuredVideo} />
+            </section>
+          ) : null}
+
+          <section className="mt-4">
+            {isLoading ? (
+              <div className="rounded-[14px] border border-white/10 bg-[#090b0f] p-8 text-white/50">
+                Carregando vídeos do YouTube...
+              </div>
+            ) : filteredVideos.length === 0 ? (
+              <EmptyState error={error} />
             ) : (
-              <EmptyState
-                error={
-                  journeyError ||
-                  "A primeira live da Jornada de Estreia ainda não foi cadastrada para este jogo."
-                }
-              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {filteredVideos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
             )}
           </section>
-        ) : featuredVideo && activeFilter === "all" ? (
-          <section className="mt-8">
-            <FeaturedVideo video={featuredVideo} />
-          </section>
-        ) : null}
+        </div>
 
-        <section className="mt-8">
-          {isLoading ? (
-            <div className="rounded-[24px] border border-white/10 bg-zinc-950/80 p-8 text-white/50">
-              Carregando vídeos do YouTube...
-            </div>
-          ) : filteredVideos.length === 0 ? (
-            <EmptyState error={error} />
-          ) : (
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-8">
-              {filteredVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
-              ))}
-            </div>
-          )}
-        </section>
-      </section>
+        {/* SIDEBAR DIREITA — área auxiliar da V2 */}
+        <aside className="hidden space-y-3 px-4 py-5 xl:block">
+          <div className="sticky top-20 space-y-3">
+            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                  RESUMO
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Total</p>
+                  <p className="mt-1 text-xl font-black text-white">{isLoading ? "..." : videos.length}</p>
+                </div>
+                <div className="rounded-xl border border-red-500/[0.12] bg-red-500/[0.05] p-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Lives</p>
+                  <p className="mt-1 text-xl font-black text-red-300">{isLoading ? "..." : totalLives}</p>
+                </div>
+                <div className="rounded-xl border border-blue-500/[0.12] bg-blue-500/[0.05] p-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Vídeos</p>
+                  <p className="mt-1 text-xl font-black text-blue-300">{isLoading ? "..." : totalVideos}</p>
+                </div>
+                <div className="rounded-xl border border-purple-500/[0.12] bg-purple-500/[0.05] p-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Shorts</p>
+                  <p className="mt-1 text-xl font-black text-purple-300">{isLoading ? "..." : totalShorts}</p>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                  CONTEXTO
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
+                    Canal
+                  </p>
+                  <p className="mt-1 truncate text-[11px] font-black text-white">
+                    {channelTitle}
+                  </p>
+                  <p className="mt-0.5 text-[9px] text-white/35">
+                    @orabiisco
+                  </p>
+                </div>
+
+                <div className="border-t border-white/[0.06] pt-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
+                    Seleção atual
+                  </p>
+                  <p className="mt-1 text-[11px] font-black text-white">
+                    {journeyStartRequested
+                      ? "Jornada de Estreia"
+                      : requestedEpisode
+                      ? `EP ${requestedEpisode}`
+                      : activeFilter === "all"
+                      ? "Todos os conteúdos"
+                      : getVideoTypeLabel(activeFilter)}
+                  </p>
+                </div>
+
+                {journeyStartRequested && requestedEpisode ? (
+                  <div className="border-t border-white/[0.06] pt-3">
+                    <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
+                      Jogo da Jornada
+                    </p>
+                    <p className="mt-1 truncate text-[11px] font-black text-emerald-300">
+                      {journeyGameTitle || "Jornada de Estreia"}
+                    </p>
+                    <p className="mt-0.5 text-[9px] text-white/35">
+                      Episódio inicial · EP {requestedEpisode}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            {featuredVideo ? (
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <div className="mb-3 flex items-center gap-2 px-1">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                    ÚLTIMO CONTEÚDO
+                  </h2>
+                </div>
+
+                <a
+                  href={featuredVideo.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block overflow-hidden rounded-xl border border-white/[0.07] bg-black/30"
+                >
+                  <div className="aspect-video overflow-hidden bg-black">
+                    <VideoThumbnail
+                      src={featuredVideo.thumbnail}
+                      title={featuredVideo.title}
+                    />
+                  </div>
+                  <div className="p-3">
+                    <p className="line-clamp-2 text-[11px] font-black leading-tight text-white group-hover:text-red-300">
+                      {featuredVideo.title}
+                    </p>
+                    <p className="mt-2 text-[9px] font-semibold text-white/30">
+                      {formatDate(featuredVideo.publishedAt)}
+                    </p>
+                  </div>
+                </a>
+              </section>
+            ) : null}
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
