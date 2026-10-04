@@ -533,8 +533,72 @@ function parseExophaseAchievementLinks(html: string) {
   return achievements.length ? achievements : null;
 }
 
+function parseExophaseText(source: string) {
+  const prepared = decodeHtml(source)
+    .replace(/\r/g, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n\s+/g, "\n");
+
+  const lines = prepared
+    .split("\n")
+    .map((line) => decodeHtml(line).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const percentRegex = /^(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?$/;
+  const achievements: ExophaseAchievement[] = [];
+  const seen = new Set<string>();
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const percentMatch = lines[index].match(percentRegex);
+    if (!percentMatch) continue;
+
+    const percent = Number(percentMatch[1].replace(",", "."));
+    const candidates: string[] = [];
+
+    for (let cursor = index - 1; cursor >= 0 && candidates.length < 8; cursor -= 1) {
+      const value = lines[cursor];
+      const lower = value.toLowerCase();
+
+      if (!value) continue;
+      if (lower === "image" || lower === "imagem") continue;
+      if (/^https?:\/\//i.test(value)) continue;
+      if (/^(?:steam|achievements?|conquistas|leaderboard|forum|game info|image|imagem)$/i.test(value)) continue;
+      if (/^\d+\s+(?:total )?(?:achievements?|conquistas?)$/i.test(value)) continue;
+      if (/^(?:all|earned|locked) achievements?$/i.test(value)) continue;
+
+      if (percentRegex.test(value)) break;
+
+      candidates.unshift(value);
+    }
+
+    if (candidates.length < 2) continue;
+
+    const name = candidates[candidates.length - 2];
+    const description = candidates[candidates.length - 1];
+    if (!name || !description) continue;
+
+    const key = norm(name);
+    if (!key || seen.has(key)) continue;
+
+    seen.add(key);
+    achievements.push({
+      name,
+      description,
+      percent: Number.isFinite(percent) ? percent : undefined,
+      visualReferenceUrl: null,
+      detailUrl: null,
+    });
+  }
+
+  return achievements.length ? achievements : null;
+}
+
 function parseExophaseHtml(html: string) {
-  // Mantém compatibilidade com o formato antigo do Exophase.
+  // Formato antigo do Exophase.
   const titleOpenMatches = Array.from(
     html.matchAll(
       /<([a-z0-9]+)\b[^>]*class=["'][^"']*\baward-title\b[^"']*["'][^>]*>/gi
@@ -580,14 +644,12 @@ function parseExophaseHtml(html: string) {
         const detailUrl = resolveExophaseUrl(detailLink);
         const visible = stripHtml(chunk);
         let detailText = visible;
-
         if (detailText.toLowerCase().startsWith(title.toLowerCase())) {
           detailText = detailText.slice(title.length).trim();
         }
 
         const percentMatch = detailText.match(/(\d+(?:\.\d+)?)%/);
         const percent = percentMatch ? Number(percentMatch[1]) : undefined;
-
         const description = (percentMatch
           ? detailText.slice(0, percentMatch.index).trim()
           : detailText.trim()
@@ -603,7 +665,9 @@ function parseExophaseHtml(html: string) {
     if (achievements.length) return achievements;
   }
 
-  return parseExophaseAchievementLinks(html);
+  // Formato atual: o Exophase pode entregar a mesma lista sem os antigos
+  // seletores award-title/award-description.
+  return parseExophaseText(html);
 }
 
 async function fetchJinaHtml(
@@ -782,14 +846,13 @@ async function fetchExophaseAchievements(url: string) {
     // de conquistas. O Exophase pode montar parte do card/imagem via JS.
     const html = await fetchJinaHtml(targetUrl, ".award-title");
 
-    if (isPortugueseExophasePage(html)) {
-      const achievements =
-        parseExophaseHtml(html) ??
-        parseExophaseAchievementLinks(html);
+    const achievements =
+      parseExophaseHtml(html) ??
+      parseExophaseAchievementLinks(html) ??
+      parseExophaseText(html);
 
-      if (achievements) {
-        return { url: targetUrl, achievements };
-      }
+    if (achievements) {
+      return { url: targetUrl, achievements };
     }
   } catch (error) {
     console.error("[Exophase Reader Fallback]", error);
