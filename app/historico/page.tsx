@@ -666,7 +666,7 @@ export default function HistoricoPage() {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1500px] px-8 py-10">
+      <section className="mx-auto w-full max-w-[1360px] px-6 py-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <Link
             href="/"
@@ -697,8 +697,8 @@ export default function HistoricoPage() {
           </div>
         </div>
 
-        <header className="mt-8 overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-8">
+        <header className="mt-5 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
+          <div className="relative p-6">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_32%)]" />
 
             <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
@@ -707,7 +707,7 @@ export default function HistoricoPage() {
                   HistÃ³rico
                 </p>
 
-                <h1 className="mt-3 text-5xl font-black text-white">
+                <h1 className="mt-3 text-[34px] font-black text-white">
                   TrofÃ©us Recentes
                 </h1>
 
@@ -743,7 +743,7 @@ export default function HistoricoPage() {
           </div>
         </header>
 
-        <section className="mt-8 overflow-hidden rounded-[24px] border border-white/10 bg-zinc-950/80 shadow-xl">
+        <section className="mt-4 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
           <div className="hidden grid-cols-[70px_1fr_130px_90px] border-b border-white/10 bg-black/40 px-5 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-white/35 md:grid">
             <p>Ãcone</p>
             <p>Conquista</p>
