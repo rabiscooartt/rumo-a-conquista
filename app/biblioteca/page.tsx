@@ -2278,7 +2278,7 @@ export default function BibliotecaPage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[290px_minmax(0,1fr)]">
         {/* SIDEBAR — estrutura-base compartilhada entre as páginas */}
         <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
