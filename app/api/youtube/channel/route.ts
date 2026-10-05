@@ -116,7 +116,7 @@ function cleanDescription(description?: string) {
 }
 
 function createYoutubeApiUrl(
-  endpoint: "channels" | "playlistItems",
+  endpoint: "channels" | "playlistItems" | "playlists",
   params: Record<string, string>
 ) {
   const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
