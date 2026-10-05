@@ -2429,7 +2429,7 @@ export default function BibliotecaPage() {
 
                 <div className="absolute bottom-8 left-7 right-7 grid grid-cols-3">
                   <div className="flex min-w-0 items-center gap-2.5 pr-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-red-500/15 bg-red-600/15 text-red-400">
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2439,7 +2439,7 @@ export default function BibliotecaPage() {
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-red-500/15 bg-red-600/15 text-red-400">
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2449,7 +2449,7 @@ export default function BibliotecaPage() {
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-red-500/15 bg-red-600/15 text-red-400">
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
