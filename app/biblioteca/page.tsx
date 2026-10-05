@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import BannerBackground from "@/components/BannerBackground";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
@@ -2405,10 +2406,7 @@ export default function BibliotecaPage() {
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
             <div className="min-w-0">
             <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-              <div
-                className="absolute inset-0 bg-cover bg-right-center bg-no-repeat"
-                style={{ backgroundImage: "url('/images/jogos-bg.png')" }}
-              />
+              <BannerBackground bannerKey="jogos" imageUrl="/images/jogos-bg.png" adminButtonClassName="" />
 
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
