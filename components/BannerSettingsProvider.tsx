@@ -11,7 +11,7 @@ import {
 import type {
   SiteBannerKey,
   SiteBannerSetting,
-} from "@/lib/site-banner-settings";
+} from "@/lib/banner-types";
 
 type BannerSettingsMap = Record<SiteBannerKey, SiteBannerSetting>;
 
