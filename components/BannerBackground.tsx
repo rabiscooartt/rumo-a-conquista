@@ -1,23 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useBannerSettings } from "@/components/BannerSettingsProvider";
+import type { SiteBannerKey, SiteBannerSetting } from "@/lib/site-banner-settings";
 
-type BannerKey = "jogos" | "atividade" | "conteudo";
 
-type BannerSettings = {
-  x: number;
-  y: number;
-  zoom: number;
-};
-
-const DEFAULT_SETTINGS: BannerSettings = {
-  x: 0,
-  y: 0,
-  zoom: 1,
-};
 
 type Props = {
-  bannerKey: BannerKey;
+  bannerKey: SiteBannerKey;
   imageUrl: string;
   className?: string;
   adminButtonClassName?: string;
@@ -33,11 +23,13 @@ export default function BannerBackground({
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
-  const [settings, setSettings] = useState<BannerSettings>(DEFAULT_SETTINGS);
-  const [draft, setDraft] = useState<BannerSettings>(DEFAULT_SETTINGS);
+  const { setting: initialSettings, update: updateSharedSettings } =
+    useBannerSettings(bannerKey);
+  const [settings, setSettings] = useState<SiteBannerSetting>(initialSettings);
+  const [draft, setDraft] = useState<SiteBannerSetting>(initialSettings);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,28 +46,18 @@ export default function BannerBackground({
         authenticated?: boolean;
       };
 
-      const next = {
-        x: Number.isFinite(Number(data.x)) ? Number(data.x) : 0,
-        y: Number.isFinite(Number(data.y)) ? Number(data.y) : 0,
-        zoom:
-          Number.isFinite(Number(data.zoom)) && Number(data.zoom) > 0
-            ? Number(data.zoom)
-            : 1,
-      };
-
-      setSettings(next);
-      setDraft(next);
+      setIsAdmin(data.authenticated === true);
       setIsAdmin(data.authenticated === true);
     } catch {
-      // O banner continua usando a posição padrão.
-    } finally {
-      setIsLoading(false);
+      // A posição inicial já veio do servidor; falha aqui só afeta a UI do Admin.
+    }
     }
   }, [bannerKey]);
 
   useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
+    setSettings(initialSettings);
+    setDraft(initialSettings);
+  }, [initialSettings]);
 
   useEffect(() => {
     function handleAuthChanged() {
@@ -141,6 +123,7 @@ export default function BannerBackground({
       }
 
       setSettings(draft);
+      updateSharedSettings(draft);
       setIsOpen(false);
     } catch (saveError) {
       setError(
@@ -154,7 +137,7 @@ export default function BannerBackground({
   }
 
   function reset() {
-    setDraft(DEFAULT_SETTINGS);
+    setDraft(initialSettings);
   }
 
   const visibleSettings = isOpen && isAdmin ? draft : settings;
@@ -169,18 +152,20 @@ export default function BannerBackground({
           src={imageUrl}
           alt=""
           draggable={false}
-          className="pointer-events-none absolute max-w-none select-none transition-opacity duration-150"
+          fetchPriority="high"
+          loading="eager"
+          className="pointer-events-none absolute max-w-none select-none"
           style={{
             width: `${visibleSettings.zoom * 100}%`,
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
-            opacity: isLoading ? 0 : 1,
+
           }}
         />
       </div>
 
-      {isAdmin && !isLoading ? (
+      {isAdmin ? (
         <div className={`absolute right-4 top-4 z-30 ${adminButtonClassName}`}>
           {!isOpen ? (
             <button
