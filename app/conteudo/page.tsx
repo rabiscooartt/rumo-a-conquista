@@ -373,14 +373,14 @@ function ContentBannerIcon({
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-[22px] w-[22px]"
+        className="h-[24px] w-[24px]"
         aria-hidden="true"
       >
-        <rect x="3" y="6" width="13" height="12" rx="2" />
-        <path d="m16 10 5-3v10l-5-3" />
+        <rect x="3" y="5.5" width="13.5" height="13" rx="2.2" />
+        <path d="m16.5 10 4.5-2.6v9.2L16.5 14Z" />
       </svg>
     );
   }
@@ -391,14 +391,17 @@ function ContentBannerIcon({
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-[22px] w-[22px]"
+        className="h-[24px] w-[24px]"
         aria-hidden="true"
       >
-        <rect x="3" y="6" width="18" height="12" rx="2" />
-        <path d="m10 9 5 3-5 3V9Z" />
+        <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+        <path d="M7.5 7.5a6.4 6.4 0 0 0 0 9" />
+        <path d="M16.5 7.5a6.4 6.4 0 0 1 0 9" />
+        <path d="M4.8 4.8a10.2 10.2 0 0 0 0 14.4" />
+        <path d="M19.2 4.8a10.2 10.2 0 0 1 0 14.4" />
       </svg>
     );
   }
@@ -406,22 +409,17 @@ function ContentBannerIcon({
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-[22px] w-[22px]"
+      fill="currentColor"
+      className="h-[24px] w-[24px]"
       aria-hidden="true"
     >
-      <rect x="4" y="4" width="7" height="7" rx="1.5" />
-      <rect x="13" y="4" width="7" height="7" rx="1.5" />
-      <rect x="4" y="13" width="7" height="7" rx="1.5" />
-      <rect x="13" y="13" width="7" height="7" rx="1.5" />
+      <rect x="4" y="4" width="7" height="7" rx="1.2" />
+      <rect x="13" y="4" width="7" height="7" rx="1.2" />
+      <rect x="4" y="13" width="7" height="7" rx="1.2" />
+      <rect x="13" y="13" width="7" height="7" rx="1.2" />
     </svg>
   );
 }
-
 function ContentBannerMetric({
   icon,
   label,
@@ -439,12 +437,12 @@ function ContentBannerMetric({
         divided ? "border-l border-white/10 pl-4" : ""
       }`}
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-red-500/15 bg-red-600/15 text-red-400">
         <ContentBannerIcon type={icon} />
       </span>
 
       <div className="min-w-0">
-        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
+        <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
         <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">
