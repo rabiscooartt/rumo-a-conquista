@@ -376,7 +376,7 @@ function ContentBannerIcon({
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-[22px] w-[22px]"
+        className="h-[24px] w-[24px]"
         aria-hidden="true"
       >
         <rect x="3" y="6" width="13" height="12" rx="2" />
@@ -394,11 +394,14 @@ function ContentBannerIcon({
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-[22px] w-[22px]"
+        className="h-[24px] w-[24px]"
         aria-hidden="true"
       >
-        <rect x="3" y="6" width="18" height="12" rx="2" />
-        <path d="m10 9 5 3-5 3V9Z" />
+        <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+        <path d="M7.5 7.5a6.4 6.4 0 0 0 0 9" />
+        <path d="M16.5 7.5a6.4 6.4 0 0 1 0 9" />
+        <path d="M4.8 4.8a10.2 10.2 0 0 0 0 14.4" />
+        <path d="M19.2 4.8a10.2 10.2 0 0 1 0 14.4" />
       </svg>
     );
   }
@@ -411,17 +414,14 @@ function ContentBannerIcon({
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-[22px] w-[22px]"
+      className="h-[24px] w-[24px]"
       aria-hidden="true"
     >
-      <rect x="4" y="4" width="7" height="7" rx="1.5" />
-      <rect x="13" y="4" width="7" height="7" rx="1.5" />
-      <rect x="4" y="13" width="7" height="7" rx="1.5" />
-      <rect x="13" y="13" width="7" height="7" rx="1.5" />
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="m10 9 5 3-5 3V9Z" />
     </svg>
   );
 }
-
 function ContentBannerMetric({
   icon,
   label,
