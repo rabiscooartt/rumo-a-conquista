@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
+import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
 
 type FilterType = "all" | "video" | "live" | "short";
 
@@ -148,6 +149,37 @@ function getVideoTypeStyle(type: Exclude<FilterType, "all">) {
   }
 
   return "border-blue-400/35 bg-blue-500/20 text-blue-100";
+}
+
+function getGameMatchScore(video: YouTubeVideo, game: SiteGame) {
+  const haystack = normalizeText(`${video.title} ${video.description}`);
+  const title = normalizeText(game.title);
+
+  if (!haystack || !title) {
+    return 0;
+  }
+
+  if (haystack.includes(title)) {
+    return 1000;
+  }
+
+  const significantWords = normalizeText(game.title)
+    .match(/[a-z0-9]+/g)
+    ?.filter((word) => word.length >= 3 && !["the", "and", "for", "with", "world"].includes(word))
+    ?? [];
+
+  if (significantWords.length < 2) {
+    return 0;
+  }
+
+  const matched = significantWords.filter((word) => haystack.includes(word)).length;
+  const ratio = matched / significantWords.length;
+
+  return ratio >= 0.67 ? matched * 100 : 0;
+}
+
+function getGameCardImage(game: SiteGame) {
+  return game.cardImage || game.image || "";
 }
 
 function VideoThumbnail({
@@ -330,6 +362,69 @@ function VideoCard({ video }: { video: YouTubeVideo }) {
   );
 }
 
+
+function RecentVideoCard({ video }: { video: YouTubeVideo }) {
+  const type = getVideoType(video);
+
+  return (
+    <a
+      href={video.url}
+      target="_blank"
+      rel="noreferrer"
+      className="group block min-w-0"
+    >
+      <article className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-[#090b0f] transition hover:-translate-y-0.5 hover:border-red-500/30">
+        <div className="relative aspect-video overflow-hidden bg-black">
+          <VideoThumbnail src={video.thumbnail} title={video.title} />
+          <div className="absolute left-2.5 top-2.5">
+            <TypeBadge type={type} />
+          </div>
+          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[8px] font-black text-white">
+            {formatDate(video.publishedAt)}
+          </div>
+        </div>
+        <div className="p-3">
+          <h3 className="line-clamp-2 text-[12px] font-black leading-[1.3] text-white group-hover:text-red-200">
+            {video.title}
+          </h3>
+        </div>
+      </article>
+    </a>
+  );
+}
+
+function ContentListRow({ video }: { video: YouTubeVideo }) {
+  const type = getVideoType(video);
+
+  return (
+    <a
+      href={video.url}
+      target="_blank"
+      rel="noreferrer"
+      className="group block"
+    >
+      <article className="flex gap-3 border-b border-white/[0.07] py-3.5 last:border-b-0">
+        <div className="relative h-[78px] w-[138px] shrink-0 overflow-hidden rounded-[9px] bg-black sm:h-[88px] sm:w-[156px]">
+          <VideoThumbnail src={video.thumbnail} title={video.title} />
+          <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[8px] font-black text-white">
+            {formatDate(video.publishedAt)}
+          </div>
+        </div>
+
+        <div className="min-w-0 flex-1 py-0.5">
+          <TypeBadge type={type} />
+          <h3 className="mt-2 line-clamp-2 text-[13px] font-black leading-[1.3] text-white group-hover:text-red-200">
+            {video.title}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-[9px] leading-[1.45] text-white/35">
+            {video.description || "Conteúdo publicado no canal do projeto."}
+          </p>
+        </div>
+      </article>
+    </a>
+  );
+}
+
 function EmptyState({ error }: { error?: string }) {
   return (
     <div className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-8 shadow-xl">
@@ -465,6 +560,8 @@ export default function ConteudoPage() {
   const [journeyStartRequested, setJourneyStartRequested] = useState(false);
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
   const [journeyError, setJourneyError] = useState("");
+  const { gamesList } = useSiteGames();
+  const [selectedRecentGameSlug, setSelectedRecentGameSlug] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -578,6 +675,76 @@ export default function ConteudoPage() {
   }, [activeFilter, requestedEpisode, videos]);
 
   const featuredVideo = videos[0];
+
+  const recentGames = useMemo(() => {
+    return gamesList
+      .map((game) => {
+        const latest = videos
+          .map((video) => ({
+            video,
+            score: getGameMatchScore(video, game),
+          }))
+          .filter((item) => item.score > 0)
+          .sort(
+            (a, b) =>
+              new Date(b.video.publishedAt).getTime() -
+                new Date(a.video.publishedAt).getTime() ||
+              b.score - a.score
+          )[0];
+
+        if (!latest) {
+          return null;
+        }
+
+        return {
+          game,
+          latestVideo: latest.video,
+          latestTimestamp: new Date(latest.video.publishedAt).getTime(),
+        };
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          game: SiteGame;
+          latestVideo: YouTubeVideo;
+          latestTimestamp: number;
+        } => Boolean(item)
+      )
+      .sort((a, b) => b.latestTimestamp - a.latestTimestamp)
+      .slice(0, 6);
+  }, [gamesList, videos]);
+
+  useEffect(() => {
+    if (!selectedRecentGameSlug && recentGames.length > 0) {
+      setSelectedRecentGameSlug(recentGames[0].game.slug);
+    }
+  }, [recentGames, selectedRecentGameSlug]);
+
+  const selectedRecentGame =
+    recentGames.find((item) => item.game.slug === selectedRecentGameSlug)?.game ??
+    recentGames[0]?.game ??
+    null;
+
+  const selectedGameVideos = useMemo(() => {
+    if (!selectedRecentGame) {
+      return [];
+    }
+
+    return videos
+      .map((video) => ({
+        video,
+        score: getGameMatchScore(video, selectedRecentGame),
+      }))
+      .filter((item) => item.score > 0)
+      .sort(
+        (a, b) =>
+          new Date(b.video.publishedAt).getTime() -
+          new Date(a.video.publishedAt).getTime()
+      )
+      .slice(0, 4)
+      .map((item) => item.video);
+  }, [selectedRecentGame, videos]);
 
   const journeyStartVideo = useMemo(() => {
     if (!journeyStartRequested || !requestedEpisode) {
@@ -825,6 +992,7 @@ export default function ConteudoPage() {
             </section>
           ) : null}
 
+
           {journeyStartRequested ? (
             <section className="mt-3">
               {journeyStartVideo ? (
@@ -838,142 +1006,229 @@ export default function ConteudoPage() {
                 />
               )}
             </section>
-          ) : featuredVideo && activeFilter === "all" ? (
-            <section className="mt-3">
-              <FeaturedVideo video={featuredVideo} />
-            </section>
-          ) : null}
+          ) : (
+            <>
+              <section className="mt-4">
+                <div className="mb-3 flex items-end justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-[20px] w-[2px] bg-red-500" />
+                      <h2 className="text-[16px] font-black text-white">
+                        MAIS RECENTES
+                      </h2>
+                    </div>
+                    <p className="mt-1 text-[10px] text-white/35">
+                      Os conteúdos mais novos da sua jornada.
+                    </p>
+                  </div>
+                </div>
 
-          <section className="mt-3">
-            {isLoading ? (
-              <div className="rounded-[14px] border border-white/10 bg-[#090b0f] p-8 text-white/50">
-                Carregando vídeos do YouTube...
-              </div>
-            ) : filteredVideos.length === 0 ? (
-              <EmptyState error={error} />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {filteredVideos.map((video) => (
-                  <VideoCard key={video.id} video={video} />
-                ))}
-              </div>
-            )}
-          </section>
+                {isLoading ? (
+                  <div className="rounded-[14px] border border-white/10 bg-[#090b0f] p-8 text-[11px] text-white/40">
+                    Carregando conteúdos do YouTube...
+                  </div>
+                ) : filteredVideos.length === 0 ? (
+                  <EmptyState error={error} />
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    {filteredVideos.slice(0, 4).map((video) => (
+                      <RecentVideoCard key={video.id} video={video} />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {!isLoading && filteredVideos.length > 0 ? (
+                <section className="mt-5 rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4 pb-3.5 pt-3.5">
+                  <div className="mb-2 flex items-end justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-[20px] w-[2px] bg-red-500" />
+                        <h2 className="text-[16px] font-black text-white">
+                          TODOS OS CONTEÚDOS
+                        </h2>
+                      </div>
+                      <p className="mt-1 text-[10px] text-white/35">
+                        Explore tudo em uma única sequência, sem repetir seções.
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
+                      {filteredVideos.length} itens
+                    </span>
+                  </div>
+
+                  {filteredVideos.slice(4).map((video) => (
+                    <ContentListRow key={video.id} video={video} />
+                  ))}
+                </section>
+              ) : null}
+            </>
+          )}
         </div>
 
-        {/* SIDEBAR DIREITA — área auxiliar da V2 */}
+        {/* SIDEBAR DIREITA — jogos recentes detectados pelo YouTube */}
         <aside className="hidden px-4 py-5 xl:block">
           <div className="sticky top-20 space-y-3">
             <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="mb-3 flex items-center gap-2 px-1">
-                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                  RESUMO
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Total</p>
-                  <p className="mt-1 text-xl font-black text-white">{isLoading ? "..." : videos.length}</p>
-                </div>
-                <div className="rounded-xl border border-red-500/[0.12] bg-red-500/[0.05] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Lives</p>
-                  <p className="mt-1 text-xl font-black text-red-300">{isLoading ? "..." : totalLives}</p>
-                </div>
-                <div className="rounded-xl border border-blue-500/[0.12] bg-blue-500/[0.05] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Vídeos</p>
-                  <p className="mt-1 text-xl font-black text-blue-300">{isLoading ? "..." : totalVideos}</p>
-                </div>
-                <div className="rounded-xl border border-purple-500/[0.12] bg-purple-500/[0.05] p-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">Shorts</p>
-                  <p className="mt-1 text-xl font-black text-purple-300">{isLoading ? "..." : totalShorts}</p>
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="mb-3 flex items-center gap-2 px-1">
-                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                  CONTEXTO
-                </h2>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
-                    Canal
-                  </p>
-                  <p className="mt-1 truncate text-[11px] font-black text-white">
-                    {channelTitle}
-                  </p>
-                  <p className="mt-0.5 text-[9px] text-white/35">
-                    @orabiisco
-                  </p>
-                </div>
-
-                <div className="border-t border-white/[0.06] pt-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
-                    Seleção atual
-                  </p>
-                  <p className="mt-1 text-[11px] font-black text-white">
-                    {journeyStartRequested
-                      ? "Jornada de Estreia"
-                      : requestedEpisode
-                      ? `EP ${requestedEpisode}`
-                      : activeFilter === "all"
-                      ? "Todos os conteúdos"
-                      : getVideoTypeLabel(activeFilter)}
-                  </p>
-                </div>
-
-                {journeyStartRequested && requestedEpisode ? (
-                  <div className="border-t border-white/[0.06] pt-3">
-                    <p className="text-[8px] font-black uppercase tracking-[0.12em] text-white/30">
-                      Jogo da Jornada
-                    </p>
-                    <p className="mt-1 truncate text-[11px] font-black text-emerald-300">
-                      {journeyGameTitle || "Jornada de Estreia"}
-                    </p>
-                    <p className="mt-0.5 text-[9px] text-white/35">
-                      Episódio inicial · EP {requestedEpisode}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </section>
-
-            {featuredVideo ? (
-              <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <div className="mb-3 flex items-center gap-2 px-1">
+              <div className="mb-3 flex items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                    ÚLTIMO CONTEÚDO
+                    JOGOS RECENTES
                   </h2>
                 </div>
+                <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/20">
+                  automático
+                </span>
+              </div>
 
-                <a
-                  href={featuredVideo.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group block overflow-hidden rounded-xl border border-white/[0.07] bg-black/30"
-                >
-                  <div className="aspect-video overflow-hidden bg-black">
-                    <VideoThumbnail
-                      src={featuredVideo.thumbnail}
-                      title={featuredVideo.title}
+              {recentGames.length === 0 ? (
+                <p className="px-1 py-6 text-[10px] leading-relaxed text-white/35">
+                  Publique um conteúdo relacionado a um jogo da jornada para ele aparecer aqui automaticamente.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {recentGames.map(({ game, latestVideo }) => {
+                    const active = selectedRecentGame?.slug === game.slug;
+
+                    return (
+                      <button
+                        key={game.slug}
+                        type="button"
+                        onClick={() => setSelectedRecentGameSlug(game.slug)}
+                        className={`flex w-full items-center gap-3 rounded-[10px] border px-2.5 py-2 text-left transition ${
+                          active
+                            ? "border-red-500/35 bg-red-500/10"
+                            : "border-transparent hover:border-white/[0.08] hover:bg-white/[0.025]"
+                        }`}
+                      >
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[7px] bg-black">
+                          {getGameCardImage(game) ? (
+                            <img
+                              src={getGameCardImage(game)}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] text-white/20">
+                              —
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[11px] font-black text-white">
+                            {game.title}
+                          </p>
+                          <p className="mt-0.5 truncate text-[8px] text-white/30">
+                            {latestVideo.title}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {selectedRecentGame ? (
+              <section className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090b0f]">
+                <div className="relative h-[105px] overflow-hidden bg-black">
+                  {getGameCardImage(selectedRecentGame) ? (
+                    <img
+                      src={getGameCardImage(selectedRecentGame)}
+                      alt=""
+                      className="h-full w-full object-cover opacity-75"
                     />
-                  </div>
-                  <div className="p-3">
-                    <p className="line-clamp-2 text-[11px] font-black leading-tight text-white group-hover:text-red-300">
-                      {featuredVideo.title}
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#090b0f] via-black/15 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 px-3.5 pb-3">
+                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-300">
+                      JOGO SELECIONADO
                     </p>
-                    <p className="mt-2 text-[9px] font-semibold text-white/30">
-                      {formatDate(featuredVideo.publishedAt)}
-                    </p>
+                    <h2 className="mt-1 truncate text-[16px] font-black text-white">
+                      {selectedRecentGame.title}
+                    </h2>
                   </div>
-                </a>
+                </div>
+
+                <div className="p-3.5">
+                  {selectedRecentGame.youtubePlaylistUrl ? (
+                    <a
+                      href={selectedRecentGame.youtubePlaylistUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block rounded-lg border border-red-500/35 bg-red-500/10 px-3 py-2.5 text-center text-[10px] font-black text-red-100 transition hover:bg-red-500/20"
+                    >
+                      Abrir playlist no YouTube →
+                    </a>
+                  ) : (
+                    <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2.5 text-center text-[9px] font-black text-white/30">
+                      Playlist não cadastrada
+                    </div>
+                  )}
+
+                  <div className="mt-3 grid grid-cols-3 border-t border-white/[0.07] pt-3 text-center">
+                    <div>
+                      <p className="text-[16px] font-black text-white">
+                        {selectedGameVideos.length}
+                      </p>
+                      <p className="text-[8px] font-medium text-white/30">recentes</p>
+                    </div>
+                    <div className="border-l border-white/[0.06]">
+                      <p className="text-[16px] font-black text-red-300">
+                        {selectedGameVideos.filter((video) => getVideoType(video) === "live").length}
+                      </p>
+                      <p className="text-[8px] font-medium text-white/30">lives</p>
+                    </div>
+                    <div className="border-l border-white/[0.06]">
+                      <p className="text-[16px] font-black text-blue-300">
+                        {selectedGameVideos.filter((video) => getVideoType(video) === "video").length}
+                      </p>
+                      <p className="text-[8px] font-medium text-white/30">vídeos</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {selectedRecentGame && selectedGameVideos.length > 0 ? (
+              <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <div className="mb-3 flex items-center justify-between gap-2 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                    <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                      ÚLTIMOS DO JOGO
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  {selectedGameVideos.map((video) => (
+                    <a
+                      key={video.id}
+                      href={video.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group flex gap-2.5 border-b border-white/[0.06] pb-2.5 last:border-b-0 last:pb-0"
+                    >
+                      <div className="relative h-[52px] w-[84px] shrink-0 overflow-hidden rounded-md bg-black">
+                        <VideoThumbnail src={video.thumbnail} title={video.title} />
+                        <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.5 text-[7px] font-black text-white">
+                          {getVideoType(video).toUpperCase()}
+                        </div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-[9px] font-black leading-[1.35] text-white group-hover:text-red-200">
+                          {video.title}
+                        </p>
+                        <p className="mt-1 text-[8px] text-white/30">
+                          {formatDate(video.publishedAt)}
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </section>
             ) : null}
           </div>
