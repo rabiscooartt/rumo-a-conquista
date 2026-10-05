@@ -9,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import Navbar from "@/components/Navbar";
+import BannerBackground from "@/components/BannerBackground";
 import { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT } from "@/components/AdminAvatarLogin";
 import { useSiteGames } from "@/lib/useSiteGames";
 import {
@@ -1654,10 +1655,7 @@ export default function AtividadePage() {
             <div className="min-w-0">
           {/* HERO */}
           <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-            <div
-              className="absolute inset-0 bg-cover bg-right-center bg-no-repeat"
-              style={{ backgroundImage: "url('/images/activity-banner-bg.png')" }}
-            />
+            <BannerBackground bannerKey="atividade" imageUrl="/images/activity-banner-bg.png" adminButtonClassName="top-16" />
 
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
