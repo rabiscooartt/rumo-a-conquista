@@ -277,8 +277,8 @@ function scorePlaylistForVideo(video: YouTubeVideo, playlist: YouTubePlaylist) {
     return 0;
   }
 
-  const text = tokenizeText(`${video.title} ${video.description}`);
-  const matched = words.filter((word) => text.includes(word)).length;
+  const text = new Set(tokenizeText(`${video.title} ${video.description}`));
+  const matched = words.filter((word) => text.has(word)).length;
 
   return matched / words.length >= 0.75 ? 500 + matched * 20 : 0;
 }
@@ -736,7 +736,7 @@ export default function ConteudoPage() {
   const [journeyStartRequested, setJourneyStartRequested] = useState(false);
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
   const [journeyError, setJourneyError] = useState("");
-  const [selectedRecentGamePlaylistId, setSelectedRecentGamePlaylistId] = useState("");
+  const [selectedRecentGameKey, setSelectedRecentGameKey] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
