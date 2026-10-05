@@ -1174,7 +1174,7 @@ export default function ConteudoPage() {
               )}
             </section>
           </div>
-        </aside>        </aside>
+        </aside>
       </div>
     </main>
   );
