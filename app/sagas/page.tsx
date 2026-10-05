@@ -886,7 +886,7 @@ export default function SagasPage() {
       )}
 
       <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
-        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 xl:grid-cols-[290px_minmax(0,1fr)_290px]">
+        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
           <aside className="hidden border-r border-white/[0.08] px-4 py-5 xl:block">
             <div className="sticky top-20">
               <div className="border-b border-white/[0.08] pb-4 pt-2">

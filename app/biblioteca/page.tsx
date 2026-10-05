@@ -2279,7 +2279,7 @@ export default function BibliotecaPage() {
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[290px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
         {/* SIDEBAR — estrutura-base compartilhada entre as páginas */}
         <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
@@ -2403,7 +2403,7 @@ export default function BibliotecaPage() {
 
         {/* MAIN */}
         <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0">
             <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
               <BannerBackground bannerKey="jogos" imageUrl="/images/jogos-bg.png" adminButtonClassName="" />
