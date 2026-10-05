@@ -1151,7 +1151,7 @@ export default function ConteudoPage() {
 
                   <button
                     type="button"
-                    onClick={() => setSelectedRecentGamePlaylistId("")}
+                    onClick={() => setSelectedRecentGameKey("")}
                     className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45 transition hover:text-white"
                   >
                     Todos
@@ -1259,7 +1259,7 @@ export default function ConteudoPage() {
                         key={item.key}
                         type="button"
                         onClick={() =>
-                          setSelectedRecentGamePlaylistId(
+                          setSelectedRecentGameKey(
                             active ? "" : item.key
                           )
                         }
