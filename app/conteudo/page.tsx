@@ -191,8 +191,8 @@ function extractYoutubeGameName(video: YouTubeVideo) {
       .reverse()
       .map((segment) =>
         segment
-          .replace(/^[^:]+:\s*/i, "")
           .replace(/\s*[-–—]\s*(?:ep|episode|dia|day)\s*#?\d+.*$/i, "")
+          .replace(/\s*#\s*\d+\b.*$/i, "")
           .trim()
       )
       .filter((segment) => segment.length >= 3);
@@ -616,7 +616,6 @@ function ContentBannerMetric({
 export default function ConteudoPage() {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [playlists, setPlaylists] = useState<YouTubePlaylist[]>([]);
-  const [channelTitle, setChannelTitle] = useState("YouTube");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
@@ -702,7 +701,6 @@ export default function ConteudoPage() {
 
         setVideos(data.videos ?? []);
         setPlaylists(data.playlists ?? []);
-        setChannelTitle(data.channel?.title || "YouTube");
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
@@ -737,8 +735,6 @@ export default function ConteudoPage() {
 
     return byType.filter((video) => matchesEpisode(video, requestedEpisode));
   }, [activeFilter, requestedEpisode, videos]);
-
-  const featuredVideo = videos[0];
 
   const recentGames = useMemo(() => {
     const grouped = new Map<
