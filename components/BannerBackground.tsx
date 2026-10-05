@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useBannerSettings } from "@/components/BannerSettingsProvider";
-import type { SiteBannerKey, SiteBannerSetting } from "@/lib/site-banner-settings";
+import type { SiteBannerKey, SiteBannerSetting } from "@/lib/banner-types";
 
 
 
