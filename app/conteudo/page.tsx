@@ -159,6 +159,51 @@ function getVideoTypeStyle(type: Exclude<FilterType, "all">) {
   return "border-blue-400/35 bg-blue-500/20 text-blue-100";
 }
 
+function getPlaylistMatchScore(video: YouTubeVideo, playlist: YouTubePlaylist) {
+  const haystack = normalizeText(`${video.title} ${video.description}`);
+  const title = normalizeText(playlist.title);
+
+  if (!haystack || title.length < 3) {
+    return 0;
+  }
+
+  if (haystack.includes(title)) {
+    return 1000 + title.length;
+  }
+
+  const words = title.match(/[a-z0-9]+/g) ?? [];
+  const significantWords = words.filter(
+    (word) =>
+      word.length >= 3 &&
+      ![
+        "the",
+        "and",
+        "for",
+        "with",
+        "world",
+        "jornada",
+        "completa",
+        "playlist",
+        "oficial",
+      ].includes(word)
+  );
+
+  if (significantWords.length < 2) {
+    return 0;
+  }
+
+  const matched = significantWords.filter((word) => haystack.includes(word)).length;
+  const ratio = matched / significantWords.length;
+
+  if (ratio < 0.67) {
+    return 0;
+  }
+
+  return matched * 100 + Math.min(ratio * 50, 50);
+}
+
+
+
 function VideoThumbnail({
   src,
   title,
@@ -657,35 +702,43 @@ export default function ConteudoPage() {
   const recentGames = useMemo(() => {
     const matched = new Map<
       string,
-      { playlist: YouTubePlaylist; latestVideo: YouTubeVideo; latestTimestamp: number }
+      {
+        playlist: YouTubePlaylist;
+        latestVideo: YouTubeVideo;
+        latestTimestamp: number;
+        score: number;
+      }
     >();
 
     for (const video of videos) {
-      const haystack = normalizeText(`${video.title} ${video.description}`);
-
       const candidates = playlists
-        .filter((playlist) => {
-          const playlistTitle = normalizeText(playlist.title);
-          return playlistTitle.length >= 3 && haystack.includes(playlistTitle);
-        })
+        .map((playlist) => ({
+          playlist,
+          score: getPlaylistMatchScore(video, playlist),
+        }))
+        .filter((item) => item.score > 0)
         .sort(
-          (a, b) => normalizeText(b.title).length - normalizeText(a.title).length
+          (a, b) =>
+            b.score - a.score ||
+            normalizeText(b.playlist.title).length -
+              normalizeText(a.playlist.title).length
         );
 
-      const playlist = candidates[0];
+      const best = candidates[0];
 
-      if (!playlist) {
+      if (!best) {
         continue;
       }
 
       const latestTimestamp = new Date(video.publishedAt).getTime();
-      const existing = matched.get(playlist.id);
+      const existing = matched.get(best.playlist.id);
 
       if (!existing || latestTimestamp > existing.latestTimestamp) {
-        matched.set(playlist.id, {
-          playlist,
+        matched.set(best.playlist.id, {
+          playlist: best.playlist,
           latestVideo: video,
           latestTimestamp,
+          score: best.score,
         });
       }
     }
@@ -694,15 +747,6 @@ export default function ConteudoPage() {
       .sort((a, b) => b.latestTimestamp - a.latestTimestamp)
       .slice(0, 3);
   }, [playlists, videos]);
-
-  useEffect(() => {
-    if (
-      !selectedRecentGamePlaylistId &&
-      recentGames.length > 0
-    ) {
-      setSelectedRecentGamePlaylistId(recentGames[0].playlist.id);
-    }
-  }, [recentGames, selectedRecentGamePlaylistId]);
 
   const selectedRecentGame =
     recentGames.find(
@@ -714,19 +758,23 @@ export default function ConteudoPage() {
       return [];
     }
 
-    const playlistTitle = normalizeText(selectedRecentGame.playlist.title);
-
     return videos
-      .filter((video) => {
-        const haystack = normalizeText(`${video.title} ${video.description}`);
-        return playlistTitle.length >= 3 && haystack.includes(playlistTitle);
-      })
+      .map((video) => ({
+        video,
+        score: getPlaylistMatchScore(
+          video,
+          selectedRecentGame.playlist
+        ),
+      }))
+      .filter((item) => item.score > 0)
       .sort(
         (a, b) =>
-          new Date(b.publishedAt).getTime() -
-          new Date(a.publishedAt).getTime()
+          new Date(b.video.publishedAt).getTime() -
+            new Date(a.video.publishedAt).getTime() ||
+          b.score - a.score
       )
-      .slice(0, 6);
+      .slice(0, 12)
+      .map((item) => item.video);
   }, [selectedRecentGame, videos]);
 
   const journeyStartVideo = useMemo(() => {
@@ -927,56 +975,6 @@ export default function ConteudoPage() {
           </section>
 
           {journeyStartRequested ? (
-            <section className="mt-4 rounded-[14px] border border-emerald-400/20 bg-emerald-400/[.05] p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-emerald-300">
-                    Jornada de Estreia
-                  </p>
-                  <p className="mt-1 text-sm font-black text-white">
-                    Início da Jornada{journeyGameTitle ? " · " + journeyGameTitle : ""}{requestedEpisode ? " · EP " + requestedEpisode : ""}
-                  </p>
-                  {journeyError ? (
-                    <p className="mt-1 text-[10px] font-bold text-yellow-200/70">
-                      {journeyError}
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-[10px] text-white/35">
-                      O conteúdo do episódio de início da Jornada aparece abaixo.
-                    </p>
-                  )}
-                </div>
-                <Link
-                  href="/conteudo"
-                  className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
-                >
-                  Voltar
-                </Link>
-              </div>
-            </section>
-          ) : requestedEpisode ? (
-            <section className="mt-4 rounded-[14px] border border-blue-400/20 bg-blue-500/[0.06] p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-blue-300">
-                    Episódio selecionado
-                  </p>
-                  <p className="mt-1 text-sm font-black text-white">
-                    EP {requestedEpisode}
-                  </p>
-                </div>
-                <Link
-                  href="/conteudo"
-                  className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[10px] font-black uppercase text-white/60 transition hover:bg-white/[.06] hover:text-white"
-                >
-                  Limpar filtro
-                </Link>
-              </div>
-            </section>
-          ) : null}
-
-
-          {journeyStartRequested ? (
             <section className="mt-3">
               {journeyStartVideo ? (
                 <FeaturedVideo video={journeyStartVideo} />
@@ -987,6 +985,52 @@ export default function ConteudoPage() {
                     "A primeira live da Jornada de Estreia ainda não foi cadastrada para este jogo."
                   }
                 />
+              )}
+            </section>
+          ) : selectedRecentGame ? (
+            <section className="mt-4">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                    <h2 className="truncate text-[18px] font-black text-white">
+                      ${selectedRecentGame.playlist.title}
+                    </h2>
+                  </div>
+                  <p className="mt-1 text-[10px] text-white/35">
+                    Últimos conteúdos encontrados no YouTube para este jogo.
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  {selectedRecentGame.playlist.url ? (
+                    <a
+                      href={selectedRecentGame.playlist.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-[9px] font-black text-red-100 transition hover:bg-red-500/20"
+                    >
+                      Playlist →
+                    </a>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecentGamePlaylistId("")}
+                    className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45 transition hover:text-white"
+                  >
+                    Todos
+                  </button>
+                </div>
+              </div>
+
+              {selectedGameVideos.length === 0 ? (
+                <EmptyState error="Nenhum conteúdo recente foi relacionado a este jogo." />
+              ) : (
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                  {selectedGameVideos.map((video) => (
+                    <RecentVideoCard key={video.id} video={video} />
+                  ))}
+                </div>
               )}
             </section>
           ) : (
@@ -1021,7 +1065,7 @@ export default function ConteudoPage() {
                 )}
               </section>
 
-              {!isLoading && filteredVideos.length > 0 ? (
+              {!isLoading && filteredVideos.length > 4 ? (
                 <section className="mt-5 rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4 pb-3.5 pt-3.5">
                   <div className="mb-2 flex items-end justify-between gap-3">
                     <div>
@@ -1032,7 +1076,7 @@ export default function ConteudoPage() {
                         </h2>
                       </div>
                       <p className="mt-1 text-[10px] text-white/35">
-                        Explore tudo em uma única sequência, sem repetir seções.
+                        Explore o restante em uma única sequência.
                       </p>
                     </div>
                     <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
