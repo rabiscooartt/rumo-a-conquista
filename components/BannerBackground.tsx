@@ -42,15 +42,13 @@ export default function BannerBackground({
 
       if (!response.ok) return;
 
-      const data = (await response.json()) as Partial<BannerSettings> & {
+      const data = (await response.json()) as {
         authenticated?: boolean;
       };
 
       setIsAdmin(data.authenticated === true);
-      setIsAdmin(data.authenticated === true);
     } catch {
       // A posição inicial já veio do servidor; falha aqui só afeta a UI do Admin.
-    }
     }
   }, [bannerKey]);
 
