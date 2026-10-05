@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import BannerBackground from "@/components/BannerBackground";
 
 type FilterType = "all" | "video" | "live" | "short";
 
@@ -614,10 +615,7 @@ export default function ConteudoPage() {
         {/* CONTEÚDO CENTRAL */}
         <div className="min-w-0 border-r border-white/[0.10] px-4 py-5 md:px-5 lg:px-6">
           <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-            <div
-              className="absolute inset-0 bg-cover bg-right-center bg-no-repeat"
-              style={{ backgroundImage: "url('/images/content-banner-bg.png')" }}
-            />
+            <BannerBackground bannerKey="conteudo" imageUrl="/images/content-banner-bg.png" adminButtonClassName="" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.96)_34%,rgba(5,6,9,0.70)_58%,rgba(5,6,9,0.42)_78%,rgba(5,6,9,0.74)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.16),transparent_42%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.96)_100%)]" />
