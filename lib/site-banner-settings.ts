@@ -40,20 +40,26 @@ export async function loadSiteBannerSettings(): Promise<
     if (error) throw error;
 
     for (const row of data ?? []) {
+      const bannerKey = String(row.banner_key ?? "");
+
       if (
-        row.banner_key === "jogos" ||
-        row.banner_key === "atividade" ||
-        row.banner_key === "conteudo"
+        bannerKey !== "jogos" &&
+        bannerKey !== "atividade" &&
+        bannerKey !== "conteudo"
       ) {
-        settings[row.banner_key] = {
-          x: Number.isFinite(Number(row.x)) ? Number(row.x) : 0,
-          y: Number.isFinite(Number(row.y)) ? Number(row.y) : 0,
-          zoom:
-            Number.isFinite(Number(row.zoom)) && Number(row.zoom) > 0
-              ? Number(row.zoom)
-              : 1,
-        };
+        continue;
       }
+
+      const key = bannerKey as SiteBannerKey;
+
+      settings[key] = {
+        x: Number.isFinite(Number(row.x)) ? Number(row.x) : 0,
+        y: Number.isFinite(Number(row.y)) ? Number(row.y) : 0,
+        zoom:
+          Number.isFinite(Number(row.zoom)) && Number(row.zoom) > 0
+            ? Number(row.zoom)
+            : 1,
+      };
     }
   } catch {
     // Em caso de indisponibilidade, o banner continua com a posição padrão.
