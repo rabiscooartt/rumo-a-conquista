@@ -44,7 +44,7 @@ export default function BannerBackground({
   const loadSettings = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/admin/banner-settings?banner=${encodeURIComponent(bannerKey)}`,
+        `/api/banner-settings?banner=${encodeURIComponent(bannerKey)}`,
         { method: "GET", cache: "no-store" }
       );
 
