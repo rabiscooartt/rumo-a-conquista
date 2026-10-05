@@ -1,0 +1,67 @@
+import "server-only";
+
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+
+export type SiteBannerKey = "jogos" | "atividade" | "conteudo";
+
+export type SiteBannerSetting = {
+  x: number;
+  y: number;
+  zoom: number;
+};
+
+const DEFAULT_SETTINGS: SiteBannerSetting = {
+  x: 0,
+  y: 0,
+  zoom: 1,
+};
+
+export const SITE_BANNER_DEFAULTS: Record<
+  SiteBannerKey,
+  SiteBannerSetting
+> = {
+  jogos: { ...DEFAULT_SETTINGS },
+  atividade: { ...DEFAULT_SETTINGS },
+  conteudo: { ...DEFAULT_SETTINGS },
+};
+
+export async function loadSiteBannerSettings(): Promise<
+  Record<SiteBannerKey, SiteBannerSetting>
+> {
+  const settings = {
+    jogos: { ...DEFAULT_SETTINGS },
+    atividade: { ...DEFAULT_SETTINGS },
+    conteudo: { ...DEFAULT_SETTINGS },
+  };
+
+  try {
+    const client = createAdminSupabaseClient();
+    const { data, error } = await client
+      .from("site_banner_settings")
+      .select("banner_key, x, y, zoom")
+      .in("banner_key", ["jogos", "atividade", "conteudo"]);
+
+    if (error) throw error;
+
+    for (const row of data ?? []) {
+      if (
+        row.banner_key === "jogos" ||
+        row.banner_key === "atividade" ||
+        row.banner_key === "conteudo"
+      ) {
+        settings[row.banner_key] = {
+          x: Number.isFinite(Number(row.x)) ? Number(row.x) : 0,
+          y: Number.isFinite(Number(row.y)) ? Number(row.y) : 0,
+          zoom:
+            Number.isFinite(Number(row.zoom)) && Number(row.zoom) > 0
+              ? Number(row.zoom)
+              : 1,
+        };
+      }
+    }
+  } catch {
+    // Em caso de indisponibilidade, o banner continua com a posição padrão.
+  }
+
+  return settings;
+}
