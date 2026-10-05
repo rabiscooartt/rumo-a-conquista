@@ -20,12 +20,14 @@ type Props = {
   bannerKey: BannerKey;
   imageUrl: string;
   className?: string;
+  adminButtonClassName?: string;
 };
 
 export default function BannerBackground({
   bannerKey,
   imageUrl,
   className = "",
+  adminButtonClassName = "",
 }: Props) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
@@ -178,7 +180,7 @@ export default function BannerBackground({
       </div>
 
       {isAdmin && !isLoading ? (
-        <div className="absolute right-4 top-4 z-30">
+        <div className={`absolute right-4 top-4 z-30 ${adminButtonClassName}`}>
           {!isOpen ? (
             <button
               type="button"
@@ -196,15 +198,15 @@ export default function BannerBackground({
       ) : null}
 
       {isAdmin && isOpen ? (
-        <div className="absolute inset-x-4 top-12 z-40 md:inset-x-6">
-          <div className="rounded-xl border border-red-500/25 bg-[#080a0e]/95 p-3 shadow-2xl backdrop-blur-xl">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[900px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
                   Editor de BG · {bannerKey}
                 </p>
                 <p className="mt-1 text-[10px] text-white/40">
-                  Arraste a imagem diretamente na prévia.
+                  Arraste a imagem diretamente na prévia. A posição salva será usada no banner público.
                 </p>
               </div>
 
@@ -240,7 +242,7 @@ export default function BannerBackground({
 
             <div
               ref={editorRef}
-              className="relative mt-3 h-[120px] cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing md:h-[150px]"
+              className="relative mt-4 aspect-[4/1] cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 startDrag(event.clientX, event.clientY);
@@ -274,7 +276,7 @@ export default function BannerBackground({
               <div className="pointer-events-none absolute inset-y-0 left-1/2 border-l border-white/10" />
             </div>
 
-            <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
               <label className="block">
                 <span className="text-[8px] font-black uppercase tracking-[0.14em] text-white/35">
                   Horizontal
