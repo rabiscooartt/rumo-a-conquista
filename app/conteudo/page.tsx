@@ -714,7 +714,7 @@ export default function ConteudoPage() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.16),transparent_42%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="relative min-h-[205px] px-7 py-7 md:px-7 md:py-7">
+            <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
               <div className="max-w-[400px]">
                 <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                   <span className="text-[10px] leading-none">✣</span>
