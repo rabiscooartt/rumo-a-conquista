@@ -324,7 +324,7 @@ function IconMetricDays(props: { className?: string }) {
       <path
         d="M8 3.5V7M16 3.5V7M4.5 9H19.5"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
       <path
@@ -345,12 +345,12 @@ function IconMetricTime(props: { className?: string }) {
         cy="12"
         r="8.5"
         stroke="currentColor"
-        strokeWidth="2.9"
+        strokeWidth="2.6"
       />
       <path
         d="M12 7.8V12L15 13.8"
         stroke="currentColor"
-        strokeWidth="2.7"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -364,21 +364,21 @@ function IconMetricAverage(props: { className?: string }) {
       <path
         d="M4.5 18.7H19.5"
         stroke="currentColor"
-        strokeWidth="1.9"
+        strokeWidth="1.45"
         strokeLinecap="round"
         opacity="0.4"
       />
       <path
         d="M5 15.4L9 11.8L12.2 14L18.7 6.9"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M15.7 6.9H18.7V9.9"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -941,7 +941,7 @@ function PremiumIconBadge({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] border border-red-500/15 bg-red-600/15 text-red-400">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
       {children}
     </div>
   );
@@ -968,7 +968,7 @@ function Metric({
       <PremiumIconBadge>{icon}</PremiumIconBadge>
 
       <div className="min-w-0">
-        <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">
+        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
 
@@ -1690,20 +1690,20 @@ export default function AtividadePage() {
 
               <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
                 <Metric
-                  icon={<IconMetricDays className="h-[24px] w-[24px]" />}
+                  icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
                   value={isLoaded ? uniqueDays : "..."}
                 />
 
                 <Metric
-                  icon={<IconMetricTime className="h-[24px] w-[24px]" />}
+                  icon={<IconMetricTime className="h-[22px] w-[22px]" />}
                   label="Tempo jogado"
                   value={isLoaded ? formatPlayedTime(totalMinutes) : "..."}
                   divided
                 />
 
                 <Metric
-                  icon={<IconMetricAverage className="h-[24px] w-[24px]" />}
+                  icon={<IconMetricAverage className="h-[22px] w-[22px]" />}
                   label="Média por dia"
                   value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
                   divided
