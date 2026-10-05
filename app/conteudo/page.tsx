@@ -159,62 +159,180 @@ function getVideoTypeStyle(type: Exclude<FilterType, "all">) {
   return "border-blue-400/35 bg-blue-500/20 text-blue-100";
 }
 
+function tokenizeText(value?: string) {
+  return (
+    String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .match(/[a-z0-9]+/g) ?? []
+  );
+}
+
 function cleanYoutubeGameName(value: string) {
   return value
-    .replace(/\b(?:ep|episode|dia|day)\s*#?\d+\b/gi, "")
-    .replace(/#\s*\d+\b/g, "")
-    .replace(/\b#?\d+\b/g, "")
     .replace(/\[[^\]]*\]/g, "")
     .replace(/\s+/g, " ")
-    .replace(/^[\s|:–—-]+|[\s|:–—-]+$/g, "")
+    .replace(
+      /^(?:rumo\s+a\s+conquista)\s*[:|\-–—]+\s*/i,
+      ""
+    )
+    .replace(
+      /\s*[-–—|]\s*(?:ep(?:isodio|isode)?|dia)\s*#?\d+.*$/i,
+      ""
+    )
+    .replace(
+      /\s*(?:#\s*)?ep(?:isodio|isode)?\s*#?\d+.*$/i,
+      ""
+    )
+    .trim()
+    .replace(/^[\s:|\-–—]+|[\s:|\-–—]+$/g, "")
     .trim();
 }
 
 function normalizeGameKey(value: string) {
-  return normalizeText(value)
-    .replace(/\b(?:rumo|a|conquista|live|video|vídeo|short|dia|ep|episode|continuacao|continuação|final|guia|de|das|dos|do|primeiras|primeiros|novas|novos|começando|comecando)\b/g, "")
-    .replace(/\s+/g, "")
-    .trim();
+  return cleanYoutubeGameName(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(
+      /\b(?:rumo\s+a\s+conquista|ao\s+vivo|live|shorts?|video|vídeo|jornada)\b/gi,
+      ""
+    )
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[^a-z0-9]/g, "");
 }
 
 function extractYoutubeGameName(video: YouTubeVideo) {
-  const rawTitle = video.title.trim();
+  const title = video.title.trim();
+  const marker =
+    /(?:#\s*)?ep(?:isodio|isode)?\s*#?\d+|\bdia\s*#?\d+/i;
+  const markerIndex = title.search(marker);
 
-  const segments = rawTitle
+  if (markerIndex < 0) {
+    return "";
+  }
+
+  const beforeMarker = title.slice(0, markerIndex);
+  const pipeParts = beforeMarker
     .split("|")
-    .map((segment) => cleanYoutubeGameName(segment))
-    .filter((segment) => segment.length >= 3);
+    .map((part) => part.trim())
+    .filter(Boolean);
 
-  if (segments.length > 1) {
-    const candidates = segments
-      .slice()
-      .reverse()
-      .map((segment) =>
-        segment
-          .replace(/\s*[-–—]\s*(?:ep|episode|dia|day)\s*#?\d+.*$/i, "")
-          .replace(/\s*#\s*\d+\b.*$/i, "")
-          .trim()
-      )
-      .filter((segment) => segment.length >= 3);
+  const candidate =
+    pipeParts.length > 1 ? pipeParts[pipeParts.length - 1] : beforeMarker;
 
-    if (candidates[0]) {
-      return candidates[0];
+  const cleaned = cleanYoutubeGameName(candidate);
+  const key = normalizeGameKey(cleaned);
+
+  return cleaned.length >= 3 && key.length >= 3 ? cleaned : "";
+}
+
+function cleanPlaylistGameName(value: string) {
+  return cleanYoutubeGameName(
+    value
+      .replace(/\b(?:playlist|oficial|jornada)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
+
+function scorePlaylistForVideo(video: YouTubeVideo, playlist: YouTubePlaylist) {
+  const playlistName = cleanPlaylistGameName(playlist.title);
+  const playlistKey = normalizeGameKey(playlistName);
+
+  if (!playlistKey || playlistKey.length < 3) {
+    return 0;
+  }
+
+  const titleKey = normalizeGameKey(video.title);
+  const descriptionKey = normalizeGameKey(video.description);
+
+  if (titleKey.includes(playlistKey)) {
+    return 1000 + playlistKey.length;
+  }
+
+  if (descriptionKey.includes(playlistKey)) {
+    return 800 + playlistKey.length;
+  }
+
+  const words = tokenizeText(playlistName).filter(
+    (word) =>
+      word.length >= 3 &&
+      ![
+        "the",
+        "and",
+        "for",
+        "with",
+        "world",
+        "official",
+        "oficial",
+        "playlist",
+        "jornada",
+      ].includes(word)
+  );
+
+  if (words.length < 2) {
+    return 0;
+  }
+
+  const text = tokenizeText(`${video.title} ${video.description}`);
+  const matched = words.filter((word) => text.includes(word)).length;
+
+  return matched / words.length >= 0.75 ? 500 + matched * 20 : 0;
+}
+
+function findPlaylistForVideo(
+  video: YouTubeVideo,
+  playlists: YouTubePlaylist[]
+) {
+  return (
+    playlists
+      .map((playlist) => ({
+        playlist,
+        score: scorePlaylistForVideo(video, playlist),
+      }))
+      .filter((item) => item.score > 0)
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          normalizeGameKey(cleanPlaylistGameName(b.playlist.title)).length -
+            normalizeGameKey(cleanPlaylistGameName(a.playlist.title)).length
+      )[0]?.playlist ?? null
+  );
+}
+
+function resolveYoutubeGame(
+  video: YouTubeVideo,
+  playlists: YouTubePlaylist[]
+) {
+  const playlist = findPlaylistForVideo(video, playlists);
+
+  if (playlist) {
+    const gameName = cleanPlaylistGameName(playlist.title);
+    const key = normalizeGameKey(gameName);
+
+    if (key.length >= 3) {
+      return {
+        key,
+        gameName,
+        playlist,
+      };
     }
   }
 
-  const dashMatch = rawTitle.match(
-    /(?:^|\s)([A-ZÀ-Ý][A-Za-zÀ-ÿ0-9 .:'&!\-]{2,50}?)(?:\s+-\s*(?:EP|EPISÓDIO|DIA)\s*#?\d+|\s*#\s*\d+)/i
-  );
+  const gameName = extractYoutubeGameName(video);
 
-  if (dashMatch?.[1]) {
-    return cleanYoutubeGameName(dashMatch[1]);
+  if (!gameName) {
+    return null;
   }
 
-  return cleanYoutubeGameName(rawTitle).slice(0, 60);
-}
-
-function getYoutubeGameKey(video: YouTubeVideo) {
-  return normalizeGameKey(extractYoutubeGameName(video));
+  return {
+    key: normalizeGameKey(gameName),
+    gameName,
+    playlist: null,
+  };
 }
 
 function findPlaylistForGame(
@@ -231,21 +349,16 @@ function findPlaylistForGame(
     playlists
       .map((playlist) => ({
         playlist,
-        key: normalizeGameKey(cleanYoutubeGameName(playlist.title)),
+        key: normalizeGameKey(cleanPlaylistGameName(playlist.title)),
       }))
       .filter(
         (item) =>
           item.key &&
           (item.key.includes(gameKey) || gameKey.includes(item.key))
       )
-      .sort(
-        (a, b) =>
-          b.key.length - a.key.length
-      )[0]?.playlist ?? null
+      .sort((a, b) => b.key.length - a.key.length)[0]?.playlist ?? null
   );
-}
-
-function VideoThumbnail({
+}function VideoThumbnail({
   src,
   title,
 }: {
@@ -749,23 +862,24 @@ export default function ConteudoPage() {
     >();
 
     for (const video of videos) {
-      const gameName = extractYoutubeGameName(video);
-      const key = getYoutubeGameKey(video);
+      const resolved = resolveYoutubeGame(video, playlists);
 
-      if (!key || gameName.length < 3) {
+      if (!resolved) {
         continue;
       }
 
       const latestTimestamp = new Date(video.publishedAt).getTime();
-      const existing = grouped.get(key);
+      const existing = grouped.get(resolved.key);
 
       if (!existing || latestTimestamp > existing.latestTimestamp) {
-        grouped.set(key, {
-          key,
-          gameName,
+        grouped.set(resolved.key, {
+          key: resolved.key,
+          gameName: resolved.gameName,
           latestVideo: video,
           latestTimestamp,
-          playlist: findPlaylistForGame(gameName, playlists),
+          playlist:
+            resolved.playlist ||
+            findPlaylistForGame(resolved.gameName, playlists),
         });
       }
     }
@@ -776,8 +890,8 @@ export default function ConteudoPage() {
   }, [videos, playlists]);
 
   const selectedRecentGame =
-    selectedRecentGamePlaylistId
-      ? recentGames.find((item) => item.key === selectedRecentGamePlaylistId) ?? null
+    selectedRecentGameKey
+      ? recentGames.find((item) => item.key === selectedRecentGameKey) ?? null
       : null;
 
   const selectedGameVideos = useMemo(() => {
@@ -786,14 +900,17 @@ export default function ConteudoPage() {
     }
 
     return videos
-      .filter((video) => getYoutubeGameKey(video) === selectedRecentGame.key)
+      .filter(
+        (video) =>
+          resolveYoutubeGame(video, playlists)?.key === selectedRecentGame.key
+      )
       .sort(
         (a, b) =>
           new Date(b.publishedAt).getTime() -
           new Date(a.publishedAt).getTime()
       )
       .slice(0, 24);
-  }, [selectedRecentGame, videos]);
+  }, [selectedRecentGame, playlists, videos]);
 
   const journeyStartVideo = useMemo(() => {
     if (!journeyStartRequested || !requestedEpisode) {
