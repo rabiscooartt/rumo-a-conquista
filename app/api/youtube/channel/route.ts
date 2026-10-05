@@ -57,6 +57,26 @@ type YouTubePlaylistResponse = {
   };
 };
 
+type YouTubeChannelPlaylistItem = {
+  id?: string;
+  snippet?: {
+    title?: string;
+    description?: string;
+    thumbnails?: YouTubeThumbnails;
+  };
+  contentDetails?: {
+    itemCount?: number;
+  };
+};
+
+type YouTubeChannelPlaylistsResponse = {
+  items?: YouTubeChannelPlaylistItem[];
+  error?: {
+    message?: string;
+    code?: number;
+  };
+};
+
 type YouTubeVideo = {
   id: string;
   title: string;
@@ -191,6 +211,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const channelPlaylistsUrl = createYoutubeApiUrl("playlists", {
+      part: "snippet,contentDetails",
+      channelId: channel.id || "",
+      maxResults: "50",
+      key: apiKey,
+    });
+
     const playlistUrl = createYoutubeApiUrl("playlistItems", {
       part: "snippet",
       playlistId: uploadsPlaylistId,
@@ -221,6 +248,44 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const channelPlaylistsResponse = await fetch(
+      channelPlaylistsUrl.toString(),
+      {
+        next: {
+          revalidate: CACHE_SECONDS,
+        },
+      }
+    );
+
+    const channelPlaylistsData =
+      (await channelPlaylistsResponse.json()) as YouTubeChannelPlaylistsResponse;
+
+    if (!channelPlaylistsResponse.ok) {
+      return NextResponse.json(
+        {
+          error:
+            channelPlaylistsData.error?.message ||
+            "Erro ao buscar as playlists do canal.",
+          status: channelPlaylistsResponse.status,
+        },
+        {
+          status: channelPlaylistsResponse.status,
+        }
+      );
+    }
+
+    const playlists = (channelPlaylistsData.items ?? [])
+      .filter((item) => Boolean(item.id))
+      .map((item) => ({
+        id: item.id || "",
+        title: item.snippet?.title || "Playlist sem título",
+        thumbnail: getBestThumbnail(item.snippet?.thumbnails),
+        itemCount: Number(item.contentDetails?.itemCount || 0),
+        url: item.id
+          ? `https://www.youtube.com/playlist?list=${item.id}`
+          : "",
+      }));
+
     const videos: YouTubeVideo[] = (playlistData.items ?? [])
       .map((item): YouTubeVideo | null => {
         const videoId = item.snippet?.resourceId?.videoId;
@@ -250,6 +315,7 @@ export async function GET(request: NextRequest) {
       },
       count: videos.length,
       videos,
+      playlists,
     });
   } catch {
     return NextResponse.json(
