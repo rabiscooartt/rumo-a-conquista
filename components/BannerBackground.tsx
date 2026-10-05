@@ -169,12 +169,13 @@ export default function BannerBackground({
           src={imageUrl}
           alt=""
           draggable={false}
-          className="pointer-events-none absolute max-w-none select-none"
+          className="pointer-events-none absolute max-w-none select-none transition-opacity duration-150"
           style={{
             width: `${visibleSettings.zoom * 100}%`,
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
+            opacity: isLoading ? 0 : 1,
           }}
         />
       </div>
