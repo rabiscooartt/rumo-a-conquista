@@ -775,6 +775,11 @@ export default function ConteudoPage() {
       .slice(0, 3);
   }, [videos, playlists]);
 
+  const selectedRecentGame =
+    selectedRecentGamePlaylistId
+      ? recentGames.find((item) => item.key === selectedRecentGamePlaylistId) ?? null
+      : null;
+
   const selectedGameVideos = useMemo(() => {
     if (!selectedRecentGame) {
       return [];
