@@ -45,8 +45,6 @@ type JourneyGameResponse = {
   };
   error?: string;
 };
-  error?: string;
-};
 
 const filters: { label: string; value: FilterType }[] = [
   {
