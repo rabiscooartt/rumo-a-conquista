@@ -575,7 +575,7 @@ export default function ConteudoPage() {
           data.game.youtubeFirstLiveEpisode?.trim() || ""
         );
 
-        setJourneyGameTitle(data.playlist.title?.trim() || gameSlug);
+        setJourneyGameTitle(data.game.title?.trim() || gameSlug);
         setRequestedEpisode(firstEpisode);
 
         if (!firstEpisode) {
