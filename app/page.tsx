@@ -45,7 +45,7 @@ export default function Home() {
 
           <aside
             id="backlog"
-            className="min-w-0 border-l border-white/[0.08] px-4 py-5 xl:sticky xl:top-20 xl:self-start"
+            className="min-w-0 border-l border-white/[0.08] py-5 xl:sticky xl:top-20 xl:self-start"
           >
             <HomeSidebar />
           </aside>
