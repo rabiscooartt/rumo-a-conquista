@@ -361,6 +361,100 @@ function EmptyState({ error }: { error?: string }) {
   );
 }
 
+
+function ContentBannerIcon({
+  type,
+}: {
+  type: "content" | "video" | "live";
+}) {
+  if (type === "video") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-[22px] w-[22px]"
+        aria-hidden="true"
+      >
+        <rect x="3" y="6" width="13" height="12" rx="2" />
+        <path d="m16 10 5-3v10l-5-3" />
+      </svg>
+    );
+  }
+
+  if (type === "live") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-[22px] w-[22px]"
+        aria-hidden="true"
+      >
+        <rect x="3" y="6" width="18" height="12" rx="2" />
+        <path d="m10 9 5 3-5 3V9Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-[22px] w-[22px]"
+      aria-hidden="true"
+    >
+      <rect x="4" y="4" width="7" height="7" rx="1.5" />
+      <rect x="13" y="4" width="7" height="7" rx="1.5" />
+      <rect x="4" y="13" width="7" height="7" rx="1.5" />
+      <rect x="13" y="13" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+function ContentBannerMetric({
+  icon,
+  label,
+  value,
+  divided = false,
+}: {
+  icon: "content" | "video" | "live";
+  label: string;
+  value: string | number;
+  divided?: boolean;
+}) {
+  return (
+    <div
+      className={`flex min-w-0 items-center gap-2.5 ${
+        divided ? "border-l border-white/10 pl-4" : ""
+      }`}
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+        <ContentBannerIcon type={icon} />
+      </span>
+
+      <div className="min-w-0">
+        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
+          {value}
+        </p>
+        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function ConteudoPage() {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [channelTitle, setChannelTitle] = useState("YouTube");
@@ -636,43 +730,26 @@ export default function ConteudoPage() {
                 </p>
               </div>
 
-              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
-                <div className="min-w-0 pr-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
-                    Total
-                  </p>
-                  <p className="mt-1 text-[23px] font-black leading-none text-white">
-                    {isLoading ? "..." : videos.length}
-                  </p>
-                  <p className="mt-1 text-[9px] font-medium text-white/40">
-                    conteúdos
-                  </p>
-                </div>
+              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-3">
+                <ContentBannerMetric
+                  icon="content"
+                  label="Conteúdos"
+                  value={isLoading ? "..." : videos.length}
+                />
 
-                <div className="min-w-0 border-l border-white/[0.10] px-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
-                    Vídeos
-                  </p>
-                  <p className="mt-1 text-[23px] font-black leading-none text-blue-300">
-                    {isLoading ? "..." : totalVideos}
-                  </p>
-                  <p className="mt-1 text-[9px] font-medium text-white/40">
-                    vídeos
-                  </p>
-                </div>
+                <ContentBannerMetric
+                  icon="video"
+                  label="Vídeos"
+                  value={isLoading ? "..." : totalVideos}
+                  divided
+                />
 
-                <div className="min-w-0 border-l border-white/[0.10] px-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
-                    Lives
-                  </p>
-                  <p className="mt-1 text-[23px] font-black leading-none text-red-300">
-                    {isLoading ? "..." : totalLives}
-                  </p>
-                  <p className="mt-1 text-[9px] font-medium text-white/40">
-                    transmissões
-                  </p>
-                </div>
-
+                <ContentBannerMetric
+                  icon="live"
+                  label="Lives"
+                  value={isLoading ? "..." : totalLives}
+                  divided
+                />
               </div>
             </div>
           </header>          {/* Filtros para telas sem sidebar */}
