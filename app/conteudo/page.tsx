@@ -1067,7 +1067,7 @@ export default function ConteudoPage() {
         </div>
 
         {/* SIDEBAR DIREITA — jogos recentes detectados pelo YouTube */}
-        <aside className="hidden px-4 py-5 xl:block">
+        <aside className="hidden py-5 xl:block">
           <div className="sticky top-20 space-y-3">
             <section className="rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="mb-3 flex items-center justify-between gap-2 px-1">
