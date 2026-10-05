@@ -290,7 +290,7 @@ export default function BacklogPage() {
         </section>
           </div>
 
-          <aside className="hidden border-l border-white/[0.08] px-4 py-5 xl:block">
+          <aside className="hidden border-l border-white/[0.08] py-5 xl:block">
             <div className="sticky top-20">
               <div className="border-b border-white/[0.08] pb-4 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/30">
                 Área auxiliar
