@@ -1,14 +1,10 @@
 import "server-only";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
-
-export type SiteBannerKey = "jogos" | "atividade" | "conteudo";
-
-export type SiteBannerSetting = {
-  x: number;
-  y: number;
-  zoom: number;
-};
+import type {
+  SiteBannerKey,
+  SiteBannerSetting,
+} from "@/lib/banner-types";
 
 const DEFAULT_SETTINGS: SiteBannerSetting = {
   x: 0,
