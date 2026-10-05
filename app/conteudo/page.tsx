@@ -636,7 +636,7 @@ export default function ConteudoPage() {
                 </p>
               </div>
 
-              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-4 sm:gap-y-0">
+              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
                 <div className="min-w-0 pr-3">
                   <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
                     Total
@@ -673,17 +673,6 @@ export default function ConteudoPage() {
                   </p>
                 </div>
 
-                <div className="min-w-0 border-l border-white/[0.10] pl-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/35">
-                    Shorts
-                  </p>
-                  <p className="mt-1 text-[23px] font-black leading-none text-purple-300">
-                    {isLoading ? "..." : totalShorts}
-                  </p>
-                  <p className="mt-1 text-[9px] font-medium text-white/40">
-                    shorts
-                  </p>
-                </div>
               </div>
             </div>
           </header>          {/* Filtros para telas sem sidebar */}
