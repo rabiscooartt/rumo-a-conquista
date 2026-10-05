@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
+import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
 
 type FilterType = "all" | "video" | "live" | "short";
 
@@ -358,7 +359,39 @@ function findPlaylistForGame(
       )
       .sort((a, b) => b.key.length - a.key.length)[0]?.playlist ?? null
   );
-}function VideoThumbnail({
+}
+
+function findSiteGameCover(
+  gameName: string,
+  gamesList: SiteGame[]
+) {
+  const key = normalizeGameKey(gameName);
+
+  if (!key) {
+    return "";
+  }
+
+  const exact = gamesList.find(
+    (game) => normalizeGameKey(game.title) === key
+  );
+
+  if (exact?.cardImage || exact?.image) {
+    return exact.cardImage || exact.image || "";
+  }
+
+  const partial = gamesList.find((game) => {
+    const gameKey = normalizeGameKey(game.title);
+
+    return (
+      gameKey.length >= 5 &&
+      (gameKey.includes(key) || key.includes(gameKey))
+    );
+  });
+
+  return partial?.cardImage || partial?.image || "";
+}
+
+function VideoThumbnail({
   src,
   title,
 }: {
@@ -737,6 +770,7 @@ export default function ConteudoPage() {
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
   const [journeyError, setJourneyError] = useState("");
   const [selectedRecentGameKey, setSelectedRecentGameKey] = useState("");
+  const { gamesList } = useSiteGames();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -858,6 +892,7 @@ export default function ConteudoPage() {
         latestVideo: YouTubeVideo;
         latestTimestamp: number;
         playlist: YouTubePlaylist | null;
+        gameImage: string;
       }
     >();
 
@@ -870,6 +905,10 @@ export default function ConteudoPage() {
 
       const latestTimestamp = new Date(video.publishedAt).getTime();
       const existing = grouped.get(resolved.key);
+      const gameImage =
+        findSiteGameCover(resolved.gameName, gamesList) ||
+        resolved.playlist?.thumbnail ||
+        video.thumbnail;
 
       if (!existing || latestTimestamp > existing.latestTimestamp) {
         grouped.set(resolved.key, {
@@ -880,6 +919,7 @@ export default function ConteudoPage() {
           playlist:
             resolved.playlist ||
             findPlaylistForGame(resolved.gameName, playlists),
+          gameImage,
         });
       }
     }
@@ -887,7 +927,7 @@ export default function ConteudoPage() {
     return Array.from(grouped.values())
       .sort((a, b) => b.latestTimestamp - a.latestTimestamp)
       .slice(0, 3);
-  }, [videos, playlists]);
+  }, [videos, playlists, gamesList]);
 
   const selectedRecentGame =
     selectedRecentGameKey
@@ -1272,7 +1312,7 @@ export default function ConteudoPage() {
                         <div className="flex items-center gap-3">
                           <div className="relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[7px] bg-black">
                             <VideoThumbnail
-                              src={item.latestVideo.thumbnail}
+                              src={item.gameImage}
                               title={item.gameName}
                             />
                             <span className="absolute left-1.5 top-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[7px] font-black text-white">
