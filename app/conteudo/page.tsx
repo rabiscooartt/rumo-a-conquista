@@ -1574,10 +1574,10 @@ export default function ConteudoPage() {
                 ) : filteredVideos.length === 0 ? (
                   <EmptyState error={error} />
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {filteredVideos
                       .filter((video) => video.id !== liveNow?.id)
-                      .slice(0, 4)
+                      .slice(0, 2)
                       .map((video) => (
                         <RecentVideoCard key={video.id} video={video} />
                       ))}
@@ -1585,7 +1585,7 @@ export default function ConteudoPage() {
                 )}
               </section>
 
-              {!isLoading && filteredVideos.filter((video) => video.id !== liveNow?.id).length > 4 ? (
+              {!isLoading && filteredVideos.filter((video) => video.id !== liveNow?.id).length > 2 ? (
                 <section className="mt-5 rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4 pb-3.5 pt-3.5">
                   <div className="mb-3 flex items-end justify-between gap-3">
                     <div>
@@ -1596,7 +1596,7 @@ export default function ConteudoPage() {
                         </h2>
                       </div>
                       <p className="mt-1 text-[10px] text-white/35">
-                        Explore o restante da sua jornada em uma grade visual.
+                        Explore o restante da sua jornada.
                       </p>
                     </div>
                     <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
@@ -1607,7 +1607,7 @@ export default function ConteudoPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredVideos
                       .filter((video) => video.id !== liveNow?.id)
-                      .slice(4)
+                      .slice(2)
                       .map((video) => (
                         <ContentListRow key={video.id} video={video} />
                       ))}
