@@ -1514,13 +1514,11 @@ export default function ConteudoPage() {
                       <button
                         key={item.key}
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
                           setShowAllPlaylists(false);
                           setPlaylistSearch("");
-                          setSelectedRecentGameKey(
-                            active ? "" : item.key
-                          )
-                        }
+                          setSelectedRecentGameKey(active ? "" : item.key);
+                        }}
                         className={`group block w-full rounded-[10px] border p-2 text-left transition ${
                           active
                             ? "border-red-500/40 bg-red-500/10"
