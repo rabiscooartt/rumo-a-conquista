@@ -917,10 +917,6 @@ function ContentBannerMetric({
         divided ? "border-l border-white/10 pl-4" : ""
       }`}
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-        <ContentBannerIcon type={icon} />
-      </span>
-
       <div className="min-w-0">
         <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
           {value}
@@ -929,6 +925,10 @@ function ContentBannerMetric({
           {label}
         </p>
       </div>
+
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+        <ContentBannerIcon type={icon} />
+      </span>
     </div>
   );
 }
@@ -1382,16 +1382,16 @@ export default function ConteudoPage() {
                 />
 
                 <ContentBannerMetric
-                  icon="video"
-                  label="Vídeos"
-                  value={isLoading ? "..." : totalVideos}
+                  icon="live"
+                  label="Lives"
+                  value={isLoading ? "..." : totalLives}
                   divided
                 />
 
                 <ContentBannerMetric
-                  icon="live"
-                  label="Lives"
-                  value={isLoading ? "..." : totalLives}
+                  icon="video"
+                  label="Vídeos"
+                  value={isLoading ? "..." : totalVideos}
                   divided
                 />
               </div>
