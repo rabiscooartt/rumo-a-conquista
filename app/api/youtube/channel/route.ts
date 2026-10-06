@@ -87,6 +87,25 @@ type YouTubeVideo = {
   type: "video";
 };
 
+type YouTubeVideoDetailsItem = {
+  id?: string;
+  snippet?: {
+    liveBroadcastContent?: "none" | "live" | "upcoming";
+  };
+  liveStreamingDetails?: {
+    actualStartTime?: string;
+    actualEndTime?: string;
+  };
+};
+
+type YouTubeVideoDetailsResponse = {
+  items?: YouTubeVideoDetailsItem[];
+  error?: {
+    message?: string;
+    code?: number;
+  };
+};
+
 const CACHE_SECONDS = 60;
 
 function cleanHandle(value: string) {
@@ -116,7 +135,7 @@ function cleanDescription(description?: string) {
 }
 
 function createYoutubeApiUrl(
-  endpoint: "channels" | "playlistItems" | "playlists",
+  endpoint: "channels" | "playlistItems" | "playlists" | "videos",
   params: Record<string, string>
 ) {
   const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
@@ -306,6 +325,68 @@ export async function GET(request: NextRequest) {
       })
       .filter((video): video is YouTubeVideo => Boolean(video));
 
+    let liveNow: {
+      id: string;
+      title: string;
+      thumbnail: string;
+      url: string;
+    } | null = null;
+
+    const recentVideoIds = videos
+      .slice(0, 10)
+      .map((video) => video.id)
+      .filter(Boolean);
+
+    if (recentVideoIds.length > 0) {
+      try {
+        const videoDetailsUrl = createYoutubeApiUrl("videos", {
+          part: "snippet,liveStreamingDetails",
+          id: recentVideoIds.join(","),
+          key: apiKey,
+        });
+
+        const videoDetailsResponse = await fetch(
+          videoDetailsUrl.toString(),
+          {
+            next: {
+              revalidate: 15,
+            },
+          }
+        );
+
+        if (videoDetailsResponse.ok) {
+          const videoDetailsData =
+            (await videoDetailsResponse.json()) as YouTubeVideoDetailsResponse;
+
+          const activeIds = new Set(
+            (videoDetailsData.items ?? [])
+              .filter(
+                (item) =>
+                  item.id &&
+                  item.snippet?.liveBroadcastContent === "live" &&
+                  !item.liveStreamingDetails?.actualEndTime
+              )
+              .map((item) => item.id as string)
+          );
+
+          const activeVideo = videos.find((video) =>
+            activeIds.has(video.id)
+          );
+
+          if (activeVideo) {
+            liveNow = {
+              id: activeVideo.id,
+              title: activeVideo.title,
+              thumbnail: activeVideo.thumbnail,
+              url: activeVideo.url,
+            };
+          }
+        }
+      } catch {
+        // A falha na detecção de LIVE não deve impedir os conteúdos.
+      }
+    }
+
     return NextResponse.json({
       channel: {
         id: channel.id || "",
@@ -316,6 +397,7 @@ export async function GET(request: NextRequest) {
       count: videos.length,
       videos,
       playlists,
+      liveNow,
     });
   } catch {
     return NextResponse.json(
