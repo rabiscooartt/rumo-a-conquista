@@ -57,6 +57,26 @@ type YouTubePlaylistResponse = {
   };
 };
 
+type YouTubeCommentThreadListResponse = {
+  items?: Array<{
+    snippet?: {
+      topLevelComment?: {
+        snippet?: {
+          authorDisplayName?: string;
+          authorProfileImageUrl?: string;
+          textDisplay?: string;
+          publishedAt?: string;
+          videoId?: string;
+        };
+      };
+    };
+  }>;
+  error?: {
+    message?: string;
+    code?: number;
+  };
+};
+
 type YouTubeChannelPlaylistItem = {
   id?: string;
   snippet?: {
@@ -135,7 +155,12 @@ function cleanDescription(description?: string) {
 }
 
 function createYoutubeApiUrl(
-  endpoint: "channels" | "playlistItems" | "playlists" | "videos",
+  endpoint:
+    | "channels"
+    | "playlistItems"
+    | "playlists"
+    | "videos"
+    | "commentThreads",
   params: Record<string, string>
 ) {
   const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
@@ -387,6 +412,73 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    let recentComments: Array<{
+      id: string;
+      authorName: string;
+      authorImage: string;
+      text: string;
+      publishedAt: string;
+      videoId: string;
+      videoUrl: string;
+    }> = [];
+
+    try {
+      const commentsUrl = createYoutubeApiUrl("commentThreads", {
+        part: "snippet",
+        allThreadsRelatedToChannelId: channel.id || "",
+        maxResults: "3",
+        order: "time",
+        textFormat: "plainText",
+        key: apiKey,
+      });
+
+      const commentsResponse = await fetch(commentsUrl.toString(), {
+        next: {
+          revalidate: CACHE_SECONDS,
+        },
+      });
+
+      if (commentsResponse.ok) {
+        const commentsData =
+          (await commentsResponse.json()) as YouTubeCommentThreadListResponse;
+
+        recentComments = (commentsData.items ?? [])
+          .map((item, index) => {
+            const comment = item.snippet?.topLevelComment;
+            const snippet = comment?.snippet;
+
+            if (!snippet?.videoId) {
+              return null;
+            }
+
+            return {
+              id: `${snippet.videoId}-comment-${index}`,
+              authorName: snippet.authorDisplayName || "Usuário do YouTube",
+              authorImage: snippet.authorProfileImageUrl || "",
+              text: snippet.textDisplay || "",
+              publishedAt: snippet.publishedAt || "",
+              videoId: snippet.videoId,
+              videoUrl: `https://www.youtube.com/watch?v=${snippet.videoId}`,
+            };
+          })
+          .filter(
+            (
+              comment
+            ): comment is {
+              id: string;
+              authorName: string;
+              authorImage: string;
+              text: string;
+              publishedAt: string;
+              videoId: string;
+              videoUrl: string;
+            } => Boolean(comment)
+          );
+      }
+    } catch {
+      // Comentários são complementares: uma falha aqui não bloqueia a página.
+    }
+
     return NextResponse.json({
       channel: {
         id: channel.id || "",
@@ -398,6 +490,7 @@ export async function GET(request: NextRequest) {
       videos,
       playlists,
       liveNow,
+      recentComments,
     });
   } catch {
     return NextResponse.json(
