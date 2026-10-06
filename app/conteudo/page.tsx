@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
-import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
+import { games as baseGames } from "@/data/games";
 
 type FilterType = "all" | "video" | "live" | "short";
 
@@ -369,36 +369,6 @@ function findPlaylistForGame(
   );
 }
 
-function findSiteGameCover(
-  gameName: string,
-  gamesList: SiteGame[]
-) {
-  const key = normalizeGameKey(gameName);
-
-  if (!key) {
-    return "";
-  }
-
-  const exact = gamesList.find(
-    (game) => normalizeGameKey(game.title) === key
-  );
-
-  if (exact?.cardImage || exact?.image) {
-    return exact.cardImage || exact.image || "";
-  }
-
-  const partial = gamesList.find((game) => {
-    const gameKey = normalizeGameKey(game.title);
-
-    return (
-      gameKey.length >= 5 &&
-      (gameKey.includes(key) || key.includes(gameKey))
-    );
-  });
-
-  return partial?.cardImage || partial?.image || "";
-}
-
 function VideoThumbnail({
   src,
   title,
@@ -410,8 +380,8 @@ function VideoThumbnail({
 
   if (!src || hasError) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-red-950/50 via-zinc-950 to-blue-950/30 text-sm font-black text-white/35">
-        Sem thumbnail
+      <div className="flex h-full w-full items-center justify-center bg-[#0a0c10] text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
+        Sem capa
       </div>
     );
   }
@@ -778,7 +748,6 @@ export default function ConteudoPage() {
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
   const [journeyError, setJourneyError] = useState("");
   const [selectedRecentGameKey, setSelectedRecentGameKey] = useState("");
-  const { gamesList } = useSiteGames();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -916,9 +885,9 @@ export default function ConteudoPage() {
       const latestTimestamp = new Date(video.publishedAt).getTime();
       const existing = grouped.get(resolved.key);
       const gameImage =
-        findSiteGameCover(resolved.gameName, gamesList) ||
+        findBaseGameCover(resolved.gameName) ||
         resolved.playlist?.thumbnail ||
-        video.thumbnail;
+        "";
 
       if (!existing || latestTimestamp > existing.latestTimestamp) {
         grouped.set(resolved.key, {
@@ -964,7 +933,7 @@ export default function ConteudoPage() {
       })
       .sort((a, b) => b.latestTimestamp - a.latestTimestamp)
       .slice(0, 3);
-  }, [videos, playlists, gamesList]);
+  }, [videos, playlists]);
 
   const selectedRecentGame =
     selectedRecentGameKey
