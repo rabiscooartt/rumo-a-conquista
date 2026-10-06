@@ -230,6 +230,14 @@ function extractYoutubeGameName(video: YouTubeVideo) {
   return cleaned.length >= 3 && key.length >= 3 ? cleaned : "";
 }
 
+function extractYoutubeEpisodeNumber(value: string) {
+  const match = value.match(
+    /(?:\bep(?:is[oó]dio|isode)?\b|\bdia\b)\s*#?\s*(\d+)\b/i
+  );
+
+  return match ? Number(match[1]) : null;
+}
+
 function cleanPlaylistGameName(value: string) {
   return cleanYoutubeGameName(
     value
@@ -893,6 +901,8 @@ export default function ConteudoPage() {
         latestTimestamp: number;
         playlist: YouTubePlaylist | null;
         gameImage: string;
+        contentCount: number;
+        episodeCount: number;
       }
     >();
 
@@ -920,11 +930,38 @@ export default function ConteudoPage() {
             resolved.playlist ||
             findPlaylistForGame(resolved.gameName, playlists),
           gameImage,
+          contentCount: 0,
+          episodeCount: 0,
         });
       }
     }
 
     return Array.from(grouped.values())
+      .map((item) => {
+        const episodeNumbers = new Set<number>();
+        let contentCount = 0;
+
+        for (const video of videos) {
+          const resolved = resolveYoutubeGame(video, playlists);
+
+          if (!resolved || resolved.key !== item.key) {
+            continue;
+          }
+
+          contentCount += 1;
+
+          const episodeNumber = extractYoutubeEpisodeNumber(video.title);
+          if (episodeNumber !== null) {
+            episodeNumbers.add(episodeNumber);
+          }
+        }
+
+        return {
+          ...item,
+          contentCount,
+          episodeCount: episodeNumbers.size,
+        };
+      })
       .sort((a, b) => b.latestTimestamp - a.latestTimestamp)
       .slice(0, 3);
   }, [videos, playlists, gamesList]);
@@ -1290,8 +1327,8 @@ export default function ConteudoPage() {
                   Nenhum jogo recente identificado nos conteúdos do YouTube.
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {recentGames.map((item, index) => {
+                <div className="space-y-2.5">
+                  {recentGames.map((item) => {
                     const active = selectedRecentGame?.key === item.key;
 
                     return (
@@ -1303,37 +1340,36 @@ export default function ConteudoPage() {
                             active ? "" : item.key
                           )
                         }
-                        className={`group w-full rounded-[10px] border p-2 text-left transition ${
+                        className={`group block w-full rounded-[10px] border p-2 text-left transition ${
                           active
                             ? "border-red-500/40 bg-red-500/10"
                             : "border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12] hover:bg-white/[0.03]"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[7px] bg-black">
+                          <div className="relative h-[86px] w-[64px] shrink-0 overflow-hidden rounded-[7px] bg-black">
                             <VideoThumbnail
                               src={item.gameImage}
                               title={item.gameName}
                             />
-                            <span className="absolute left-1.5 top-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[7px] font-black text-white">
-                              {index + 1}
-                            </span>
                           </div>
 
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-black text-white">
+                          <div className="min-w-0 flex-1 self-center">
+                            <p className="text-[12px] font-black leading-[1.25] text-white transition group-hover:text-red-200">
                               {item.gameName}
                             </p>
-                            <p className="mt-1 truncate text-[8px] text-white/30">
-                              {formatDate(item.latestVideo.publishedAt)}
+
+                            <p className="mt-1.5 text-[9px] font-medium leading-none text-white/35">
+                              {item.episodeCount > 0
+                                ? `${item.episodeCount} episódios`
+                                : `${item.contentCount} conteúdos`}
                             </p>
                           </div>
                         </div>
                       </button>
                     );
                   })}
-                </div>
-              )}
+                </div>              )}
             </section>
           </div>
         </aside>
