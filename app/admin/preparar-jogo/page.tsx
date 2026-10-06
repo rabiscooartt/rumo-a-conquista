@@ -2223,11 +2223,17 @@ function PrepararJogoPage() {
                       type="text"
                       value={journeyStartEpisode}
                       onChange={(e) => {
-                        updateJourneyStartEpisode(e.target.value);
+                        const value = e.target.value;
+                        updateJourneyStartEpisode(value);
                         setJourneyLiveOptions([]);
                         setJourneySelectedLive(null);
                         setJourneyLiveSelecting(false);
                         setJourneyLiveError("");
+
+                        const normalized = normalizeEpisode(value);
+                        if (normalized && result?.game.youtubePlaylistUrl) {
+                          void loadJourneyLiveOptions("EP " + normalized);
+                        }
                       }}
                       onBlur={() => void saveJourneyStartEpisode()}
                       placeholder="Ex.: EP 01"
@@ -3001,18 +3007,44 @@ function PrepararJogoPage() {
                                 </label>
                                 <div className="flex items-end gap-2">
                                   {normalizeEpisode(a.episode) ? (
-                                    <Link
-                                      href={
-                                        "/conteudo?game=" +
-                                        encodeURIComponent(result.game.slug ?? "") +
-                                        "&ep=" +
-                                        encodeURIComponent(normalizeEpisode(a.episode))
-                                      }
-                                      className="rounded-lg border border-blue-400/20 bg-blue-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-blue-200 transition hover:border-blue-400/40 hover:bg-blue-400/10"
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      🔗 Abrir EP {normalizeEpisode(a.episode)}
-                                    </Link>
+                                    (() => {
+                                      const achievementEpisode = normalizeEpisode(a.episode);
+                                      const journeyEpisode = normalizeEpisode(
+                                        result.game.youtubeFirstLiveEpisode
+                                      );
+                                      const directJourneyLive =
+                                        achievementEpisode &&
+                                        journeyEpisode &&
+                                        achievementEpisode === journeyEpisode &&
+                                        result.game.youtubeFirstLiveUrl
+                                          ? result.game.youtubeFirstLiveUrl
+                                          : "";
+
+                                      return directJourneyLive ? (
+                                        <a
+                                          href={directJourneyLive}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="rounded-lg border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/10"
+                                          onClick={(event) => event.stopPropagation()}
+                                        >
+                                          ▶ Abrir EP {achievementEpisode}
+                                        </a>
+                                      ) : (
+                                        <Link
+                                          href={
+                                            "/conteudo?game=" +
+                                            encodeURIComponent(result.game.slug ?? "") +
+                                            "&ep=" +
+                                            encodeURIComponent(achievementEpisode)
+                                          }
+                                          className="rounded-lg border border-blue-400/20 bg-blue-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-blue-200 transition hover:border-blue-400/40 hover:bg-blue-400/10"
+                                          onClick={(event) => event.stopPropagation()}
+                                        >
+                                          🔗 Abrir EP {achievementEpisode}
+                                        </Link>
+                                      );
+                                    })()
                                   ) : (
                                     <span className="rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/25">
                                       Informe o EP para criar o link
