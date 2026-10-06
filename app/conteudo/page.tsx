@@ -646,6 +646,41 @@ function LiveFeatured({ live }: { live: YouTubeLiveNow }) {
   );
 }
 
+function PlaylistCard({ playlist }: { playlist: YouTubePlaylist }) {
+  return (
+    <a
+      href={playlist.url}
+      target="_blank"
+      rel="noreferrer"
+      className="group block min-w-0"
+    >
+      <article className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-[#090b0f] transition hover:-translate-y-0.5 hover:border-red-500/30 hover:bg-[#0b0e13]">
+        <div className="relative aspect-[16/9] overflow-hidden bg-black">
+          <VideoThumbnail
+            src={playlist.thumbnail}
+            title={playlist.title}
+          />
+          <div className="absolute left-2.5 top-2.5 rounded-md border border-white/[0.12] bg-black/70 px-2 py-1 text-[8px] font-black uppercase tracking-[0.10em] text-white">
+            Playlist
+          </div>
+          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[8px] font-black text-white">
+            {playlist.itemCount || 0} conteúdos
+          </div>
+        </div>
+
+        <div className="p-3">
+          <h3 className="line-clamp-2 text-[12px] font-black leading-[1.3] text-white group-hover:text-red-200">
+            {playlist.title}
+          </h3>
+          <p className="mt-1.5 text-[8px] font-medium uppercase tracking-[0.10em] text-white/25">
+            Abrir no YouTube →
+          </p>
+        </div>
+      </article>
+    </a>
+  );
+}
+
 function RecentVideoCard({ video }: { video: YouTubeVideo }) {
   const type = getVideoType(video);
 
@@ -845,6 +880,8 @@ export default function ConteudoPage() {
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
   const [journeyError, setJourneyError] = useState("");
   const [selectedRecentGameKey, setSelectedRecentGameKey] = useState("");
+  const [showAllPlaylists, setShowAllPlaylists] = useState(false);
+  const [playlistSearch, setPlaylistSearch] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1055,6 +1092,18 @@ export default function ConteudoPage() {
       )
       .slice(0, 24);
   }, [selectedRecentGame, playlists, videos]);
+
+  const filteredPlaylists = useMemo(() => {
+    const query = normalizeText(playlistSearch);
+
+    if (!query) {
+      return playlists;
+    }
+
+    return playlists.filter((playlist) =>
+      normalizeText(playlist.title).includes(query)
+    );
+  }, [playlists, playlistSearch]);
 
   const journeyStartVideo = useMemo(() => {
     if (!journeyStartRequested || !requestedEpisode) {
@@ -1313,6 +1362,61 @@ export default function ConteudoPage() {
                 </div>
               )}
             </section>
+          ) : showAllPlaylists ? (
+            <section className="mt-4">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="h-[20px] w-[2px] bg-red-500" />
+                    <h2 className="text-[18px] font-black text-white">
+                      PLAYLISTS
+                    </h2>
+                  </div>
+                  <p className="mt-1 text-[10px] text-white/35">
+                    Todas as playlists encontradas no seu canal do YouTube.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAllPlaylists(false);
+                    setPlaylistSearch("");
+                  }}
+                  className="shrink-0 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[9px] font-black text-white/45 transition hover:border-white/[0.14] hover:text-white"
+                >
+                  ← Mais recentes
+                </button>
+              </div>
+
+              <div className="mb-4 flex items-center gap-2 rounded-[10px] border border-white/[0.08] bg-[#090b0f] px-3 py-2.5">
+                <span className="text-[13px] text-white/30">⌕</span>
+                <input
+                  type="search"
+                  value={playlistSearch}
+                  onChange={(event) => setPlaylistSearch(event.target.value)}
+                  placeholder="Buscar playlist..."
+                  className="min-w-0 flex-1 bg-transparent text-[11px] font-medium text-white outline-none placeholder:text-white/25"
+                />
+                <span className="shrink-0 text-[8px] font-black uppercase tracking-[0.12em] text-white/20">
+                  {filteredPlaylists.length}
+                </span>
+              </div>
+
+              {isLoading ? (
+                <div className="rounded-[14px] border border-white/10 bg-[#090b0f] p-8 text-[11px] text-white/40">
+                  Carregando playlists do YouTube...
+                </div>
+              ) : filteredPlaylists.length === 0 ? (
+                <EmptyState error="Nenhuma playlist encontrada." />
+              ) : (
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                  {filteredPlaylists.map((playlist) => (
+                    <PlaylistCard key={playlist.id} playlist={playlist} />
+                  ))}
+                </div>
+              )}
+            </section>
           ) : (
             <>
               {liveNow ? <LiveFeatured live={liveNow} /> : null}
@@ -1350,7 +1454,7 @@ export default function ConteudoPage() {
                 )}
               </section>
 
-              {!isLoading && filteredVideos.length > 4 ? (
+              {!isLoading && filteredVideos.filter((video) => video.id !== liveNow?.id).length > 4 ? (
                 <section className="mt-5 rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4 pb-3.5 pt-3.5">
                   <div className="mb-2 flex items-end justify-between gap-3">
                     <div>
@@ -1365,13 +1469,16 @@ export default function ConteudoPage() {
                       </p>
                     </div>
                     <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
-                      {filteredVideos.length} itens
+                      {filteredVideos.filter((video) => video.id !== liveNow?.id).length} itens
                     </span>
                   </div>
 
-                  {filteredVideos.slice(4).map((video) => (
-                    <ContentListRow key={video.id} video={video} />
-                  ))}
+                  {filteredVideos
+                    .filter((video) => video.id !== liveNow?.id)
+                    .slice(4)
+                    .map((video) => (
+                      <ContentListRow key={video.id} video={video} />
+                    ))}
                 </section>
               ) : null}
             </>
@@ -1408,6 +1515,8 @@ export default function ConteudoPage() {
                         key={item.key}
                         type="button"
                         onClick={() =>
+                          setShowAllPlaylists(false);
+                          setPlaylistSearch("");
                           setSelectedRecentGameKey(
                             active ? "" : item.key
                           )
@@ -1441,7 +1550,19 @@ export default function ConteudoPage() {
                       </button>
                     );
                   })}
-                </div>              )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRecentGameKey("");
+                    setShowAllPlaylists(true);
+                    setPlaylistSearch("");
+                  }}
+                  className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-center text-[9px] font-black text-white/50 transition hover:border-red-500/25 hover:bg-red-500/5 hover:text-red-200"
+                >
+                  Ver todas as playlists →
+                </button>              )}
             </section>
           </div>
         </aside>
