@@ -369,6 +369,40 @@ function findPlaylistForGame(
   );
 }
 
+function findBaseGameCover(gameName: string) {
+  const target = normalizeGameKey(gameName);
+
+  if (!target) {
+    return "";
+  }
+
+  const entries = Object.values(
+    baseGames as Record<
+      string,
+      { title?: string; image?: string; cardImage?: string }
+    >
+  );
+
+  const exact = entries.find(
+    (game) => normalizeGameKey(game.title || "") === target
+  );
+
+  if (exact) {
+    return exact.cardImage || exact.image || "";
+  }
+
+  const partial = entries.find((game) => {
+    const key = normalizeGameKey(game.title || "");
+
+    return (
+      key.length >= 5 &&
+      (key.includes(target) || target.includes(key))
+    );
+  });
+
+  return partial?.cardImage || partial?.image || "";
+}
+
 function VideoThumbnail({
   src,
   title,
