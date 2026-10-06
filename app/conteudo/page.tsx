@@ -790,6 +790,31 @@ function EmptyState({ error }: { error?: string }) {
 }
 
 
+function IconContentSection({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect
+        x="3.5"
+        y="5"
+        width="17"
+        height="14"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.9"
+      />
+      <path
+        d="M10 9L15 12L10 15V9Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 function ContentBannerIcon({
   type,
 }: {
@@ -1157,7 +1182,7 @@ export default function ConteudoPage() {
             <div>
               <div className="border-b border-white/[0.08] pb-4 pt-2">
                 <div className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.12em] text-white/90">
-                  <span className="text-red-400">▶</span>
+                  <IconContentSection className="h-4 w-4 text-red-400" />
                   Conteúdo
                 </div>
               </div>
