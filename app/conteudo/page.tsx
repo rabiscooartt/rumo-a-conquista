@@ -1187,6 +1187,34 @@ export default function ConteudoPage() {
                 </div>
               </div>
 
+              {liveNow ? (
+                <a
+                  href={liveNow.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 block rounded-[10px] border border-red-500/35 bg-red-500/[0.07] p-3 transition hover:border-red-500/55 hover:bg-red-500/[0.10]"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5 shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/70" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                    </span>
+
+                    <span className="text-[10px] font-black uppercase tracking-[0.12em] text-red-200">
+                      AO VIVO AGORA
+                    </span>
+                  </div>
+
+                  <p className="mt-1.5 line-clamp-2 text-[11px] font-black leading-[1.3] text-white">
+                    {liveNow.title}
+                  </p>
+
+                  <p className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.10em] text-red-300/70">
+                    Assistir no YouTube →
+                  </p>
+                </a>
+              ) : null}
+
               <div className="mt-6 border-b border-white/[0.08] pb-6">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
