@@ -725,13 +725,13 @@ function RecentVideoCard({ video }: { video: YouTubeVideo }) {
             <TypeBadge type={type} />
           </div>
 
-          <div className="absolute bottom-2 right-2 rounded-md bg-black/75 px-2 py-1 text-[8px] font-semibold text-white/85">
+          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[9px] font-semibold text-white/90">
             {formatDate(video.publishedAt)}
           </div>
         </div>
 
-        <div className="px-3 pb-3 pt-2.5">
-          <h3 className="line-clamp-2 min-h-[31px] text-[11px] font-semibold leading-[1.4] text-white/90 transition group-hover:text-white">
+        <div className="px-3 pb-3.5 pt-2.5">
+          <h3 className="line-clamp-2 min-h-[34px] text-[12px] font-semibold leading-[1.4] text-white/95 transition group-hover:text-white">
             {video.title}
           </h3>
         </div>
@@ -750,20 +750,20 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
       rel="noreferrer"
       className="group block"
     >
-      <article className="flex gap-3 border-b border-white/[0.07] py-3.5 last:border-b-0">
+      <article className="flex gap-3 border-b border-white/[0.07] py-4 last:border-b-0">
         <div className="relative h-[78px] w-[138px] shrink-0 overflow-hidden rounded-[9px] bg-black sm:h-[88px] sm:w-[156px]">
           <VideoThumbnail src={video.thumbnail} title={video.title} />
-          <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[8px] font-black text-white">
+          <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[9px] font-semibold text-white/90">
             {formatDate(video.publishedAt)}
           </div>
         </div>
 
         <div className="min-w-0 flex-1 py-0.5">
           <TypeBadge type={type} />
-          <h3 className="mt-2 line-clamp-2 text-[13px] font-black leading-[1.3] text-white group-hover:text-red-200">
+          <h3 className="mt-2 line-clamp-2 text-[14px] font-bold leading-[1.35] text-white group-hover:text-red-200">
             {video.title}
           </h3>
-          <p className="mt-1 line-clamp-2 text-[9px] leading-[1.45] text-white/35">
+          <p className="mt-1.5 line-clamp-2 text-[10px] leading-[1.45] text-white/50">
             {video.description || "Conteúdo publicado no canal do projeto."}
           </p>
         </div>
