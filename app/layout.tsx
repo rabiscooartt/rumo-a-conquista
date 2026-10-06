@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import BannerSettingsProvider from "@/components/BannerSettingsProvider";
 import { loadSiteBannerSettings } from "@/lib/site-banner-settings";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +43,7 @@ export default async function RootLayout({
           href="/images/jogos-bg.png"
         />
       </head>
-      <body>
+      <body className={inter.className}>
         <BannerSettingsProvider initialSettings={bannerSettings}>
           {children}
         </BannerSettingsProvider>
