@@ -233,6 +233,8 @@ function PrepararJogoPage() {
   const [journeyLiveLoading, setJourneyLiveLoading] = useState(false);
   const [journeyLiveError, setJourneyLiveError] = useState("");
   const [journeyLiveSelecting, setJourneyLiveSelecting] = useState(false);
+  const [journeySelectedLive, setJourneySelectedLive] =
+    useState<YouTubePlaylistVideoOption | null>(null);
   const [expandedRecordIds, setExpandedRecordIds] = useState<Set<string>>(new Set());
   const [realizedDescription, setRealizedDescription] = useState("");
   const [realizedEpisode, setRealizedEpisode] = useState("");
@@ -304,6 +306,10 @@ function PrepararJogoPage() {
     setRealizedRank("Bronze");
     setRealizedCandidates([]);
     setShowRealizedMatches(false);
+    setJourneySelectedLive(null);
+    setJourneyLiveOptions([]);
+    setJourneyLiveSelecting(false);
+    setJourneyLiveError("");
     if (!gameSlug && !gameTitle.trim()) {
       setError("Selecione um jogo cadastrado ou digite o nome de um jogo novo.");
       return;
@@ -563,6 +569,33 @@ function PrepararJogoPage() {
     };
   }, [result?.game.slug]);
 
+  useEffect(() => {
+    const gameSlug = result?.game.slug;
+    if (!gameSlug) return;
+
+    const existingEpisode = normalizeEpisode(
+      result.game.youtubeFirstLiveEpisode
+    );
+    const initialEpisode = existingEpisode
+      ? "EP " + existingEpisode
+      : "EP 01";
+
+    if (journeyStartEpisode !== initialEpisode) {
+      setJourneyStartEpisode(initialEpisode);
+    }
+
+    if (
+      !journeyLiveLoading &&
+      !journeyLiveOptions.length &&
+      !journeyLiveSelecting &&
+      result.game.youtubePlaylistUrl
+    ) {
+      void loadJourneyLiveOptions(initialEpisode);
+    }
+    // O objetivo é carregar automaticamente o EP inicial e sua thumb uma única vez por jogo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.game.slug, result?.game.youtubeFirstLiveEpisode, result?.game.youtubePlaylistUrl]);
+
   function prepareJourneyDecision() {
     if (!result) return;
 
@@ -653,7 +686,7 @@ function PrepararJogoPage() {
     );
   }
 
-  async function loadJourneyLiveOptions() {
+  async function loadJourneyLiveOptions(episodeOverride?: string) {
     if (!result?.game.youtubePlaylistUrl) {
       setJourneyLiveOptions([]);
       setJourneyLiveError("Este jogo ainda não possui uma playlist do YouTube cadastrada.");
@@ -661,7 +694,9 @@ function PrepararJogoPage() {
       return;
     }
 
-    const episode = normalizeEpisode(journeyStartEpisode);
+    const episode = normalizeEpisode(
+      episodeOverride || journeyStartEpisode
+    );
     const playlistId = extractYoutubePlaylistId(result.game.youtubePlaylistUrl);
 
     if (!episode) {
@@ -713,6 +748,20 @@ function PrepararJogoPage() {
       const options = liveVideos.length > 0 ? liveVideos : episodeVideos;
 
       setJourneyLiveOptions(options);
+
+      const storedVideoId = (() => {
+        try {
+          const url = new URL(result.game.youtubeFirstLiveUrl || "");
+          return url.searchParams.get("v")?.trim() || "";
+        } catch {
+          return "";
+        }
+      })();
+
+      const matchingStoredVideo =
+        options.find((video) => video.id === storedVideoId) ?? null;
+
+      setJourneySelectedLive(matchingStoredVideo);
 
       if (options.length === 0) {
         setJourneyLiveError(
@@ -769,6 +818,7 @@ function PrepararJogoPage() {
             }
           : current
       );
+      setJourneySelectedLive(video);
       setJourneyLiveSelecting(false);
     } catch (error) {
       setJourneyLiveError(
@@ -2164,7 +2214,7 @@ function PrepararJogoPage() {
                       EP de início da Jornada
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-white/45">
-                      Cadastre o episódio uma única vez. Depois, selecione a live correspondente dentro da playlist do jogo.
+                      O EP 01 já começa preenchido. Abaixo aparece a live correspondente da playlist do jogo para você selecionar.
                     </p>
                   </div>
 
@@ -2175,6 +2225,7 @@ function PrepararJogoPage() {
                       onChange={(e) => {
                         updateJourneyStartEpisode(e.target.value);
                         setJourneyLiveOptions([]);
+                        setJourneySelectedLive(null);
                         setJourneyLiveSelecting(false);
                         setJourneyLiveError("");
                       }}
@@ -2183,25 +2234,28 @@ function PrepararJogoPage() {
                       className="w-full rounded-xl border border-blue-300/20 bg-black/30 px-4 py-3 text-sm font-black text-white outline-none placeholder:text-white/20 sm:w-[150px]"
                     />
 
-                    {normalizeEpisode(journeyStartEpisode) && (
-                      <button
-                        type="button"
-                        onClick={() => void loadJourneyLiveOptions()}
-                        disabled={journeyLiveLoading || journeyEpisodeSaving}
-                        className="rounded-xl border border-blue-300/25 bg-blue-300/10 px-4 py-3 text-[9px] font-black uppercase tracking-[.08em] text-blue-100 transition hover:bg-blue-300/15 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {journeyLiveLoading
-                          ? "Carregando..."
-                          : "Selecionar live do EP " +
-                            normalizeEpisode(journeyStartEpisode)}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => void loadJourneyLiveOptions()}
+                      disabled={
+                        journeyLiveLoading ||
+                        journeyEpisodeSaving ||
+                        !normalizeEpisode(journeyStartEpisode)
+                      }
+                      className="rounded-xl border border-blue-300/25 bg-blue-300/10 px-4 py-3 text-[9px] font-black uppercase tracking-[.08em] text-blue-100 transition hover:bg-blue-300/15 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {journeyLiveLoading
+                        ? "Carregando..."
+                        : journeySelectedLive
+                          ? "Trocar live"
+                          : "Escolher live"}
+                    </button>
 
                     <span className="text-[9px] font-black uppercase text-blue-200/55">
                       {journeyEpisodeSaving
                         ? "Salvando..."
                         : normalizeEpisode(journeyStartEpisode)
-                          ? "✓ EP aplicado automaticamente"
+                          ? "✓ EP aplicado"
                           : "Informe o EP inicial"}
                     </span>
                   </div>
@@ -2211,7 +2265,7 @@ function PrepararJogoPage() {
                   <div className="mt-3 rounded-xl border border-white/[.08] bg-black/20 p-3">
                     <div className="mb-2 flex items-center justify-between gap-3">
                       <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/45">
-                        Lives encontradas no EP {normalizeEpisode(journeyStartEpisode)}
+                        Escolha a live do EP {normalizeEpisode(journeyStartEpisode)}
                       </p>
                       <button
                         type="button"
@@ -2227,36 +2281,36 @@ function PrepararJogoPage() {
                         Procurando a live na playlist...
                       </p>
                     ) : journeyLiveOptions.length > 0 ? (
-                      <div className="space-y-2">
+                      <div className="grid gap-3 md:grid-cols-2">
                         {journeyLiveOptions.map((video) => (
                           <button
                             type="button"
                             key={video.id}
                             onClick={() => void selectJourneyLive(video)}
-                            className="flex w-full items-center gap-3 rounded-xl border border-white/[.07] bg-white/[.02] p-2.5 text-left transition hover:border-blue-400/30 hover:bg-blue-400/[.05]"
+                            className="group overflow-hidden rounded-xl border border-white/[.07] bg-white/[.02] text-left transition hover:border-blue-400/35 hover:bg-blue-400/[.05]"
                           >
-                            <div className="h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
+                            <div className="relative aspect-video overflow-hidden bg-black">
                               {video.thumbnail ? (
                                 <img
                                   src={video.thumbnail}
                                   alt=""
-                                  className="h-full w-full object-cover"
+                                  className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]"
                                 />
                               ) : null}
+                              <span className="absolute left-2 top-2 rounded-md border border-red-400/30 bg-red-500/80 px-2 py-1 text-[8px] font-black uppercase tracking-[.08em] text-white">
+                                {video.liveStatus === "archived"
+                                  ? "LIVE"
+                                  : video.liveStatus === "live"
+                                    ? "AO VIVO"
+                                    : "AGENDADA"}
+                              </span>
                             </div>
-
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[11px] font-black text-white">
+                            <div className="p-3">
+                              <p className="line-clamp-2 text-[12px] font-black leading-[1.35] text-white">
                                 {video.title}
                               </p>
-                              <p className="mt-1 text-[9px] font-black uppercase tracking-[.08em] text-blue-200/55">
-                                {video.liveStatus === "archived"
-                                  ? "Live encerrada"
-                                  : video.liveStatus === "live"
-                                    ? "Ao vivo agora"
-                                    : "Live agendada"}
-                                {" · "}
-                                clique para vincular
+                              <p className="mt-1.5 text-[9px] font-black uppercase tracking-[.08em] text-blue-200/55">
+                                Clique para selecionar esta live
                               </p>
                             </div>
                           </button>
@@ -2271,30 +2325,59 @@ function PrepararJogoPage() {
                   </div>
                 )}
 
-                {journeyLiveError && !journeyLiveSelecting && (
-                  <p className="mt-2 text-[10px] font-bold text-red-200/70">
-                    {journeyLiveError}
-                  </p>
-                )}
+                {journeySelectedLive ? (
+                  <div className="mt-3 overflow-hidden rounded-xl border border-emerald-400/20 bg-emerald-400/[.025]">
+                    <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+                      <div className="relative h-20 w-36 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
+                        {journeySelectedLive.thumbnail ? (
+                          <img
+                            src={journeySelectedLive.thumbnail}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : null}
+                        <span className="absolute left-2 top-2 rounded-md bg-emerald-500/80 px-2 py-1 text-[8px] font-black uppercase tracking-[.08em] text-white">
+                          EP {normalizeEpisode(journeyStartEpisode)}
+                        </span>
+                      </div>
 
-                {normalizeEpisode(journeyStartEpisode) && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {result.game.youtubeFirstLiveUrl ? (
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-200/70">
+                          Live vinculada ao EP
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-[12px] font-black leading-[1.35] text-white">
+                          {journeySelectedLive.title}
+                        </p>
+                      </div>
+
                       <a
-                        href={result.game.youtubeFirstLiveUrl}
+                        href={journeySelectedLive.playlistWatchUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
+                        className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-red-500/10 px-4 py-3 text-[9px] font-black uppercase tracking-[.08em] text-red-100 transition hover:border-red-400/45 hover:bg-red-500/20"
                       >
-                        ▶ EP {normalizeEpisode(journeyStartEpisode)} · live vinculada
+                        ▶ Abrir link no YouTube
                       </a>
-                    ) : (
-                      <p className="text-[9px] font-black uppercase tracking-[.12em] text-yellow-200/55">
-                        Selecione a live correspondente para tornar o EP clicável.
-                      </p>
-                    )}
+                    </div>
                   </div>
-                )}
+                ) : !journeyLiveSelecting && !journeyLiveLoading ? (
+                  <div className="mt-3 rounded-xl border border-white/[.07] bg-black/20 p-3">
+                    <p className="text-xs leading-relaxed text-white/40">
+                      {journeyLiveError ||
+                        "Carregando a thumb da live do EP..."}
+                    </p>
+                  </div>
+                ) : null}
+
+                {normalizeEpisode(journeyStartEpisode) && !journeySelectedLive && !journeyLiveSelecting ? (
+                  <button
+                    type="button"
+                    onClick={() => void loadJourneyLiveOptions()}
+                    className="mt-3 text-[9px] font-black uppercase tracking-[.1em] text-blue-200/60 transition hover:text-blue-100"
+                  >
+                    ↻ Procurar novamente a live do EP {normalizeEpisode(journeyStartEpisode)}
+                  </button>
+                ) : null}
               </div>
 
               <div className="mt-5 rounded-2xl border border-violet-400/30 bg-violet-500/[.06] p-5">
