@@ -1194,8 +1194,8 @@ export default function ConteudoPage() {
         <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.10] px-4 py-5 lg:block">
           <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
             <div>
-              <div className="border-b border-white/[0.08] pb-4 pt-2">
-                <div className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.12em] text-white/90">
+              <div className="border-t border-b border-white/[0.08] pb-5 pt-5">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
                   <IconContentSection className="h-4 w-4 text-red-400" />
                   Conteúdo
                 </div>
