@@ -31,6 +31,60 @@ body {
 }
 
 /* ============================= */
+/* TIPOGRAFIA E LEGIBILIDADE GLOBAL */
+/* ============================= */
+
+/*
+  Camada global de conforto de leitura:
+  - mantém a Inter como fonte principal;
+  - suaviza tamanhos muito pequenos sem alterar a estrutura das páginas;
+  - reforça discretamente textos excessivamente apagados.
+  Os ajustes afetam o site inteiro de forma consistente.
+*/
+
+body :where([class~="text-[8px]"]) {
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+}
+
+body :where([class~="text-[9px]"]) {
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+}
+
+body :where([class~="text-[10px]"]) {
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+
+body :where([class~="text-[11px]"]) {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+body :where([class~="text-[12px]"]) {
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+body :where([class~="text-[13px]"]) {
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+body :where([class~="text-white\/20"]) {
+  color: rgb(255 255 255 / 0.3) !important;
+}
+
+body :where([class~="text-white\/25"]) {
+  color: rgb(255 255 255 / 0.35) !important;
+}
+
+body :where([class~="text-white\/30"]) {
+  color: rgb(255 255 255 / 0.4) !important;
+}
+
+/* ============================= */
 /* TEXTURA GLOBAL PREMIUM DO SITE */
 /* ============================= */
 
