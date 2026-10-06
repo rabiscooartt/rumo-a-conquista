@@ -1121,6 +1121,19 @@ export default function ConteudoPage() {
     return filteredVideos[0] ?? null;
   }, [journeyStartRequested, requestedEpisode, filteredVideos]);
 
+  const recentContents = useMemo(
+    () =>
+      [...videos]
+        .filter((video) => video.id !== liveNow?.id)
+        .sort(
+          (a, b) =>
+            new Date(b.publishedAt).getTime() -
+            new Date(a.publishedAt).getTime()
+        )
+        .slice(0, 3),
+    [videos, liveNow]
+  );
+
   const totalLives = videos.filter(
     (video) => getVideoType(video) === "live"
   ).length;
@@ -1587,6 +1600,73 @@ export default function ConteudoPage() {
                   Ver todas as playlists →
                   </button>
                 </>
+              )}
+            </section>
+
+            <section className="mt-3 rounded-[12px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-3 flex items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                    CONTEÚDOS RECENTES
+                  </h2>
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/20">
+                  YouTube
+                </span>
+              </div>
+
+              {recentContents.length === 0 ? (
+                <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-5 text-center text-[9px] leading-relaxed text-white/30">
+                  Nenhum conteúdo recente encontrado.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentContents.map((video) => {
+                    const type = getVideoType(video);
+
+                    return (
+                      <a
+                        key={video.id}
+                        href={video.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group flex items-center gap-2.5 rounded-[9px] border border-white/[0.06] bg-white/[0.015] p-2 transition hover:border-white/[0.12] hover:bg-white/[0.03]"
+                      >
+                        <div className="relative h-[48px] w-[72px] shrink-0 overflow-hidden rounded-[6px] bg-black">
+                          <VideoThumbnail
+                            src={video.thumbnail}
+                            title={video.title}
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex items-center gap-1.5">
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.08em] ${
+                                type === "live"
+                                  ? "bg-red-500/15 text-red-300"
+                                  : type === "short"
+                                  ? "bg-purple-500/15 text-purple-300"
+                                  : "bg-blue-500/15 text-blue-300"
+                              }`}
+                            >
+                              {getVideoTypeLabel(type)}
+                            </span>
+                          </div>
+
+                          <p className="line-clamp-2 text-[10px] font-black leading-[1.25] text-white transition group-hover:text-red-200">
+                            {video.title}
+                          </p>
+
+                          <p className="mt-1 text-[8px] font-medium text-white/30">
+                            {formatDate(video.publishedAt)}
+                          </p>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div>
               )}
             </section>
           </div>
