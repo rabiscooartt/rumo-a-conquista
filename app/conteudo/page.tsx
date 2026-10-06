@@ -1187,56 +1187,64 @@ export default function ConteudoPage() {
                 </div>
               </div>
 
-              {liveNow ? (
-                <a
-                  href={liveNow.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-5 block rounded-[10px] border border-red-500/35 bg-red-500/[0.07] p-3 transition hover:border-red-500/55 hover:bg-red-500/[0.10]"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5 shrink-0">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/70" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-                    </span>
-
-                    <span className="text-[10px] font-black uppercase tracking-[0.12em] text-red-200">
-                      AO VIVO AGORA
-                    </span>
-                  </div>
-
-                  <p className="mt-1.5 line-clamp-2 text-[11px] font-black leading-[1.3] text-white">
-                    {liveNow.title}
+              <div className="mt-5">
+                <div className="mb-2 px-1">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/30">
+                    STATUS DO CANAL
                   </p>
+                </div>
 
-                  <p className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.10em] text-red-300/70">
-                    Assistir no YouTube →
-                  </p>
-                </a>
-              ) : (
-                <a
-                  href="https://www.youtube.com/@orabiisco"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-5 block rounded-[10px] border border-white/[0.08] bg-white/[0.02] p-3 transition hover:border-white/[0.14] hover:bg-white/[0.035]"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-white/25" />
+                {liveNow ? (
+                  <a
+                    href={liveNow.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group block rounded-[10px] border border-red-500/30 bg-red-500/[0.055] p-3 transition hover:border-red-500/50 hover:bg-red-500/[0.08]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5 shrink-0">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/65" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                      </span>
 
-                    <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/65">
-                      OFFLINE AGORA
-                    </span>
-                  </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-red-200">
+                        AO VIVO AGORA
+                      </span>
+                    </div>
 
-                  <p className="mt-1.5 text-[11px] font-black leading-[1.3] text-white/75">
-                    Nenhuma transmissão ativa
-                  </p>
+                    <p className="mt-1.5 line-clamp-2 text-[11px] font-black leading-[1.3] text-white">
+                      {liveNow.title}
+                    </p>
 
-                  <p className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.10em] text-white/35">
-                    Ver canal no YouTube →
-                  </p>
-                </a>
-              )}
+                    <p className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.10em] text-red-300/70 transition group-hover:text-red-200">
+                      Assistir no YouTube →
+                    </p>
+                  </a>
+                ) : (
+                  <a
+                    href="https://www.youtube.com/@orabiisco"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group block rounded-[10px] border border-white/[0.07] bg-white/[0.015] p-3 transition hover:border-white/[0.12] hover:bg-white/[0.025]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-white/25" />
+
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">
+                        OFFLINE
+                      </span>
+                    </div>
+
+                    <p className="mt-1.5 text-[10px] font-medium leading-[1.35] text-white/50">
+                      Nenhuma transmissão ao vivo no momento.
+                    </p>
+
+                    <p className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.10em] text-white/30 transition group-hover:text-white/50">
+                      Ver canal no YouTube →
+                    </p>
+                  </a>
+                )}
+              </div>
 
               <div className="mt-6 border-b border-white/[0.08] pb-6">
                 <div className="flex items-center gap-2">
