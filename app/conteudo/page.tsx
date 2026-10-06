@@ -748,24 +748,35 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
       href={video.url}
       target="_blank"
       rel="noreferrer"
-      className="group block"
+      className="group block min-w-0"
     >
-      <article className="flex gap-3 border-b border-white/[0.07] py-4 last:border-b-0">
-        <div className="relative h-[78px] w-[138px] shrink-0 overflow-hidden rounded-[9px] bg-black sm:h-[88px] sm:w-[156px]">
-          <VideoThumbnail src={video.thumbnail} title={video.title} />
-          <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[9px] font-semibold text-white/90">
-            {formatDate(video.publishedAt)}
-          </div>
-        </div>
+      <article className="h-full overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] p-2.5 transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.15] hover:bg-[#0b0d11]">
+        <div className="flex h-full gap-3">
+          <div className="relative aspect-video w-[142px] shrink-0 overflow-hidden rounded-[8px] bg-black sm:w-[150px]">
+            <VideoThumbnail src={video.thumbnail} title={video.title} />
 
-        <div className="min-w-0 flex-1 py-0.5">
-          <TypeBadge type={type} />
-          <h3 className="mt-2 line-clamp-2 text-[14px] font-bold leading-[1.35] text-white group-hover:text-red-200">
-            {video.title}
-          </h3>
-          <p className="mt-1.5 line-clamp-2 text-[10px] leading-[1.45] text-white/50">
-            {video.description || "Conteúdo publicado no canal do projeto."}
-          </p>
+            <div className="absolute left-2 top-2">
+              <TypeBadge type={type} />
+            </div>
+
+            <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[8px] font-semibold text-white/90">
+              {formatDate(video.publishedAt)}
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 py-0.5">
+            <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.35] text-white/95 transition group-hover:text-white">
+              {video.title}
+            </h3>
+
+            <p className="mt-1.5 line-clamp-3 text-[9px] leading-[1.45] text-white/45">
+              {video.description || "Conteúdo publicado no canal do projeto."}
+            </p>
+
+            <p className="mt-2 text-[8px] font-black uppercase tracking-[0.10em] text-white/25">
+              Assistir no YouTube →
+            </p>
+          </div>
         </div>
       </article>
     </a>
@@ -1576,7 +1587,7 @@ export default function ConteudoPage() {
 
               {!isLoading && filteredVideos.filter((video) => video.id !== liveNow?.id).length > 4 ? (
                 <section className="mt-5 rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4 pb-3.5 pt-3.5">
-                  <div className="mb-2 flex items-end justify-between gap-3">
+                  <div className="mb-3 flex items-end justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
                         <div className="h-[20px] w-[2px] bg-red-500" />
@@ -1585,7 +1596,7 @@ export default function ConteudoPage() {
                         </h2>
                       </div>
                       <p className="mt-1 text-[10px] text-white/35">
-                        Explore o restante em uma única sequência.
+                        Explore o restante da sua jornada em cards.
                       </p>
                     </div>
                     <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
@@ -1593,12 +1604,14 @@ export default function ConteudoPage() {
                     </span>
                   </div>
 
-                  {filteredVideos
-                    .filter((video) => video.id !== liveNow?.id)
-                    .slice(4)
-                    .map((video) => (
-                      <ContentListRow key={video.id} video={video} />
-                    ))}
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {filteredVideos
+                      .filter((video) => video.id !== liveNow?.id)
+                      .slice(4)
+                      .map((video) => (
+                        <ContentListRow key={video.id} video={video} />
+                      ))}
+                  </div>
                 </section>
               ) : null}
             </>
