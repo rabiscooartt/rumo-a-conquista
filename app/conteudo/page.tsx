@@ -1317,7 +1317,7 @@ export default function ConteudoPage() {
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                    JOGOS RECENTES
+                    PLAYLISTS RECENTES
                   </h2>
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/20">
