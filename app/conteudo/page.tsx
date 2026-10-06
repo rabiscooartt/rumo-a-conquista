@@ -1631,31 +1631,31 @@ export default function ConteudoPage() {
                         href={comment.videoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="group block rounded-[9px] border border-white/[0.06] bg-white/[0.015] p-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.03]"
+                        className="group block rounded-[9px] border border-white/[0.06] bg-white/[0.015] p-3 transition hover:border-white/[0.12] hover:bg-white/[0.03]"
                       >
-                        <div className="flex items-start gap-2.5">
+                        <div className="flex items-start gap-3">
                           {comment.authorImage ? (
                             <img
                               src={comment.authorImage}
                               alt=""
-                              className="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover"
+                              className="mt-0.5 h-[30px] w-[30px] shrink-0 rounded-full object-cover"
                             />
                           ) : (
-                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[9px] font-black text-white/35">
+                            <div className="mt-0.5 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[10px] font-black text-white/40">
                               {comment.authorName.slice(0, 1).toUpperCase()}
                             </div>
                           )}
 
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[9px] font-black text-white">
+                            <p className="truncate text-[10px] font-black text-white/95">
                               {comment.authorName}
                             </p>
 
-                            <p className="mt-1 line-clamp-3 text-[10px] font-medium leading-[1.35] text-white/55 transition group-hover:text-white/75">
+                            <p className="mt-1.5 line-clamp-3 text-[11px] font-medium leading-[1.4] text-white/75 transition group-hover:text-white">
                               “{comment.text}”
                             </p>
 
-                            <p className="mt-1.5 truncate text-[8px] font-medium text-white/25">
+                            <p className="mt-2 truncate text-[8px] font-medium text-white/40">
                               {video?.title || "Vídeo no YouTube"} · {formatDate(comment.publishedAt)}
                             </p>
                           </div>
