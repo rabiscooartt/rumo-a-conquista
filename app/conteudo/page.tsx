@@ -717,18 +717,21 @@ function RecentVideoCard({ video }: { video: YouTubeVideo }) {
       rel="noreferrer"
       className="group block min-w-0"
     >
-      <article className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-[#090b0f] transition hover:-translate-y-0.5 hover:border-red-500/30">
+      <article className="overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.15] hover:bg-[#0b0d11]">
         <div className="relative aspect-video overflow-hidden bg-black">
           <VideoThumbnail src={video.thumbnail} title={video.title} />
+
           <div className="absolute left-2.5 top-2.5">
             <TypeBadge type={type} />
           </div>
-          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[8px] font-black text-white">
+
+          <div className="absolute bottom-2 right-2 rounded-md bg-black/75 px-2 py-1 text-[8px] font-semibold text-white/85">
             {formatDate(video.publishedAt)}
           </div>
         </div>
-        <div className="p-3">
-          <h3 className="line-clamp-2 text-[12px] font-black leading-[1.3] text-white group-hover:text-red-200">
+
+        <div className="px-3 pb-3 pt-2.5">
+          <h3 className="line-clamp-2 min-h-[31px] text-[11px] font-semibold leading-[1.4] text-white/90 transition group-hover:text-white">
             {video.title}
           </h3>
         </div>
@@ -1538,6 +1541,19 @@ export default function ConteudoPage() {
                       Os conteúdos mais novos da sua jornada.
                     </p>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRecentGameKey("");
+                      setShowAllPlaylists(false);
+                      setActiveFilter("all");
+                      setPlaylistSearch("");
+                    }}
+                    className="shrink-0 text-[9px] font-black uppercase tracking-[0.10em] text-white/35 transition hover:text-red-200"
+                  >
+                    Ver todos →
+                  </button>
                 </div>
 
                 {isLoading ? (
