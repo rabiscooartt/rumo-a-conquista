@@ -1506,7 +1506,8 @@ export default function ConteudoPage() {
                   Nenhum jogo recente identificado nos conteúdos do YouTube.
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <>
+                  <div className="space-y-2.5">
                   {recentGames.map((item) => {
                     const active = selectedRecentGame?.key === item.key;
 
@@ -1548,9 +1549,9 @@ export default function ConteudoPage() {
                       </button>
                     );
                   })}
-                </div>
+                  </div>
 
-                <button
+                  <button
                   type="button"
                   onClick={() => {
                     setSelectedRecentGameKey("");
@@ -1560,7 +1561,9 @@ export default function ConteudoPage() {
                   className="mt-3 w-full rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-center text-[9px] font-black text-white/50 transition hover:border-red-500/25 hover:bg-red-500/5 hover:text-red-200"
                 >
                   Ver todas as playlists →
-                </button>              )}
+                  </button>
+                </>
+              )}
             </section>
           </div>
         </aside>
