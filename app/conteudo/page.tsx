@@ -1213,7 +1213,30 @@ export default function ConteudoPage() {
                     Assistir no YouTube →
                   </p>
                 </a>
-              ) : null}
+              ) : (
+                <a
+                  href="https://www.youtube.com/@orabiisco"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 block rounded-[10px] border border-white/[0.08] bg-white/[0.02] p-3 transition hover:border-white/[0.14] hover:bg-white/[0.035]"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-white/25" />
+
+                    <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/65">
+                      OFFLINE AGORA
+                    </span>
+                  </div>
+
+                  <p className="mt-1.5 text-[11px] font-black leading-[1.3] text-white/75">
+                    Nenhuma transmissão ativa
+                  </p>
+
+                  <p className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.10em] text-white/35">
+                    Ver canal no YouTube →
+                  </p>
+                </a>
+              )}
 
               <div className="mt-6 border-b border-white/[0.08] pb-6">
                 <div className="flex items-center gap-2">
