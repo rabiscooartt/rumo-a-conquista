@@ -26,6 +26,13 @@ type YouTubePlaylist = {
   url: string;
 };
 
+type YouTubeLiveNow = {
+  id: string;
+  title: string;
+  thumbnail: string;
+  url: string;
+};
+
 type YouTubeChannelResponse = {
   channel?: {
     id: string;
@@ -36,6 +43,7 @@ type YouTubeChannelResponse = {
   count?: number;
   videos?: YouTubeVideo[];
   playlists?: YouTubePlaylist[];
+  liveNow?: YouTubeLiveNow | null;
   error?: string;
 };
 
@@ -584,6 +592,60 @@ function VideoCard({ video }: { video: YouTubeVideo }) {
 }
 
 
+function LiveFeatured({ live }: { live: YouTubeLiveNow }) {
+  return (
+    <section className="mt-4 overflow-hidden rounded-[14px] border border-red-500/35 bg-[#090b0f]">
+      <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/70" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+          </span>
+          <p className="text-[12px] font-black uppercase tracking-[0.08em] text-white">
+            AO VIVO AGORA
+          </p>
+        </div>
+
+        <span className="rounded-md border border-red-500/25 bg-red-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-red-200">
+          YouTube
+        </span>
+      </div>
+
+      <div className="p-3">
+        <div className="aspect-video overflow-hidden rounded-[10px] bg-black">
+          <iframe
+            className="h-full w-full"
+            src={`https://www.youtube-nocookie.com/embed/${live.id}?rel=0`}
+            title={live.title}
+            allow="autoplay; encrypted-media; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+
+        <div className="flex items-end justify-between gap-4 px-1 pb-1 pt-3">
+          <div className="min-w-0">
+            <p className="line-clamp-2 text-[14px] font-black leading-[1.3] text-white">
+              {live.title}
+            </p>
+            <p className="mt-1 text-[9px] text-white/35">
+              Transmissão em andamento no YouTube.
+            </p>
+          </div>
+
+          <a
+            href={live.url}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[9px] font-black text-red-100 transition hover:bg-red-500/20"
+          >
+            Abrir no YouTube →
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function RecentVideoCard({ video }: { video: YouTubeVideo }) {
   const type = getVideoType(video);
 
@@ -773,6 +835,7 @@ function ContentBannerMetric({
 
 export default function ConteudoPage() {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [liveNow, setLiveNow] = useState<YouTubeLiveNow | null>(null);
   const [playlists, setPlaylists] = useState<YouTubePlaylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -859,6 +922,7 @@ export default function ConteudoPage() {
 
         setVideos(data.videos ?? []);
         setPlaylists(data.playlists ?? []);
+        setLiveNow(data.liveNow ?? null);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
@@ -1251,6 +1315,8 @@ export default function ConteudoPage() {
             </section>
           ) : (
             <>
+              {liveNow ? <LiveFeatured live={liveNow} /> : null}
+
               <section className="mt-4">
                 <div className="mb-3 flex items-end justify-between gap-3">
                   <div>
@@ -1274,9 +1340,12 @@ export default function ConteudoPage() {
                   <EmptyState error={error} />
                 ) : (
                   <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    {filteredVideos.slice(0, 4).map((video) => (
-                      <RecentVideoCard key={video.id} video={video} />
-                    ))}
+                    {filteredVideos
+                      .filter((video) => video.id !== liveNow?.id)
+                      .slice(0, 4)
+                      .map((video) => (
+                        <RecentVideoCard key={video.id} video={video} />
+                      ))}
                   </div>
                 )}
               </section>
