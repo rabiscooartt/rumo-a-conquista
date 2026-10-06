@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
 import { games as baseGames } from "@/data/games";
 
-type FilterType = "all" | "video" | "live" | "short";
+type FilterType = "all" | "video" | "live" | "short" | "playlist";
 
 type YouTubeVideo = {
   id: string;
@@ -71,6 +71,10 @@ const filters: { label: string; value: FilterType }[] = [
   {
     label: "Shorts",
     value: "short",
+  },
+  {
+    label: "Playlists",
+    value: "playlist",
   },
 ];
 
@@ -983,6 +987,10 @@ export default function ConteudoPage() {
   }, []);
 
   const filteredVideos = useMemo(() => {
+    if (activeFilter === "playlist") {
+      return [];
+    }
+
     const byType =
       activeFilter === "all"
         ? videos
@@ -1135,7 +1143,7 @@ export default function ConteudoPage() {
           <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
             <div>
               <div className="border-b border-white/[0.08] pb-4 pt-2">
-                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                <div className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.12em] text-white/90">
                   <span className="text-red-400">▶</span>
                   Conteúdo
                 </div>
@@ -1144,41 +1152,57 @@ export default function ConteudoPage() {
               <div className="mt-6 border-b border-white/[0.08] pb-6">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.12em] text-white">
                     FILTRO
                   </h2>
                 </div>
 
                 <div className="mt-3 space-y-1.5">
                   {filters.map((filter) => {
-                    const isActive = activeFilter === filter.value;
+                    const isActive =
+                      filter.value === "playlist"
+                        ? showAllPlaylists
+                        : activeFilter === filter.value;
 
                     return (
                       <button
                         key={filter.value}
                         type="button"
-                        onClick={() => setActiveFilter(filter.value)}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-[10px] font-black transition ${
+                        onClick={() => {
+                          setSelectedRecentGameKey("");
+                          setPlaylistSearch("");
+
+                          if (filter.value === "playlist") {
+                            setActiveFilter("playlist");
+                            setShowAllPlaylists(true);
+                            return;
+                          }
+
+                          setShowAllPlaylists(false);
+                          setActiveFilter(filter.value);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-[12px] font-black transition ${
                           isActive
-                            ? "border border-red-500/30 bg-red-500/10 text-red-300"
-                            : "border border-transparent text-white/45 hover:bg-white/[0.04] hover:text-white"
+                            ? "border border-red-500/30 bg-red-500/10 text-red-200"
+                            : "border border-transparent text-white/65 hover:bg-white/[0.04] hover:text-white"
                         }`}
                       >
                         <span>{filter.label}</span>
-                        <span className="text-[9px] text-white/25">
+                        <span className="text-[10px] font-black text-white/45">
                           {filter.value === "all"
                             ? videos.length
                             : filter.value === "video"
                             ? totalVideos
                             : filter.value === "live"
                             ? totalLives
-                            : totalShorts}
+                            : filter.value === "short"
+                            ? totalShorts
+                            : playlists.length}
                         </span>
                       </button>
                     );
                   })}
-                </div>
-              </div>
+                </div>              </div>
 
               <div className="mt-6">
                 <div className="flex items-center gap-2">
@@ -1189,11 +1213,11 @@ export default function ConteudoPage() {
                 </div>
 
                 <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
-                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-white/30">
+                  <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">
                     {journeyStartRequested ? "Início da Jornada" : requestedEpisode ? "Episódio selecionado" : "Conteúdo geral"}
                   </p>
 
-                  <p className="mt-1.5 text-[12px] font-black leading-tight text-white">
+                  <p className="mt-1.5 text-[13px] font-black leading-tight text-white">
                     {journeyStartRequested
                       ? journeyGameTitle || "Jornada de Estreia"
                       : requestedEpisode
@@ -1202,7 +1226,7 @@ export default function ConteudoPage() {
                   </p>
 
                   {journeyStartRequested && requestedEpisode ? (
-                    <p className="mt-1 text-[9px] font-bold text-emerald-300/80">
+                    <p className="mt-1.5 text-[10px] font-bold text-emerald-300/80">
                       EP {requestedEpisode}
                     </p>
                   ) : null}
