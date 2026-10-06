@@ -1301,34 +1301,6 @@ export default function ConteudoPage() {
                   })}
                 </div>              </div>
 
-              <div className="mt-6">
-                <div className="flex items-center gap-2">
-                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">
-                    JORNADA
-                  </h2>
-                </div>
-
-                <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40">
-                    {journeyStartRequested ? "Início da Jornada" : requestedEpisode ? "Episódio selecionado" : "Conteúdo geral"}
-                  </p>
-
-                  <p className="mt-1.5 text-[13px] font-black leading-tight text-white">
-                    {journeyStartRequested
-                      ? journeyGameTitle || "Jornada de Estreia"
-                      : requestedEpisode
-                      ? `EP ${requestedEpisode}`
-                      : "Todos os conteúdos"}
-                  </p>
-
-                  {journeyStartRequested && requestedEpisode ? (
-                    <p className="mt-1.5 text-[10px] font-bold text-emerald-300/80">
-                      EP {requestedEpisode}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
