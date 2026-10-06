@@ -33,6 +33,16 @@ type YouTubeLiveNow = {
   url: string;
 };
 
+type YouTubeRecentComment = {
+  id: string;
+  authorName: string;
+  authorImage: string;
+  text: string;
+  publishedAt: string;
+  videoId: string;
+  videoUrl: string;
+};
+
 type YouTubeChannelResponse = {
   channel?: {
     id: string;
@@ -44,6 +54,7 @@ type YouTubeChannelResponse = {
   videos?: YouTubeVideo[];
   playlists?: YouTubePlaylist[];
   liveNow?: YouTubeLiveNow | null;
+  recentComments?: YouTubeRecentComment[];
   error?: string;
 };
 
@@ -875,6 +886,7 @@ function ContentBannerMetric({
 export default function ConteudoPage() {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [liveNow, setLiveNow] = useState<YouTubeLiveNow | null>(null);
+  const [recentComments, setRecentComments] = useState<YouTubeRecentComment[]>([]);
   const [playlists, setPlaylists] = useState<YouTubePlaylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -964,6 +976,7 @@ export default function ConteudoPage() {
         setVideos(data.videos ?? []);
         setPlaylists(data.playlists ?? []);
         setLiveNow(data.liveNow ?? null);
+        setRecentComments(data.recentComments ?? []);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
@@ -1120,19 +1133,6 @@ export default function ConteudoPage() {
 
     return filteredVideos[0] ?? null;
   }, [journeyStartRequested, requestedEpisode, filteredVideos]);
-
-  const recentContents = useMemo(
-    () =>
-      [...videos]
-        .filter((video) => video.id !== liveNow?.id)
-        .sort(
-          (a, b) =>
-            new Date(b.publishedAt).getTime() -
-            new Date(a.publishedAt).getTime()
-        )
-        .slice(0, 3),
-    [videos, liveNow]
-  );
 
   const totalLives = videos.filter(
     (video) => getVideoType(video) === "live"
@@ -1608,7 +1608,7 @@ export default function ConteudoPage() {
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                    CONTEÚDOS RECENTES
+                    COMENTÁRIOS RECENTES
                   </h2>
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-[0.12em] text-white/20">
@@ -1616,52 +1616,49 @@ export default function ConteudoPage() {
                 </span>
               </div>
 
-              {recentContents.length === 0 ? (
+              {recentComments.length === 0 ? (
                 <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-5 text-center text-[9px] leading-relaxed text-white/30">
-                  Nenhum conteúdo recente encontrado.
+                  Nenhum comentário recente encontrado.
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {recentContents.map((video) => {
-                    const type = getVideoType(video);
+                  {recentComments.map((comment) => {
+                    const video = videos.find((item) => item.id === comment.videoId);
 
                     return (
                       <a
-                        key={video.id}
-                        href={video.url}
+                        key={comment.id}
+                        href={comment.videoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="group flex items-center gap-2.5 rounded-[9px] border border-white/[0.06] bg-white/[0.015] p-2 transition hover:border-white/[0.12] hover:bg-white/[0.03]"
+                        className="group block rounded-[9px] border border-white/[0.06] bg-white/[0.015] p-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.03]"
                       >
-                        <div className="relative h-[48px] w-[72px] shrink-0 overflow-hidden rounded-[6px] bg-black">
-                          <VideoThumbnail
-                            src={video.thumbnail}
-                            title={video.title}
-                          />
-                        </div>
+                        <div className="flex items-start gap-2.5">
+                          {comment.authorImage ? (
+                            <img
+                              src={comment.authorImage}
+                              alt=""
+                              className="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[9px] font-black text-white/35">
+                              {comment.authorName.slice(0, 1).toUpperCase()}
+                            </div>
+                          )}
 
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1 flex items-center gap-1.5">
-                            <span
-                              className={`rounded px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.08em] ${
-                                type === "live"
-                                  ? "bg-red-500/15 text-red-300"
-                                  : type === "short"
-                                  ? "bg-purple-500/15 text-purple-300"
-                                  : "bg-blue-500/15 text-blue-300"
-                              }`}
-                            >
-                              {getVideoTypeLabel(type)}
-                            </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[9px] font-black text-white">
+                              {comment.authorName}
+                            </p>
+
+                            <p className="mt-1 line-clamp-3 text-[10px] font-medium leading-[1.35] text-white/55 transition group-hover:text-white/75">
+                              “{comment.text}”
+                            </p>
+
+                            <p className="mt-1.5 truncate text-[8px] font-medium text-white/25">
+                              {video?.title || "Vídeo no YouTube"} · {formatDate(comment.publishedAt)}
+                            </p>
                           </div>
-
-                          <p className="line-clamp-2 text-[10px] font-black leading-[1.25] text-white transition group-hover:text-red-200">
-                            {video.title}
-                          </p>
-
-                          <p className="mt-1 text-[8px] font-medium text-white/30">
-                            {formatDate(video.publishedAt)}
-                          </p>
                         </div>
                       </a>
                     );
