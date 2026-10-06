@@ -1647,7 +1647,7 @@ export default function ConteudoPage() {
                           )}
 
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[10.5px] font-black text-white">
+                            <p className="truncate text-[11px] font-semibold tracking-normal text-white/90">
                               {comment.authorName}
                             </p>
 
