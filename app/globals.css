@@ -26,7 +26,8 @@ body {
   color: var(--foreground);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
 }
 
 /* ============================= */
