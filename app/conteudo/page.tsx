@@ -750,31 +750,31 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
       rel="noreferrer"
       className="group block min-w-0"
     >
-      <article className="h-full overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] p-2.5 transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.15] hover:bg-[#0b0d11]">
-        <div className="flex h-full gap-3">
-          <div className="relative aspect-video w-[142px] shrink-0 overflow-hidden rounded-[8px] bg-black sm:w-[150px]">
-            <VideoThumbnail src={video.thumbnail} title={video.title} />
+      <article className="overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.15] hover:bg-[#0b0d11]">
+        <div className="relative aspect-square overflow-hidden bg-black">
+          <VideoThumbnail src={video.thumbnail} title={video.title} />
 
-            <div className="absolute left-2 top-2">
-              <TypeBadge type={type} />
-            </div>
-
-            <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-[8px] font-semibold text-white/90">
-              {formatDate(video.publishedAt)}
-            </div>
+          <div className="absolute left-2.5 top-2.5">
+            <TypeBadge type={type} />
           </div>
 
-          <div className="min-w-0 flex-1 py-0.5">
-            <h3 className="line-clamp-2 text-[12px] font-semibold leading-[1.35] text-white/95 transition group-hover:text-white">
-              {video.title}
-            </h3>
+          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[9px] font-semibold text-white/90">
+            {formatDate(video.publishedAt)}
+          </div>
+        </div>
 
-            <p className="mt-1.5 line-clamp-3 text-[9px] leading-[1.45] text-white/45">
-              {video.description || "Conteúdo publicado no canal do projeto."}
+        <div className="px-3.5 pb-3.5 pt-3">
+          <h3 className="line-clamp-2 min-h-[36px] text-[13px] font-bold leading-[1.4] text-white/95 transition group-hover:text-white">
+            {video.title}
+          </h3>
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <p className="truncate text-[10px] font-medium text-white/45">
+              YouTube • @orabiisco
             </p>
 
-            <p className="mt-2 text-[8px] font-black uppercase tracking-[0.10em] text-white/25">
-              Assistir no YouTube →
+            <p className="shrink-0 text-[9px] font-black uppercase tracking-[0.08em] text-white/25">
+              {getVideoTypeLabel(type)}
             </p>
           </div>
         </div>
@@ -1596,7 +1596,7 @@ export default function ConteudoPage() {
                         </h2>
                       </div>
                       <p className="mt-1 text-[10px] text-white/35">
-                        Explore o restante da sua jornada em cards.
+                        Explore o restante da sua jornada em uma grade visual.
                       </p>
                     </div>
                     <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
@@ -1604,7 +1604,7 @@ export default function ConteudoPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredVideos
                       .filter((video) => video.id !== liveNow?.id)
                       .slice(4)
