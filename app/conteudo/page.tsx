@@ -725,13 +725,13 @@ function RecentVideoCard({ video }: { video: YouTubeVideo }) {
             <TypeBadge type={type} />
           </div>
 
-          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[9px] font-semibold text-white/90">
+          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[10px] font-semibold text-white/95">
             {formatDate(video.publishedAt)}
           </div>
         </div>
 
-        <div className="px-3 pb-3.5 pt-2.5">
-          <h3 className="line-clamp-2 min-h-[34px] text-[12px] font-semibold leading-[1.4] text-white/95 transition group-hover:text-white">
+        <div className="px-3.5 pb-4 pt-3">
+          <h3 className="line-clamp-2 min-h-[38px] text-[13px] font-semibold leading-[1.45] text-white/95 transition group-hover:text-white">
             {video.title}
           </h3>
         </div>
@@ -763,17 +763,17 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
           </div>
         </div>
 
-        <div className="px-3.5 pb-3.5 pt-3">
-          <h3 className="line-clamp-2 min-h-[36px] text-[13px] font-bold leading-[1.4] text-white/95 transition group-hover:text-white">
+        <div className="px-3.5 pb-4 pt-3.5">
+          <h3 className="line-clamp-2 min-h-[40px] text-[14px] font-bold leading-[1.42] text-white/95 transition group-hover:text-white">
             {video.title}
           </h3>
 
           <div className="mt-2 flex items-center justify-between gap-2">
-            <p className="truncate text-[10px] font-medium text-white/45">
+            <p className="truncate text-[11px] font-medium text-white/55">
               YouTube • @orabiisco
             </p>
 
-            <p className="shrink-0 text-[9px] font-black uppercase tracking-[0.08em] text-white/25">
+            <p className="shrink-0 text-[10px] font-black uppercase tracking-[0.08em] text-white/35">
               {getVideoTypeLabel(type)}
             </p>
           </div>
@@ -1443,7 +1443,7 @@ export default function ConteudoPage() {
                       {selectedRecentGame.gameName}
                     </h2>
                   </div>
-                  <p className="mt-1 text-[10px] text-white/35">
+                  <p className="mt-1 text-[11px] text-white/40">
                     Conteúdos mais recentes deste jogo encontrados no YouTube.
                   </p>
                 </div>
@@ -1561,7 +1561,7 @@ export default function ConteudoPage() {
                       setActiveFilter("all");
                       setPlaylistSearch("");
                     }}
-                    className="shrink-0 text-[9px] font-black uppercase tracking-[0.10em] text-white/35 transition hover:text-red-200"
+                    className="shrink-0 text-[10px] font-black uppercase tracking-[0.10em] text-white/45 transition hover:text-red-200"
                   >
                     Ver todos →
                   </button>
@@ -1599,7 +1599,7 @@ export default function ConteudoPage() {
                         Explore o restante da sua jornada.
                       </p>
                     </div>
-                    <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.12em] text-white/20">
+                    <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.12em] text-white/30">
                       {filteredVideos.filter((video) => video.id !== liveNow?.id).length} itens
                     </span>
                   </div>
