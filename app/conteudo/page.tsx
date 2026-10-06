@@ -751,7 +751,7 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
       className="group block min-w-0"
     >
       <article className="overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.15] hover:bg-[#0b0d11]">
-        <div className="relative aspect-square overflow-hidden bg-black">
+        <div className="relative aspect-video overflow-hidden bg-black">
           <VideoThumbnail src={video.thumbnail} title={video.title} />
 
           <div className="absolute left-2.5 top-2.5">
