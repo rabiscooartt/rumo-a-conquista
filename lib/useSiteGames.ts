@@ -31,6 +31,7 @@ export type GameEmblemInput = {
 export type FirstJourneyState = {
   status: "not_started" | "in_progress" | "completed";
   completedAt?: string;
+  achievementIds?: string[];
 };
 
 export type SiteGame = {
