@@ -188,6 +188,8 @@ export default function NewGameAchievementsEditor({
   onSave: (update: Partial<SiteGame>) => Promise<boolean>;
   journeyIds?: string[];
   manualRecords?: Record<string, AchievementRecordMeta>;
+  journeySelectionEnabled?: boolean;
+  onJourneyIdsChange?: (ids: string[]) => void;
 }) {
   const [achievements, setAchievements] = useState(() =>
     normalizeAchievements(game.achievementsList, game.slug)
@@ -250,6 +252,19 @@ export default function NewGameAchievementsEditor({
         achievement.id === id ? { ...achievement, ...update } : achievement
       )
     );
+  }
+
+  function toggleJourneySelection(id: string) {
+    if (!journeySelectionEnabled || !onJourneyIdsChange) return;
+
+    const next = new Set(journeyIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+
+    onJourneyIdsChange(Array.from(next));
   }
 
   async function saveAchievements(next = achievements) {
@@ -494,9 +509,25 @@ export default function NewGameAchievementsEditor({
                       </p>
                     </div>
                   </div>
-                  <button type="button" onClick={() => setMinimized((current) => ({ ...current, [achievement.id]: false }))} className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black text-white/55">
-                    ＋ Expandir
-                  </button>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {journeySelectionEnabled && (
+                      <label
+                        className="flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-emerald-200"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isJourneyAchievement}
+                          onChange={() => toggleJourneySelection(achievement.id)}
+                          className="accent-emerald-400"
+                        />
+                        Jornada
+                      </label>
+                    )}
+                    <button type="button" onClick={() => setMinimized((current) => ({ ...current, [achievement.id]: false }))} className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black text-white/55">
+                      ＋ Expandir
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="grid gap-4 p-4 lg:grid-cols-[82px_minmax(0,1fr)]">
@@ -540,6 +571,17 @@ export default function NewGameAchievementsEditor({
                       </div>
 
                       <div className="flex flex-wrap gap-2">
+                        {journeySelectionEnabled && (
+                          <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-emerald-200">
+                            <input
+                              type="checkbox"
+                              checked={isJourneyAchievement}
+                              onChange={() => toggleJourneySelection(achievement.id)}
+                              className="accent-emerald-400"
+                            />
+                            Jornada
+                          </label>
+                        )}
                         <button type="button" onClick={() => setMinimized((current) => ({ ...current, [achievement.id]: true }))} className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white/50">− Minimizar</button>
                         <button type="button" onClick={() => updateAchievement(achievement.id, { isHidden: !achievement.isHidden })} className="rounded-xl border border-cyan-400/25 bg-cyan-500/[0.06] px-3 py-2 text-xs font-black text-cyan-200">{achievement.isHidden ? "🙈 Oculta" : "👁️ Visível"}</button>
                         <button type="button" onClick={() => void toggleExophase(achievement.id)} className="rounded-xl border border-violet-400/25 bg-violet-500/[0.06] px-3 py-2 text-xs font-black text-violet-200">{achievement.isExophase ? "✓ Exophase" : "Exophase"}</button>

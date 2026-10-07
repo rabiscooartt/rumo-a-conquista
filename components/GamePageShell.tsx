@@ -30,6 +30,7 @@ export type GamePageShellInput = {
   firstJourney?: {
     status: "not_started" | "in_progress" | "completed";
     completedAt?: string;
+    achievementIds?: string[];
   };
   emblem?: {
     title?: string;
@@ -399,6 +400,13 @@ export default function GamePageShell({ slug, game }: Props) {
   const playedTime = formatPlayedTime(playedTimeMinutes);
   const showFirstJourneyPreview =
     resolvedFirstJourney?.status === "in_progress";
+  const journeyLockActive =
+    resolvedFirstJourney?.status === "completed" &&
+    (Boolean(resolvedFirstJourney.completedAt) ||
+      Array.isArray(resolvedFirstJourney.achievementIds));
+  const journeyIds = journeyLockActive
+    ? resolvedFirstJourney?.achievementIds ?? []
+    : [];
   const showQueuePreview =
     normalizeStatus(game.status) === "planned" && !showFirstJourneyPreview;
 
@@ -660,6 +668,8 @@ export default function GamePageShell({ slug, game }: Props) {
                       slug={slug}
                       achievements={achievements}
                       journeyPreview={showFirstJourneyPreview}
+                      journeyLockActive={journeyLockActive}
+                      journeyIds={journeyIds}
                       onStatesChange={setManualStates}
                     />
                   </section>

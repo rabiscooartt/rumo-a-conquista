@@ -46,6 +46,8 @@ type GameAchievementsPanelProps = {
   achievementsList?: AchievementInput[];
   onStatesChange?: (states: Record<string, ManualAchievementState>) => void;
   journeyPreview?: boolean;
+  journeyLockActive?: boolean;
+  journeyIds?: string[];
   game?: {
     slug?: string;
     title?: string;
@@ -425,6 +427,16 @@ export default function GameAchievementsPanel(
 
   const onStatesChange = props.onStatesChange;
   const journeyPreview = props.journeyPreview === true;
+  const journeyLockActive = props.journeyLockActive === true;
+  const journeyIdSet = useMemo(
+    () =>
+      new Set(
+        (props.journeyIds ?? [])
+          .map((id) => String(id).trim())
+          .filter(Boolean)
+      ),
+    [props.journeyIds]
+  );
 
   const [manualStates, setManualStates] = useState<
     Record<string, ManualAchievementState>
@@ -1159,6 +1171,13 @@ export default function GameAchievementsPanel(
             const status = state.status;
             const theme = getRankTheme(rank);
             const isLocked = status === "locked";
+            const isJourneyAchievement = journeyIdSet.has(
+              getAchievementKey(achievement)
+            );
+            const isJourneyBlocked =
+              journeyLockActive &&
+              !isJourneyAchievement &&
+              status !== "completed";
             const imagePath = getImagePath(gameSlug, achievement, state);
             const isSaved = savedAchievementTitle === achievement.title;
 
@@ -1166,8 +1185,8 @@ export default function GameAchievementsPanel(
               <article
                 key={achievement.id ?? achievement.title}
                 className={`relative border-l-2 border-b border-white/[0.06] transition ${
-                  isLocked
-                    ? "border-l-white/10 bg-black/20 opacity-55 grayscale"
+                  isLocked || isJourneyBlocked
+                    ? "border-l-white/10 bg-black/20 opacity-55"
                     : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
                 }`}
               >
@@ -1175,14 +1194,33 @@ export default function GameAchievementsPanel(
                   <div className="grid gap-3 md:grid-cols-[52px_1fr]">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
-                        isLocked ? "border-white/10" : theme.border
+                        isLocked || isJourneyBlocked
+                          ? "border-white/10"
+                          : theme.border
                       }`}
                     >
-                      <AchievementImage
-                        src={imagePath}
-                        fallback={rankTrophy[rank]}
-                        locked={isLocked}
-                      />
+                      {isJourneyBlocked ? (
+                        <div className="relative h-full w-full">
+                          <div className="absolute inset-0 blur-[4px]">
+                            <AchievementImage
+                              src={imagePath}
+                              fallback={rankTrophy[rank]}
+                              locked={true}
+                            />
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/35">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-black/70 text-sm shadow-[0_6px_18px_rgba(0,0,0,0.55)]">
+                              🔒
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <AchievementImage
+                          src={imagePath}
+                          fallback={rankTrophy[rank]}
+                          locked={isLocked}
+                        />
+                      )}
                     </div>
 
                     <div className="min-w-0">
@@ -1193,7 +1231,9 @@ export default function GameAchievementsPanel(
 
                         <span
                           className={`rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] ${
-                            isLocked ? "border-white/10 text-white/35" : theme.pill
+                            isLocked || isJourneyBlocked
+                              ? "border-white/10 text-white/35"
+                              : theme.pill
                           }`}
                         >
                           {rank === "Diamante" ? (
@@ -1211,12 +1251,27 @@ export default function GameAchievementsPanel(
                         <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
                           {rankDifficulty[rank]}
                         </span>
+                        {isJourneyAchievement && journeyLockActive && (
+                          <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[0.06] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-emerald-200">
+                            ✦ Jornada de Estreia
+                          </span>
+                        )}
+                        {isJourneyBlocked && (
+                          <span className="rounded-full border border-white/15 bg-black/25 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
+                            🔒 Fora da Jornada
+                          </span>
+                        )}
                       </div>
 
                       <p className="mt-1 max-w-[760px] text-[10px] leading-relaxed text-white/40 sm:text-[11px]">
                         {achievement.description ||
                           "Descrição ainda não definida."}
                       </p>
+                      {isJourneyBlocked && (
+                        <p className="mt-1 text-[9px] leading-relaxed text-white/25">
+                          Fora da Jornada de Estreia. Esta conquista fica bloqueada visualmente até entrar na sua progressão.
+                        </p>
+                      )}
                     </div>
                   </div>
 

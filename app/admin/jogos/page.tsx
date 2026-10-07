@@ -92,11 +92,25 @@ export default function NewGamesAdminPage() {
           earnedDateById?: unknown;
         };
 
-        const journeyIds = Array.isArray(draft.journeyIds)
+        const draftJourneyIds = Array.isArray(draft.journeyIds)
           ? draft.journeyIds
               .map((value) => String(value).trim())
               .filter(Boolean)
           : [];
+
+        const savedJourneyIds =
+          Array.isArray(selectedGame?.firstJourney?.achievementIds)
+            ? selectedGame.firstJourney.achievementIds
+                .map((value) => String(value).trim())
+                .filter(Boolean)
+            : undefined;
+
+        const journeyIds =
+          journeyCompleted && savedJourneyIds
+            ? savedJourneyIds
+            : journeyCompleted
+              ? []
+              : draftJourneyIds;
 
         const journeySet = new Set(journeyIds);
         const episodeById =
@@ -166,6 +180,13 @@ export default function NewGamesAdminPage() {
 
   const manualNextAchievementTitle =
     values?.nextAchievementMode === "manual" ? values.nextAchievement : "";
+
+  const journeyCompleted =
+    selectedGame?.firstJourney?.status === "completed" &&
+    (Boolean(selectedGame.firstJourney.completedAt) ||
+      Array.isArray(selectedGame.firstJourney.achievementIds));
+  const journeySelectionFinalized =
+    journeyCompleted && Array.isArray(selectedGame?.firstJourney?.achievementIds);
 
   async function restoreMouseData() {
     if (restoringMouse) return;
@@ -260,13 +281,51 @@ export default function NewGamesAdminPage() {
       const activating = !journeyActive(selectedGame);
 
       await updateGame(selectedGame.slug, {
-        firstJourney: {
-          status: activating ? "in_progress" : "completed",
-        },
+        firstJourney: activating
+          ? { status: "in_progress" }
+          : {
+              status: "completed",
+              completedAt: new Date().toISOString(),
+            },
         ...(activating
           ? { status: "progress" }
           : {}),
       });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveJourneySelection() {
+    if (!selectedGame || !journeyCompleted) return;
+
+    const achievementIds = Array.from(
+      new Set(journeyDraftIds.map((id) => String(id).trim()).filter(Boolean))
+    );
+
+    if (achievementIds.length === 0) {
+      window.alert("Selecione pelo menos uma conquista para a Jornada de Estreia.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const ok = await updateGame(selectedGame.slug, {
+        firstJourney: {
+          status: "completed",
+          completedAt:
+            selectedGame.firstJourney?.completedAt || new Date().toISOString(),
+          achievementIds,
+        },
+      });
+
+      if (ok) {
+        window.alert(
+          "Jornada de Estreia definida com " +
+            achievementIds.length +
+            (achievementIds.length === 1 ? " conquista." : " conquistas.")
+        );
+      }
     } finally {
       setSaving(false);
     }
@@ -574,6 +633,37 @@ export default function NewGamesAdminPage() {
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Desativada</p><p className="mt-2 text-sm font-black">Libera a página normal do jogo.</p></div>
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Próximo passo</p><p className="mt-2 text-sm font-black">A próxima conquista agora pode ser automática ou definida manualmente.</p></div>
                   </div>
+                  {journeyCompleted && (
+                    <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.035] p-4">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-[8px] font-black uppercase tracking-[0.16em] text-emerald-300/75">
+                            Jornada concluída
+                          </p>
+                          <p className="mt-1 text-sm font-black text-white">
+                            {journeySelectionFinalized
+                              ? `${journeyDraftIds.length} ${journeyDraftIds.length === 1 ? "conquista definida" : "conquistas definidas"} para a Jornada de Estreia.`
+                              : "Agora escolha quais conquistas realmente fizeram parte da sua primeira jornada."}
+                          </p>
+                          <p className="mt-1 text-[10px] leading-relaxed text-white/35">
+                            Durante a primeira jogada, nada é decidido. A seleção abaixo só passa a bloquear visualmente as demais conquistas depois que você salvar.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={() => void saveJourneySelection()}
+                          className="shrink-0 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-[9px] font-black uppercase tracking-[0.12em] text-emerald-100 hover:bg-emerald-400/20 disabled:opacity-50"
+                        >
+                          {saving
+                            ? "Salvando..."
+                            : journeySelectionFinalized
+                              ? "Atualizar seleção"
+                              : "Definir Jornada de Estreia"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </section>
 
                 <NewGameAchievementsEditor
@@ -581,6 +671,8 @@ export default function NewGamesAdminPage() {
                   game={selectedGame}
                   journeyIds={journeyDraftIds}
                   manualRecords={manualAchievementRecords}
+                  journeySelectionEnabled={journeyCompleted}
+                  onJourneyIdsChange={setJourneyDraftIds}
                   onSave={(update) => updateGame(selectedGame.slug, update)}
                 />
 
