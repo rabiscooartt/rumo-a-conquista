@@ -93,7 +93,12 @@ async function recoverStoredAchievementImages(
 
     for (let index = 0; index < achievements.length; index += 1) {
       const achievement = achievements[index];
-      if (achievement.image?.trim()) continue;
+      const currentImage = achievement.image?.trim() || "";
+      const looksLikeLocalPreparedImage =
+        currentImage.startsWith(
+          `/images/games/${gameSlug}/achievements/`
+        );
+      if (currentImage && !looksLikeLocalPreparedImage) continue;
 
       const key = normalizeAchievementFilename(achievement.title || "");
       if (!key) continue;
