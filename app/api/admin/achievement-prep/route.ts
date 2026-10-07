@@ -465,265 +465,6 @@ function extractVisualReference(block: string) {
   return null;
 }
 
-function parseExophaseCurrentFormat(source: string) {
-  const html = decodeHtml(source)
-    .replace(/\r/g, "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\n");
-
-  // O Exophase atual entrega cada conquista como um link /achievement/
-  // seguido da descrição e da porcentagem. Não dependemos de classes CSS
-  // específicas que podem mudar sem aviso.
-  const matches = Array.from(
-    html.matchAll(
-      /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*\/achievement\/[^"]+)"|'([^']*\/achievement\/[^']+)'|([^\s>]*\/achievement\/[^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
-    )
-  );
-
-  if (matches.length) {
-    const achievements: ExophaseAchievement[] = [];
-    const seen = new Set<string>();
-
-    for (let index = 0; index < matches.length; index += 1) {
-      const match = matches[index];
-      const href = match[1] || match[2] || match[3] || "";
-      const name = stripHtml(decodeHtml(match[4] || ""))
-        .replace(/\s+/g, " ")
-        .trim();
-
-      if (!href || !name) continue;
-
-      const endOfTitle = (match.index ?? 0) + match[0].length;
-      const nextTitle = index + 1 < matches.length
-        ? matches[index + 1].index ?? html.length
-        : html.length;
-
-      const following = stripHtml(
-        decodeHtml(html.slice(endOfTitle, nextTitle))
-      )
-        .replace(/\s+/g, " ")
-        .trim();
-
-      const percentMatch = following.match(
-        /(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?/
-      );
-
-      const rawDescription = percentMatch
-        ? following.slice(0, percentMatch.index).trim()
-        : following;
-
-      const description = rawDescription
-        .replace(/^(?:Image|Imagem)\s*/i, "")
-        .replace(/\s+/g, " ")
-        .trim();
-
-      if (!description) continue;
-
-      const key = norm(name);
-      if (!key || seen.has(key)) continue;
-
-      seen.add(key);
-      achievements.push({
-        name,
-        description,
-        percent: percentMatch
-          ? Number(percentMatch[1].replace(",", "."))
-          : undefined,
-        visualReferenceUrl: extractVisualReference(
-          html.slice(Math.max(0, (match.index ?? 0) - 5000), nextTitle)
-        ) ?? null,
-        detailUrl: resolveExophaseUrl(href),
-      });
-    }
-
-    if (achievements.length) return achievements;
-  }
-
-  // Fallback textual: cobre uma resposta do Reader em Markdown/texto, sem
-  // depender de HTML ou links.
-  const prepared = stripHtml(decodeHtml(source))
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((line) =>
-      line
-        .replace(/^!\[[^\]]*\]\([^)]*\)\s*$/, "")
-        .replace(/^\[([^\]]+)\]\([^)]*\)$/, "$1")
-        .replace(/\s+/g, " ")
-        .trim()
-    )
-    .filter(Boolean);
-
-  const achievements: ExophaseAchievement[] = [];
-  const seen = new Set<string>();
-  const percentRegex = /(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?/;
-
-  for (let index = 0; index < prepared.length; index += 1) {
-    const percentMatch = prepared[index].match(percentRegex);
-    if (!percentMatch) continue;
-
-    const candidates = prepared.slice(Math.max(0, index - 6), index);
-    const filtered = candidates.filter(
-      (line) =>
-        line !== "Image" &&
-        line !== "Imagem" &&
-        !/^https?:\/\//i.test(line) &&
-        !/^(?:all|earned|locked) achievements?$/i.test(line) &&
-        !/^\d+\s+(?:total )?(?:achievements?|conquistas?)$/i.test(line)
-    );
-
-    if (filtered.length < 2) continue;
-
-    const name = filtered[filtered.length - 2];
-    const description = filtered[filtered.length - 1];
-
-    const key = norm(name);
-    if (!key || seen.has(key) || !description) continue;
-
-    seen.add(key);
-    achievements.push({
-      name,
-      description,
-      percent: Number(percentMatch[1].replace(",", ".")),
-      visualReferenceUrl: null,
-      detailUrl: null,
-    });
-  }
-
-  return achievements.length ? achievements : null;
-}
-
-function parseExophaseAchievementLinks(html: string) {
-  const matches = Array.from(
-    html.matchAll(
-      /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*\/achievement\/[^""]+)"|'([^']*\/achievement\/[^']+)'|([^\s>]*\/achievement\/[^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
-    )
-  );
-
-  if (!matches.length) return null;
-
-  const achievements: ExophaseAchievement[] = [];
-  const seen = new Set<string>();
-
-  for (let index = 0; index < matches.length; index += 1) {
-    const match = matches[index];
-    const href = match[1] || match[2] || match[3] || "";
-    const name = stripHtml(decodeHtml(match[4] || ""))
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (!href || !name) continue;
-
-    const key = norm(name);
-    if (!key || seen.has(key)) continue;
-
-    const anchorEnd = (match.index ?? 0) + match[0].length;
-    const nextAnchorStart =
-      index + 1 < matches.length
-        ? matches[index + 1].index ?? html.length
-        : html.length;
-
-    const followingText = stripHtml(
-      decodeHtml(html.slice(anchorEnd, nextAnchorStart))
-    )
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const percentMatch = followingText.match(/(\d+(?:\.\d+)?)%/);
-    const percent = percentMatch ? Number(percentMatch[1]) : undefined;
-
-    let description = percentMatch
-      ? followingText.slice(0, percentMatch.index).trim()
-      : followingText;
-
-    description = description
-      .replace(/^(?:Image|Imagem)\s*/i, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (!description) continue;
-
-    const cardStart = Math.max(0, (match.index ?? 0) - 5000);
-    const visualReferenceUrl = extractVisualReference(
-      html.slice(cardStart, nextAnchorStart)
-    );
-
-    seen.add(key);
-    achievements.push({
-      name,
-      description,
-      percent,
-      visualReferenceUrl,
-      detailUrl: resolveExophaseUrl(href),
-    });
-  }
-
-  return achievements.length ? achievements : null;
-}
-
-function parseExophaseText(source: string) {
-  const prepared = decodeHtml(source)
-    .replace(/\r/g, "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/^\s*[-*+]\s+/gm, "")
-    .replace(/\s+\n/g, "\n")
-    .replace(/\n\s+/g, "\n");
-
-  const lines = prepared
-    .split("\n")
-    .map((line) => decodeHtml(line).replace(/\s+/g, " ").trim())
-    .filter(Boolean);
-
-  const percentRegex = /^(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?$/;
-  const achievements: ExophaseAchievement[] = [];
-  const seen = new Set<string>();
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const percentMatch = lines[index].match(percentRegex);
-    if (!percentMatch) continue;
-
-    const percent = Number(percentMatch[1].replace(",", "."));
-    const candidates: string[] = [];
-
-    for (let cursor = index - 1; cursor >= 0 && candidates.length < 8; cursor -= 1) {
-      const value = lines[cursor];
-      const lower = value.toLowerCase();
-
-      if (!value) continue;
-      if (lower === "image" || lower === "imagem") continue;
-      if (/^https?:\/\//i.test(value)) continue;
-      if (/^(?:steam|achievements?|conquistas|leaderboard|forum|game info|image|imagem)$/i.test(value)) continue;
-      if (/^\d+\s+(?:total )?(?:achievements?|conquistas?)$/i.test(value)) continue;
-      if (/^(?:all|earned|locked) achievements?$/i.test(value)) continue;
-
-      if (percentRegex.test(value)) break;
-
-      candidates.unshift(value);
-    }
-
-    if (candidates.length < 2) continue;
-
-    const name = candidates[candidates.length - 2];
-    const description = candidates[candidates.length - 1];
-    if (!name || !description) continue;
-
-    const key = norm(name);
-    if (!key || seen.has(key)) continue;
-
-    seen.add(key);
-    achievements.push({
-      name,
-      description,
-      percent: Number.isFinite(percent) ? percent : undefined,
-      visualReferenceUrl: null,
-      detailUrl: null,
-    });
-  }
-
-  return achievements.length ? achievements : null;
-}
-
 function parseExophaseHtml(html: string) {
   // Procuramos a abertura do elemento .award-title, e não o primeiro
   // fechamento de tag. Assim títulos com <span>/<a> internos não quebram.
@@ -833,80 +574,49 @@ async function fetchJinaHtml(
   url: string,
   waitForSelector = ".award-title"
 ) {
-  const targets = [
-    "https://r.jina.ai/" + url,
-    "https://r.jina.ai/" + url.replace(/^https:/i, "http:"),
-  ];
+  const readerUrl = "https://r.jina.ai/" + url;
 
-  let lastError = "";
+  try {
+    const browserResponse = await fetch(readerUrl, {
+      cache: "no-store",
+      headers: {
+        Accept: "text/html",
+        "X-Engine": "browser",
+        "X-Respond-With": "html",
+        "X-Respond-Timing": "network-idle",
+        "X-Wait-For-Selector": waitForSelector,
+        "X-No-Cache": "true",
+        "X-Timeout": "30",
+      },
+    });
 
-  for (const readerUrl of targets) {
-    // Tentativa 1: resposta simples do Reader. É a forma mais estável e
-    // normalmente devolve o conteúdo estruturado da página sem depender de
-    // cabeçalhos experimentais.
-    try {
-      const response = await fetch(readerUrl, {
-        cache: "no-store",
-        headers: {
-          Accept: "text/plain",
-        },
-      });
-
-      if (response.ok) {
-        const text = await response.text();
-        if (
-          text &&
-          text.length > 300 &&
-          (
-            /\b\d+(?:[.,]\d+)?%\b/.test(text) ||
-            /\b(?:Achievements|Conquistas)\b/i.test(text)
-          )
-        ) {
-          return text;
-        }
-        lastError = "Reader sem conteúdo estruturado suficiente.";
-      } else {
-        lastError = "Reader respondeu " + response.status + ".";
-      }
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : "Erro no Reader.";
+    if (browserResponse.ok) {
+      const html = await browserResponse.text();
+      if (html && html.includes("award-title")) return html;
     }
-
-    // Tentativa 2: navegador do Reader, somente quando a primeira resposta
-    // não trouxe a lista. Mantemos o seletor como dica, mas não dependemos
-    // dele para aceitar a resposta.
-    try {
-      const response = await fetch(readerUrl, {
-        cache: "no-store",
-        headers: {
-          Accept: "text/plain",
-          "X-Engine": "browser",
-          "X-Respond-With": "text",
-          ...(waitForSelector
-            ? { "X-Wait-For-Selector": waitForSelector }
-            : {}),
-        },
-      });
-
-      if (response.ok) {
-        const text = await response.text();
-        if (
-          text &&
-          text.length > 300 &&
-          (
-            /\b\d+(?:[.,]\d+)?%\b/.test(text) ||
-            /\b(?:Achievements|Conquistas)\b/i.test(text)
-          )
-        ) {
-          return text;
-        }
-      }
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : lastError;
-    }
+  } catch (error) {
+    console.error("[Jina Browser]", error);
   }
 
-  throw new Error(lastError || "Jina Reader não retornou conteúdo do Exophase.");
+  // Fallback de compatibilidade: nem toda resposta do Jina/Exophase
+  // aceita o modo browser/selector. Mantemos o Reader simples como segunda
+  // tentativa para não transformar uma falha do browser em erro da preparação.
+  const plainResponse = await fetch(readerUrl, {
+    cache: "no-store",
+    headers: {
+      Accept: "text/html",
+      "X-Respond-With": "html",
+      "X-Timeout": "20",
+    },
+  });
+
+  if (!plainResponse.ok) {
+    throw new Error(
+      "Jina Reader respondeu com status " + plainResponse.status
+    );
+  }
+
+  return plainResponse.text();
 }
 
 async function fetchExophaseAchievementImage(detailUrl: string) {
@@ -1005,101 +715,52 @@ async function hydrateExophaseVisualReferences(
 }
 
 async function fetchExophaseAchievements(url: string) {
-  // A página PT-BR é a fonte principal. Como o Exophase pode responder de
-  // formas diferentes conforme o transporte, tentamos várias combinações
-  // antes de desistir. Isso evita que uma mudança de HTML/anti-bot derrube
-  // toda a preparação.
-  const candidates = Array.from(
-    new Set([
-      url,
-      url.replace(/\/achievements\/pt-BR\/?$/i, "/achievements/"),
-      url.replace(/\/achievements\/pt-BR\/?$/i, "/achievements"),
-      url.replace(/https:/i, "http:"),
-      url.replace(/\/achievements\/pt-BR\/?$/i, "/achievements/").replace(/https:/i, "http:"),
-    ])
-  );
+  // Somente a rota PT-BR. Se o Exophase redirecionar para inglês, tentamos
+  // o mesmo endereço pelo Reader, mas nunca aceitamos a página inglesa.
+  const targetUrl = url;
 
-  const parseAny = (source: string) => {
-    const parsers = [
-      parseExophaseCurrentFormat,
-      parseExophaseAchievementLinks,
-      parseExophaseHtml,
-      parseExophaseText,
-    ];
+  try {
+    const response = await fetch(targetUrl, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+      },
+    });
 
-    for (const parser of parsers) {
-      try {
-        const parsed = parser(source);
-        if (parsed && parsed.length >= 1) {
-          return parsed;
+    if (response.ok) {
+      const html = await response.text();
+
+      if (isPortugueseExophasePage(html)) {
+        const achievements = parseExophaseHtml(html);
+
+        if (achievements) {
+          const hydrated = await hydrateExophaseVisualReferences(achievements);
+          return { url: targetUrl, achievements: hydrated };
         }
-      } catch (error) {
-        console.error("[Exophase Parser]", error);
       }
     }
-
-    return null;
-  };
-
-  for (const candidate of candidates) {
-    try {
-      const response = await fetch(candidate, {
-        cache: "no-store",
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.7",
-          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
-          Referer: "https://www.exophase.com/",
-          "Cache-Control": "no-cache",
-        },
-      });
-
-      if (!response.ok) continue;
-
-      const source = await response.text();
-      const achievements = parseAny(source);
-
-      if (achievements) {
-        const hydrated =
-          achievements.length > 0 &&
-          achievements.some((achievement) => achievement.detailUrl)
-            ? await hydrateExophaseVisualReferences(achievements)
-            : achievements;
-
-        return {
-          url: candidate,
-          achievements: hydrated,
-        };
-      }
-    } catch (error) {
-      console.error("[Exophase Direct Achievements]", candidate, error);
-    }
+  } catch (error) {
+    console.error("[Exophase Direct Achievements]", error);
   }
 
-  // Último recurso: Reader/Jina para cada candidato, primeiro simples e depois
-  // com browser rendering.
-  for (const candidate of candidates) {
-    try {
-      const source = await fetchJinaHtml(candidate, ".award-title");
-      const achievements = parseAny(source);
+  // Fallback de transporte: Jina apenas lê a página do Exophase.
+  try {
+    // Fallback robusto: Chromium + HTML renderizado + espera do bloco
+    // de conquistas. O Exophase pode montar parte do card/imagem via JS.
+    const html = await fetchJinaHtml(targetUrl, ".award-title");
+
+    if (isPortugueseExophasePage(html)) {
+      const achievements = parseExophaseHtml(html);
 
       if (achievements) {
-        const hydrated =
-          achievements.length > 0 &&
-          achievements.some((achievement) => achievement.detailUrl)
-            ? await hydrateExophaseVisualReferences(achievements)
-            : achievements;
-
-        return {
-          url: candidate,
-          achievements: hydrated,
-        };
+        const hydrated = await hydrateExophaseVisualReferences(achievements);
+        return { url: targetUrl, achievements: hydrated };
       }
-    } catch (error) {
-      console.error("[Exophase Reader Fallback]", candidate, error);
     }
+  } catch (error) {
+    console.error("[Exophase Reader Fallback]", error);
   }
 
   return null;
@@ -1188,9 +849,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Encontrei o jogo no Exophase, mas o servidor não conseguiu estruturar a lista automaticamente.",
-          browserFallbackAvailable: true,
-          exophaseUrl: exophaseGame.url,
+            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas em PT-BR dessa página.",
         },
         { status: 502 }
       );
