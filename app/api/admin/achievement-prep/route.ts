@@ -670,6 +670,35 @@ function parseExophaseHtml(html: string) {
   return parseExophaseText(html);
 }
 
+async function fetchJinaRenderedHtml(url: string) {
+  const readerUrl = "https://r.jina.ai/" + url;
+
+  const response = await fetch(readerUrl, {
+    cache: "no-store",
+    headers: {
+      Accept: "text/html",
+      "X-Engine": "browser",
+      "X-Respond-With": "html",
+      "X-No-Cache": "true",
+      "X-Wait-For-Selector": ".award-title",
+      "X-Timeout": "30",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      "Jina Browser HTML respondeu com status " + response.status
+    );
+  }
+
+  const html = await response.text();
+  if (!html || html.length < 500) {
+    throw new Error("Jina Browser HTML não retornou conteúdo suficiente.");
+  }
+
+  return html;
+}
+
 async function fetchJinaHtml(
   url: string,
   legacyWaitForSelector?: string
@@ -853,11 +882,10 @@ async function fetchExophaseAchievements(url: string) {
     console.error("[Exophase Direct Achievements]", error);
   }
 
-  // Fallback de transporte: Jina apenas lê a página do Exophase.
+  // Primeiro fallback: pedir ao Jina a página renderizada em HTML.
+  // Isso preserva os links /achievement/ e a estrutura dos cards do Exophase.
   try {
-    // Fallback robusto: Chromium + HTML renderizado + espera do bloco
-    // de conquistas. O Exophase pode montar parte do card/imagem via JS.
-    const html = await fetchJinaHtml(targetUrl, ".award-title");
+    const html = await fetchJinaRenderedHtml(targetUrl);
 
     const achievements =
       parseExophaseHtml(html) ??
@@ -868,7 +896,21 @@ async function fetchExophaseAchievements(url: string) {
       return { url: targetUrl, achievements };
     }
   } catch (error) {
-    console.error("[Exophase Reader Fallback]", error);
+    console.error("[Exophase Reader Rendered HTML]", error);
+  }
+
+  // Segundo fallback: conteúdo textual renderizado. Mantemos esse caminho
+  // para quando o Reader não devolver HTML, usando o parser textual atual.
+  try {
+    const text = await fetchJinaHtml(targetUrl, ".award-title");
+
+    const achievements = parseExophaseText(text);
+
+    if (achievements) {
+      return { url: targetUrl, achievements };
+    }
+  } catch (error) {
+    console.error("[Exophase Reader Text Fallback]", error);
   }
 
   return null;
