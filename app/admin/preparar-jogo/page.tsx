@@ -1626,6 +1626,10 @@ function PrepararJogoPage() {
     if (!result?.game.slug || publishing) return;
 
     const publishable = result.achievements.filter((a) => !a.notDoing);
+    const selectedJourneyIds = publishable
+      .filter((a) => a.journey)
+      .map((a) => a.id)
+      .filter(Boolean);
 
     if (!publishable.length) {
       setError("Nenhuma conquista está selecionada para publicação.");
@@ -1634,6 +1638,11 @@ function PrepararJogoPage() {
 
     if (publishable.some((a) => !a.description.trim())) {
       setError("Existem conquistas selecionadas sem descrição.");
+      return;
+    }
+
+    if (selectedJourneyIds.length === 0) {
+      setError("Selecione pelo menos uma conquista da Jornada de Estreia antes de publicar.");
       return;
     }
 
@@ -1695,6 +1704,12 @@ function PrepararJogoPage() {
           existingByTitle.get(normalizeKey(achievement.name));
 
         const existingRecord = existing as Record<string, unknown> | undefined;
+        const fallbackImage =
+          achievement.image?.trim() ||
+          String(existingRecord?.image || "").trim() ||
+          (achievement.isCustom
+            ? ""
+            : `/images/games/${result.game.slug}/achievements/${slugify(achievement.name)}.png`);
         const earnedDate =
           achievement.earnedDate?.trim() ||
           String(existingRecord?.earnedDate || "").trim();
@@ -1712,9 +1727,7 @@ function PrepararJogoPage() {
             String(existingRecord?.status || "").trim() ||
             (earnedDate ? "completed" : "locked"),
           earnedDate,
-          image:
-            achievement.image?.trim() ||
-            String(existingRecord?.image || "").trim(),
+          image: fallbackImage,
           isCustom: Boolean(achievement.isCustom),
           isHidden: false,
           source:
@@ -1745,7 +1758,13 @@ function PrepararJogoPage() {
           review: currentGame.review,
           manualTotalPlayedMinutes:
             currentGame.manual_total_played_minutes ?? null,
-          firstJourney: currentGame.firstJourney,
+          firstJourney: {
+            status: "completed",
+            completedAt:
+              currentGame.firstJourney?.completedAt ||
+              new Date().toISOString(),
+            achievementIds: selectedJourneyIds,
+          },
           achievementsList,
         }),
       });
@@ -1758,7 +1777,19 @@ function PrepararJogoPage() {
         );
       }
 
-      await persistPreparation(result.achievements);
+      const clearedAchievements = result.achievements.map((achievement) => ({
+        ...achievement,
+        journey: false,
+        journeySuggestion: false,
+      }));
+
+      await persistPreparation(clearedAchievements);
+      setResult((current) =>
+        current
+          ? { ...current, achievements: clearedAchievements }
+          : current
+      );
+      setJourneyPreparedCount(null);
       setPublished(true);
     } catch (error) {
       setError(
