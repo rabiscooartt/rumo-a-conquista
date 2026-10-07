@@ -35,6 +35,14 @@ function normalizeText(value: unknown, fallback = "") {
     .replace(/\s+/g, " ");
 }
 
+function normalizeDisplayText(value: unknown, fallback = "") {
+  if (typeof value !== "string" && typeof value !== "number") return fallback;
+
+  return String(value)
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 function normalizeTitle(value?: string) {
   return normalizeText(value)
     .replace(/[^a-z0-9\s]/g, "")
@@ -383,14 +391,14 @@ function buildAchievementDefinition(
   return {
     game_slug: gameSlug,
     legacy_id: legacyId,
-    title,
-    description: normalizeText(achievement.description),
+    title: normalizeDisplayText(achievement.title, `Conquista ${index + 1}`),
+    description: normalizeDisplayText(achievement.description),
     trophy: normalizeText(achievement.trophy ?? achievement.icon, ""),
     rank: normalizeRank(achievement.rank || achievement.difficulty),
-    image: normalizeText(achievement.image),
-    source: normalizeText(achievement.source, "manual"),
-    external_id: normalizeText(achievement.externalId) || null,
-    official_image: normalizeText(achievement.officialImage) || null,
+    image: normalizeDisplayText(achievement.image),
+    source: normalizeDisplayText(achievement.source, "manual"),
+    external_id: normalizeDisplayText(achievement.externalId) || null,
+    official_image: normalizeDisplayText(achievement.officialImage) || null,
     sort_order: index,
     is_custom: achievement.isCustom === true,
     is_hidden:
