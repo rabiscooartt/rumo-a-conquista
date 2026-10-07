@@ -183,6 +183,8 @@ export default function NewGameAchievementsEditor({
   onSave,
   journeyIds = [],
   manualRecords = {},
+  journeySelectionEnabled = false,
+  onJourneyIdsChange,
 }: {
   game: SiteGame;
   onSave: (update: Partial<SiteGame>) => Promise<boolean>;
