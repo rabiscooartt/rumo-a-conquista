@@ -466,90 +466,126 @@ function extractVisualReference(block: string) {
 }
 
 function parseExophaseCurrentFormat(source: string) {
-  const raw = decodeHtml(source)
-    .replace(/\\r/g, "")
-    .replace(/<br\\s*\\/?>/gi, "\\n")
-    .replace(/<\\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\\n");
+  const html = decodeHtml(source)
+    .replace(/\r/g, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\n");
 
+  // O Exophase atual entrega cada conquista como um link /achievement/
+  // seguido da descrição e da porcentagem. Não dependemos de classes CSS
+  // específicas que podem mudar sem aviso.
   const matches = Array.from(
-    raw.matchAll(/(\\d+(?:[.,]\\d+)?)%\\s*(?:\\(([-\\d.,]+)\\))?/g)
+    html.matchAll(
+      /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*\/achievement\/[^"]+)"|'([^']*\/achievement\/[^']+)'|([^\s>]*\/achievement\/[^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
+    )
   );
 
-  if (!matches.length) return null;
+  if (matches.length) {
+    const achievements: ExophaseAchievement[] = [];
+    const seen = new Set<string>();
+
+    for (let index = 0; index < matches.length; index += 1) {
+      const match = matches[index];
+      const href = match[1] || match[2] || match[3] || "";
+      const name = stripHtml(decodeHtml(match[4] || ""))
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!href || !name) continue;
+
+      const endOfTitle = (match.index ?? 0) + match[0].length;
+      const nextTitle = index + 1 < matches.length
+        ? matches[index + 1].index ?? html.length
+        : html.length;
+
+      const following = stripHtml(
+        decodeHtml(html.slice(endOfTitle, nextTitle))
+      )
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const percentMatch = following.match(
+        /(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?/
+      );
+
+      const rawDescription = percentMatch
+        ? following.slice(0, percentMatch.index).trim()
+        : following;
+
+      const description = rawDescription
+        .replace(/^(?:Image|Imagem)\s*/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!description) continue;
+
+      const key = norm(name);
+      if (!key || seen.has(key)) continue;
+
+      seen.add(key);
+      achievements.push({
+        name,
+        description,
+        percent: percentMatch
+          ? Number(percentMatch[1].replace(",", "."))
+          : undefined,
+        visualReferenceUrl: extractVisualReference(
+          html.slice(Math.max(0, (match.index ?? 0) - 5000), nextTitle)
+        ) ?? null,
+        detailUrl: resolveExophaseUrl(href),
+      });
+    }
+
+    if (achievements.length) return achievements;
+  }
+
+  // Fallback textual: cobre uma resposta do Reader em Markdown/texto, sem
+  // depender de HTML ou links.
+  const prepared = stripHtml(decodeHtml(source))
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^!\[[^\]]*\]\([^)]*\)\s*$/, "")
+        .replace(/^\[([^\]]+)\]\([^)]*\)$/, "$1")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .filter(Boolean);
 
   const achievements: ExophaseAchievement[] = [];
   const seen = new Set<string>();
+  const percentRegex = /(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?/;
 
-  for (const match of matches) {
-    const end = match.index ?? 0;
-    const windowStart = Math.max(0, end - 2200);
-    const before = raw.slice(windowStart, end);
+  for (let index = 0; index < prepared.length; index += 1) {
+    const percentMatch = prepared[index].match(percentRegex);
+    if (!percentMatch) continue;
 
-    const achievementLinks = Array.from(
-      before.matchAll(
-        /<a\\b[^>]*\\bhref\\s*=\\s*(?:"([^"]*\\/achievement\\/[^"]+)"|'([^']*\\/achievement\\/[^']+)'|([^\\s>]*\\/achievement\\/[^\\s>]+))[^>]*>([\\s\\S]*?)<\\/a>/gi
-      )
+    const candidates = prepared.slice(Math.max(0, index - 6), index);
+    const filtered = candidates.filter(
+      (line) =>
+        line !== "Image" &&
+        line !== "Imagem" &&
+        !/^https?:\/\//i.test(line) &&
+        !/^(?:all|earned|locked) achievements?$/i.test(line) &&
+        !/^\d+\s+(?:total )?(?:achievements?|conquistas?)$/i.test(line)
     );
 
-    let name = "";
-    let detailUrl: string | null = null;
+    if (filtered.length < 2) continue;
 
-    if (achievementLinks.length) {
-      const link = achievementLinks[achievementLinks.length - 1];
-      name = stripHtml(decodeHtml(link[4] || "")).replace(/\\s+/g, " ").trim();
-      const href = link[1] || link[2] || link[3] || "";
-      detailUrl = resolveExophaseUrl(href);
-    }
-
-    const cleanedBefore = stripHtml(decodeHtml(before))
-      .replace(/!\\[[^\\]]*\\]\\([^)]*\\)/g, "")
-      .replace(/\\[([^\\]]+)\\]\\([^)]*\\)/g, "$1")
-      .replace(/https?:\\/\\/\\S+/gi, "")
-      .split(/\\n+/)
-      .map((line) => line.replace(/^[>*-]\\s*/, "").replace(/\\s+/g, " ").trim())
-      .filter(Boolean);
-
-    if (!name) {
-      for (let i = cleanedBefore.length - 1; i >= 0; i -= 1) {
-        const candidate = cleanedBefore[i];
-        if (!candidate || candidate === "Image" || candidate === "Imagem") continue;
-        if (/^(?:all|earned|locked) achievements?$/i.test(candidate)) continue;
-        if (/^\\d+\\s+(?:total )?(?:achievements?|conquistas?)$/i.test(candidate)) continue;
-        name = candidate;
-        break;
-      }
-    }
-
-    if (!name) continue;
-
-    const nameIndex = cleanedBefore.findIndex(
-      (line) => line.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR")
-    );
-    const description =
-      nameIndex >= 0
-        ? cleanedBefore
-            .slice(nameIndex + 1)
-            .filter(
-              (line) =>
-                line !== "Image" &&
-                line !== "Imagem" &&
-                !/^(?:steam|achievements?|conquistas|leaderboard|forum|game info|list options)$/i.test(line)
-            )
-            .at(-1) ?? ""
-        : cleanedBefore.at(-1) ?? "";
-
-    if (!description) continue;
+    const name = filtered[filtered.length - 2];
+    const description = filtered[filtered.length - 1];
 
     const key = norm(name);
-    if (!key || seen.has(key)) continue;
+    if (!key || seen.has(key) || !description) continue;
 
     seen.add(key);
     achievements.push({
       name,
       description,
-      percent: Number((match[1] || "").replace(",", ".")),
-      visualReferenceUrl: extractVisualReference(before) ?? null,
-      detailUrl,
+      percent: Number(percentMatch[1].replace(",", ".")),
+      visualReferenceUrl: null,
+      detailUrl: null,
     });
   }
 
