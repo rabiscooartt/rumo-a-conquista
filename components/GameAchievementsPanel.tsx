@@ -1178,6 +1178,10 @@ export default function GameAchievementsPanel(
               journeyLockActive &&
               !isJourneyAchievement &&
               status !== "completed";
+            const journeyVisible =
+              journeyLockActive && isJourneyAchievement;
+            const visuallyLocked =
+              !journeyVisible && (isLocked || isJourneyBlocked);
             const imagePath = getImagePath(gameSlug, achievement, state);
             const isSaved = savedAchievementTitle === achievement.title;
 
@@ -1185,7 +1189,7 @@ export default function GameAchievementsPanel(
               <article
                 key={achievement.id ?? achievement.title}
                 className={`relative border-l-2 border-b border-white/[0.06] transition ${
-                  isLocked || isJourneyBlocked
+                  visuallyLocked
                     ? "border-l-white/10 bg-black/20 opacity-55"
                     : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
                 }`}
@@ -1194,18 +1198,18 @@ export default function GameAchievementsPanel(
                   <div className="grid gap-3 md:grid-cols-[52px_1fr]">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
-                        isLocked || isJourneyBlocked
+                        visuallyLocked
                           ? "border-white/10"
                           : theme.border
                       }`}
                     >
                       {isJourneyBlocked ? (
                         <div className="relative h-full w-full">
-                          <div className="absolute inset-0 blur-[4px]">
+                          <div className="absolute inset-0 scale-105 blur-[4px] opacity-75">
                             <AchievementImage
                               src={imagePath}
                               fallback={rankTrophy[rank]}
-                              locked={true}
+                              locked={false}
                             />
                           </div>
                           <div className="absolute inset-0 flex items-center justify-center bg-black/35">
@@ -1218,7 +1222,7 @@ export default function GameAchievementsPanel(
                         <AchievementImage
                           src={imagePath}
                           fallback={rankTrophy[rank]}
-                          locked={isLocked}
+                          locked={visuallyLocked}
                         />
                       )}
                     </div>
@@ -1231,7 +1235,7 @@ export default function GameAchievementsPanel(
 
                         <span
                           className={`rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] ${
-                            isLocked || isJourneyBlocked
+                            visuallyLocked
                               ? "border-white/10 text-white/35"
                               : theme.pill
                           }`}
