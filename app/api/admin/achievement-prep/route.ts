@@ -864,16 +864,14 @@ async function fetchExophaseAchievements(url: string) {
     if (response.ok) {
       const html = await response.text();
 
-      if (isPortugueseExophasePage(html)) {
-        const achievements =
-          parseExophaseHtml(html) ??
-          parseExophaseAchievementLinks(html) ??
-          parseExophaseText(html);
+      const achievements =
+        parseExophaseHtml(html) ??
+        parseExophaseAchievementLinks(html) ??
+        parseExophaseText(html);
 
-        if (achievements) {
-          const hydrated = await hydrateExophaseVisualReferences(achievements);
-          return { url: targetUrl, achievements: hydrated };
-        }
+      if (achievements) {
+        const hydrated = await hydrateExophaseVisualReferences(achievements);
+        return { url: targetUrl, achievements: hydrated };
       }
     }
   } catch (error) {
@@ -886,16 +884,14 @@ async function fetchExophaseAchievements(url: string) {
     // de conquistas. O Exophase pode montar parte do card/imagem via JS.
     const html = await fetchJinaHtml(targetUrl, ".award-title");
 
-    if (isPortugueseExophasePage(html)) {
-      const achievements =
-          parseExophaseHtml(html) ??
-          parseExophaseAchievementLinks(html) ??
-          parseExophaseText(html);
+    const achievements =
+      parseExophaseHtml(html) ??
+      parseExophaseAchievementLinks(html) ??
+      parseExophaseText(html);
 
-      if (achievements) {
-        const hydrated = await hydrateExophaseVisualReferences(achievements);
-        return { url: targetUrl, achievements: hydrated };
-      }
+    if (achievements) {
+      const hydrated = await hydrateExophaseVisualReferences(achievements);
+      return { url: targetUrl, achievements: hydrated };
     }
   } catch (error) {
     console.error("[Exophase Reader Fallback]", error);
