@@ -11,6 +11,10 @@ import TrophyIcon from "@/components/TrophyIcon";
 type AchievementRank = "Bronze" | "Prata" | "Ouro";
 type AchievementStatus = "locked" | "progress" | "completed";
 type AchievementFilter = "all" | "completed" | "locked";
+type AchievementRecordMeta = {
+  episode?: string;
+  earnedDate?: string;
+};
 
 type EditableAchievement = FlexibleAchievementInput & {
   id: string;
@@ -51,6 +55,18 @@ function readBoolean(value: unknown, fallback = false) {
 
 function rankLabel(rank: AchievementRank) {
   return rank;
+}
+
+function formatRecordedDate(value?: string) {
+  const raw = readText(value, "").trim();
+  if (!raw) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const [year, month, day] = raw.split("-");
+    return day + "/" + month + "/" + year;
+  }
+
+  return raw;
 }
 
 function rankToTrophy(rank: AchievementRank) {
@@ -165,9 +181,13 @@ function AchievementImage({
 export default function NewGameAchievementsEditor({
   game,
   onSave,
+  journeyIds = [],
+  manualRecords = {},
 }: {
   game: SiteGame;
   onSave: (update: Partial<SiteGame>) => Promise<boolean>;
+  journeyIds?: string[];
+  manualRecords?: Record<string, AchievementRecordMeta>;
 }) {
   const [achievements, setAchievements] = useState(() =>
     normalizeAchievements(game.achievementsList, game.slug)
@@ -187,7 +207,22 @@ export default function NewGameAchievementsEditor({
     setExophaseOnly(false);
   }, [game]);
 
+  const journeyIdSet = useMemo(() => new Set(journeyIds), [journeyIds]);
+
   const completedCount = achievements.filter((item) => item.status === "completed").length;
+
+  const journeyCount = achievements.filter((item) =>
+    journeyIdSet.has(item.id)
+  ).length;
+
+  const manualRecordCount = achievements.filter((item) => {
+    if (journeyIdSet.has(item.id)) return false;
+    const record = manualRecords[item.id];
+    return Boolean(
+      readText(record?.episode, "").trim() ||
+        readText(record?.earnedDate, "").trim()
+    );
+  }).length;
 
   const rankCounts = useMemo(() => {
     const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
@@ -347,7 +382,7 @@ export default function NewGameAchievementsEditor({
           <p className="mt-1 text-xs text-white/35">
             {completedCount}/{achievements.length} concluídas
           </p>
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {([
               ["Bronze", rankCounts.Bronze],
               ["Prata", rankCounts.Prata],
@@ -358,6 +393,18 @@ export default function NewGameAchievementsEditor({
                 {count}
               </span>
             ))}
+
+            {journeyCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/25 bg-red-500/[0.08] px-2.5 py-1.5 text-[10px] font-black text-red-200">
+                ✦ Jornada de Estreia {journeyCount}
+              </span>
+            )}
+
+            {manualRecordCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-500/[0.06] px-2.5 py-1.5 text-[10px] font-black text-sky-200">
+                ✎ Registros manuais {manualRecordCount}
+              </span>
+            )}
           </div>
         </div>
 
@@ -415,6 +462,13 @@ export default function NewGameAchievementsEditor({
         {filteredAchievements.length > 0 ? filteredAchievements.map((achievement) => {
           const isMinimized = minimized[achievement.id] ?? true;
           const index = achievements.findIndex((item) => item.id === achievement.id);
+          const isJourneyAchievement = journeyIdSet.has(achievement.id);
+          const manualRecord = isJourneyAchievement
+            ? undefined
+            : manualRecords[achievement.id];
+          const recordEpisode = readText(manualRecord?.episode, "").trim();
+          const recordDate = formatRecordedDate(manualRecord?.earnedDate);
+          const hasManualRecord = Boolean(recordEpisode || recordDate);
 
           return (
             <article key={achievement.id} className={achievement.status === "locked"
@@ -431,10 +485,12 @@ export default function NewGameAchievementsEditor({
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black text-white">{achievement.title}</p>
-                      <p className="mt-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
+                      <p className="mt-1 flex flex-wrap items-center gap-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
                         <TrophyIcon rank={achievement.difficulty} className="inline-block h-4 w-4 align-middle" />
                         {achievement.isExophase ? " • Exophase" : ""}
                         {achievement.isHidden ? " • Oculta" : ""}
+                        {isJourneyAchievement ? " • Jornada de Estreia" : ""}
+                        {hasManualRecord ? " • Registro manual" : ""}
                       </p>
                     </div>
                   </div>
@@ -456,6 +512,28 @@ export default function NewGameAchievementsEditor({
                         </p>
                         <h4 className="mt-1 text-lg font-black text-white">{achievement.title}</h4>
                         <div className="mt-2 flex flex-wrap gap-2">
+                          {isJourneyAchievement && (
+                            <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-red-200">
+                              ✦ Jornada de Estreia
+                            </span>
+                          )}
+                          {hasManualRecord && (
+                            <>
+                              <span className="rounded-full border border-sky-400/25 bg-sky-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-sky-100">
+                                ✎ Registro manual
+                              </span>
+                              {recordEpisode && (
+                                <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/60">
+                                  🎬 {recordEpisode}
+                                </span>
+                              )}
+                              {recordDate && (
+                                <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/60">
+                                  📅 {recordDate}
+                                </span>
+                              )}
+                            </>
+                          )}
                           {achievement.isHidden && <span className="rounded-full border border-yellow-400/30 bg-yellow-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-yellow-200">Oculta</span>}
                           {achievement.isExophase && <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-violet-200">Exophase</span>}
                         </div>
