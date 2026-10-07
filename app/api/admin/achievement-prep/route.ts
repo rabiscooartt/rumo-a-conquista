@@ -672,7 +672,7 @@ function parseExophaseHtml(html: string) {
 
 async function fetchJinaHtml(
   url: string,
-  _legacyWaitForSelector?: string
+  legacyWaitForSelector?: string
 ) {
   const readerUrl = "https://r.jina.ai/" + url;
 
@@ -680,17 +680,24 @@ async function fetchJinaHtml(
     const browserResponse = await fetch(readerUrl, {
       cache: "no-store",
       headers: {
-        Accept: "text/html",
+        Accept: "text/plain",
         "X-Engine": "browser",
-        "X-Respond-With": "html",
+        "X-Respond-With": "text",
         "X-No-Cache": "true",
-        "X-Timeout": "30",
+        ...(legacyWaitForSelector
+          ? { "X-Wait-For-Selector": legacyWaitForSelector }
+          : {}),
       },
     });
 
     if (browserResponse.ok) {
-      const html = await browserResponse.text();
-      if (html && /\/achievement\//i.test(html)) return html;
+      const text = await browserResponse.text();
+      // O Reader pode devolver o conteúdo renderizado como texto mesmo quando
+      // a página original usa links/HTML. Não rejeitamos a resposta só porque
+      // ela não contém literalmente "/achievement/".
+      if (text && text.length > 300 && /\b\d+(?:[.,]\d+)?%\b/.test(text)) {
+        return text;
+      }
     }
   } catch (error) {
     console.error("[Jina Browser]", error);
@@ -699,10 +706,9 @@ async function fetchJinaHtml(
   const plainResponse = await fetch(readerUrl, {
     cache: "no-store",
     headers: {
-      Accept: "text/html",
-      "X-Respond-With": "html",
+      Accept: "text/plain",
+      "X-Respond-With": "text",
       "X-No-Cache": "true",
-      "X-Timeout": "20",
     },
   });
 
@@ -712,7 +718,10 @@ async function fetchJinaHtml(
     );
   }
 
-  return plainResponse.text();
+  const text = await plainResponse.text();
+  if (text && text.length > 300) return text;
+
+  throw new Error("Jina Reader não retornou conteúdo suficiente do Exophase.");
 }
 
 async function fetchExophaseAchievementImage(detailUrl: string) {
@@ -743,8 +752,12 @@ async function fetchExophaseAchievementImage(detailUrl: string) {
       cache: "no-store",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
+        "Accept":
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+        "Referer": "https://www.exophase.com/",
+        "Cache-Control": "no-cache",
       },
     });
 
