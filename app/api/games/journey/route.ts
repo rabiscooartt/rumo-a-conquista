@@ -40,7 +40,31 @@ function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
     record.achievementMeta &&
     typeof record.achievementMeta === "object" &&
     !Array.isArray(record.achievementMeta)
-      ? record.achievementMeta
+      ? Object.fromEntries(
+          Object.entries(record.achievementMeta as Record<string, unknown>).map(
+            ([id, rawMeta]) => {
+              const meta =
+                rawMeta && typeof rawMeta === "object" && !Array.isArray(rawMeta)
+                  ? (rawMeta as Record<string, unknown>)
+                  : {};
+
+              return [
+                String(id).trim(),
+                {
+                  ...(typeof meta.episode === "string" && meta.episode.trim()
+                    ? { episode: meta.episode.trim() }
+                    : {}),
+                  ...(typeof meta.date === "string" && meta.date.trim()
+                    ? { date: meta.date.trim() }
+                    : {}),
+                  ...(typeof meta.liveUrl === "string" && meta.liveUrl.trim()
+                    ? { liveUrl: meta.liveUrl.trim() }
+                    : {}),
+                },
+              ] as const;
+            }
+          )
+        )
       : undefined;
 
   return {
