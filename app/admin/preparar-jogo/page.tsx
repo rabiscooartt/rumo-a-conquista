@@ -208,6 +208,8 @@ function PrepararJogoPage() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [draftLoading, setDraftLoading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
@@ -1609,6 +1611,7 @@ function PrepararJogoPage() {
 
     setDraftLoading(true);
     setError("");
+    setPublished(false);
 
     try {
       await persistPreparation(result.achievements);
@@ -1616,6 +1619,160 @@ function PrepararJogoPage() {
       setError(e instanceof Error ? e.message : "Erro ao salvar rascunho.");
     } finally {
       setDraftLoading(false);
+    }
+  }
+
+  async function publishPreparation() {
+    if (!result?.game.slug || publishing) return;
+
+    const publishable = result.achievements.filter((a) => !a.notDoing);
+
+    if (!publishable.length) {
+      setError("Nenhuma conquista está selecionada para publicação.");
+      return;
+    }
+
+    if (publishable.some((a) => !a.description.trim())) {
+      setError("Existem conquistas selecionadas sem descrição.");
+      return;
+    }
+
+    setPublishing(true);
+    setError("");
+    setPublished(false);
+
+    try {
+      const gamesResponse = await fetch("/api/admin/games", {
+        cache: "no-store",
+      });
+      const gamesPayload = await gamesResponse.json().catch(() => null);
+
+      if (!gamesResponse.ok || !Array.isArray(gamesPayload?.games)) {
+        throw new Error(
+          gamesPayload?.error ||
+            "Não foi possível carregar os dados atuais do jogo."
+        );
+      }
+
+      const currentGame = gamesPayload.games.find(
+        (game: { slug?: unknown }) =>
+          String(game.slug || "") === result.game.slug
+      );
+
+      if (!currentGame) {
+        throw new Error("O jogo cadastrado não foi encontrado para publicação.");
+      }
+
+      const existingAchievements = Array.isArray(currentGame.achievementsList)
+        ? currentGame.achievementsList
+        : [];
+
+      const normalizeKey = (value: unknown) =>
+        slugify(String(value || "")).trim();
+
+      const existingById = new Map(
+        existingAchievements
+          .map((achievement: Record<string, unknown>) => [
+            String(achievement.id || "").trim(),
+            achievement,
+          ])
+          .filter(([id]) => Boolean(id))
+      );
+
+      const existingByTitle = new Map(
+        existingAchievements
+          .map((achievement: Record<string, unknown>) => [
+            normalizeKey(achievement.title),
+            achievement,
+          ])
+          .filter(([title]) => Boolean(title))
+      );
+
+      const rankTrophy = {
+        Bronze: "🥉",
+        Prata: "🥈",
+        Ouro: "🥇",
+      } as const;
+
+      const achievementsList = publishable.map((achievement) => {
+        const existing =
+          existingById.get(achievement.id) ||
+          existingByTitle.get(normalizeKey(achievement.name));
+
+        const existingRecord = existing as Record<string, unknown> | undefined;
+        const earnedDate =
+          achievement.earnedDate?.trim() ||
+          String(existingRecord?.earnedDate || "").trim();
+
+        return {
+          id: achievement.id,
+          title: achievement.name.trim(),
+          description: achievement.description.trim(),
+          trophy:
+            String(existingRecord?.trophy || "").trim() ||
+            rankTrophy[achievement.rank],
+          rank: achievement.rank,
+          difficulty: achievement.rank,
+          status:
+            String(existingRecord?.status || "").trim() ||
+            (earnedDate ? "completed" : "locked"),
+          earnedDate,
+          image:
+            achievement.image?.trim() ||
+            String(existingRecord?.image || "").trim(),
+          isCustom: Boolean(achievement.isCustom),
+          isHidden: false,
+          source:
+            String(existingRecord?.source || "").trim() ||
+            (achievement.isCustom ? "manual" : "Exophase"),
+          externalId: existingRecord?.externalId,
+          officialImage: existingRecord?.officialImage,
+        };
+      });
+
+      const response = await fetch("/api/admin/games", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: currentGame.slug,
+          title: currentGame.title,
+          subtitle: currentGame.subtitle,
+          status: currentGame.status,
+          progress: currentGame.progress,
+          hours: currentGame.hours,
+          currentObjective: currentGame.current_objective || "",
+          image: currentGame.image,
+          cardImage: currentGame.card_image,
+          platform: currentGame.platform,
+          finalBadge: currentGame.final_badge,
+          emblem: currentGame.emblem,
+          trophies: currentGame.trophies,
+          review: currentGame.review,
+          manualTotalPlayedMinutes:
+            currentGame.manual_total_played_minutes ?? null,
+          firstJourney: currentGame.firstJourney,
+          achievementsList,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || "Não foi possível publicar as conquistas."
+        );
+      }
+
+      await persistPreparation(result.achievements);
+      setPublished(true);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível publicar as conquistas."
+      );
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -2070,16 +2227,23 @@ function PrepararJogoPage() {
               <div className="flex flex-col items-stretch gap-1">
                 <button
                   type="button"
-                  disabled={!publicationStatus.ready || draftLoading}
+                  onClick={() => void publishPreparation()}
+                  disabled={!publicationStatus.ready || draftLoading || publishing}
                   className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[10px] font-black uppercase text-emerald-100 disabled:cursor-not-allowed disabled:opacity-35"
                   title={publicationStatus.ready ? "Publicar conquistas" : publicationStatus.reason}
                 >
-                  🚀 Publicar conquistas
+                  {publishing
+                    ? "⏳ Publicando..."
+                    : published
+                      ? "✅ Publicado"
+                      : "🚀 Publicar conquistas"}
                 </button>
                 <span className="text-[9px] text-white/25">
-                  {publicationStatus.ready
-                    ? "Pronto para publicar"
-                    : publicationStatus.reason}
+                  {published
+                    ? `Publicado: ${publicationStatus.selected} ${publicationStatus.selected === 1 ? "conquista" : "conquistas"}.`
+                    : publicationStatus.ready
+                      ? "Pronto para publicar"
+                      : publicationStatus.reason}
                 </span>
               </div>
             </div>
