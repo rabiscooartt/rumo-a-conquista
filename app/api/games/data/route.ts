@@ -80,12 +80,19 @@ function extractFirstJourney(review: unknown) {
     return undefined;
   }
 
+  const achievementIds = Array.isArray(record.achievementIds)
+    ? record.achievementIds
+        .map((item) => String(item).trim())
+        .filter(Boolean)
+    : undefined;
+
   return {
     status,
     completedAt:
       typeof record.completedAt === "string" && record.completedAt.trim()
         ? record.completedAt.trim()
         : undefined,
+    ...(achievementIds ? { achievementIds } : {}),
   };
 }
 
