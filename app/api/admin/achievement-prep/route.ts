@@ -465,6 +465,97 @@ function extractVisualReference(block: string) {
   return null;
 }
 
+function parseExophaseCurrentFormat(source: string) {
+  const raw = decodeHtml(source)
+    .replace(/\\r/g, "")
+    .replace(/<br\\s*\\/?>/gi, "\\n")
+    .replace(/<\\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\\n");
+
+  const matches = Array.from(
+    raw.matchAll(/(\\d+(?:[.,]\\d+)?)%\\s*(?:\\(([-\\d.,]+)\\))?/g)
+  );
+
+  if (!matches.length) return null;
+
+  const achievements: ExophaseAchievement[] = [];
+  const seen = new Set<string>();
+
+  for (const match of matches) {
+    const end = match.index ?? 0;
+    const windowStart = Math.max(0, end - 2200);
+    const before = raw.slice(windowStart, end);
+
+    const achievementLinks = Array.from(
+      before.matchAll(
+        /<a\\b[^>]*\\bhref\\s*=\\s*(?:"([^"]*\\/achievement\\/[^"]+)"|'([^']*\\/achievement\\/[^']+)'|([^\\s>]*\\/achievement\\/[^\\s>]+))[^>]*>([\\s\\S]*?)<\\/a>/gi
+      )
+    );
+
+    let name = "";
+    let detailUrl: string | null = null;
+
+    if (achievementLinks.length) {
+      const link = achievementLinks[achievementLinks.length - 1];
+      name = stripHtml(decodeHtml(link[4] || "")).replace(/\\s+/g, " ").trim();
+      const href = link[1] || link[2] || link[3] || "";
+      detailUrl = resolveExophaseUrl(href);
+    }
+
+    const cleanedBefore = stripHtml(decodeHtml(before))
+      .replace(/!\\[[^\\]]*\\]\\([^)]*\\)/g, "")
+      .replace(/\\[([^\\]]+)\\]\\([^)]*\\)/g, "$1")
+      .replace(/https?:\\/\\/\\S+/gi, "")
+      .split(/\\n+/)
+      .map((line) => line.replace(/^[>*-]\\s*/, "").replace(/\\s+/g, " ").trim())
+      .filter(Boolean);
+
+    if (!name) {
+      for (let i = cleanedBefore.length - 1; i >= 0; i -= 1) {
+        const candidate = cleanedBefore[i];
+        if (!candidate || candidate === "Image" || candidate === "Imagem") continue;
+        if (/^(?:all|earned|locked) achievements?$/i.test(candidate)) continue;
+        if (/^\\d+\\s+(?:total )?(?:achievements?|conquistas?)$/i.test(candidate)) continue;
+        name = candidate;
+        break;
+      }
+    }
+
+    if (!name) continue;
+
+    const nameIndex = cleanedBefore.findIndex(
+      (line) => line.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR")
+    );
+    const description =
+      nameIndex >= 0
+        ? cleanedBefore
+            .slice(nameIndex + 1)
+            .filter(
+              (line) =>
+                line !== "Image" &&
+                line !== "Imagem" &&
+                !/^(?:steam|achievements?|conquistas|leaderboard|forum|game info|list options)$/i.test(line)
+            )
+            .at(-1) ?? ""
+        : cleanedBefore.at(-1) ?? "";
+
+    if (!description) continue;
+
+    const key = norm(name);
+    if (!key || seen.has(key)) continue;
+
+    seen.add(key);
+    achievements.push({
+      name,
+      description,
+      percent: Number((match[1] || "").replace(",", ".")),
+      visualReferenceUrl: extractVisualReference(before) ?? null,
+      detailUrl,
+    });
+  }
+
+  return achievements.length ? achievements : null;
+}
+
 function parseExophaseAchievementLinks(html: string) {
   const matches = Array.from(
     html.matchAll(
@@ -894,8 +985,9 @@ async function fetchExophaseAchievements(url: string) {
 
   const parseAny = (source: string) => {
     const parsers = [
-      parseExophaseHtml,
+      parseExophaseCurrentFormat,
       parseExophaseAchievementLinks,
+      parseExophaseHtml,
       parseExophaseText,
     ];
 
