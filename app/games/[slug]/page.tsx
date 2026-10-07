@@ -314,6 +314,11 @@ export default function GamePage() {
           ? {
               status: game.firstJourney.status,
               completedAt: readText(game.firstJourney.completedAt, "") || undefined,
+              achievementIds: Array.isArray(game.firstJourney.achievementIds)
+                ? game.firstJourney.achievementIds
+                    .map((id) => readText(id, "").trim())
+                    .filter(Boolean)
+                : undefined,
             }
           : undefined,
       review: normalizeReview(game.review),
