@@ -428,14 +428,17 @@ export default function GameAchievementsPanel(
   const onStatesChange = props.onStatesChange;
   const journeyPreview = props.journeyPreview === true;
   const journeyLockActive = props.journeyLockActive === true;
-  const journeyIdSet = useMemo(
+  const journeyIdList = useMemo(
     () =>
-      new Set(
-        (props.journeyIds ?? [])
-          .map((id) => String(id).trim())
-          .filter(Boolean)
-      ),
+      (props.journeyIds ?? [])
+        .map((id) => String(id).trim())
+        .filter(Boolean),
     [props.journeyIds]
+  );
+
+  const journeyIdSet = useMemo(
+    () => new Set(journeyIdList),
+    [journeyIdList]
   );
 
   const [manualStates, setManualStates] = useState<
@@ -1171,9 +1174,17 @@ export default function GameAchievementsPanel(
             const status = state.status;
             const theme = getRankTheme(rank);
             const isLocked = status === "locked";
-            const isJourneyAchievement = journeyIdSet.has(
-              getAchievementKey(achievement)
-            );
+            const achievementKey = getAchievementKey(achievement);
+            const titleKey = slugify(achievement.title);
+            const isJourneyAchievement =
+              journeyIdSet.has(achievementKey) ||
+              journeyIdList.some((id) => {
+                const normalizedId = slugify(id);
+                return (
+                  normalizedId === titleKey ||
+                  normalizedId.endsWith("-" + titleKey)
+                );
+              });
             const isJourneyBlocked =
               journeyLockActive &&
               !isJourneyAchievement &&
