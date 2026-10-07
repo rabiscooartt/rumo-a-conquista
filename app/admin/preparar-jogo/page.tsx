@@ -346,7 +346,13 @@ function PrepararJogoPage() {
           "https://r.jina.ai/" + exophaseUrl,
           {
             cache: "no-store",
-            headers: { Accept: "text/plain" },
+            headers: {
+              Accept: "text/plain",
+              "X-Engine": "browser",
+              "X-Respond-With": "text",
+              "X-No-Cache": "true",
+              "X-Wait-For-Selector": ".award-title",
+            },
           }
         );
 
