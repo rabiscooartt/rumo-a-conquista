@@ -95,6 +95,7 @@ type DatabaseAchievementProgressRow = {
 type FirstJourneyState = {
   status?: "not_started" | "in_progress" | "completed";
   completedAt?: string;
+  achievementIds?: string[];
 };
 
 type GamePayload = {
@@ -130,12 +131,19 @@ function normalizeFirstJourney(
     return null;
   }
 
+  const achievementIds = Array.isArray(value.achievementIds)
+    ? value.achievementIds
+        .map((item) => String(item).trim())
+        .filter(Boolean)
+    : undefined;
+
   return {
     status: value.status as FirstJourneyState["status"],
     completedAt:
       typeof value.completedAt === "string" && value.completedAt.trim()
         ? value.completedAt.trim()
         : undefined,
+    ...(achievementIds ? { achievementIds } : {}),
   };
 }
 
