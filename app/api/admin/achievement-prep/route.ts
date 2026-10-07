@@ -706,49 +706,80 @@ async function fetchJinaHtml(
   url: string,
   waitForSelector = ".award-title"
 ) {
-  const readerUrl = "https://r.jina.ai/" + url;
+  const targets = [
+    "https://r.jina.ai/" + url,
+    "https://r.jina.ai/" + url.replace(/^https:/i, "http:"),
+  ];
 
-  try {
-    const browserResponse = await fetch(readerUrl, {
-      cache: "no-store",
-      headers: {
-        Accept: "text/html",
-        "X-Engine": "browser",
-        "X-Respond-With": "html",
-        "X-Respond-Timing": "network-idle",
-        "X-Wait-For-Selector": waitForSelector,
-        "X-No-Cache": "true",
-        "X-Timeout": "30",
-      },
-    });
+  let lastError = "";
 
-    if (browserResponse.ok) {
-      const html = await browserResponse.text();
-      if (html && html.includes("award-title")) return html;
+  for (const readerUrl of targets) {
+    // Tentativa 1: resposta simples do Reader. É a forma mais estável e
+    // normalmente devolve o conteúdo estruturado da página sem depender de
+    // cabeçalhos experimentais.
+    try {
+      const response = await fetch(readerUrl, {
+        cache: "no-store",
+        headers: {
+          Accept: "text/plain",
+        },
+      });
+
+      if (response.ok) {
+        const text = await response.text();
+        if (
+          text &&
+          text.length > 300 &&
+          (
+            /\\b\\d+(?:[.,]\\d+)?%\\b/.test(text) ||
+            /\\b(?:Achievements|Conquistas)\\b/i.test(text)
+          )
+        ) {
+          return text;
+        }
+        lastError = "Reader sem conteúdo estruturado suficiente.";
+      } else {
+        lastError = "Reader respondeu " + response.status + ".";
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : "Erro no Reader.";
     }
-  } catch (error) {
-    console.error("[Jina Browser]", error);
+
+    // Tentativa 2: navegador do Reader, somente quando a primeira resposta
+    // não trouxe a lista. Mantemos o seletor como dica, mas não dependemos
+    // dele para aceitar a resposta.
+    try {
+      const response = await fetch(readerUrl, {
+        cache: "no-store",
+        headers: {
+          Accept: "text/plain",
+          "X-Engine": "browser",
+          "X-Respond-With": "text",
+          ...(waitForSelector
+            ? { "X-Wait-For-Selector": waitForSelector }
+            : {}),
+        },
+      });
+
+      if (response.ok) {
+        const text = await response.text();
+        if (
+          text &&
+          text.length > 300 &&
+          (
+            /\\b\\d+(?:[.,]\\d+)?%\\b/.test(text) ||
+            /\\b(?:Achievements|Conquistas)\\b/i.test(text)
+          )
+        ) {
+          return text;
+        }
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : lastError;
+    }
   }
 
-  // Fallback de compatibilidade: nem toda resposta do Jina/Exophase
-  // aceita o modo browser/selector. Mantemos o Reader simples como segunda
-  // tentativa para não transformar uma falha do browser em erro da preparação.
-  const plainResponse = await fetch(readerUrl, {
-    cache: "no-store",
-    headers: {
-      Accept: "text/html",
-      "X-Respond-With": "html",
-      "X-Timeout": "20",
-    },
-  });
-
-  if (!plainResponse.ok) {
-    throw new Error(
-      "Jina Reader respondeu com status " + plainResponse.status
-    );
-  }
-
-  return plainResponse.text();
+  throw new Error(lastError || "Jina Reader não retornou conteúdo do Exophase.");
 }
 
 async function fetchExophaseAchievementImage(detailUrl: string) {
@@ -847,54 +878,100 @@ async function hydrateExophaseVisualReferences(
 }
 
 async function fetchExophaseAchievements(url: string) {
-  // Somente a rota PT-BR. Se o Exophase redirecionar para inglês, tentamos
-  // o mesmo endereço pelo Reader, mas nunca aceitamos a página inglesa.
-  const targetUrl = url;
+  // A página PT-BR é a fonte principal. Como o Exophase pode responder de
+  // formas diferentes conforme o transporte, tentamos várias combinações
+  // antes de desistir. Isso evita que uma mudança de HTML/anti-bot derrube
+  // toda a preparação.
+  const candidates = Array.from(
+    new Set([
+      url,
+      url.replace(/\\/achievements\\/pt-BR\\/?$/i, "/achievements/"),
+      url.replace(/\\/achievements\\/pt-BR\\/?$/i, "/achievements"),
+      url.replace(/https:/i, "http:"),
+      url.replace(/\\/achievements\\/pt-BR\\/?$/i, "/achievements/").replace(/https:/i, "http:"),
+    ])
+  );
 
-  try {
-    const response = await fetch(targetUrl, {
-      cache: "no-store",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
-        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
-      },
-    });
+  const parseAny = (source: string) => {
+    const parsers = [
+      parseExophaseHtml,
+      parseExophaseAchievementLinks,
+      parseExophaseText,
+    ];
 
-    if (response.ok) {
-      const html = await response.text();
-
-      const achievements =
-        parseExophaseHtml(html) ??
-        parseExophaseAchievementLinks(html) ??
-        parseExophaseText(html);
-
-      if (achievements) {
-        const hydrated = await hydrateExophaseVisualReferences(achievements);
-        return { url: targetUrl, achievements: hydrated };
+    for (const parser of parsers) {
+      try {
+        const parsed = parser(source);
+        if (parsed && parsed.length >= 1) {
+          return parsed;
+        }
+      } catch (error) {
+        console.error("[Exophase Parser]", error);
       }
     }
-  } catch (error) {
-    console.error("[Exophase Direct Achievements]", error);
+
+    return null;
+  };
+
+  for (const candidate of candidates) {
+    try {
+      const response = await fetch(candidate, {
+        cache: "no-store",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.7",
+          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+          Referer: "https://www.exophase.com/",
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (!response.ok) continue;
+
+      const source = await response.text();
+      const achievements = parseAny(source);
+
+      if (achievements) {
+        const hydrated =
+          achievements.length > 0 &&
+          achievements.some((achievement) => achievement.detailUrl)
+            ? await hydrateExophaseVisualReferences(achievements)
+            : achievements;
+
+        return {
+          url: candidate,
+          achievements: hydrated,
+        };
+      }
+    } catch (error) {
+      console.error("[Exophase Direct Achievements]", candidate, error);
+    }
   }
 
-  // Fallback de transporte: Jina apenas lê a página do Exophase.
-  try {
-    // Fallback robusto: Chromium + HTML renderizado + espera do bloco
-    // de conquistas. O Exophase pode montar parte do card/imagem via JS.
-    const html = await fetchJinaHtml(targetUrl, ".award-title");
+  // Último recurso: Reader/Jina para cada candidato, primeiro simples e depois
+  // com browser rendering.
+  for (const candidate of candidates) {
+    try {
+      const source = await fetchJinaHtml(candidate, ".award-title");
+      const achievements = parseAny(source);
 
-    const achievements =
-      parseExophaseHtml(html) ??
-      parseExophaseAchievementLinks(html) ??
-      parseExophaseText(html);
+      if (achievements) {
+        const hydrated =
+          achievements.length > 0 &&
+          achievements.some((achievement) => achievement.detailUrl)
+            ? await hydrateExophaseVisualReferences(achievements)
+            : achievements;
 
-    if (achievements) {
-      const hydrated = await hydrateExophaseVisualReferences(achievements);
-      return { url: targetUrl, achievements: hydrated };
+        return {
+          url: candidate,
+          achievements: hydrated,
+        };
+      }
+    } catch (error) {
+      console.error("[Exophase Reader Fallback]", candidate, error);
     }
-  } catch (error) {
-    console.error("[Exophase Reader Fallback]", error);
   }
 
   return null;
@@ -983,7 +1060,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas em PT-BR dessa página.",
+            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas depois de tentar os formatos direto, PT-BR, página padrão e Reader.",
         },
         { status: 502 }
       );
