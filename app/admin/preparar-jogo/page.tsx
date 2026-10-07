@@ -227,6 +227,7 @@ function PrepararJogoPage() {
   const [mergeTitle, setMergeTitle] = useState("");
   const [mergeDescription, setMergeDescription] = useState("");
   const [journeyPreparedCount, setJourneyPreparedCount] = useState<number | null>(null);
+  const [journeyAnalysisLoading, setJourneyAnalysisLoading] = useState(false);
   const [journeyStartEpisode, setJourneyStartEpisode] = useState("");
   const [journeyEpisodeSaving, setJourneyEpisodeSaving] = useState(false);
   const [journeyLiveOptions, setJourneyLiveOptions] = useState<YouTubePlaylistVideoOption[]>([]);
@@ -596,36 +597,78 @@ function PrepararJogoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.game.slug, result?.game.youtubeFirstLiveEpisode, result?.game.youtubePlaylistUrl]);
 
-  function prepareJourneyDecision() {
-    if (!result) return;
+  async function prepareJourneyDecision() {
+    if (!result?.game.slug || journeyAnalysisLoading) return;
 
-    setSaved(false);
+    setJourneyAnalysisLoading(true);
+    setError("");
 
-    const journeyEpisode = normalizeEpisode(
-      result.game.youtubeFirstLiveEpisode
-    );
-
-    const nextAchievements = result.achievements.map((a) => {
-      const journey = a.notDoing ? false : a.journey || a.journeySuggestion;
-
-      return {
-        ...a,
-        journey,
-        episode:
-          journey && journeyEpisode
-            ? "EP " + journeyEpisode
-            : a.episode ?? "",
+    try {
+      // Reconsulta a análise automática do servidor para não depender do
+      // estado do rascunho. O rascunho pode conter uma seleção anterior vazia
+      // e isso fazia o botão "Analisar Jornada" parecer não fazer nada.
+      const response = await fetch(
+        "/api/admin/achievement-prep?slug=" +
+          encodeURIComponent(result.game.slug),
+        { cache: "no-store" }
+      );
+      const payload = (await response.json()) as {
+        achievements?: Array<{
+          name?: string;
+          journey?: boolean;
+        }>;
+        error?: string;
       };
-    });
 
-    setJourneyPreparedCount(
-      nextAchievements.filter((a) => !a.notDoing && a.journey).length
-    );
+      if (!response.ok || !Array.isArray(payload.achievements)) {
+        throw new Error(
+          payload.error || "Não foi possível analisar a Jornada de Estreia."
+        );
+      }
 
-    setResult({
-      ...result,
-      achievements: nextAchievements,
-    });
+      const analyzedByName = new Map(
+        payload.achievements.map((achievement) => [
+          slugify(achievement.name ?? ""),
+          Boolean(achievement.journey),
+        ])
+      );
+
+      const nextAchievements = result.achievements.map((achievement) => {
+        // Conquistas customizadas continuam sob controle manual e não são
+        // sobrescritas pela análise automática do Exophase.
+        if (achievement.isCustom) {
+          return achievement;
+        }
+
+        const key = slugify(achievement.name);
+        const analyzedJourney = analyzedByName.get(key) ?? false;
+
+        return {
+          ...achievement,
+          journey: achievement.notDoing ? false : analyzedJourney,
+          journeySuggestion: analyzedJourney,
+        };
+      });
+
+      const preparedCount = nextAchievements.filter(
+        (achievement) => !achievement.notDoing && achievement.journey
+      ).length;
+
+      setSaved(false);
+      setJourneyPreparedCount(preparedCount);
+      setResult({
+        ...result,
+        achievements: nextAchievements,
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível analisar a Jornada de Estreia."
+      );
+    } finally {
+      setJourneyAnalysisLoading(false);
+    }
   }
 
   function toggle(id: string) {
@@ -2199,10 +2242,13 @@ function PrepararJogoPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={prepareJourneyDecision}
-                  className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 hover:bg-emerald-400/20"
+                  onClick={() => void prepareJourneyDecision()}
+                  disabled={journeyAnalysisLoading}
+                  className="shrink-0 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[9px] font-black uppercase text-emerald-100 hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  ⚡ Analisar Jornada
+                  {journeyAnalysisLoading
+                    ? "⏳ Analisando..."
+                    : "⚡ Analisar Jornada"}
                 </button>
               </div>
 
