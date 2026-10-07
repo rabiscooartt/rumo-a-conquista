@@ -379,7 +379,7 @@ function PrepararJogoPage() {
             .trim();
 
         const preparedLines = lines.map(cleanLine);
-        const percentRegex = /\b\d+(?:[.,]\d+)?%\b/;
+        const percentRegex = /\b\d+(?:[.,]\d+)?%/;
         const ignored = new Set([
           "Image",
           "Imagem",
