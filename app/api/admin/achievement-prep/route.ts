@@ -1060,7 +1060,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas depois de tentar os formatos direto, PT-BR, página padrão e Reader.",
+            "Encontrei o jogo no Exophase, mas o servidor não conseguiu estruturar a lista automaticamente.",
+          browserFallbackAvailable: true,
+          exophaseUrl: exophaseGame.url,
         },
         { status: 502 }
       );
