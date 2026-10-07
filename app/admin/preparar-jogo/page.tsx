@@ -2938,41 +2938,19 @@ function PrepararJogoPage() {
                                   <p className="truncate text-[10px] font-black uppercase tracking-[.06em] text-emerald-200/80">
                                     🟢 Jornada de Estreia · adquirida nas primeiras lives
                                   </p>
-                                  {result.game.youtubeFirstLiveEpisode && (
+                                  {result.game.youtubePlaylistUrl ? (
                                     <a
-                                      href={result.game.youtubeFirstLiveUrl || "#"}
-                                      target={result.game.youtubeFirstLiveUrl ? "_blank" : undefined}
-                                      rel={result.game.youtubeFirstLiveUrl ? "noreferrer" : undefined}
-                                      className="shrink-0 rounded-md border border-blue-400/20 bg-blue-400/[.06] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-blue-100 transition hover:border-blue-400/40 hover:bg-blue-400/[.12]"
-                                      onClick={(event) => {
-                                        if (!result.game.youtubeFirstLiveUrl) {
-                                          event.preventDefault();
-                                        }
-                                        event.stopPropagation();
-                                      }}
-                                    >
-                                      EP {normalizeEpisode(result.game.youtubeFirstLiveEpisode)}
-                                    </a>
-                                  )}
-                                  {result.game.youtubeFirstLiveEpisode ? (
-                                    <Link
-                                      href={
-                                        "/conteudo?game=" +
-                                        encodeURIComponent(result.game.slug ?? "") +
-                                        "&ep=" +
-                                        encodeURIComponent(
-                                          normalizeEpisode(result.game.youtubeFirstLiveEpisode) ||
-                                            result.game.youtubeFirstLiveEpisode.trim()
-                                        )
-                                      }
+                                      href={result.game.youtubePlaylistUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
                                       className="shrink-0 rounded-md border border-emerald-400/20 bg-emerald-400/[.06] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
                                       onClick={(event) => event.stopPropagation()}
                                     >
-                                      ▶ INÍCIO DAS LIVES
-                                    </Link>
+                                      ▶ ABRIR PLAYLIST
+                                    </a>
                                   ) : (
                                     <span className="shrink-0 rounded-md border border-yellow-400/15 bg-yellow-400/[.04] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-yellow-200/45">
-                                      EP de início da Jornada não cadastrado
+                                      Playlist do jogo não cadastrada
                                     </span>
                                   )}
                                 </div>
@@ -3000,30 +2978,19 @@ function PrepararJogoPage() {
                                 <p className="mt-1 text-xs font-black text-emerald-100/80">
                                   Adquirida nas primeiras lives
                                 </p>
-                                {result.game.youtubeFirstLiveEpisode && (
-                                  <p className="mt-2 text-[10px] font-black uppercase tracking-[.1em] text-blue-200/70">
-                                    EP de início: EP {normalizeEpisode(result.game.youtubeFirstLiveEpisode)}
-                                  </p>
-                                )}
                                 <p className="mt-1 text-[10px] leading-relaxed text-white/30">
-                                  Esta conquista faz parte da Jornada de Estreia, portanto não precisa de EP nem data individual.
+                                  Esta conquista faz parte da Jornada de Estreia, portanto não possui EP nem data individual.
                                 </p>
-                                {result.game.youtubeFirstLiveEpisode ? (
-                                  <Link
-                                    href={
-                                      "/conteudo?game=" +
-                                      encodeURIComponent(result.game.slug ?? "") +
-                                      "&ep=" +
-                                      encodeURIComponent(
-                                        normalizeEpisode(result.game.youtubeFirstLiveEpisode) ||
-                                          result.game.youtubeFirstLiveEpisode.trim()
-                                      )
-                                    }
+                                {result.game.youtubePlaylistUrl ? (
+                                  <a
+                                    href={result.game.youtubePlaylistUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
                                     className="mt-3 inline-flex rounded-lg border border-emerald-400/20 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100 transition hover:border-emerald-400/40 hover:bg-emerald-400/[.12]"
                                     onClick={(event) => event.stopPropagation()}
                                   >
-                                    ▶ INÍCIO DAS LIVES
-                                  </Link>
+                                    ▶ ABRIR PLAYLIST NO YOUTUBE
+                                  </a>
                                 ) : null}
                               </div>
                             ) : (
