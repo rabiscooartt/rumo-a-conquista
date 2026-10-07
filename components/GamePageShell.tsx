@@ -402,8 +402,8 @@ export default function GamePageShell({ slug, game }: Props) {
     resolvedFirstJourney?.status === "in_progress";
   const journeyLockActive =
     resolvedFirstJourney?.status === "completed" &&
-    (Boolean(resolvedFirstJourney.completedAt) ||
-      Array.isArray(resolvedFirstJourney.achievementIds));
+    Array.isArray(resolvedFirstJourney.achievementIds) &&
+    resolvedFirstJourney.achievementIds.length > 0;
   const journeyIds = journeyLockActive
     ? resolvedFirstJourney?.achievementIds ?? []
     : [];
