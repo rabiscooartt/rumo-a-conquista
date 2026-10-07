@@ -1721,18 +1721,10 @@ function PrepararJogoPage() {
           existingByTitle.get(normalizeKey(achievement.name));
 
         const existingRecord = existing as Record<string, unknown> | undefined;
-        const originalIndex = originalIndexById.get(achievement.id);
-        const numberedFallbackImage =
-          originalIndex
-            ? `/images/games/${result.game.slug}/achievements/${String(originalIndex).padStart(2, "0")}-${slugify(achievement.name)}.png`
-            : "";
         const fallbackImage =
           achievement.image?.trim() ||
           String(existingRecord?.image || "").trim() ||
-          (achievement.isCustom ? "" : numberedFallbackImage) ||
-          (achievement.isCustom
-            ? ""
-            : `/images/games/${result.game.slug}/achievements/${slugify(achievement.name)}.png`);
+          "";
         const earnedDate =
           achievement.earnedDate?.trim() ||
           String(existingRecord?.earnedDate || "").trim();
