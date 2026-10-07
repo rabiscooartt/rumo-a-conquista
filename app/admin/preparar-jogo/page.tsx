@@ -485,7 +485,10 @@ function PrepararJogoPage() {
 
         if (!cancelled && payload.found && payload.draft) {
           const draft = payload.draft;
-          const journeyIds = new Set<string>(draft.journeyIds ?? []);
+          const journeyFinalized = draft.journeyFinalized === true;
+          const journeyIds = journeyFinalized
+            ? new Set<string>()
+            : new Set<string>(draft.journeyIds ?? []);
           const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
           const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
           const episodeById = (draft.episodeById ?? {}) as Record<string, string>;
@@ -509,7 +512,10 @@ function PrepararJogoPage() {
 
                         return {
                           ...a,
-                          journey: isJourney,
+                          journey: journeyFinalized ? false : isJourney,
+                          journeySuggestion: journeyFinalized
+                            ? false
+                            : a.journeySuggestion,
                           notDoing: notDoingIds.has(a.id),
                           visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
                           episode:
@@ -1557,7 +1563,10 @@ function PrepararJogoPage() {
     setMergeTitle("");
     setMergeDescription("");
   }
-  async function persistPreparation(achievements: A[]) {
+  async function persistPreparation(
+    achievements: A[],
+    options: { journeyFinalized?: boolean } = {}
+  ) {
     if (!result?.game.slug) return;
 
     const response = await fetch("/api/admin/achievement-prep-draft", {
@@ -1593,6 +1602,7 @@ function PrepararJogoPage() {
               .map((a) => [a.id, a.earnedNote?.trim() ?? ""])
           ),
           customAchievements: achievements.filter((a) => a.isCustom),
+          journeyFinalized: options.journeyFinalized === true,
         },
       }),
     });
@@ -1796,7 +1806,9 @@ function PrepararJogoPage() {
         journeySuggestion: false,
       }));
 
-      await persistPreparation(clearedAchievements);
+      await persistPreparation(clearedAchievements, {
+        journeyFinalized: true,
+      });
       setResult((current) =>
         current
           ? { ...current, achievements: clearedAchievements }
