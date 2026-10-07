@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
+type FirstJourneyAchievementMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 type FirstJourneyState = {
   status: "not_started" | "in_progress" | "completed";
   completedAt?: string;
   achievementIds?: string[];
+  achievementMeta?: Record<string, FirstJourneyAchievementMeta>;
 };
 
 function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
@@ -29,6 +36,13 @@ function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
         .filter(Boolean)
     : undefined;
 
+  const achievementMeta =
+    record.achievementMeta &&
+    typeof record.achievementMeta === "object" &&
+    !Array.isArray(record.achievementMeta)
+      ? record.achievementMeta
+      : undefined;
+
   return {
     status,
     completedAt:
@@ -36,6 +50,7 @@ function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
         ? record.completedAt.trim()
         : undefined,
     ...(achievementIds ? { achievementIds } : {}),
+    ...(achievementMeta ? { achievementMeta } : {}),
   };
 }
 

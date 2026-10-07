@@ -28,10 +28,17 @@ export type GameEmblemInput = {
   unlockedAt?: string;
 };
 
+export type FirstJourneyAchievementMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 export type FirstJourneyState = {
   status: "not_started" | "in_progress" | "completed";
   completedAt?: string;
   achievementIds?: string[];
+  achievementMeta?: Record<string, FirstJourneyAchievementMeta>;
 };
 
 export type SiteGame = {

@@ -1708,6 +1708,83 @@ function PrepararJogoPage() {
         Ouro: "🥇",
       } as const;
 
+      // Resolve os episódios registrados nas conquistas contra a playlist do jogo.
+      // Assim, o EP fica clicável na página pública e abre a live correspondente.
+      const episodeVideoByNumber = new Map<string, string>();
+      const recordedEpisodes = publishable
+        .map((achievement) => normalizeEpisode(achievement.episode))
+        .filter(Boolean);
+
+      if (recordedEpisodes.length > 0 && currentGame.youtubePlaylistUrl) {
+        const playlistId = extractYoutubePlaylistId(
+          String(currentGame.youtubePlaylistUrl)
+        );
+
+        if (playlistId) {
+          try {
+            const playlistResponse = await fetch(
+              "/api/youtube/playlist?playlistId=" + encodeURIComponent(playlistId),
+              { cache: "no-store" }
+            );
+            const playlistPayload = await playlistResponse.json().catch(() => null);
+
+            if (playlistResponse.ok && Array.isArray(playlistPayload?.videos)) {
+              for (const episode of recordedEpisodes) {
+                const video = playlistPayload.videos.find(
+                  (item: { title?: unknown; playlistWatchUrl?: unknown }) =>
+                    titleMatchesEpisode(String(item.title || ""), episode)
+                );
+
+                if (video?.playlistWatchUrl) {
+                  episodeVideoByNumber.set(
+                    episode,
+                    String(video.playlistWatchUrl)
+                  );
+                }
+              }
+            }
+          } catch {
+            // A publicação não deve falhar só porque o catálogo do YouTube
+            // não respondeu. A conquista continua publicada sem o link da live.
+          }
+        }
+      }
+
+      const firstLiveEpisode = normalizeEpisode(
+        String(currentGame.youtubeFirstLiveEpisode || "")
+      );
+      const firstLiveUrl = String(currentGame.youtubeFirstLiveUrl || "").trim();
+
+      const achievementMeta = Object.fromEntries(
+        publishable
+          .map((achievement) => {
+            const episode = achievement.episode?.trim() || "";
+            const normalizedEpisode = normalizeEpisode(episode);
+            const date = achievement.earnedDate?.trim() || "";
+            const liveUrl =
+              episodeVideoByNumber.get(normalizedEpisode) ||
+              (normalizedEpisode && normalizedEpisode === firstLiveEpisode
+                ? firstLiveUrl
+                : "");
+
+            if (!normalizedEpisode && !date) {
+              return null;
+            }
+
+            return [
+              achievement.id,
+              {
+                ...(episode ? { episode } : {}),
+                ...(date ? { date } : {}),
+                ...(liveUrl ? { liveUrl } : {}),
+              },
+            ] as const;
+          })
+          .filter(Boolean) as Array<
+            [string, { episode?: string; date?: string; liveUrl?: string }]
+          >
+      );
+
       const originalIndexById = new Map(
         result.achievements.map((achievement, index) => [
           achievement.id,
@@ -1779,6 +1856,7 @@ function PrepararJogoPage() {
               currentGame.firstJourney?.completedAt ||
               new Date().toISOString(),
             achievementIds: selectedJourneyIds,
+            achievementMeta,
           },
           achievementsList,
         }),

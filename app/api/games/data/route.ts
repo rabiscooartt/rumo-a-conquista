@@ -40,6 +40,15 @@ function readText(value: unknown, fallback = "") {
   return fallback;
 }
 
+function extractYoutubePlaylistUrl(review: unknown) {
+  if (!review || typeof review !== "object" || Array.isArray(review)) {
+    return "";
+  }
+
+  const value = (review as Record<string, unknown>).__youtubePlaylistUrl;
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function extractYoutubeFirstLiveUrl(review: unknown) {
   if (!review || typeof review !== "object" || Array.isArray(review)) {
     return "";
@@ -86,6 +95,13 @@ function extractFirstJourney(review: unknown) {
         .filter(Boolean)
     : undefined;
 
+  const achievementMeta =
+    record.achievementMeta &&
+    typeof record.achievementMeta === "object" &&
+    !Array.isArray(record.achievementMeta)
+      ? record.achievementMeta
+      : undefined;
+
   return {
     status,
     completedAt:
@@ -93,6 +109,7 @@ function extractFirstJourney(review: unknown) {
         ? record.completedAt.trim()
         : undefined,
     ...(achievementIds ? { achievementIds } : {}),
+    ...(achievementMeta ? { achievementMeta } : {}),
   };
 }
 
@@ -242,6 +259,7 @@ export async function GET(request: NextRequest) {
           trophies: game.trophies ?? undefined,
           review: game.review ?? undefined,
           firstJourney: extractFirstJourney(game.review),
+          youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
           youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
           youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(game.review),
           manualTotalPlayedMinutes: game.manual_total_played_minutes ?? null,

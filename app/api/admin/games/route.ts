@@ -176,10 +176,17 @@ type DatabaseAchievementProgressRow = {
   image_override: string | null;
 };
 
+type FirstJourneyAchievementMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 type FirstJourneyState = {
   status?: "not_started" | "in_progress" | "completed";
   completedAt?: string;
   achievementIds?: string[];
+  achievementMeta?: Record<string, FirstJourneyAchievementMeta>;
 };
 
 type GamePayload = {
@@ -221,6 +228,37 @@ function normalizeFirstJourney(
         .filter(Boolean)
     : undefined;
 
+  const achievementMeta =
+    value.achievementMeta &&
+    typeof value.achievementMeta === "object" &&
+    !Array.isArray(value.achievementMeta)
+      ? Object.fromEntries(
+          Object.entries(value.achievementMeta as Record<string, unknown>).map(
+            ([id, rawMeta]) => {
+              const meta =
+                rawMeta && typeof rawMeta === "object" && !Array.isArray(rawMeta)
+                  ? (rawMeta as Record<string, unknown>)
+                  : {};
+
+              return [
+                String(id).trim(),
+                {
+                  ...(typeof meta.episode === "string" && meta.episode.trim()
+                    ? { episode: meta.episode.trim() }
+                    : {}),
+                  ...(typeof meta.date === "string" && meta.date.trim()
+                    ? { date: meta.date.trim() }
+                    : {}),
+                  ...(typeof meta.liveUrl === "string" && meta.liveUrl.trim()
+                    ? { liveUrl: meta.liveUrl.trim() }
+                    : {}),
+                },
+              ] as const;
+            }
+          )
+        )
+      : undefined;
+
   return {
     status: value.status as FirstJourneyState["status"],
     completedAt:
@@ -228,6 +266,7 @@ function normalizeFirstJourney(
         ? value.completedAt.trim()
         : undefined,
     ...(achievementIds ? { achievementIds } : {}),
+    ...(achievementMeta ? { achievementMeta } : {}),
   };
 }
 
@@ -492,11 +531,11 @@ function buildAchievementProgress(
       idByLegacyId.get(legacyIdFor(achievement, index)) ?? "",
     owner_key: OWNER_KEY,
     status: normalizeStatus(achievement.status),
-    earned_at: normalizeText(achievement.earnedDate) || null,
+    earned_at: normalizeDisplayText(achievement.earnedDate) || null,
     rank_override: normalizeRank(
       achievement.rank || achievement.difficulty
     ),
-    image_override: normalizeText(achievement.image) || null,
+    image_override: normalizeDisplayText(achievement.image) || null,
   };
 }
 

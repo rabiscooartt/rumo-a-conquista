@@ -308,6 +308,9 @@ export default function GamePage() {
       status,
       currentObjective: readText(game.currentObjective, ""),
       objective: readText(game.objective, ""),
+      youtubePlaylistUrl: readText(game.youtubePlaylistUrl, ""),
+      youtubeFirstLiveUrl: readText(game.youtubeFirstLiveUrl, ""),
+      youtubeFirstLiveEpisode: readText(game.youtubeFirstLiveEpisode, ""),
       achievementsList,
       firstJourney:
         game.firstJourney && typeof game.firstJourney === "object"
@@ -319,6 +322,11 @@ export default function GamePage() {
                     .map((id) => readText(id, "").trim())
                     .filter(Boolean)
                 : undefined,
+              achievementMeta:
+                game.firstJourney.achievementMeta &&
+                typeof game.firstJourney.achievementMeta === "object"
+                  ? game.firstJourney.achievementMeta
+                  : undefined,
             }
           : undefined,
       review: normalizeReview(game.review),

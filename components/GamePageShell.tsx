@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 import GameAchievementsPanel, {
   type AchievementInput,
+  type AchievementJourneyMeta,
   type ManualAchievementState,
 } from "@/components/GameAchievementsPanel";
 
@@ -27,10 +28,14 @@ export type GamePageShellInput = {
   developer?: string;
   releaseYear?: string;
   manualTotalPlayedMinutes?: number | null;
+  youtubePlaylistUrl?: string;
+  youtubeFirstLiveUrl?: string;
+  youtubeFirstLiveEpisode?: string;
   firstJourney?: {
     status: "not_started" | "in_progress" | "completed";
     completedAt?: string;
     achievementIds?: string[];
+    achievementMeta?: Record<string, AchievementJourneyMeta>;
   };
   emblem?: {
     title?: string;
@@ -670,6 +675,8 @@ export default function GamePageShell({ slug, game }: Props) {
                       journeyPreview={showFirstJourneyPreview}
                       journeyLockActive={journeyLockActive}
                       journeyIds={journeyIds}
+                      youtubePlaylistUrl={game.youtubePlaylistUrl}
+                      achievementMeta={resolvedFirstJourney?.achievementMeta}
                       onStatesChange={setManualStates}
                     />
                   </section>
