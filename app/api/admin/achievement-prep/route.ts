@@ -465,243 +465,114 @@ function extractVisualReference(block: string) {
   return null;
 }
 
-function parseExophaseAchievementLinks(html: string) {
-  const matches = Array.from(
-    html.matchAll(
-      /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*\/achievement\/[^""]+)"|'([^']*\/achievement\/[^']+)'|([^\s>]*\/achievement\/[^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
-    )
-  );
-
-  if (!matches.length) return null;
-
-  const achievements: ExophaseAchievement[] = [];
-  const seen = new Set<string>();
-
-  for (let index = 0; index < matches.length; index += 1) {
-    const match = matches[index];
-    const href = match[1] || match[2] || match[3] || "";
-    const name = stripHtml(decodeHtml(match[4] || ""))
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (!href || !name) continue;
-
-    const key = norm(name);
-    if (!key || seen.has(key)) continue;
-
-    const anchorEnd = (match.index ?? 0) + match[0].length;
-    const nextAnchorStart =
-      index + 1 < matches.length
-        ? matches[index + 1].index ?? html.length
-        : html.length;
-
-    const followingText = stripHtml(
-      decodeHtml(html.slice(anchorEnd, nextAnchorStart))
-    )
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const percentMatch = followingText.match(/(\d+(?:\.\d+)?)%/);
-    const percent = percentMatch ? Number(percentMatch[1]) : undefined;
-
-    let description = percentMatch
-      ? followingText.slice(0, percentMatch.index).trim()
-      : followingText;
-
-    description = description
-      .replace(/^(?:Image|Imagem)\s*/i, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (!description) continue;
-
-    const cardStart = Math.max(0, (match.index ?? 0) - 5000);
-    const visualReferenceUrl = extractVisualReference(
-      html.slice(cardStart, nextAnchorStart)
-    );
-
-    seen.add(key);
-    achievements.push({
-      name,
-      description,
-      percent,
-      visualReferenceUrl,
-      detailUrl: resolveExophaseUrl(href),
-    });
-  }
-
-  return achievements.length ? achievements : null;
-}
-
-function parseExophaseText(source: string) {
-  const prepared = decodeHtml(source)
-    .replace(/\r/g, "")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/^\s*[-*+]\s+/gm, "")
-    .replace(/\s+\n/g, "\n")
-    .replace(/\n\s+/g, "\n");
-
-  const lines = prepared
-    .split("\n")
-    .map((line) => decodeHtml(line).replace(/\s+/g, " ").trim())
-    .filter(Boolean);
-
-  const percentRegex = /^(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?$/;
-  const achievements: ExophaseAchievement[] = [];
-  const seen = new Set<string>();
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const percentMatch = lines[index].match(percentRegex);
-    if (!percentMatch) continue;
-
-    const percent = Number(percentMatch[1].replace(",", "."));
-    const candidates: string[] = [];
-
-    for (let cursor = index - 1; cursor >= 0 && candidates.length < 8; cursor -= 1) {
-      const value = lines[cursor];
-      const lower = value.toLowerCase();
-
-      if (!value) continue;
-      if (lower === "image" || lower === "imagem") continue;
-      if (/^https?:\/\//i.test(value)) continue;
-      if (/^(?:steam|achievements?|conquistas|leaderboard|forum|game info|image|imagem)$/i.test(value)) continue;
-      if (/^\d+\s+(?:total )?(?:achievements?|conquistas?)$/i.test(value)) continue;
-      if (/^(?:all|earned|locked) achievements?$/i.test(value)) continue;
-
-      if (percentRegex.test(value)) break;
-
-      candidates.unshift(value);
-    }
-
-    if (candidates.length < 2) continue;
-
-    const name = candidates[candidates.length - 2];
-    const description = candidates[candidates.length - 1];
-    if (!name || !description) continue;
-
-    const key = norm(name);
-    if (!key || seen.has(key)) continue;
-
-    seen.add(key);
-    achievements.push({
-      name,
-      description,
-      percent: Number.isFinite(percent) ? percent : undefined,
-      visualReferenceUrl: null,
-      detailUrl: null,
-    });
-  }
-
-  return achievements.length ? achievements : null;
-}
-
 function parseExophaseHtml(html: string) {
-  // Formato antigo do Exophase.
+  // Procuramos a abertura do elemento .award-title, e não o primeiro
+  // fechamento de tag. Assim títulos com <span>/<a> internos não quebram.
   const titleOpenMatches = Array.from(
     html.matchAll(
       /<([a-z0-9]+)\b[^>]*class=["'][^"']*\baward-title\b[^"']*["'][^>]*>/gi
     )
   );
 
-  if (titleOpenMatches.length) {
-    const achievements: ExophaseAchievement[] = titleOpenMatches
-      .map((match, index) => {
-        const titleStart = (match.index ?? 0) + match[0].length;
-        const nextTitleStart =
-          index + 1 < titleOpenMatches.length
-            ? titleOpenMatches[index + 1].index ?? html.length
-            : html.length;
-        const chunk = html.slice(titleStart, nextTitleStart);
-        const titlePart = chunk.split(/<\/[^>]+>/i)[0];
-        const title = stripHtml(titlePart);
-        if (!title) return null;
+  if (!titleOpenMatches.length) return null;
 
-        const previousTitleEnd =
-          index > 0
-            ? (titleOpenMatches[index - 1].index ?? 0) +
-              titleOpenMatches[index - 1][0].length
-            : 0;
-        const cardStart = Math.max(previousTitleEnd, (match.index ?? 0) - 8000);
-        const cardBlock = html.slice(cardStart, nextTitleStart);
-        const visualReferenceUrl = extractVisualReference(cardBlock);
+  const achievements: ExophaseAchievement[] = titleOpenMatches
+    .map((match, index) => {
+      const titleStart = (match.index ?? 0) + match[0].length;
+      const nextTitleStart =
+        index + 1 < titleOpenMatches.length
+          ? titleOpenMatches[index + 1].index ?? html.length
+          : html.length;
 
-        const detailLinkCandidates = Array.from(
-          cardBlock.matchAll(
-            /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>/gi
-          )
+      const chunk = html.slice(titleStart, nextTitleStart);
+
+      // O primeiro fechamento de tag depois da abertura normalmente encerra
+      // o <span>/<a> que contém o nome. O stripHtml cuida do restante.
+      const titlePart = chunk.split(/<\/[^>]+>/i)[0];
+      const title = stripHtml(titlePart);
+
+      if (!title) return null;
+
+      const previousTitleEnd =
+        index > 0
+          ? (titleOpenMatches[index - 1].index ?? 0) +
+            titleOpenMatches[index - 1][0].length
+          : 0;
+
+      // O ícone e o link da conquista podem ficar ANTES do .award-title,
+      // dentro do mesmo card. Por isso o parser precisa olhar para a janela
+      // inteira do card, e não somente para o HTML depois do título.
+      const cardStart = Math.max(
+        previousTitleEnd,
+        (match.index ?? 0) - 8000
+      );
+      const cardBlock = html.slice(cardStart, nextTitleStart);
+
+      const visualReferenceUrl = extractVisualReference(cardBlock);
+
+      // A página individual da conquista é o fallback mais confiável quando
+      // o card da listagem só expõe o texto "Image".
+      const detailLinkCandidates = Array.from(
+        cardBlock.matchAll(
+          /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>/gi
         )
-          .map((a) => a[1] || a[2] || a[3])
-          .filter(Boolean);
+      )
+        .map((a) => a[1] || a[2] || a[3])
+        .filter(Boolean);
 
-        const detailLink =
-          detailLinkCandidates.find((href) => /\/achievement\//i.test(href as string)) ||
-          extractAttribute(match[0], "href") ||
-          detailLinkCandidates[0] ||
-          null;
+      const detailLink =
+        detailLinkCandidates.find((href) =>
+          /\/achievement\//i.test(href as string)
+        ) ||
+        extractAttribute(match[0], "href") ||
+        detailLinkCandidates[0] ||
+        null;
 
-        const detailUrl = resolveExophaseUrl(detailLink);
-        const visible = stripHtml(chunk);
-        let detailText = visible;
-        if (detailText.toLowerCase().startsWith(title.toLowerCase())) {
-          detailText = detailText.slice(title.length).trim();
-        }
+      const detailUrl = resolveExophaseUrl(detailLink);
 
-        const percentMatch = detailText.match(/(\d+(?:\.\d+)?)%/);
-        const percent = percentMatch ? Number(percentMatch[1]) : undefined;
-        const description = (percentMatch
-          ? detailText.slice(0, percentMatch.index).trim()
-          : detailText.trim()
-        )
-          .replace(/^(?:Image|Imagem)\s+/i, "")
-          .replace(/\s+/g, " ")
-          .trim();
+      const visible = stripHtml(chunk);
+      let detailText = visible;
 
-        return { name: title, description, percent, visualReferenceUrl, detailUrl };
-      })
-      .filter(Boolean) as ExophaseAchievement[];
+      if (detailText.toLowerCase().startsWith(title.toLowerCase())) {
+        detailText = detailText.slice(title.length).trim();
+      }
 
-    if (achievements.length) return achievements;
-  }
+      const percentMatch = detailText.match(/(\d+(?:\.\d+)?)%/);
+      const percent = percentMatch ? Number(percentMatch[1]) : undefined;
 
-  // Formato atual: o Exophase pode entregar a mesma lista sem os antigos
-  // seletores award-title/award-description.
-  return parseExophaseText(html);
-}
+      let description = percentMatch
+        ? detailText.slice(0, percentMatch.index).trim()
+        : detailText.trim();
 
-async function fetchJinaRenderedHtml(url: string) {
-  const readerUrl = "https://r.jina.ai/" + url;
+      description = description
+        .replace(/^(?:Image|Imagem)\s+/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
 
-  const response = await fetch(readerUrl, {
-    cache: "no-store",
-    headers: {
-      Accept: "text/html",
-      "X-Engine": "browser",
-      "X-Respond-With": "html",
-      "X-No-Cache": "true",
-      "X-Wait-For-Selector": ".award-title",
-      "X-Timeout": "30",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      "Jina Browser HTML respondeu com status " + response.status
+      return {
+        name: title,
+        description,
+        percent,
+        visualReferenceUrl,
+        detailUrl,
+      };
+    })
+    .filter(
+      (achievement): achievement is {
+        name: string;
+        description: string;
+        percent: number | undefined;
+        visualReferenceUrl: string | null;
+        detailUrl: string | null;
+      } => Boolean(achievement)
     );
-  }
 
-  const html = await response.text();
-  if (!html || html.length < 500) {
-    throw new Error("Jina Browser HTML não retornou conteúdo suficiente.");
-  }
-
-  return html;
+  return achievements.length ? achievements : null;
 }
 
 async function fetchJinaHtml(
   url: string,
-  legacyWaitForSelector?: string
+  waitForSelector = ".award-title"
 ) {
   const readerUrl = "https://r.jina.ai/" + url;
 
@@ -709,35 +580,33 @@ async function fetchJinaHtml(
     const browserResponse = await fetch(readerUrl, {
       cache: "no-store",
       headers: {
-        Accept: "text/plain",
+        Accept: "text/html",
         "X-Engine": "browser",
-        "X-Respond-With": "text",
+        "X-Respond-With": "html",
+        "X-Respond-Timing": "network-idle",
+        "X-Wait-For-Selector": waitForSelector,
         "X-No-Cache": "true",
-        ...(legacyWaitForSelector
-          ? { "X-Wait-For-Selector": legacyWaitForSelector }
-          : {}),
+        "X-Timeout": "30",
       },
     });
 
     if (browserResponse.ok) {
-      const text = await browserResponse.text();
-      // O Reader pode devolver o conteúdo renderizado como texto mesmo quando
-      // a página original usa links/HTML. Não rejeitamos a resposta só porque
-      // ela não contém literalmente "/achievement/".
-      if (text && text.length > 300 && /\b\d+(?:[.,]\d+)?%\b/.test(text)) {
-        return text;
-      }
+      const html = await browserResponse.text();
+      if (html && html.includes("award-title")) return html;
     }
   } catch (error) {
     console.error("[Jina Browser]", error);
   }
 
+  // Fallback de compatibilidade: nem toda resposta do Jina/Exophase
+  // aceita o modo browser/selector. Mantemos o Reader simples como segunda
+  // tentativa para não transformar uma falha do browser em erro da preparação.
   const plainResponse = await fetch(readerUrl, {
     cache: "no-store",
     headers: {
-      Accept: "text/plain",
-      "X-Respond-With": "text",
-      "X-No-Cache": "true",
+      Accept: "text/html",
+      "X-Respond-With": "html",
+      "X-Timeout": "20",
     },
   });
 
@@ -747,10 +616,7 @@ async function fetchJinaHtml(
     );
   }
 
-  const text = await plainResponse.text();
-  if (text && text.length > 300) return text;
-
-  throw new Error("Jina Reader não retornou conteúdo suficiente do Exophase.");
+  return plainResponse.text();
 }
 
 async function fetchExophaseAchievementImage(detailUrl: string) {
@@ -781,12 +647,8 @@ async function fetchExophaseAchievementImage(detailUrl: string) {
       cache: "no-store",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36",
-        "Accept":
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+          "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
         "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
-        "Referer": "https://www.exophase.com/",
-        "Cache-Control": "no-cache",
       },
     });
 
@@ -871,10 +733,11 @@ async function fetchExophaseAchievements(url: string) {
       const html = await response.text();
 
       if (isPortugueseExophasePage(html)) {
-        const achievements = parseExophaseHtml(html) ?? parseExophaseAchievementLinks(html);
+        const achievements = parseExophaseHtml(html);
 
         if (achievements) {
-          return { url: targetUrl, achievements };
+          const hydrated = await hydrateExophaseVisualReferences(achievements);
+          return { url: targetUrl, achievements: hydrated };
         }
       }
     }
@@ -882,35 +745,22 @@ async function fetchExophaseAchievements(url: string) {
     console.error("[Exophase Direct Achievements]", error);
   }
 
-  // Primeiro fallback: pedir ao Jina a página renderizada em HTML.
-  // Isso preserva os links /achievement/ e a estrutura dos cards do Exophase.
+  // Fallback de transporte: Jina apenas lê a página do Exophase.
   try {
-    const html = await fetchJinaRenderedHtml(targetUrl);
+    // Fallback robusto: Chromium + HTML renderizado + espera do bloco
+    // de conquistas. O Exophase pode montar parte do card/imagem via JS.
+    const html = await fetchJinaHtml(targetUrl, ".award-title");
 
-    const achievements =
-      parseExophaseHtml(html) ??
-      parseExophaseAchievementLinks(html) ??
-      parseExophaseText(html);
+    if (isPortugueseExophasePage(html)) {
+      const achievements = parseExophaseHtml(html);
 
-    if (achievements) {
-      return { url: targetUrl, achievements };
+      if (achievements) {
+        const hydrated = await hydrateExophaseVisualReferences(achievements);
+        return { url: targetUrl, achievements: hydrated };
+      }
     }
   } catch (error) {
-    console.error("[Exophase Reader Rendered HTML]", error);
-  }
-
-  // Segundo fallback: conteúdo textual renderizado. Mantemos esse caminho
-  // para quando o Reader não devolver HTML, usando o parser textual atual.
-  try {
-    const text = await fetchJinaHtml(targetUrl, ".award-title");
-
-    const achievements = parseExophaseText(text);
-
-    if (achievements) {
-      return { url: targetUrl, achievements };
-    }
-  } catch (error) {
-    console.error("[Exophase Reader Text Fallback]", error);
+    console.error("[Exophase Reader Fallback]", error);
   }
 
   return null;
@@ -971,105 +821,6 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
   };
 }
 
-async function buildAchievementPreparation(
-  registeredGame: Awaited<ReturnType<typeof resolveGameTitle>>,
-  exophaseData: { url: string; achievements: ExophaseAchievement[] }
-) {
-  const exophaseRanks = balancedRanks(exophaseData.achievements);
-
-  const achievements = exophaseData.achievements.map((a, i) => {
-    const name = a.name?.trim() || "";
-    const description = a.description?.trim() || "";
-    const online = isOnline(name, description);
-    const momentary = isMomentary(name, description);
-    const journeyAnalysis = !online
-      ? analyzeJourney(registeredGame.title, name, description)
-      : { journey: false, confidence: "outside" as const };
-
-    return {
-      name,
-      description,
-      rank: exophaseRanks[i] ?? "Bronze",
-      online,
-      momentary,
-      journeySuggestion: false,
-      journey: journeyAnalysis.journey,
-      notDoing: false,
-      visualReferenceUrl: a.visualReferenceUrl ?? null,
-      image: null as string | null,
-      id:
-        "exophase-" +
-        slug(registeredGame.slug) +
-        "-achievement-" +
-        (i + 1) +
-        "-" +
-        slug(name || "conquista-" + (i + 1)),
-    };
-  });
-
-  try {
-    const client = createAdminSupabaseClient();
-    const { data: savedRows, error: savedRowsError } = await client
-      .from("achievements")
-      .select("id, title, sort_order, image")
-      .eq("game_slug", registeredGame.slug)
-      .order("sort_order", { ascending: true });
-
-    if (savedRowsError) throw savedRowsError;
-
-    const byTitle = new Map(
-      (savedRows ?? []).map((row) => [norm(row.title), row])
-    );
-    const byOrder = new Map(
-      (savedRows ?? [])
-        .filter((row) => Number.isFinite(Number(row.sort_order)))
-        .map((row) => [Number(row.sort_order), row])
-    );
-
-    for (const [index, achievement] of achievements.entries()) {
-      const row = byTitle.get(norm(achievement.name)) ?? byOrder.get(index);
-      if (!row) continue;
-
-      if (typeof row.image === "string" && row.image.trim()) {
-        achievement.image = row.image.trim();
-      }
-
-      const { error: updateError } = await client
-        .from("achievements")
-        .update({ rank: achievement.rank })
-        .eq("id", row.id)
-        .eq("game_slug", registeredGame.slug);
-
-      if (updateError) throw updateError;
-    }
-  } catch (rankSyncError) {
-    console.error("[Achievement Prep Rank Sync]", rankSyncError);
-  }
-
-  return NextResponse.json({
-    ok: true,
-    game: {
-      name: registeredGame.title,
-      slug: registeredGame.slug,
-      source: "Exophase",
-      registered: Boolean(registeredGame.slug),
-      youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
-      youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
-      youtubeFirstLiveEpisode: registeredGame.youtubeFirstLiveEpisode,
-      exophase: {
-        found: true,
-        url: exophaseData.url,
-        achievementCount: achievements.length,
-      },
-    },
-    achievements,
-    warnings: [
-      "Exophase é a fonte única desta preparação: nome, descrição e raridade vêm diretamente da página do jogo.",
-      "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",
-    ],
-  });
-}
-
 export async function GET(req: NextRequest) {
   const titleParam = req.nextUrl.searchParams.get("title")?.trim() ?? "";
   const slugParam = req.nextUrl.searchParams.get("slug")?.trim() ?? "";
@@ -1099,15 +850,111 @@ export async function GET(req: NextRequest) {
         {
           error:
             "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas em PT-BR dessa página.",
-          browserFallbackAvailable: true,
-          exophaseUrl: exophaseGame.url,
         },
         { status: 502 }
       );
     }
 
-    return buildAchievementPreparation(registeredGame, exophaseData);
+    const exophaseRanks = balancedRanks(exophaseData.achievements);
 
+    const achievements = exophaseData.achievements.map((a, i) => {
+      const name = a.name?.trim() || "";
+      const description = a.description?.trim() || "";
+      const online = isOnline(name, description);
+      const momentary = isMomentary(name, description);
+      const journeyAnalysis = !online
+        ? analyzeJourney(registeredGame.title, name, description)
+        : { journey: false, confidence: "outside" as const };
+      const journey = journeyAnalysis.journey;
+
+      return {
+        name,
+        description,
+        rank: exophaseRanks[i] ?? "Bronze",
+        online,
+        momentary,
+        journeySuggestion: false,
+        journey,
+        notDoing: false,
+        visualReferenceUrl: a.visualReferenceUrl ?? null,
+        image: null as string | null,
+        id:
+          "exophase-" +
+          slug(registeredGame.slug) +
+          "-achievement-" +
+          (i + 1) +
+          "-" +
+          slug(name || "conquista-" + (i + 1)),
+      };
+    });
+
+    // Sincroniza automaticamente os ranks calculados a partir da porcentagem
+    // atual do Exophase com os registros já existentes do jogo.
+    try {
+      const client = createAdminSupabaseClient();
+      const { data: savedRows, error: savedRowsError } = await client
+        .from("achievements")
+        .select("id, title, sort_order, image")
+        .eq("game_slug", registeredGame.slug)
+        .order("sort_order", { ascending: true });
+
+      if (savedRowsError) throw savedRowsError;
+
+      const byTitle = new Map(
+        (savedRows ?? []).map((row) => [norm(row.title), row])
+      );
+      const byOrder = new Map(
+        (savedRows ?? [])
+          .filter((row) => Number.isFinite(Number(row.sort_order)))
+          .map((row) => [Number(row.sort_order), row])
+      );
+
+      for (const [index, achievement] of achievements.entries()) {
+        const row =
+          byTitle.get(norm(achievement.name)) ??
+          byOrder.get(index);
+
+        if (!row) continue;
+
+        if (typeof row.image === "string" && row.image.trim()) {
+          achievement.image = row.image.trim();
+        }
+
+        const { error: updateError } = await client
+          .from("achievements")
+          .update({ rank: achievement.rank })
+          .eq("id", row.id)
+          .eq("game_slug", registeredGame.slug);
+
+        if (updateError) throw updateError;
+      }
+    } catch (rankSyncError) {
+      console.error("[Achievement Prep Rank Sync]", rankSyncError);
+      // A falha de rank não impede o preparador de carregar as conquistas.
+    }
+
+    return NextResponse.json({
+      ok: true,
+      game: {
+        name: registeredGame.title,
+        slug: registeredGame.slug,
+        source: "Exophase",
+        registered: Boolean(slugParam),
+        youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
+        youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
+        youtubeFirstLiveEpisode: registeredGame.youtubeFirstLiveEpisode,
+        exophase: {
+          found: true,
+          url: exophaseData.url,
+          achievementCount: achievements.length,
+        },
+      },
+      achievements,
+      warnings: [
+        "Exophase é a fonte única desta preparação: nome, descrição e raridade vêm diretamente da página do jogo.",
+        "Jornada de Estreia começa como sugestão automática para conquistas que parecem fazer parte da primeira conclusão normal do jogo. Conquistas online ficam fora dessa sugestão e conquistas momentâneas recebem um alerta para decisão do preparador.",
+      ],
+    });
   } catch (e) {
     console.error("[Achievement Prep]", e);
 
@@ -1115,53 +962,5 @@ export async function GET(req: NextRequest) {
       e instanceof Error ? e.message : "Não foi possível preparar o jogo.";
 
     return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-export async function POST(req: NextRequest) {
-  try {
-    const body = (await req.json()) as {
-      slug?: string;
-      title?: string;
-      exophaseUrl?: string;
-      achievements?: ExophaseAchievement[];
-    };
-
-    const achievements = Array.isArray(body.achievements)
-      ? body.achievements.filter((item) => item?.name && item?.description)
-      : [];
-
-    if (achievements.length === 0) {
-      return NextResponse.json(
-        { error: "Nenhuma conquista estruturada foi recebida do Exophase." },
-        { status: 422 }
-      );
-    }
-
-    const registeredGame = await resolveGameTitle(
-      body.slug?.trim() || null,
-      body.title?.trim() || ""
-    );
-
-    const exophaseUrl = body.exophaseUrl?.trim();
-    if (!exophaseUrl || !resolveExophaseUrl(exophaseUrl)) {
-      return NextResponse.json(
-        { error: "A URL do Exophase recebida é inválida." },
-        { status: 400 }
-      );
-    }
-
-    return buildAchievementPreparation(registeredGame, {
-      url: exophaseUrl,
-      achievements,
-    });
-  } catch (e) {
-    console.error("[Achievement Prep Browser]", e);
-    return NextResponse.json(
-      {
-        error:
-          e instanceof Error ? e.message : "Não foi possível preparar o jogo.",
-      },
-      { status: 500 }
-    );
   }
 }
