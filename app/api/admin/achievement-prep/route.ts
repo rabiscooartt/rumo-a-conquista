@@ -465,6 +465,138 @@ function extractVisualReference(block: string) {
   return null;
 }
 
+function parseExophaseAchievementLinks(html: string) {
+  const matches = Array.from(
+    html.matchAll(
+      /<a\b[^>]*\bhref\s*=\s*(?:"([^"]*\/achievement\/[^""]+)"|'([^']*\/achievement\/[^']+)'|([^\s>]*\/achievement\/[^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
+    )
+  );
+
+  if (!matches.length) return null;
+
+  const achievements: ExophaseAchievement[] = [];
+  const seen = new Set<string>();
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index];
+    const href = match[1] || match[2] || match[3] || "";
+    const name = stripHtml(decodeHtml(match[4] || ""))
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!href || !name) continue;
+
+    const key = norm(name);
+    if (!key || seen.has(key)) continue;
+
+    const anchorEnd = (match.index ?? 0) + match[0].length;
+    const nextAnchorStart =
+      index + 1 < matches.length
+        ? matches[index + 1].index ?? html.length
+        : html.length;
+
+    const followingText = stripHtml(
+      decodeHtml(html.slice(anchorEnd, nextAnchorStart))
+    )
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const percentMatch = followingText.match(/(\d+(?:\.\d+)?)%/);
+    const percent = percentMatch ? Number(percentMatch[1]) : undefined;
+
+    let description = percentMatch
+      ? followingText.slice(0, percentMatch.index).trim()
+      : followingText;
+
+    description = description
+      .replace(/^(?:Image|Imagem)\s*/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!description) continue;
+
+    const cardStart = Math.max(0, (match.index ?? 0) - 5000);
+    const visualReferenceUrl = extractVisualReference(
+      html.slice(cardStart, nextAnchorStart)
+    );
+
+    seen.add(key);
+    achievements.push({
+      name,
+      description,
+      percent,
+      visualReferenceUrl,
+      detailUrl: resolveExophaseUrl(href),
+    });
+  }
+
+  return achievements.length ? achievements : null;
+}
+
+function parseExophaseText(source: string) {
+  const prepared = decodeHtml(source)
+    .replace(/\r/g, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:div|p|li|section|article|h[1-6]|tr|td|th)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n\s+/g, "\n");
+
+  const lines = prepared
+    .split("\n")
+    .map((line) => decodeHtml(line).replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const percentRegex = /^(\d+(?:[.,]\d+)?)%\s*(?:\(([-\d.,]+)\))?$/;
+  const achievements: ExophaseAchievement[] = [];
+  const seen = new Set<string>();
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const percentMatch = lines[index].match(percentRegex);
+    if (!percentMatch) continue;
+
+    const percent = Number(percentMatch[1].replace(",", "."));
+    const candidates: string[] = [];
+
+    for (let cursor = index - 1; cursor >= 0 && candidates.length < 8; cursor -= 1) {
+      const value = lines[cursor];
+      const lower = value.toLowerCase();
+
+      if (!value) continue;
+      if (lower === "image" || lower === "imagem") continue;
+      if (/^https?:\/\//i.test(value)) continue;
+      if (/^(?:steam|achievements?|conquistas|leaderboard|forum|game info|image|imagem)$/i.test(value)) continue;
+      if (/^\d+\s+(?:total )?(?:achievements?|conquistas?)$/i.test(value)) continue;
+      if (/^(?:all|earned|locked) achievements?$/i.test(value)) continue;
+
+      if (percentRegex.test(value)) break;
+
+      candidates.unshift(value);
+    }
+
+    if (candidates.length < 2) continue;
+
+    const name = candidates[candidates.length - 2];
+    const description = candidates[candidates.length - 1];
+    if (!name || !description) continue;
+
+    const key = norm(name);
+    if (!key || seen.has(key)) continue;
+
+    seen.add(key);
+    achievements.push({
+      name,
+      description,
+      percent: Number.isFinite(percent) ? percent : undefined,
+      visualReferenceUrl: null,
+      detailUrl: null,
+    });
+  }
+
+  return achievements.length ? achievements : null;
+}
+
 function parseExophaseHtml(html: string) {
   // Procuramos a abertura do elemento .award-title, e não o primeiro
   // fechamento de tag. Assim títulos com <span>/<a> internos não quebram.
@@ -733,7 +865,10 @@ async function fetchExophaseAchievements(url: string) {
       const html = await response.text();
 
       if (isPortugueseExophasePage(html)) {
-        const achievements = parseExophaseHtml(html);
+        const achievements =
+          parseExophaseHtml(html) ??
+          parseExophaseAchievementLinks(html) ??
+          parseExophaseText(html);
 
         if (achievements) {
           const hydrated = await hydrateExophaseVisualReferences(achievements);
@@ -752,7 +887,10 @@ async function fetchExophaseAchievements(url: string) {
     const html = await fetchJinaHtml(targetUrl, ".award-title");
 
     if (isPortugueseExophasePage(html)) {
-      const achievements = parseExophaseHtml(html);
+      const achievements =
+          parseExophaseHtml(html) ??
+          parseExophaseAchievementLinks(html) ??
+          parseExophaseText(html);
 
       if (achievements) {
         const hydrated = await hydrateExophaseVisualReferences(achievements);
