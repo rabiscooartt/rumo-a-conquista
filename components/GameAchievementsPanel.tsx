@@ -1217,7 +1217,7 @@ export default function GameAchievementsPanel(
             Nenhuma conquista cadastrada ainda.
           </div>
         ) : sortedAchievements.length > 0 ? (
-          sortedAchievements.map((achievement) => {
+          sortedAchievements.map((achievement, index) => {
             const state =
               manualStates[achievement.title] ??
               createDefaultStates([achievement])[achievement.title];
@@ -1238,9 +1238,7 @@ export default function GameAchievementsPanel(
                 );
               });
             const isJourneyBlocked =
-              journeyLockActive &&
-              !isJourneyAchievement &&
-              status !== "completed";
+              journeyLockActive && !isJourneyAchievement;
             const journeyVisible =
               journeyLockActive && isJourneyAchievement;
             const visuallyLocked =
