@@ -1671,23 +1671,17 @@ function PrepararJogoPage() {
       const normalizeKey = (value: unknown) =>
         slugify(String(value || "")).trim();
 
-      const existingById = new Map(
-        existingAchievements
-          .map((achievement: Record<string, unknown>) => [
-            String(achievement.id || "").trim(),
-            achievement,
-          ])
-          .filter(([id]) => Boolean(id))
-      );
+      const existingById = new Map<string, Record<string, unknown>>();
+      for (const achievement of existingAchievements) {
+        const id = String(achievement.id || "").trim();
+        if (id) existingById.set(id, achievement);
+      }
 
-      const existingByTitle = new Map(
-        existingAchievements
-          .map((achievement: Record<string, unknown>) => [
-            normalizeKey(achievement.title),
-            achievement,
-          ])
-          .filter(([title]) => Boolean(title))
-      );
+      const existingByTitle = new Map<string, Record<string, unknown>>();
+      for (const achievement of existingAchievements) {
+        const key = normalizeKey(achievement.title);
+        if (key) existingByTitle.set(key, achievement);
+      }
 
       const rankTrophy = {
         Bronze: "🥉",
