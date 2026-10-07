@@ -50,6 +50,77 @@ function normalizeTitle(value?: string) {
     .trim();
 }
 
+function normalizeAchievementFilename(value: string) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/^\d+[-_\s]*/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function recoverStoredAchievementImages(
+  client: ReturnType<typeof createAdminSupabaseClient>,
+  gameSlug: string,
+  achievements: IncomingAchievement[]
+) {
+  try {
+    const { data: files, error } = await client.storage
+      .from("achievement-art")
+      .list(`games/${gameSlug}/achievements`, {
+        limit: 1000,
+        sortBy: { column: "name", order: "asc" },
+      });
+
+    if (error || !files) {
+      if (error) {
+        console.warn("[Achievement Art Recovery]", error.message);
+      }
+      return;
+    }
+
+    const candidates = files
+      .filter((file) => typeof file.name === "string" && file.name.trim())
+      .map((file) => ({
+        name: file.name.trim(),
+        key: normalizeAchievementFilename(file.name),
+        number: Number(
+          (file.name.match(/^(\d+)[-_\s]/) ?? [])[1] || 0
+        ),
+      }));
+
+    for (let index = 0; index < achievements.length; index += 1) {
+      const achievement = achievements[index];
+      if (achievement.image?.trim()) continue;
+
+      const key = normalizeAchievementFilename(achievement.title || "");
+      if (!key) continue;
+
+      const numbered = candidates.find(
+        (file) => file.number === index + 1 && file.key === key
+      );
+      const direct = candidates.find((file) => file.key === key);
+      const match = numbered ?? direct;
+
+      if (!match) continue;
+
+      const storagePath = `games/${gameSlug}/achievements/${match.name}`;
+      const { data } = client.storage
+        .from("achievement-art")
+        .getPublicUrl(storagePath);
+
+      if (data?.publicUrl) {
+        achievement.image = data.publicUrl;
+      }
+    }
+  } catch (error) {
+    console.warn("[Achievement Art Recovery] Falha:", error);
+  }
+}
+
+
 function normalizeSlug(value?: string) {
   return value?.trim() || "";
 }
@@ -551,6 +622,10 @@ async function syncAchievements(
 
     if (achievementsDeleteError) throw achievementsDeleteError;
   }
+
+  // Recupera artes que já estão no bucket mesmo quando a preparação atual
+  // não trouxe a URL. Isso evita apagar a arte em uma republicação.
+  await recoverStoredAchievementImages(client, gameSlug, uniqueIncoming);
 
   // Agora salvamos somente o conjunto único e atualizado.
   const definitions = uniqueIncoming.map((achievement, index) =>
