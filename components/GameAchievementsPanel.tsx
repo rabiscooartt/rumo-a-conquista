@@ -260,26 +260,65 @@ function getRankTheme(rank: Rank) {
   };
 }
 
-function buildAutoImagePath(gameSlug: string, achievementTitle: string) {
+function buildAutoImagePath(
+  gameSlug: string,
+  achievementTitle: string,
+  index?: number
+) {
   if (!gameSlug || !achievementTitle) {
     return "";
   }
 
-  return `/images/games/${gameSlug}/achievements/${slugify(
-    achievementTitle
-  )}.png`;
+  const slug = slugify(achievementTitle);
+  const numbered =
+    typeof index === "number"
+      ? `/images/games/${gameSlug}/achievements/${String(index + 1).padStart(2, "0")}-${slug}.png`
+      : "";
+
+  return numbered || `/images/games/${gameSlug}/achievements/${slug}.png`;
+}
+
+function buildAchievementImageCandidates(
+  gameSlug: string,
+  achievement: AchievementInput,
+  state?: ManualAchievementState,
+  index?: number
+) {
+  const candidates: string[] = [];
+  const explicit = state?.image?.trim() || achievement.image?.trim();
+
+  if (explicit) {
+    candidates.push(explicit);
+  }
+
+  const local = buildAutoImagePath(gameSlug, achievement.title, index);
+  if (local) candidates.push(local);
+
+  const supabaseBase = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
+  if (supabaseBase && gameSlug && achievement.title) {
+    const slug = slugify(achievement.title);
+    const bucketBase =
+      `${supabaseBase}/storage/v1/object/public/achievement-art/games/${gameSlug}/achievements/`;
+
+    if (typeof index === "number") {
+      candidates.push(
+        `${bucketBase}${String(index + 1).padStart(2, "0")}-${slug}.png`
+      );
+    }
+
+    candidates.push(`${bucketBase}${slug}.png`);
+  }
+
+  return Array.from(new Set(candidates));
 }
 
 function getImagePath(
   gameSlug: string,
   achievement: AchievementInput,
-  state?: ManualAchievementState
+  state?: ManualAchievementState,
+  index?: number
 ) {
-  return (
-    state?.image?.trim() ||
-    achievement.image?.trim() ||
-    buildAutoImagePath(gameSlug, achievement.title)
-  );
+  return buildAchievementImageCandidates(gameSlug, achievement, state, index)[0] ?? "";
 }
 
 function createDefaultStates(achievements: AchievementInput[]) {
@@ -332,15 +371,22 @@ function sortAchievements(
 }
 
 function AchievementImage({
-  src,
+  sources,
   fallback,
   locked,
 }: {
-  src: string;
+  sources: string[];
   fallback: string;
   locked: boolean;
 }) {
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const src = sources[sourceIndex] ?? "";
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setSourceIndex(0);
+    setHasError(false);
+  }, [sources.join("|")]);
 
   if (!src || hasError) {
     return (
@@ -361,7 +407,13 @@ function AchievementImage({
       className={`h-full w-full object-cover ${
         locked ? "opacity-35 grayscale" : ""
       }`}
-      onError={() => setHasError(true)}
+      onError={() => {
+        if (sourceIndex < sources.length - 1) {
+          setSourceIndex((current) => current + 1);
+          return;
+        }
+        setHasError(true);
+      }}
     />
   );
 }
@@ -1193,7 +1245,12 @@ export default function GameAchievementsPanel(
               journeyLockActive && isJourneyAchievement;
             const visuallyLocked =
               !journeyVisible && (isLocked || isJourneyBlocked);
-            const imagePath = getImagePath(gameSlug, achievement, state);
+            const imageCandidates = buildAchievementImageCandidates(
+              gameSlug,
+              achievement,
+              state,
+              index
+            );
             const isSaved = savedAchievementTitle === achievement.title;
 
             return (
@@ -1218,7 +1275,7 @@ export default function GameAchievementsPanel(
                         <div className="relative h-full w-full">
                           <div className="absolute inset-0 scale-105 blur-[4px] opacity-75">
                             <AchievementImage
-                              src={imagePath}
+                              sources={imageCandidates}
                               fallback={rankTrophy[rank]}
                               locked={false}
                             />
@@ -1231,7 +1288,7 @@ export default function GameAchievementsPanel(
                         </div>
                       ) : (
                         <AchievementImage
-                          src={imagePath}
+                          sources={imageCandidates}
                           fallback={rankTrophy[rank]}
                           locked={visuallyLocked}
                         />
