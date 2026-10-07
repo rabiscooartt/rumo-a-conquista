@@ -676,6 +676,32 @@ async function fetchJinaHtml(
 ) {
   const readerUrl = "https://r.jina.ai/" + url;
 
+  // Primeiro tentamos o engine direct. Ele não depende do Chromium do Jina
+  // e continua sendo uma leitura do próprio Exophase, sem trocar a fonte.
+  try {
+    const directResponse = await fetch(readerUrl, {
+      cache: "no-store",
+      headers: {
+        Accept: "text/html",
+        "X-Engine": "direct",
+        "X-Respond-With": "html",
+        "X-No-Cache": "true",
+        "X-Timeout": "20",
+      },
+    });
+
+    if (directResponse.ok) {
+      const html = await directResponse.text();
+      if (html && /\/achievement\//i.test(html)) return html;
+    } else {
+      console.error("[Jina Direct] status", directResponse.status);
+    }
+  } catch (error) {
+    console.error("[Jina Direct]", error);
+  }
+
+  // Segunda tentativa: Chromium renderizado, útil quando o Exophase monta
+  // parte da lista por JavaScript.
   try {
     const browserResponse = await fetch(readerUrl, {
       cache: "no-store",
@@ -691,11 +717,14 @@ async function fetchJinaHtml(
     if (browserResponse.ok) {
       const html = await browserResponse.text();
       if (html && /\/achievement\//i.test(html)) return html;
+    } else {
+      console.error("[Jina Browser] status", browserResponse.status);
     }
   } catch (error) {
     console.error("[Jina Browser]", error);
   }
 
+  // Última tentativa de compatibilidade com a rota simples do Reader.
   const plainResponse = await fetch(readerUrl, {
     cache: "no-store",
     headers: {
