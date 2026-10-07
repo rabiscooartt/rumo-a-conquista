@@ -731,8 +731,8 @@ async function fetchJinaHtml(
           text &&
           text.length > 300 &&
           (
-            /\\b\\d+(?:[.,]\\d+)?%\\b/.test(text) ||
-            /\\b(?:Achievements|Conquistas)\\b/i.test(text)
+            /\b\d+(?:[.,]\d+)?%\b/.test(text) ||
+            /\b(?:Achievements|Conquistas)\b/i.test(text)
           )
         ) {
           return text;
@@ -767,8 +767,8 @@ async function fetchJinaHtml(
           text &&
           text.length > 300 &&
           (
-            /\\b\\d+(?:[.,]\\d+)?%\\b/.test(text) ||
-            /\\b(?:Achievements|Conquistas)\\b/i.test(text)
+            /\b\d+(?:[.,]\d+)?%\b/.test(text) ||
+            /\b(?:Achievements|Conquistas)\b/i.test(text)
           )
         ) {
           return text;
@@ -885,10 +885,10 @@ async function fetchExophaseAchievements(url: string) {
   const candidates = Array.from(
     new Set([
       url,
-      url.replace(/\\/achievements\\/pt-BR\\/?$/i, "/achievements/"),
-      url.replace(/\\/achievements\\/pt-BR\\/?$/i, "/achievements"),
+      url.replace(/\/achievements\/pt-BR\/?$/i, "/achievements/"),
+      url.replace(/\/achievements\/pt-BR\/?$/i, "/achievements"),
       url.replace(/https:/i, "http:"),
-      url.replace(/\\/achievements\\/pt-BR\\/?$/i, "/achievements/").replace(/https:/i, "http:"),
+      url.replace(/\/achievements\/pt-BR\/?$/i, "/achievements/").replace(/https:/i, "http:"),
     ])
   );
 
