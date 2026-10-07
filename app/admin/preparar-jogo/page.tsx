@@ -1663,9 +1663,10 @@ function PrepararJogoPage() {
         throw new Error("O jogo cadastrado não foi encontrado para publicação.");
       }
 
-      const existingAchievements = Array.isArray(currentGame.achievementsList)
-        ? currentGame.achievementsList
-        : [];
+      const existingAchievements: Record<string, unknown>[] =
+        Array.isArray(currentGame.achievementsList)
+          ? currentGame.achievementsList
+          : [];
 
       const normalizeKey = (value: unknown) =>
         slugify(String(value || "")).trim();
