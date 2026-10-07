@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
@@ -24,6 +24,10 @@ export default function NewGamesAdminPage() {
   const [saving, setSaving] = useState(false);
   const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
+  const [journeyDraftIds, setJourneyDraftIds] = useState<string[]>([]);
+  const [manualAchievementRecords, setManualAchievementRecords] = useState<
+    Record<string, { episode?: string; earnedDate?: string }>
+  >({});
 
   const filteredGames = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -54,6 +58,101 @@ export default function NewGamesAdminPage() {
           youtubeFirstLiveEpisode: selectedGame.youtubeFirstLiveEpisode || "",
         }
     : null;
+
+  useEffect(() => {
+    const slug = selectedGame?.slug ?? "";
+
+    if (!slug) {
+      setJourneyDraftIds([]);
+      setManualAchievementRecords({});
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadAchievementOrganization() {
+      try {
+        const response = await fetch(
+          "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(slug),
+          { cache: "no-store" }
+        );
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !payload?.found || !payload?.draft) {
+          if (!cancelled) {
+            setJourneyDraftIds([]);
+            setManualAchievementRecords({});
+          }
+          return;
+        }
+
+        const draft = payload.draft as {
+          journeyIds?: unknown;
+          episodeById?: unknown;
+          earnedDateById?: unknown;
+        };
+
+        const journeyIds = Array.isArray(draft.journeyIds)
+          ? draft.journeyIds
+              .map((value) => String(value).trim())
+              .filter(Boolean)
+          : [];
+
+        const journeySet = new Set(journeyIds);
+        const episodeById =
+          draft.episodeById &&
+          typeof draft.episodeById === "object" &&
+          !Array.isArray(draft.episodeById)
+            ? (draft.episodeById as Record<string, unknown>)
+            : {};
+        const earnedDateById =
+          draft.earnedDateById &&
+          typeof draft.earnedDateById === "object" &&
+          !Array.isArray(draft.earnedDateById)
+            ? (draft.earnedDateById as Record<string, unknown>)
+            : {};
+
+        const ids = new Set([
+          ...Object.keys(episodeById),
+          ...Object.keys(earnedDateById),
+        ]);
+        const manualRecords: Record<
+          string,
+          { episode?: string; earnedDate?: string }
+        > = {};
+
+        ids.forEach((id) => {
+          if (journeySet.has(id)) return;
+
+          const episode = String(episodeById[id] ?? "").trim();
+          const earnedDate = String(earnedDateById[id] ?? "").trim();
+
+          if (episode || earnedDate) {
+            manualRecords[id] = {
+              episode: episode || undefined,
+              earnedDate: earnedDate || undefined,
+            };
+          }
+        });
+
+        if (!cancelled) {
+          setJourneyDraftIds(journeyIds);
+          setManualAchievementRecords(manualRecords);
+        }
+      } catch {
+        if (!cancelled) {
+          setJourneyDraftIds([]);
+          setManualAchievementRecords({});
+        }
+      }
+    }
+
+    void loadAchievementOrganization();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedGame?.slug]);
 
   const nextAchievementOptions = useMemo(() => {
     const achievements = Array.isArray(selectedGame?.achievementsList)
@@ -480,6 +579,8 @@ export default function NewGamesAdminPage() {
                 <NewGameAchievementsEditor
                   key={selectedGame.slug}
                   game={selectedGame}
+                  journeyIds={journeyDraftIds}
+                  manualRecords={manualAchievementRecords}
                   onSave={(update) => updateGame(selectedGame.slug, update)}
                 />
 
