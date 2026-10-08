@@ -724,8 +724,8 @@ export default function GamePageShell({ slug, game }: Props) {
                             <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
                               <IconGamepad className="h-5 w-5 text-white/80" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "—"}>
-                                {genres.length > 0 ? genres.join(", ") : "—"}
+                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "Não informado"}>
+                                {genres.length > 0 ? genres.join(", ") : "Não informado"}
                               </span>
                             </div>
         
@@ -733,7 +733,7 @@ export default function GamePageShell({ slug, game }: Props) {
                               <IconGamepad className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
-                                {game.platform || "—"}
+                                {game.platform || "Não informado"}
                               </span>
                             </div>
         
@@ -746,16 +746,16 @@ export default function GamePageShell({ slug, game }: Props) {
                             <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
                               <IconTrophy className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.developer || "—"}>
-                                {formatDeveloperName(developer)}
+                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={developer || "Não informado"}>
+                                {developer || "Não informado"}
                               </span>
                             </div>
         
                             <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
                               <IconCalendar className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear}>
-                                {releaseYear || "—"}
+                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear || "Não informado"}>
+                                {releaseYear || "Não informado"}
                               </span>
                             </div>
                           </div>
@@ -770,27 +770,24 @@ export default function GamePageShell({ slug, game }: Props) {
                         <SectionTitle>Emblema</SectionTitle>
         
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
-                          {emblem?.image ? (
-                            <div className="relative flex h-[210px] w-[210px] items-center justify-center">
-                              <img
-                                src={emblem.image}
-                                alt={emblem.title || "Emblema"}
-                                className={`h-full w-full object-contain transition-all ${emblemUnlocked ? "" : "scale-95 blur-[7px] opacity-45 grayscale"}`}
-                              />
-                              {!emblemUnlocked && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
-                                    🔒
-                                  </div>
+                          <div className="relative flex h-[210px] w-[210px] items-center justify-center">
+                            <img
+                              src={emblem?.image || "/images/trophies/maestria.png"}
+                              alt={emblem?.title || "Emblema"}
+                              className={`h-full w-full object-contain transition-all ${
+                                emblemUnlocked
+                                  ? ""
+                                  : "scale-95 blur-[7px] opacity-45 grayscale"
+                              }`}
+                            />
+                            {!emblemUnlocked && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
+                                  🔒
                                 </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex h-[210px] w-[210px] items-center justify-center text-5xl opacity-45">
-                              🏆
-                            </div>
-                          )}
-        
+                              </div>
+                            )}
+                          </div>
                           <p className={`mt-3 text-[12px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
                             {emblemUnlocked ? "Conquistado" : "Bloqueado"}
                           </p>
