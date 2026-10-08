@@ -395,13 +395,21 @@ export default function NewGameAchievementsEditor({
     <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">
-            03
-          </p>
-          <h3 className="mt-1 text-xl font-black text-white">
-            Conquistas
-          </h3>
-          <p className="mt-1 text-xs text-white/35">
+          <button
+            type="button"
+            onClick={() => setSectionCollapsed((value) => !value)}
+            aria-expanded={!sectionCollapsed}
+            className="group inline-flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+          >
+            <span className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">03</span>
+              <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-red-100">Conquistas</span>
+            </span>
+            <span aria-hidden="true" className="mt-3 text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
+              {sectionCollapsed ? "+" : "−"}
+            </span>
+          </button>
+          <p className="mt-1 text-xs text-white/45">
             {completedCount}/{achievements.length} concluídas
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -449,15 +457,6 @@ export default function NewGameAchievementsEditor({
           </button>
         </div>
         )}
-
-        <button
-          type="button"
-          onClick={() => setSectionCollapsed((value) => !value)}
-          aria-expanded={!sectionCollapsed}
-          className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[10px] font-black text-white/60 transition hover:border-red-500/30 hover:text-white"
-        >
-          {sectionCollapsed ? "+ Expandir" : "− Minimizar"}
-        </button>
 
       </div>
 
