@@ -145,11 +145,7 @@ function getTrophyRank(achievement: AchievementInput): TrophyRank {
 
   // Diamante representa a Maestria Final e não deve entrar na contagem
   // de Ouro. Assim, a sidebar separa corretamente Ouro de Maestria.
-  if (
-    difficulty === "extrema" ||
-    difficulty === "diamante" ||
-    difficulty === "maestria"
-  ) return "Maestria";
+  if (difficulty === "extrema" || difficulty === "diamante") return "Maestria";
   if (difficulty === "ouro") return "Ouro";
   if (difficulty === "media" || difficulty === "prata") return "Prata";
 
@@ -449,29 +445,17 @@ export default function GamePageShell({ slug, game }: Props) {
     : [];
   const showQueuePreview =
     normalizeStatus(game.status) === "planned" && !showFirstJourneyPreview;
-  const masteryAchievement = achievements.find(
-    (achievement) => getTrophyRank(achievement) === "Maestria"
-  );
   const masteryConfigured = Boolean(
-    masteryAchievement ||
     game.finalBadge?.title ||
     game.finalBadge?.image ||
     game.finalBadge?.description
   );
-  const masteryUnlocked = masteryAchievement
-    ? (
-        ["completed", "concluido", "concluida"].includes(
-          normalizeText(masteryAchievement.status)
-        ) ||
-        isJourneySelected(masteryAchievement)
-      )
-    : (
-        masteryConfigured &&
-        (
-          normalizeStatus(game.status) === "completed" ||
-          clamp(game.progress) >= 100
-        )
-      );
+  const masteryUnlocked =
+    masteryConfigured &&
+    (
+      normalizeStatus(game.status) === "completed" ||
+      clamp(game.progress) >= 100
+    );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -680,7 +664,9 @@ export default function GamePageShell({ slug, game }: Props) {
                           {TROPHY_META.map(({ rank, label }) => {
                             const isMastery = rank === "Maestria";
                             const total = isMastery
-                              ? 1
+                              ? masteryConfigured
+                                ? 1
+                                : 0
                               : achievements.filter(
                                   (achievement) => getTrophyRank(achievement) === rank
                                 ).length;
@@ -745,7 +731,6 @@ export default function GamePageShell({ slug, game }: Props) {
                       journeyIds={journeyIds}
                       youtubePlaylistUrl={game.youtubePlaylistUrl}
                       achievementMeta={resolvedFirstJourney?.achievementMeta}
-                      finalBadge={game.finalBadge}
                       onStatesChange={setManualStates}
                     />
                   </section>
