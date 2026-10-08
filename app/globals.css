@@ -98,28 +98,28 @@ html {
   background-image:
     radial-gradient(
       ellipse at 50% 0%,
-      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.04275) 0%,
       transparent 58%
     ),
     radial-gradient(
       ellipse at 8% 52%,
-      rgba(255, 255, 255, 0.018) 0%,
+      rgba(255, 255, 255, 0.0171) 0%,
       transparent 42%
     ),
     radial-gradient(
       ellipse at 94% 78%,
-      rgba(255, 255, 255, 0.014) 0%,
+      rgba(255, 255, 255, 0.0133) 0%,
       transparent 38%
     ),
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 1px,
+      rgba(255, 255, 255, 0.0114) 0px,
+      rgba(255, 255, 255, 0.0114) 1px,
       transparent 1px,
       transparent 7px
     ),
     radial-gradient(
-      rgba(255, 255, 255, 0.06) 0.65px,
+      rgba(255, 255, 255, 0.057) 0.65px,
       transparent 0.65px
     );
   background-size:
@@ -146,19 +146,19 @@ main.min-h-screen[class~="bg-[#050608]"] {
 main.min-h-screen[class*="bg-[radial-gradient"] {
   background-image:
     radial-gradient(
-      rgba(255, 255, 255, 0.06) 0.65px,
+      rgba(255, 255, 255, 0.057) 0.65px,
       transparent 0.65px
     ),
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 1px,
+      rgba(255, 255, 255, 0.0114) 0px,
+      rgba(255, 255, 255, 0.0114) 1px,
       transparent 1px,
       transparent 7px
     ),
     radial-gradient(
       ellipse at 50% 0%,
-      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.04275) 0%,
       transparent 58%
     ),
     radial-gradient(circle at top, #0b1624 0%, #050505 45%, #020202 100%) !important;
@@ -169,8 +169,16 @@ main.min-h-screen[class*="bg-[radial-gradient"] {
 /* Realce de leitura aplicado ao próprio texto, sem placas ou fundos atrás dele. */
 .game-sidebar-text-contrast p,
 .game-sidebar-text-contrast a,
-.game-sidebar-text-contrast span {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+.game-sidebar-text-contrast span,
+.game-sidebar-text-contrast h2 {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+/* Legibilidade extra para o link de navegação sobre o fundo texturizado. */
+.game-sidebar-text-contrast a {
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.98),
+    0 0 6px rgba(0, 0, 0, 0.55);
 }
 
 /* Ranks e estados bloqueados usam superfícies opacas para barrar a textura do fundo. */
