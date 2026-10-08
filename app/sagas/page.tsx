@@ -301,6 +301,32 @@ function shouldShowStandaloneGame(game: Record<string, unknown>) {
   return hasExplicitEmblemData(game) || isGameCompleted(game);
 }
 
+function getMasteryAchievementEarnedDate(game: Record<string, unknown>) {
+  const achievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  const masteryAchievement = achievements.find((value) => {
+    if (!value || typeof value !== "object") return false;
+
+    const achievement = value as Record<string, unknown>;
+    if (!isAchievementCompleted(achievement)) return false;
+
+    const title = normalizeText(achievement.title);
+    const rank = normalizeText(achievement.difficulty ?? achievement.rank);
+
+    return (
+      rank.includes("diamante") ||
+      title.includes("maestria") ||
+      title.includes("mastery") ||
+      title.includes("final") ||
+      title.includes("casoencerrado")
+    );
+  }) as Record<string, unknown> | undefined;
+
+  return readText(masteryAchievement?.earnedDate, "").trim();
+}
+
 function getGameEmblem(
   game: Record<string, unknown>,
   gameSlug: string,
@@ -357,6 +383,7 @@ function getGameEmblem(
         readText(gameEmblem?.unlockedAt, "") ||
         readText(game.emblemUnlockedAt, "") ||
         readText(finalBadge?.unlockedAt, "") ||
+        getMasteryAchievementEarnedDate(game) ||
         getManualEmblemUnlockedAt(gameSlug),
     };
   }
@@ -384,6 +411,7 @@ function getGameEmblem(
     readText(gameEmblem?.unlockedAt, "") ||
     readText(game.emblemUnlockedAt, "") ||
     readText(finalBadge?.unlockedAt, "") ||
+    getMasteryAchievementEarnedDate(game) ||
     getManualEmblemUnlockedAt(gameSlug);
 
   return {
