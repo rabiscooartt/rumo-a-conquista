@@ -91,7 +91,7 @@ function normalizeRank(value?: string) {
 
 function getTrophyFromRank(value?: string) {
   const rank = readText(value, "Bronze");
-  if (rank === "Diamante" || rank === "Extrema") return "💎";
+  if (rank === "Maestria" || rank === "Diamante" || rank === "Extrema") return "💎";
   if (rank === "Ouro" || rank === "Difícil") return "🥇";
   if (rank === "Prata" || rank === "Média") return "🥈";
   return "🥉";
