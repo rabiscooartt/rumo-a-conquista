@@ -1354,84 +1354,78 @@ export default function GameAchievementsPanel(
                       </p>
                     </div>
 
-                    <div className="flex min-w-0 flex-col items-start justify-center md:items-end md:text-right">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={trophyImagePath(rank)}
-                          alt=""
-                          aria-hidden="true"
-                          className={`h-9 w-9 shrink-0 object-contain ${
-                            visuallyLocked ? "opacity-45 grayscale" : ""
-                          }`}
-                        />
-                        <span
-                          className={`text-[10px] font-black uppercase tracking-[0.16em] ${
-                            visuallyLocked ? "text-white/35" : "text-white/75"
-                          }`}
-                        >
-                          {rankLabel(rank)}
-                        </span>
+                    {!visuallyLocked && (
+                      <div className="flex min-w-0 flex-col items-start justify-center md:items-end md:text-right">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={trophyImagePath(rank)}
+                            alt=""
+                            aria-hidden="true"
+                            className={`h-9 w-9 shrink-0 object-contain ${
+                              rank === "Ouro"
+                                ? "sepia saturate-[500%] hue-rotate-[350deg] brightness-110"
+                                : ""
+                            }`}
+                          />
+                          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/75">
+                            {rankLabel(rank)}
+                          </span>
+                        </div>
+
+                        {isJourneyAchievement && journeyLockActive && (
+                          <a
+                            href={youtubePlaylistUrl || undefined}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`mt-1 text-[8px] font-black uppercase tracking-[0.12em] transition ${
+                              youtubePlaylistUrl
+                                ? "text-emerald-200 hover:text-emerald-100 hover:underline"
+                                : "cursor-default text-emerald-200"
+                            }`}
+                            onClick={(event) => {
+                              if (!youtubePlaylistUrl) event.preventDefault();
+                            }}
+                          >
+                            JORNADA DE ESTREIA
+                          </a>
+                        )}
+
+                        {(() => {
+                          const meta = achievementMeta[achievementKey];
+                          const episode = formatJourneyEpisode(meta?.episode);
+                          const date = formatJourneyDate(meta?.date);
+                          const hasRecord = Boolean(episode || date);
+
+                          if (!hasRecord) return null;
+
+                          return (
+                            <div className="mt-1 text-[8px] font-bold tracking-[0.03em] text-white/35">
+                              {episode ? (
+                                meta?.liveUrl ? (
+                                  <a
+                                    href={meta.liveUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-white/55 transition hover:text-white hover:underline"
+                                  >
+                                    EP {episode}
+                                  </a>
+                                ) : (
+                                  <span>EP {episode}</span>
+                                )
+                              ) : null}
+                              {date ? (
+                                <span>
+                                  {episode ? " - " : ""}
+                                  {date}
+                                </span>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
                       </div>
-
-                      {isJourneyAchievement && journeyLockActive && (
-                        <a
-                          href={youtubePlaylistUrl || undefined}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={`mt-1 text-[8px] font-black uppercase tracking-[0.12em] transition ${
-                            youtubePlaylistUrl
-                              ? "text-emerald-200 hover:text-emerald-100 hover:underline"
-                              : "cursor-default text-emerald-200"
-                          }`}
-                          onClick={(event) => {
-                            if (!youtubePlaylistUrl) event.preventDefault();
-                          }}
-                        >
-                          JORNADA DE ESTREIA
-                        </a>
-                      )}
-
-                      {isJourneyBlocked && (
-                        <span className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/35">
-                          🔒 FORA DA JORNADA
-                        </span>
-                      )}
-
-                      {(() => {
-                        const meta = achievementMeta[achievementKey];
-                        const episode = formatJourneyEpisode(meta?.episode);
-                        const date = formatJourneyDate(meta?.date);
-                        const hasRecord = Boolean(episode || date);
-
-                        if (!hasRecord) return null;
-
-                        return (
-                          <div className="mt-1 text-[8px] font-bold tracking-[0.03em] text-white/35">
-                            {episode ? (
-                              meta?.liveUrl ? (
-                                <a
-                                  href={meta.liveUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-white/55 transition hover:text-white hover:underline"
-                                >
-                                  EP {episode}
-                                </a>
-                              ) : (
-                                <span>EP {episode}</span>
-                              )
-                            ) : null}
-                            {date ? (
-                              <span>
-                                {episode ? " - " : ""}
-                                {date}
-                              </span>
-                            ) : null}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
+                    )}
+                                    </div>
                   {isEditMode && (
                     <div className="mt-6 rounded-[22px] border border-white/10 bg-black/25 p-4">
                       {achievement.isCustom === true && (
