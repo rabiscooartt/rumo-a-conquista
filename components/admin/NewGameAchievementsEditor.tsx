@@ -290,15 +290,27 @@ export default function NewGameAchievementsEditor({
     id: string,
     rank: AchievementRank
   ) {
-    const next = achievements.map((achievement) =>
-      achievement.id === id
-        ? {
-            ...achievement,
-            difficulty: rank,
-            trophy: rankToTrophy(rank),
-          }
-        : achievement
-    );
+    const next = achievements.map((achievement) => {
+      if (achievement.id === id) {
+        return {
+          ...achievement,
+          difficulty: rank,
+          trophy: rankToTrophy(rank),
+        };
+      }
+
+      // Existe somente uma Maestria Final. Ao promover uma conquista,
+      // qualquer Maestria anterior volta para Ouro.
+      if (rank === "Maestria" && achievement.difficulty === "Maestria") {
+        return {
+          ...achievement,
+          difficulty: "Ouro",
+          trophy: rankToTrophy("Ouro"),
+        };
+      }
+
+      return achievement;
+    });
 
     setAchievements(next);
     await saveAchievements(next);
