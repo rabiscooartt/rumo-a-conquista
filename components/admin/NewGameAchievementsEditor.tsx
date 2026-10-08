@@ -290,7 +290,7 @@ export default function NewGameAchievementsEditor({
     id: string,
     rank: AchievementRank
   ) {
-    const next = achievements.map((achievement) => {
+    const next: EditableAchievement[] = achievements.map((achievement) => {
       if (achievement.id === id) {
         return {
           ...achievement,
