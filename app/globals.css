@@ -166,6 +166,16 @@ main.min-h-screen[class*="bg-[radial-gradient"] {
   background-attachment: fixed;
 }
 
+/* Sombreado suave, sem borda ou caixa, para preservar leitura na coluna lateral dos jogos. */
+.game-sidebar-readable-surface {
+  background: linear-gradient(
+    90deg,
+    rgba(2, 2, 2, 0.58) 0%,
+    rgba(2, 2, 2, 0.42) 68%,
+    rgba(2, 2, 2, 0.12) 100%
+  );
+}
+
 /* Ranks e estados bloqueados usam superfícies opacas para barrar a textura do fundo. */
 .achievement-row-bg--mastery {
   background-color: #150809;
