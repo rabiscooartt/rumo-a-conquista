@@ -1,4 +1,4 @@
-export type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Diamante";
+export type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Maestria" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
 
 export type SiteAchievement = {
