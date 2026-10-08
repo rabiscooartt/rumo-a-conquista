@@ -93,8 +93,16 @@ function normalizeGameKey(value?: string) {
 
 function formatDeveloperName(value?: string) {
   const name = String(value || "").trim();
-  if (!name) return "—";
-  return name.split(/[,/&]|\s{2,}/)[0].trim().split(/\s+/)[0] || "—";
+  if (!name) return "Não informado";
+  return name;
+}
+
+function developerValueClass(value?: string) {
+  const length = String(value || "").trim().length;
+  if (length >= 25) return "text-[12px]";
+  if (length >= 18) return "text-[13px]";
+  if (length >= 14) return "text-[14px]";
+  return "text-[16px]";
 }
 
 function formatPlayedTime(minutes: number) {
@@ -746,7 +754,10 @@ export default function GamePageShell({ slug, game }: Props) {
                             <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
                               <IconTrophy className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={developer || "Não informado"}>
+                              <span
+                                className={`min-w-0 truncate text-right font-black text-white/95 ${developerValueClass(developer)}`}
+                                title={developer || "Não informado"}
+                              >
                                 {developer || "Não informado"}
                               </span>
                             </div>
@@ -772,7 +783,7 @@ export default function GamePageShell({ slug, game }: Props) {
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
                           <div className="relative flex h-[210px] w-[210px] items-center justify-center">
                             <img
-                              src={emblem?.image || "/images/trophies/maestria.png"}
+                              src={emblem?.image || `/images/games/${slug}/emblem.png`}
                               alt={emblem?.title || "Emblema"}
                               className={`h-full w-full object-contain transition-all ${
                                 emblemUnlocked
