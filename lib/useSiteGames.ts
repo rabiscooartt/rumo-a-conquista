@@ -745,6 +745,7 @@ async function saveFinalMasteryToSupabase(
   return requestGameApi<{
     ok: boolean;
     finalBadge: SiteGame["finalBadge"];
+    removedAchievementIds?: string[];
   }>("POST", {
     slug,
     finalBadge,
@@ -1093,11 +1094,18 @@ const hiddenGamesList = useMemo(() => {
 
     try {
       const result = await saveFinalMasteryToSupabase(slug, finalBadge);
-      const nextGame = {
+      const removedIds = new Set(
+        (result.removedAchievementIds ?? []).map((id) => String(id))
+      );
+      const nextAchievements = (currentGame.achievementsList ?? []).filter(
+        (achievement) => !removedIds.has(String(achievement.id ?? ""))
+      );
+      const nextGame = normalizeGame(slug, {
         ...currentGame,
         finalBadge: result.finalBadge ?? finalBadge,
+        achievementsList: nextAchievements,
         updatedAt: new Date().toISOString(),
-      };
+      });
 
       setCustomGames((current) => ({
         ...current,
