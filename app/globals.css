@@ -98,28 +98,28 @@ html {
   background-image:
     radial-gradient(
       ellipse at 50% 0%,
-      rgba(255, 255, 255, 0.04275) 0%,
+      rgba(255, 255, 255, 0.029925) 0%,
       transparent 58%
     ),
     radial-gradient(
       ellipse at 8% 52%,
-      rgba(255, 255, 255, 0.0171) 0%,
+      rgba(255, 255, 255, 0.01197) 0%,
       transparent 42%
     ),
     radial-gradient(
       ellipse at 94% 78%,
-      rgba(255, 255, 255, 0.0133) 0%,
+      rgba(255, 255, 255, 0.00931) 0%,
       transparent 38%
     ),
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.0114) 0px,
-      rgba(255, 255, 255, 0.0114) 1px,
+      rgba(255, 255, 255, 0.00798) 0px,
+      rgba(255, 255, 255, 0.00798) 1px,
       transparent 1px,
       transparent 7px
     ),
     radial-gradient(
-      rgba(255, 255, 255, 0.057) 0.65px,
+      rgba(255, 255, 255, 0.0399) 0.65px,
       transparent 0.65px
     );
   background-size:
@@ -146,19 +146,19 @@ main.min-h-screen[class~="bg-[#050608]"] {
 main.min-h-screen[class*="bg-[radial-gradient"] {
   background-image:
     radial-gradient(
-      rgba(255, 255, 255, 0.057) 0.65px,
+      rgba(255, 255, 255, 0.0399) 0.65px,
       transparent 0.65px
     ),
     repeating-linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.0114) 0px,
-      rgba(255, 255, 255, 0.0114) 1px,
+      rgba(255, 255, 255, 0.00798) 0px,
+      rgba(255, 255, 255, 0.00798) 1px,
       transparent 1px,
       transparent 7px
     ),
     radial-gradient(
       ellipse at 50% 0%,
-      rgba(255, 255, 255, 0.04275) 0%,
+      rgba(255, 255, 255, 0.029925) 0%,
       transparent 58%
     ),
     radial-gradient(circle at top, #0b1624 0%, #050505 45%, #020202 100%) !important;
