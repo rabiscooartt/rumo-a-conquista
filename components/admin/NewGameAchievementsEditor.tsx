@@ -207,6 +207,7 @@ export default function NewGameAchievementsEditor({
     game.slug
   );
   const [achievements, setAchievements] = useState(initialAchievements);
+  const [sectionCollapsed, setSectionCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<AchievementFilter>("all");
   const [exophaseOnly, setExophaseOnly] = useState(false);
@@ -429,6 +430,7 @@ export default function NewGameAchievementsEditor({
           </div>
         </div>
 
+        {!sectionCollapsed && (
         <div className="flex flex-wrap gap-2">
           <input
             value={search}
@@ -446,8 +448,21 @@ export default function NewGameAchievementsEditor({
             + Adicionar
           </button>
         </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setSectionCollapsed((value) => !value)}
+          aria-expanded={!sectionCollapsed}
+          className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[10px] font-black text-white/60 transition hover:border-red-500/30 hover:text-white"
+        >
+          {sectionCollapsed ? "+ Expandir" : "− Minimizar"}
+        </button>
+
       </div>
 
+      {!sectionCollapsed && (
+        <>
       <div className="mt-4 flex flex-wrap gap-2">
         {([
           ["all", "📋 Todas"],
@@ -654,6 +669,8 @@ export default function NewGameAchievementsEditor({
             {saving ? "Salvando..." : "Salvar conquistas"}
           </button>
         </div>
+      )}
+        </>
       )}
     </section>
   );
