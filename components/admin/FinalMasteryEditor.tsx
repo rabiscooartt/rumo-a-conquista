@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { SiteGame } from "@/lib/useSiteGames";
 
 type FinalMastery = {
@@ -102,12 +102,6 @@ export default function FinalMasteryEditor({
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [imageError, setImageError] = useState(false);
-
-  useEffect(() => {
-    setMastery(normalizeMastery(game));
-    setImageError(false);
-    setCopied(false);
-  }, [game]);
 
   function update(field: keyof FinalMastery, value: string) {
     setMastery((current) => ({ ...current, [field]: value }));
