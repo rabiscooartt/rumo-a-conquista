@@ -167,6 +167,7 @@ const TROPHY_META: Array<{
   { rank: "Bronze", label: "Bronze" },
   { rank: "Prata", label: "Prata" },
   { rank: "Ouro", label: "Ouro" },
+  { rank: "Maestria", label: "Maestria Final" },
 ];
 
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
@@ -663,9 +664,7 @@ export default function GamePageShell({ slug, game }: Props) {
                           {TROPHY_META.map(({ rank, label }) => {
                             const isMastery = rank === "Maestria";
                             const total = isMastery
-                              ? masteryConfigured
-                                ? 1
-                                : 0
+                              ? 1
                               : achievements.filter(
                                   (achievement) => getTrophyRank(achievement) === rank
                                 ).length;
