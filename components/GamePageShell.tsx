@@ -167,7 +167,6 @@ const TROPHY_META: Array<{
   { rank: "Bronze", label: "Bronze" },
   { rank: "Prata", label: "Prata" },
   { rank: "Ouro", label: "Ouro" },
-  { rank: "Maestria", label: "Maestria Final" },
 ];
 
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
@@ -731,6 +730,7 @@ export default function GamePageShell({ slug, game }: Props) {
                       journeyIds={journeyIds}
                       youtubePlaylistUrl={game.youtubePlaylistUrl}
                       achievementMeta={resolvedFirstJourney?.achievementMeta}
+                      finalBadge={game.finalBadge}
                       onStatesChange={setManualStates}
                     />
                   </section>
