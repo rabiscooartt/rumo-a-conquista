@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
 import NewGameAchievementsEditor from "@/components/admin/NewGameAchievementsEditor";
 import FinalMasteryEditor from "@/components/admin/FinalMasteryEditor";
+import GameEmblemEditor from "@/components/admin/GameEmblemEditor";
 
 function statusLabel(status?: string) {
   const value = String(status || "").toLowerCase();
@@ -727,52 +728,35 @@ export default function NewGamesAdminPage() {
                   }
                 />
 
-                <div className="grid gap-5 md:grid-cols-2">
-                  <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                    <button
-                      type="button"
-                      onClick={() => toggleAdminSection("05")}
-                      aria-expanded={!collapsedSections["05"]}
-                      className="group flex w-full items-center justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
-                    >
-                      <span className="flex flex-col">
-                        <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">05</span>
-                        <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-red-100">Emblema</span>
-                      </span>
-                      <span aria-hidden="true" className="text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
-                        {collapsedSections["05"] ? "+" : "−"}
-                      </span>
-                    </button>
-                    {!collapsedSections["05"] && (
-                      <p className="mt-2 text-xs text-white/35">
-                        {selectedGame.emblem?.image ? "Emblema configurado." : "Emblema pendente."}
-                        {" "}O editor completo será migrado para este módulo.
-                      </p>
-                    )}
-                  </section>
+                <GameEmblemEditor
+                  key={"emblem-" + selectedGame.slug}
+                  game={selectedGame}
+                  collapsed={Boolean(collapsedSections["05"])}
+                  onToggle={() => toggleAdminSection("05")}
+                  onSave={(emblem) => updateGame(selectedGame.slug, { emblem })}
+                />
 
-                  <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                    <button
-                      type="button"
-                      onClick={() => toggleAdminSection("06")}
-                      aria-expanded={!collapsedSections["06"]}
-                      className="group flex w-full items-center justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
-                    >
-                      <span className="flex flex-col">
-                        <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">06</span>
-                        <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-red-100">Review</span>
-                      </span>
-                      <span aria-hidden="true" className="text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
-                        {collapsedSections["06"] ? "+" : "−"}
-                      </span>
-                    </button>
-                    {!collapsedSections["06"] && (
-                      <p className="mt-2 text-xs text-white/35">
-                        Status, nota e conteúdo da review serão migrados para este módulo.
-                      </p>
-                    )}
-                  </section>
-                </div>
+                <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
+                  <button
+                    type="button"
+                    onClick={() => toggleAdminSection("06")}
+                    aria-expanded={!collapsedSections["06"]}
+                    className="group flex w-full items-center justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+                  >
+                    <span className="flex flex-col">
+                      <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">06</span>
+                      <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-red-100">Review</span>
+                    </span>
+                    <span aria-hidden="true" className="text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
+                      {collapsedSections["06"] ? "+" : "−"}
+                    </span>
+                  </button>
+                  {!collapsedSections["06"] && (
+                    <p className="mt-2 text-xs text-white/35">
+                      Status, nota e conteúdo da review serão migrados para este módulo.
+                    </p>
+                  )}
+                </section>
               </>
             )}
           </section>
