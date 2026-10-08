@@ -638,19 +638,24 @@ export default function GamePageShell({ slug, game }: Props) {
         
                         <div className="grid grid-cols-4 gap-1.5">
                           {TROPHY_META.map(({ rank, label }) => {
-                            const total = achievements.filter(
-                              (achievement) => getTrophyRank(achievement) === rank
-                            ).length;
-                            const completed = achievements.filter(
-                              (achievement) =>
-                                getTrophyRank(achievement) === rank &&
-                                (
-                                  ["completed", "concluido", "concluida"].includes(
-                                    normalizeText(achievement.status)
-                                  ) ||
-                                  isJourneySelected(achievement)
-                                )
-                            ).length;
+                            const isMastery = rank === "Maestria";
+                            const total = isMastery
+                              ? 1
+                              : achievements.filter(
+                                  (achievement) => getTrophyRank(achievement) === rank
+                                ).length;
+                            const completed = isMastery
+                              ? (emblemUnlocked ? 1 : 0)
+                              : achievements.filter(
+                                  (achievement) =>
+                                    getTrophyRank(achievement) === rank &&
+                                    (
+                                      ["completed", "concluido", "concluida"].includes(
+                                        normalizeText(achievement.status)
+                                      ) ||
+                                      isJourneySelected(achievement)
+                                    )
+                                ).length;
         
                             return (
                               <div
