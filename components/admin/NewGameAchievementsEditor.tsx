@@ -145,7 +145,14 @@ function toSavePayload(achievements: EditableAchievement[]): FlexibleAchievement
       difficulty: rank,
       rank,
       status: achievement.status,
+      earnedDate: readText(achievement.earnedDate, "").trim(),
       image: achievement.image.trim(),
+      source: achievement.isExophase
+        ? "exophase"
+        : readText(achievement.source, "manual").trim() || "manual",
+      externalId: readText(achievement.externalId, "").trim() || undefined,
+      officialImage:
+        readText(achievement.officialImage, "").trim() || undefined,
       isCustom: Boolean(achievement.isCustom),
       isHidden: Boolean(achievement.isHidden),
       isExophase: Boolean(achievement.isExophase),
@@ -205,42 +212,6 @@ export default function NewGameAchievementsEditor({
     Object.fromEntries(initialAchievements.map((item) => [item.id, true]))
   );
   const [saving, setSaving] = useState(false);
-
-  const achievementSyncKey = useMemo(
-    () =>
-      normalizeAchievements(game.achievementsList, game.slug)
-        .map((item) =>
-          [
-            item.id,
-            item.title,
-            item.description,
-            item.difficulty,
-            item.status,
-            item.image,
-            item.officialImage,
-            item.isExophase,
-            item.isHidden,
-          ]
-            .map((value) => String(value ?? ""))
-            .join("¦")
-        )
-        .join("¤"),
-    [game.achievementsList, game.slug]
-  );
-
-  useEffect(() => {
-    const next = normalizeAchievements(game.achievementsList, game.slug);
-    setAchievements(next);
-    setMinimized((current) => {
-      const nextMinimized: Record<string, boolean> = {};
-
-      for (const item of next) {
-        nextMinimized[item.id] = current[item.id] ?? true;
-      }
-
-      return nextMinimized;
-    });
-  }, [achievementSyncKey, game.slug]);
 
   const journeyIdSet = useMemo(() => new Set(journeyIds), [journeyIds]);
 
