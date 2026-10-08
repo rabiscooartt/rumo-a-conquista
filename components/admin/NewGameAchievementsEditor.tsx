@@ -193,23 +193,54 @@ export default function NewGameAchievementsEditor({
   journeySelectionEnabled?: boolean;
   onJourneyIdsChange?: (ids: string[]) => void;
 }) {
-  const [achievements, setAchievements] = useState(() =>
-    normalizeAchievements(game.achievementsList, game.slug)
+  const initialAchievements = normalizeAchievements(
+    game.achievementsList,
+    game.slug
   );
+  const [achievements, setAchievements] = useState(initialAchievements);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<AchievementFilter>("all");
   const [exophaseOnly, setExophaseOnly] = useState(false);
-  const [minimized, setMinimized] = useState<Record<string, boolean>>({});
+  const [minimized, setMinimized] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(initialAchievements.map((item) => [item.id, true]))
+  );
   const [saving, setSaving] = useState(false);
+
+  const achievementSyncKey = useMemo(
+    () =>
+      normalizeAchievements(game.achievementsList, game.slug)
+        .map((item) =>
+          [
+            item.id,
+            item.title,
+            item.description,
+            item.difficulty,
+            item.status,
+            item.image,
+            item.officialImage,
+            item.isExophase,
+            item.isHidden,
+          ]
+            .map((value) => String(value ?? ""))
+            .join("¦")
+        )
+        .join("¤"),
+    [game.achievementsList, game.slug]
+  );
 
   useEffect(() => {
     const next = normalizeAchievements(game.achievementsList, game.slug);
     setAchievements(next);
-    setMinimized(Object.fromEntries(next.map((item) => [item.id, true])));
-    setSearch("");
-    setFilter("all");
-    setExophaseOnly(false);
-  }, [game]);
+    setMinimized((current) => {
+      const nextMinimized: Record<string, boolean> = {};
+
+      for (const item of next) {
+        nextMinimized[item.id] = current[item.id] ?? true;
+      }
+
+      return nextMinimized;
+    });
+  }, [achievementSyncKey, game.slug]);
 
   const journeyIdSet = useMemo(() => new Set(journeyIds), [journeyIds]);
 
