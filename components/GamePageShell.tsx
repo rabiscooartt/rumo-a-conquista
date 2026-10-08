@@ -700,7 +700,7 @@ export default function GamePageShell({ slug, game }: Props) {
                                           ? "/images/trophies/prata.png"
                                           : rank === "Ouro"
                                             ? "/images/trophies/ouro.png"
-                                            : "/images/trophies/maestria.png"
+                                            : (game.finalBadge?.image || "/images/trophies/maestria.png")
                                     }
                                     alt=""
                                     aria-hidden="true"
@@ -797,66 +797,6 @@ export default function GamePageShell({ slug, game }: Props) {
         
         
         
-                      <section className="overflow-hidden rounded-[14px] border border-violet-400/[0.16] bg-[#090909] p-5">
-                        <SectionTitle>Maestria Final</SectionTitle>
-
-                        <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
-                          <div className="relative flex h-[210px] w-[210px] items-center justify-center">
-                            {game.finalBadge?.image ? (
-                              <img
-                                src={game.finalBadge.image}
-                                alt={game.finalBadge.title || "Maestria Final"}
-                                className={
-                                  masteryUnlocked
-                                    ? "h-full w-full object-contain"
-                                    : "h-full w-full scale-95 object-contain blur-[7px] opacity-45 grayscale"
-                                }
-                              />
-                            ) : (
-                              <div
-                                className={
-                                  masteryUnlocked
-                                    ? "flex h-full w-full items-center justify-center text-7xl"
-                                    : "flex h-full w-full items-center justify-center text-7xl blur-[4px] opacity-40 grayscale"
-                                }
-                              >
-                                {game.finalBadge?.icon || "💎"}
-                              </div>
-                            )}
-
-                            {!masteryUnlocked && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
-                                  🔒
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <p
-                            className={
-                              masteryUnlocked
-                                ? "mt-3 text-[12px] font-black uppercase tracking-[0.12em] text-violet-300"
-                                : "mt-3 text-[12px] font-black uppercase tracking-[0.12em] text-white/40"
-                            }
-                          >
-                            {masteryUnlocked ? "Conquistada" : "Bloqueada"}
-                          </p>
-
-                          {game.finalBadge?.title ? (
-                            <h3 className="mt-1 max-w-[230px] text-[14px] font-black leading-tight text-white">
-                              {game.finalBadge.title}
-                            </h3>
-                          ) : null}
-
-                          {game.finalBadge?.description ? (
-                            <p className="mt-2 max-w-[230px] text-[10px] leading-relaxed text-white/45">
-                              {game.finalBadge.description}
-                            </p>
-                          ) : null}
-                        </div>
-                      </section>
-
                       <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <SectionTitle>Emblema</SectionTitle>
         
