@@ -689,7 +689,7 @@ export default function GamePageShell({ slug, game }: Props) {
                               <div
                                 key={rank}
                                 title={label}
-                                className="flex min-w-0 flex-col items-center justify-center rounded-[10px] border border-white/[0.08] bg-white/[0.02] px-1 py-3"
+                                className="flex min-w-0 flex-col items-center justify-center rounded-[10px] border border-white/[0.08] bg-[#090909] px-1 py-3"
                               >
                                 <div className="flex h-10 w-full items-center justify-center">
                                   <img
