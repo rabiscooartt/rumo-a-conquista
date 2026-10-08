@@ -145,6 +145,30 @@ export function useJourneyEntries() {
 
   useEffect(() => {
     void loadEntries();
+
+    const channel = supabase
+      .channel("rumo-a-conquista-journey-entries-live")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "journey_entries",
+        },
+        () => {
+          void loadEntries();
+        }
+      )
+      .subscribe();
+
+    const intervalId = window.setInterval(() => {
+      void loadEntries();
+    }, 15000);
+
+    return () => {
+      window.clearInterval(intervalId);
+      void supabase.removeChannel(channel);
+    };
   }, [loadEntries]);
 
   const latestEntries = useMemo(
