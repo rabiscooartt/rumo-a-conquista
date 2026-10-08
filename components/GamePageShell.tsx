@@ -99,9 +99,8 @@ function formatDeveloperName(value?: string) {
 
 function developerValueClass(value?: string) {
   const length = String(value || "").trim().length;
-  if (length >= 25) return "text-[12px]";
-  if (length >= 18) return "text-[13px]";
-  if (length >= 14) return "text-[14px]";
+  if (length >= 22) return "text-[11px]";
+  if (length >= 14) return "text-[12px]";
   return "text-[16px]";
 }
 
@@ -729,7 +728,7 @@ export default function GamePageShell({ slug, game }: Props) {
                           <SectionTitle>Sobre o Jogo</SectionTitle>
         
                           <div className="mt-4 space-y-4">
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconGamepad className="h-5 w-5 text-white/80" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "Não informado"}>
@@ -737,7 +736,7 @@ export default function GamePageShell({ slug, game }: Props) {
                               </span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconGamepad className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
@@ -745,13 +744,13 @@ export default function GamePageShell({ slug, game }: Props) {
                               </span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconClock className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconTrophy className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
                               <span
@@ -762,7 +761,7 @@ export default function GamePageShell({ slug, game }: Props) {
                               </span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconCalendar className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear || "Não informado"}>
