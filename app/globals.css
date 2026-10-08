@@ -181,6 +181,16 @@ main.min-h-screen[class*="bg-[radial-gradient"] {
     0 0 6px rgba(0, 0, 0, 0.55);
 }
 
+/* Reforço triplo de contraste apenas nos títulos da sidebar e no link de retorno. */
+.game-sidebar-text-contrast > div > div.border-b h2,
+.game-sidebar-text-contrast > div > a {
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 1),
+    0 1px 4px rgba(0, 0, 0, 1),
+    0 0 8px rgba(0, 0, 0, 0.98),
+    0 0 12px rgba(0, 0, 0, 0.92);
+}
+
 /* Ranks e estados bloqueados usam superfícies opacas para barrar a textura do fundo. */
 .achievement-row-bg--mastery {
   background-color: #150809;
