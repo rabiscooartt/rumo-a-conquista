@@ -31,8 +31,9 @@ type DatabaseAchievement = {
 };
 
 function rankFrom(value?: string): AchievementRank {
-  if (value === "Maestria" || value === "Diamante") return value === "Diamante" ? "Maestria" : "Maestria";
-  return value === "Prata" || value === "Ouro" ? value : "Bronze";
+  return value === "Prata" || value === "Ouro" || value === "Diamante"
+    ? value
+    : "Bronze";
 }
 
 function statusFrom(value?: string): AchievementStatus {
