@@ -56,6 +56,12 @@ type GameAchievementsPanelProps = {
   journeyIds?: string[];
   youtubePlaylistUrl?: string;
   achievementMeta?: Record<string, AchievementJourneyMeta>;
+  finalBadge?: {
+    title?: string;
+    icon?: string;
+    image?: string;
+    description?: string;
+  };
   game?: {
     slug?: string;
     title?: string;
@@ -979,7 +985,14 @@ export default function GameAchievementsPanel(
     setSortDirection(nextSortMode === "title" ? "asc" : "desc");
   }
 
-  const completedCount = allAchievements.filter((achievement) => {
+  const finalBadge = props.finalBadge;
+  const masteryConfigured = Boolean(
+    finalBadge?.title ||
+    finalBadge?.image ||
+    finalBadge?.description
+  );
+
+  const normalCompletedCount = allAchievements.filter((achievement) => {
     const state = manualStates[achievement.title];
     const achievementKey = getAchievementKey(achievement);
     const isJourneySelected =
@@ -999,36 +1012,80 @@ export default function GameAchievementsPanel(
     return state?.status === "completed" || isJourneySelected;
   }).length;
 
+  const masteryUnlocked =
+    masteryConfigured &&
+    allAchievements.length > 0 &&
+    normalCompletedCount === allAchievements.length;
+
+  const masteryEntry = useMemo<AchievementInput | null>(() => {
+    if (!masteryConfigured) return null;
+
+    return {
+      id: `${gameSlug}-final-mastery`,
+      title: finalBadge?.title?.trim() || "Maestria Final",
+      description:
+        finalBadge?.description?.trim() ||
+        "Conclua todas as conquistas para alcançar a Maestria Final.",
+      trophy: "💎",
+      icon: "💎",
+      difficulty: "Diamante",
+      status: masteryUnlocked ? "completed" : "locked",
+      image: finalBadge?.image?.trim() || "",
+      isCustom: false,
+      isHidden: false,
+    };
+  }, [finalBadge, gameSlug, masteryConfigured, masteryUnlocked]);
+
+  const displayAchievements = useMemo(
+    () => (masteryEntry ? [...allAchievements, masteryEntry] : allAchievements),
+    [allAchievements, masteryEntry]
+  );
+
+  const displayStates = useMemo(() => {
+    if (!masteryEntry) return manualStates;
+
+    return {
+      ...manualStates,
+      [masteryEntry.title]: {
+        rank: "Diamante" as Rank,
+        status: masteryEntry.status as AchievementStatus,
+        date: "",
+        image: masteryEntry.image ?? "",
+      },
+    };
+  }, [manualStates, masteryEntry]);
+
+  const completedCount = normalCompletedCount + (masteryUnlocked ? 1 : 0);
   const displayCompletedCount = journeyPreview ? 0 : completedCount;
-  const displayTotalCount = journeyPreview ? 0 : allAchievements.length;
+  const displayTotalCount = journeyPreview ? 0 : displayAchievements.length;
   const progress =
-    journeyPreview || allAchievements.length === 0
+    journeyPreview || displayAchievements.length === 0
       ? 0
-      : Math.round((completedCount / allAchievements.length) * 100);
+      : Math.round((completedCount / displayAchievements.length) * 100);
 
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch).trim();
 
     if (!search) {
-      return allAchievements;
+      return displayAchievements;
     }
 
-    return allAchievements.filter((achievement) => {
+    return displayAchievements.filter((achievement) => {
       return (
         normalizeText(achievement.title).includes(search) ||
         normalizeText(achievement.description).includes(search)
       );
     });
-  }, [achievementSearch, allAchievements]);
+  }, [achievementSearch, displayAchievements]);
 
   const sortedAchievements = useMemo(() => {
     return sortAchievements(
       filteredAchievements,
-      manualStates,
+      displayStates,
       sortMode,
       sortDirection
     );
-  }, [filteredAchievements, manualStates, sortDirection, sortMode]);
+  }, [displayStates, filteredAchievements, sortDirection, sortMode]);
 
   return (
     <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
@@ -1268,8 +1325,9 @@ export default function GameAchievementsPanel(
           </div>
         ) : sortedAchievements.length > 0 ? (
           sortedAchievements.map((achievement, index) => {
+            const isFinalMastery = achievement.id === masteryEntry?.id;
             const state =
-              manualStates[achievement.title] ??
+              displayStates[achievement.title] ??
               createDefaultStates([achievement])[achievement.title];
 
             const rank = state.rank;
@@ -1279,14 +1337,17 @@ export default function GameAchievementsPanel(
             const achievementKey = getAchievementKey(achievement);
             const titleKey = slugify(achievement.title);
             const isJourneyAchievement =
-              journeyIdSet.has(achievementKey) ||
-              journeyIdList.some((id) => {
+              !isFinalMastery &&
+              (
+                journeyIdSet.has(achievementKey) ||
+                journeyIdList.some((id) => {
                 const normalizedId = slugify(id);
                 return (
                   normalizedId === titleKey ||
                   normalizedId.endsWith("-" + titleKey)
                 );
-              });
+                })
+              );
             const isJourneyBlocked =
               journeyLockActive && !isJourneyAchievement;
             const journeyVisible =
@@ -1307,7 +1368,9 @@ export default function GameAchievementsPanel(
                 className={`relative border-l-2 border-b border-white/[0.06] transition ${
                   visuallyLocked
                     ? "border-l-white/10 bg-black/20 opacity-55"
-                    : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
+                    : isFinalMastery
+                      ? "border-l-violet-300/80 bg-violet-500/[0.075] shadow-[0_0_32px_rgba(167,139,250,0.12)]"
+                      : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
                 }`}
               >
                 <div className="p-3 sm:p-4">
@@ -1372,7 +1435,7 @@ export default function GameAchievementsPanel(
                           </span>
                         </div>
 
-                        {isJourneyAchievement && journeyLockActive && (
+                        {!isFinalMastery && isJourneyAchievement && journeyLockActive && (
                           <a
                             href={youtubePlaylistUrl || undefined}
                             target="_blank"
@@ -1390,7 +1453,7 @@ export default function GameAchievementsPanel(
                           </a>
                         )}
 
-                        {(() => {
+                        {!isFinalMastery && (() => {
                           const meta = achievementMeta[achievementKey];
                           const episode = formatJourneyEpisode(meta?.episode);
                           const date = formatJourneyDate(meta?.date);
@@ -1426,7 +1489,7 @@ export default function GameAchievementsPanel(
                       </div>
                     )}
                                     </div>
-                  {isEditMode && (
+                  {isEditMode && !isFinalMastery && (
                     <div className="mt-6 rounded-[22px] border border-white/10 bg-black/25 p-4">
                       {achievement.isCustom === true && (
                         <div className="mb-4 grid gap-4 lg:grid-cols-2">
