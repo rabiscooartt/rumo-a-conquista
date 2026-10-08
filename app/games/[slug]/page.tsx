@@ -23,6 +23,7 @@ type FinalBadgeInput = {
   title?: string;
   icon?: string;
   image?: string;
+  description?: string;
 };
 
 function readText(value: unknown, fallback = "") {
@@ -221,6 +222,7 @@ function getFinalBadge(rawGame: unknown): FinalBadgeInput | undefined {
     title: readText(game.finalBadge.title, "Maestria Final"),
     icon: readText(game.finalBadge.icon, "💎"),
     image: readText(game.finalBadge.image, ""),
+    description: readText(game.finalBadge.description, ""),
   };
 }
 
