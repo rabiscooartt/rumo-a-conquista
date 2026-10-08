@@ -149,7 +149,9 @@ function toSavePayload(achievements: EditableAchievement[]): FlexibleAchievement
       image: achievement.image.trim(),
       source: achievement.isExophase
         ? "exophase"
-        : readText(achievement.source, "manual").trim() || "manual",
+        : readText(achievement.source, "").trim().toLowerCase() === "exophase"
+          ? "manual"
+          : readText(achievement.source, "manual").trim() || "manual",
       externalId: readText(achievement.externalId, "").trim() || undefined,
       officialImage:
         readText(achievement.officialImage, "").trim() || undefined,
