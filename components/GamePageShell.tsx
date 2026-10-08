@@ -616,7 +616,7 @@ export default function GamePageShell({ slug, game }: Props) {
           </div>
         )}
                 <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
-                  <aside className="game-sidebar-readable-surface hidden lg:block">
+                  <aside className="game-sidebar-text-contrast hidden lg:block">
                     <div className="sticky top-24 space-y-5">
                       <div className="border-b border-white/[0.08] pb-5">
                         <SectionTitle>Jogo</SectionTitle>
