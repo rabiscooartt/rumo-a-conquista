@@ -8,7 +8,7 @@ import {
 } from "@/lib/useSiteGames";
 import TrophyIcon from "@/components/TrophyIcon";
 
-type AchievementRank = "Bronze" | "Prata" | "Ouro" | "Maestria";
+type AchievementRank = "Bronze" | "Prata" | "Ouro";
 type AchievementStatus = "locked" | "progress" | "completed";
 type AchievementFilter = "all" | "completed" | "locked";
 type AchievementRecordMeta = {
@@ -70,17 +70,16 @@ function formatRecordedDate(value?: string) {
 }
 
 function rankToTrophy(rank: AchievementRank) {
-  if (rank === "Maestria") return "💎";
   if (rank === "Ouro") return "🥇";
   if (rank === "Prata") return "🥈";
   return "🥉";
 }
 
 function normalizeRank(value?: string): AchievementRank {
-  // "Diamante" e "Extrema" são aliases legados da Maestria Final.
-  if (value === "Diamante" || value === "Extrema" || value === "Maestria") {
-    return "Maestria";
-  }
+  // Compatibilidade: registros antigos com "Diamante" passam a usar o
+  // Emblema como recompensa final; entre os ranks individuais, só existem
+  // Bronze, Prata e Ouro.
+  if (value === "Diamante") return "Ouro";
   if (value === "Ouro") return "Ouro";
   if (value === "Prata") return "Prata";
   return "Bronze";
@@ -234,7 +233,7 @@ export default function NewGameAchievementsEditor({
   }).length;
 
   const rankCounts = useMemo(() => {
-    const counts = { Bronze: 0, Prata: 0, Ouro: 0, Maestria: 0 };
+    const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
     for (const achievement of achievements) {
       counts[achievement.difficulty] += 1;
     }
@@ -290,27 +289,15 @@ export default function NewGameAchievementsEditor({
     id: string,
     rank: AchievementRank
   ) {
-    const next: EditableAchievement[] = achievements.map((achievement) => {
-      if (achievement.id === id) {
-        return {
-          ...achievement,
-          difficulty: rank,
-          trophy: rankToTrophy(rank),
-        };
-      }
-
-      // Existe somente uma Maestria Final. Ao promover uma conquista,
-      // qualquer Maestria anterior volta para Ouro.
-      if (rank === "Maestria" && achievement.difficulty === "Maestria") {
-        return {
-          ...achievement,
-          difficulty: "Ouro",
-          trophy: rankToTrophy("Ouro"),
-        };
-      }
-
-      return achievement;
-    });
+    const next = achievements.map((achievement) =>
+      achievement.id === id
+        ? {
+            ...achievement,
+            difficulty: rank,
+            trophy: rankToTrophy(rank),
+          }
+        : achievement
+    );
 
     setAchievements(next);
     await saveAchievements(next);
@@ -421,7 +408,6 @@ export default function NewGameAchievementsEditor({
               ["Bronze", rankCounts.Bronze],
               ["Prata", rankCounts.Prata],
               ["Ouro", rankCounts.Ouro],
-              ["Maestria", rankCounts.Maestria],
             ] as const).map(([rank, count]) => (
               <span key={rank} title={rank} className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-2.5 py-1.5 text-[10px] font-black">
                 <TrophyIcon rank={rank} className="h-4 w-4" />
