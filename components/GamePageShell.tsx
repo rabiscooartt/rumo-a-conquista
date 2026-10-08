@@ -292,13 +292,31 @@ export default function GamePageShell({ slug, game }: Props) {
   }, [game.title, game.platform]);
 
   const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
+  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const journeyIdList = Array.isArray(resolvedFirstJourney?.achievementIds)
+    ? resolvedFirstJourney.achievementIds.map((id) => String(id).trim()).filter(Boolean)
+    : [];
+  const journeyIdSet = new Set(journeyIdList);
+  const isJourneySelected = (achievement: AchievementInput) => {
+    const id = String(achievement.id || "").trim();
+    if (id && journeyIdSet.has(id)) return true;
+
+    const titleKey = normalizeGameKey(achievement.title);
+    if (!titleKey) return false;
+
+    return journeyIdList.some((journeyId) => normalizeGameKey(journeyId) === titleKey);
+  };
   const completedCount = useMemo(
-    () => achievements.filter((achievement) => ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status))).length,
-    [achievements]
+    () =>
+      achievements.filter(
+        (achievement) =>
+          ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status)) ||
+          isJourneySelected(achievement)
+      ).length,
+    [achievements, journeyIdList]
   );
   const totalCount = achievements.length;
-  const progress = clamp(game.progress);
-  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const status =
     resolvedFirstJourney?.status === "in_progress"
       ? "progress"
@@ -626,8 +644,11 @@ export default function GamePageShell({ slug, game }: Props) {
                             const completed = achievements.filter(
                               (achievement) =>
                                 getTrophyRank(achievement) === rank &&
-                                ["completed", "concluido", "concluida"].includes(
-                                  normalizeText(achievement.status)
+                                (
+                                  ["completed", "concluido", "concluida"].includes(
+                                    normalizeText(achievement.status)
+                                  ) ||
+                                  isJourneySelected(achievement)
                                 )
                             ).length;
         
