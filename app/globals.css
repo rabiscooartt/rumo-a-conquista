@@ -142,7 +142,31 @@ main.min-h-screen[class~="bg-[#050608]"] {
   background-color: transparent !important;
 }
 
-/* Ranks usam superfícies opacas para que o padrão global não atravesse os cards. */
+/* Páginas com gradiente preservam sua identidade, incorporando a textura ao próprio fundo. */
+main.min-h-screen[class*="bg-[radial-gradient"] {
+  background-image:
+    radial-gradient(
+      rgba(255, 255, 255, 0.06) 0.65px,
+      transparent 0.65px
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(255, 255, 255, 0.045) 0%,
+      transparent 58%
+    ),
+    radial-gradient(circle at top, #0b1624 0%, #050505 45%, #020202 100%) !important;
+  background-size: 5px 5px, auto, auto, auto;
+  background-attachment: fixed;
+}
+
+/* Ranks e estados bloqueados usam superfícies opacas para barrar a textura do fundo. */
 .achievement-row-bg--mastery {
   background-color: #150809;
 }
@@ -157,6 +181,14 @@ main.min-h-screen[class~="bg-[#050608]"] {
 
 .achievement-row-bg--bronze {
   background-color: #150b05;
+}
+
+.achievement-row-bg--locked {
+  background-color: #080808;
+}
+
+.achievement-row-bg--locked > div {
+  opacity: 0.55;
 }
 
 /* ============================= */
