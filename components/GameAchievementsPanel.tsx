@@ -1418,19 +1418,15 @@ export default function GameAchievementsPanel(
                     </div>
 
                     {!visuallyLocked && (
-                      <div className="flex min-w-0 flex-col items-start justify-center md:items-end md:text-right">
-                        <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-col items-start justify-center md:items-end">
+                        <div className="flex w-[108px] items-center justify-start gap-2">
                           <img
                             src={trophyImagePath(rank)}
                             alt=""
                             aria-hidden="true"
-                            className={`h-9 w-9 shrink-0 object-contain ${
-                              rank === "Ouro"
-                                ? "sepia saturate-[500%] hue-rotate-[350deg] brightness-110"
-                                : ""
-                            }`}
+                            className="h-9 w-9 shrink-0 object-contain"
                           />
-                          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/75">
+                          <span className="min-w-0 whitespace-nowrap text-[10px] font-black uppercase tracking-[0.16em] text-white/75">
                             {rankLabel(rank)}
                           </span>
                         </div>
