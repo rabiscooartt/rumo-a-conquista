@@ -15,8 +15,13 @@ export type FlexibleAchievementInput = {
   status?: string;
   earnedDate?: string;
   image?: string;
+  source?: string;
+  externalId?: string;
+  officialImage?: string;
   isCustom?: boolean;
   isEmblem?: boolean;
+  isExophase?: boolean;
+  isHidden?: boolean;
   [key: string]: unknown;
 };
 
