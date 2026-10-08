@@ -453,7 +453,7 @@ function buildGameData(game: GamePayload) {
 
   return {
     slug,
-    title: normalizeText(game.title, "Jogo sem nome"),
+    title: normalizeDisplayText(game.title, "Jogo sem nome"),
     subtitle: normalizeText(game.subtitle),
     status: normalizeText(game.status, "progress"),
     progress: Math.min(
