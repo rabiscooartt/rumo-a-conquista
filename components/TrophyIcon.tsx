@@ -1,11 +1,12 @@
 import type { SVGProps } from "react";
 
-export type TrophyRank = "Bronze" | "Prata" | "Ouro" | "Emblema";
+export type TrophyRank = "Bronze" | "Prata" | "Ouro" | "Maestria" | "Emblema";
 
 const rankColors: Record<TrophyRank, string> = {
   Bronze: "#CD7F32",
   Prata: "#C7CBD1",
   Ouro: "#E0B83D",
+  Maestria: "#A78BFA",
   Emblema: "#F3C623",
 };
 
