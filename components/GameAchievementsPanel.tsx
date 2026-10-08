@@ -981,16 +981,30 @@ export default function GameAchievementsPanel(
 
   const completedCount = allAchievements.filter((achievement) => {
     const state = manualStates[achievement.title];
-    return state?.status === "completed";
+    const achievementKey = getAchievementKey(achievement);
+    const isJourneySelected =
+      journeyLockActive &&
+      (
+        journeyIdSet.has(achievementKey) ||
+        journeyIdList.some((journeyId) => {
+          const normalizedId = slugify(journeyId);
+          const titleKey = slugify(achievement.title);
+          return (
+            normalizedId === titleKey ||
+            normalizedId.endsWith("-" + titleKey)
+          );
+        })
+      );
+
+    return state?.status === "completed" || isJourneySelected;
   }).length;
 
   const displayCompletedCount = journeyPreview ? 0 : completedCount;
   const displayTotalCount = journeyPreview ? 0 : allAchievements.length;
-  const progress = journeyPreview
-    ? 0
-    : allAchievements.length > 0
-      ? Math.round((completedCount / allAchievements.length) * 100)
-      : 0;
+  const progress =
+    journeyPreview || allAchievements.length === 0
+      ? 0
+      : Math.round((completedCount / allAchievements.length) * 100);
 
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch).trim();
