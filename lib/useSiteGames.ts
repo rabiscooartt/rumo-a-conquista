@@ -15,8 +15,13 @@ export type FlexibleAchievementInput = {
   status?: string;
   earnedDate?: string;
   image?: string;
+  source?: string;
+  externalId?: string;
+  officialImage?: string;
   isCustom?: boolean;
   isEmblem?: boolean;
+  isExophase?: boolean;
+  isHidden?: boolean;
   [key: string]: unknown;
 };
 
@@ -679,9 +684,10 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
 
 async function requestGameApi<T>(
   method: "POST" | "PUT" | "DELETE",
-  body: unknown
+  body: unknown,
+  endpoint = "/api/admin/games"
 ): Promise<T> {
-  const response = await fetch("/api/admin/games", {
+  const response = await fetch(endpoint, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -730,6 +736,19 @@ async function saveGameToSupabase(
     isHidden: options?.isHidden === true,
     isDeleted: options?.isDeleted === true,
   });
+}
+
+async function saveFinalMasteryToSupabase(
+  slug: string,
+  finalBadge: NonNullable<SiteGame["finalBadge"]>
+) {
+  return requestGameApi<{
+    ok: boolean;
+    finalBadge: SiteGame["finalBadge"];
+  }>("POST", {
+    slug,
+    finalBadge,
+  }, "/api/admin/games/final-mastery");
 }
 
 async function changeGameVisibility(
@@ -1061,6 +1080,43 @@ const hiddenGamesList = useMemo(() => {
     return true;
   }
 
+  async function updateFinalMastery(
+    slug: string,
+    finalBadge: NonNullable<SiteGame["finalBadge"]>
+  ) {
+    const currentGame =
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+    if (!currentGame) {
+      return false;
+    }
+
+    try {
+      const result = await saveFinalMasteryToSupabase(slug, finalBadge);
+      const nextGame = {
+        ...currentGame,
+        finalBadge: result.finalBadge ?? finalBadge,
+        updatedAt: new Date().toISOString(),
+      };
+
+      setCustomGames((current) => ({
+        ...current,
+        [slug]: nextGame,
+      }));
+
+      emitUpdate();
+      return true;
+    } catch (error) {
+      console.error("[Games] Erro atualizando Maestria Final:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar a Maestria Final."
+      );
+      return false;
+    }
+  }
+
   async function updateGame(slug: string, update: Partial<SiteGame>) {
     const currentGame =
       gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
@@ -1234,6 +1290,7 @@ const hiddenGamesList = useMemo(() => {
     deletedGameSlugs,
     addGame,
     updateGame,
+    updateFinalMastery,
     removeGame,
     deleteGamePermanently,
     restoreGame,

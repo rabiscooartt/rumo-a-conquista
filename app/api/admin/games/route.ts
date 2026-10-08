@@ -12,7 +12,7 @@ type IncomingAchievement = {
   status?: string;
   earnedDate?: string;
   image?: string;
-  source?: "manual" | "playstation" | "steam" | "xbox";
+  source?: "manual" | "exophase" | "playstation" | "steam" | "xbox";
   externalId?: string;
   officialImage?: string;
   isCustom?: boolean;
@@ -644,6 +644,12 @@ async function syncAchievements(
   );
 
   for (const row of existingRows) {
+    if (row.is_hidden && !incomingKeys.has(row.legacy_id)) {
+      // Conquistas ocultas não são carregadas no payload administrativo normal.
+      // Preservamos a linha para que uma edição de outra conquista não a apague.
+      continue;
+    }
+
     if (!incomingKeys.has(row.legacy_id)) {
       idsToDelete.add(row.id);
     }
@@ -754,6 +760,8 @@ function normalizeAchievementFromDatabase(
     externalId: achievement.external_id ?? undefined,
     officialImage:
       achievement.official_image ?? undefined,
+    isExophase:
+      String(achievement.source ?? "").trim().toLowerCase() === "exophase",
   };
 }
 

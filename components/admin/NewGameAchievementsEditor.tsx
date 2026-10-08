@@ -145,7 +145,16 @@ function toSavePayload(achievements: EditableAchievement[]): FlexibleAchievement
       difficulty: rank,
       rank,
       status: achievement.status,
+      earnedDate: readText(achievement.earnedDate, "").trim(),
       image: achievement.image.trim(),
+      source: achievement.isExophase
+        ? "exophase"
+        : readText(achievement.source, "").trim().toLowerCase() === "exophase"
+          ? "manual"
+          : readText(achievement.source, "manual").trim() || "manual",
+      externalId: readText(achievement.externalId, "").trim() || undefined,
+      officialImage:
+        readText(achievement.officialImage, "").trim() || undefined,
       isCustom: Boolean(achievement.isCustom),
       isHidden: Boolean(achievement.isHidden),
       isExophase: Boolean(achievement.isExophase),
@@ -193,23 +202,18 @@ export default function NewGameAchievementsEditor({
   journeySelectionEnabled?: boolean;
   onJourneyIdsChange?: (ids: string[]) => void;
 }) {
-  const [achievements, setAchievements] = useState(() =>
-    normalizeAchievements(game.achievementsList, game.slug)
+  const initialAchievements = normalizeAchievements(
+    game.achievementsList,
+    game.slug
   );
+  const [achievements, setAchievements] = useState(initialAchievements);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<AchievementFilter>("all");
   const [exophaseOnly, setExophaseOnly] = useState(false);
-  const [minimized, setMinimized] = useState<Record<string, boolean>>({});
+  const [minimized, setMinimized] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(initialAchievements.map((item) => [item.id, true]))
+  );
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const next = normalizeAchievements(game.achievementsList, game.slug);
-    setAchievements(next);
-    setMinimized(Object.fromEntries(next.map((item) => [item.id, true])));
-    setSearch("");
-    setFilter("all");
-    setExophaseOnly(false);
-  }, [game]);
 
   const journeyIdSet = useMemo(() => new Set(journeyIds), [journeyIds]);
 

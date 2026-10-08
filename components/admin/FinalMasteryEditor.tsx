@@ -95,7 +95,7 @@ export default function FinalMasteryEditor({
   onSave,
 }: {
   game: SiteGame;
-  onSave: (update: Partial<SiteGame>) => Promise<boolean>;
+  onSave: (finalBadge: NonNullable<SiteGame["finalBadge"]>) => Promise<boolean>;
 }) {
   const [mastery, setMastery] = useState<FinalMastery>(() => normalizeMastery(game));
   const [saving, setSaving] = useState(false);
@@ -111,12 +111,10 @@ export default function FinalMasteryEditor({
     setSaving(true);
     try {
       await onSave({
-        finalBadge: {
-          title: mastery.title.trim() || "Maestria Final",
-          icon: mastery.icon.trim() || "💎",
-          image: mastery.image.trim() || masteryImagePath(game.slug),
-          description: mastery.description.trim(),
-        },
+        title: mastery.title.trim() || "Maestria Final",
+        icon: mastery.icon.trim() || "💎",
+        image: mastery.image.trim() || masteryImagePath(game.slug),
+        description: mastery.description.trim(),
       });
     } finally {
       setSaving(false);

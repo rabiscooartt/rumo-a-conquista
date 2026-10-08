@@ -19,7 +19,7 @@ function journeyActive(game: SiteGame) {
 }
 
 export default function NewGamesAdminPage() {
-  const { isLoaded, gamesList, updateGame } = useSiteGames();
+  const { isLoaded, gamesList, updateGame, updateFinalMastery } = useSiteGames();
   const [selectedSlug, setSelectedSlug] = useState("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
@@ -680,7 +680,9 @@ export default function NewGamesAdminPage() {
                 <FinalMasteryEditor
                   key={"mastery-" + selectedGame.slug}
                   game={selectedGame}
-                  onSave={(update) => updateGame(selectedGame.slug, update)}
+                  onSave={(finalBadge) =>
+                    updateFinalMastery(selectedGame.slug, finalBadge)
+                  }
                 />
 
                 <div className="grid gap-5 md:grid-cols-2">
