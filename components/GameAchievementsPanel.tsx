@@ -1040,13 +1040,16 @@ export default function GameAchievementsPanel(
   const masteryConfigured = Boolean(
     finalBadge?.title || finalBadge?.image || finalBadge?.description
   );
+  const actualMasteryAchievement = allAchievements.find(
+    (achievement) => getDefaultRank(achievement) === "Maestria"
+  );
   const masteryCompleted =
     masteryConfigured &&
     allAchievements.length > 0 &&
     completedCount === allAchievements.length;
 
   const masteryEntry = useMemo<AchievementInput | null>(() => {
-    if (!masteryConfigured) return null;
+    if (!masteryConfigured || actualMasteryAchievement) return null;
 
     return {
       id: `${gameSlug}-final-mastery`,
@@ -1054,7 +1057,7 @@ export default function GameAchievementsPanel(
       description: finalBadge?.description?.trim() || "Conclua todas as conquistas para alcançar a Maestria Final.",
       trophy: "💎",
       icon: "💎",
-      difficulty: "Diamante",
+      difficulty: "Maestria",
       status: masteryCompleted ? "completed" : "locked",
       image: finalBadge?.image?.trim() || "",
       isCustom: false,
