@@ -99,6 +99,7 @@ export default function FinalMasteryEditor({
 }) {
   const [mastery, setMastery] = useState<FinalMastery>(() => normalizeMastery(game));
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -109,13 +110,23 @@ export default function FinalMasteryEditor({
 
   async function save() {
     setSaving(true);
+    setSaveState("idle");
+
     try {
-      await onSave({
+      const ok = await onSave({
         title: mastery.title.trim() || "Maestria Final",
         icon: mastery.icon.trim() || "💎",
         image: mastery.image.trim() || masteryImagePath(game.slug),
         description: mastery.description.trim(),
       });
+
+      setSaveState(ok ? "saved" : "error");
+
+      if (ok) {
+        window.setTimeout(() => setSaveState("idle"), 2500);
+      }
+    } catch {
+      setSaveState("error");
     } finally {
       setSaving(false);
     }
@@ -209,9 +220,19 @@ export default function FinalMasteryEditor({
             type="button"
             onClick={() => void save()}
             disabled={saving}
-            className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.08em] text-red-100 hover:bg-red-500/20 disabled:opacity-40"
+            className={saveState === "saved"
+              ? "rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.08em] text-emerald-100"
+              : saveState === "error"
+                ? "rounded-xl border border-red-400/40 bg-red-500/15 px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.08em] text-red-100"
+                : "rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.08em] text-red-100 hover:bg-red-500/20 disabled:opacity-40"}
           >
-            {saving ? "Salvando..." : "💾 Salvar Maestria"}
+            {saving
+              ? "Salvando..."
+              : saveState === "saved"
+                ? "✓ Maestria salva"
+                : saveState === "error"
+                  ? "⚠ Não salva"
+                  : "💾 Salvar Maestria"}
           </button>
         </div>
       </div>
@@ -304,7 +325,17 @@ export default function FinalMasteryEditor({
             </p>
           </div>
 
-          <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+            {saveState === "saved" && (
+              <span className="text-[9px] font-black uppercase tracking-[0.12em] text-emerald-200">
+                Maestria salva com sucesso.
+              </span>
+            )}
+            {saveState === "error" && (
+              <span className="text-[9px] font-black uppercase tracking-[0.12em] text-red-200">
+                Não foi possível salvar.
+              </span>
+            )}
             <button
               type="button"
               onClick={() => void copyPrompt()}
