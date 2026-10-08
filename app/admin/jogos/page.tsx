@@ -29,6 +29,14 @@ export default function NewGamesAdminPage() {
   const [manualAchievementRecords, setManualAchievementRecords] = useState<
     Record<string, { episode?: string; earnedDate?: string }>
   >({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  function toggleAdminSection(sectionId: string) {
+    setCollapsedSections((current) => ({
+      ...current,
+      [sectionId]: !current[sectionId],
+    }));
+  }
 
   const filteredGames = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -431,8 +439,17 @@ export default function NewGamesAdminPage() {
                 </section>
 
                 <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">01</p>
-                  <h3 className="mt-1 text-xl font-black">Dados do jogo</h3>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">01</p>
+                      <h3 className="mt-1 text-xl font-black">Dados do jogo</h3>
+                    </div>
+                    <button type="button" onClick={() => toggleAdminSection("01")} aria-expanded={!collapsedSections["01"]} className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black text-white/60 transition hover:border-red-500/30 hover:text-white">
+                      {collapsedSections["01"] ? "+ Expandir" : "− Minimizar"}
+                    </button>
+                  </div>
+                  {!collapsedSections["01"] && (
+                    <>
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
                     {(["title","subtitle","platform","hours"] as const).map((key) => {
                       const label =
@@ -615,6 +632,8 @@ export default function NewGamesAdminPage() {
                   </div>
 
                   <div className="mt-5 flex justify-end"><button type="button" disabled={saving} onClick={saveBasics} className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 hover:bg-red-500/20 disabled:opacity-50">{saving ? "Salvando..." : "Salvar dados do jogo"}</button></div>
+                    </>
+                  )}
                 </section>
 
                 <section className="rounded-[20px] border border-red-500/20 bg-red-500/[0.035] p-5">
@@ -624,11 +643,18 @@ export default function NewGamesAdminPage() {
                       <h3 className="mt-1 text-xl font-black">Jornada de Estreia</h3>
                       <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/40">Controla a tela exibida enquanto o jogo está sendo jogado pela primeira vez. Este é o primeiro módulo novo do Admin.</p>
                     </div>
+                    <div className="flex flex-wrap items-center gap-2">
                     <button type="button" disabled={saving} onClick={toggleJourney} aria-pressed={journeyActive(selectedGame)} className={journeyActive(selectedGame) ? "flex min-w-[230px] items-center justify-between gap-4 rounded-2xl border border-red-500/35 bg-red-500/10 px-4 py-3 disabled:opacity-50" : "flex min-w-[230px] items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 disabled:opacity-50"}>
                       <span className="text-left"><span className="block text-[8px] font-black uppercase tracking-[0.16em] text-white/30">Estado</span><span className={journeyActive(selectedGame) ? "mt-1 block text-sm font-black text-red-100" : "mt-1 block text-sm font-black text-white/60"}>{journeyActive(selectedGame) ? "Estamos jogando" : "Página normal"}</span></span>
                       <span className={journeyActive(selectedGame) ? "relative h-7 w-12 rounded-full bg-red-500/20" : "relative h-7 w-12 rounded-full bg-black/30"}><span className={journeyActive(selectedGame) ? "absolute left-6 top-1 h-5 w-5 rounded-full bg-red-400" : "absolute left-1 top-1 h-5 w-5 rounded-full bg-white/30"} /></span>
                     </button>
+                    <button type="button" onClick={() => toggleAdminSection("02")} aria-expanded={!collapsedSections["02"]} className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black text-white/60 transition hover:border-red-500/30 hover:text-white">
+                      {collapsedSections["02"] ? "+ Expandir" : "− Minimizar"}
+                    </button>
+                    </div>
                   </div>
+                  {!collapsedSections["02"] && (
+                    <>
                   <div className="mt-5 grid gap-3 md:grid-cols-3">
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Ativa</p><p className="mt-2 text-sm font-black">Mostra o aviso de Jornada de Estreia.</p></div>
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Desativada</p><p className="mt-2 text-sm font-black">Libera a página normal do jogo.</p></div>
@@ -665,6 +691,8 @@ export default function NewGamesAdminPage() {
                       </div>
                     </div>
                   )}
+                    </>
+                  )}
                 </section>
 
                 <NewGameAchievementsEditor
@@ -687,20 +715,38 @@ export default function NewGamesAdminPage() {
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">05</p>
-                    <h3 className="mt-1 text-xl font-black">Emblema</h3>
-                    <p className="mt-2 text-xs text-white/35">
-                      {selectedGame.emblem?.image ? "Emblema configurado." : "Emblema pendente."}
-                      {" "}O editor completo será migrado para este módulo.
-                    </p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">05</p>
+                        <h3 className="mt-1 text-xl font-black">Emblema</h3>
+                      </div>
+                      <button type="button" onClick={() => toggleAdminSection("05")} aria-expanded={!collapsedSections["05"]} className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black text-white/60 transition hover:border-red-500/30 hover:text-white">
+                        {collapsedSections["05"] ? "+ Expandir" : "− Minimizar"}
+                      </button>
+                    </div>
+                    {!collapsedSections["05"] && (
+                      <p className="mt-2 text-xs text-white/35">
+                        {selectedGame.emblem?.image ? "Emblema configurado." : "Emblema pendente."}
+                        {" "}O editor completo será migrado para este módulo.
+                      </p>
+                    )}
                   </section>
 
                   <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
-                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">06</p>
-                    <h3 className="mt-1 text-xl font-black">Review</h3>
-                    <p className="mt-2 text-xs text-white/35">
-                      Status, nota e conteúdo da review serão migrados para este módulo.
-                    </p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/25">06</p>
+                        <h3 className="mt-1 text-xl font-black">Review</h3>
+                      </div>
+                      <button type="button" onClick={() => toggleAdminSection("06")} aria-expanded={!collapsedSections["06"]} className="shrink-0 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black text-white/60 transition hover:border-red-500/30 hover:text-white">
+                        {collapsedSections["06"] ? "+ Expandir" : "− Minimizar"}
+                      </button>
+                    </div>
+                    {!collapsedSections["06"] && (
+                      <p className="mt-2 text-xs text-white/35">
+                        Status, nota e conteúdo da review serão migrados para este módulo.
+                      </p>
+                    )}
                   </section>
                 </div>
               </>
