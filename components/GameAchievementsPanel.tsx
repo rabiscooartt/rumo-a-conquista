@@ -275,9 +275,9 @@ function getRankTheme(rank: Rank) {
     return {
       border: "border-yellow-400/35",
       rowBorder: "border-l-yellow-400/70",
-      bg: "bg-yellow-500/[0.055]",
+      bg: "bg-yellow-500/[0.065]",
       pill: "border-yellow-300/35 bg-yellow-500/15 text-yellow-100",
-      glow: "shadow-[0_0_32px_rgba(250,204,21,0.11)]",
+      glow: "shadow-[0_0_32px_rgba(250,204,21,0.12)]",
     };
   }
 
@@ -285,18 +285,18 @@ function getRankTheme(rank: Rank) {
     return {
       border: "border-white/20",
       rowBorder: "border-l-white/35",
-      bg: "bg-white/[0.045]",
+      bg: "bg-white/[0.052]",
       pill: "border-white/25 bg-white/10 text-white/85",
-      glow: "shadow-[0_0_32px_rgba(255,255,255,0.055)]",
+      glow: "shadow-[0_0_32px_rgba(255,255,255,0.06)]",
     };
   }
 
   return {
     border: "border-orange-500/35",
     rowBorder: "border-l-orange-500/70",
-    bg: "bg-orange-500/[0.055]",
+    bg: "bg-orange-500/[0.065]",
     pill: "border-orange-300/35 bg-orange-500/15 text-orange-100",
-    glow: "shadow-[0_0_32px_rgba(249,115,22,0.12)]",
+    glow: "shadow-[0_0_32px_rgba(249,115,22,0.13)]",
   };
 }
 
@@ -1369,7 +1369,7 @@ export default function GameAchievementsPanel(
                   visuallyLocked
                     ? "border-l-white/10 bg-black/20 opacity-55"
                     : isFinalMastery
-                      ? "border-l-violet-300/80 bg-violet-500/[0.075] shadow-[0_0_32px_rgba(167,139,250,0.12)]"
+                      ? "border-l-red-400/90 bg-red-600/[0.085] shadow-[0_0_32px_rgba(185,28,28,0.18)]"
                       : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
                 }`}
               >
