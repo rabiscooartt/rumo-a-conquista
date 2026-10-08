@@ -32,6 +32,12 @@ export type ManualAchievementState = {
   image?: string;
 };
 
+export type AchievementJourneyMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 type CustomAchievement = AchievementInput & {
   id: string;
   isCustom: true;
@@ -48,6 +54,8 @@ type GameAchievementsPanelProps = {
   journeyPreview?: boolean;
   journeyLockActive?: boolean;
   journeyIds?: string[];
+  youtubePlaylistUrl?: string;
+  achievementMeta?: Record<string, AchievementJourneyMeta>;
   game?: {
     slug?: string;
     title?: string;
@@ -163,6 +171,32 @@ function getAchievementTitleKey(title?: string) {
   return normalizeText(title).replace(/\s+/g, " ").trim();
 }
 
+function formatJourneyEpisode(value?: string) {
+  const match = String(value ?? "").match(/\d+/);
+  if (!match) return String(value ?? "").trim();
+
+  return String(Number(match[0]));
+}
+
+function formatJourneyDate(value?: string) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    const [year, month, day] = raw.slice(0, 10).split("-");
+    if (year && month && day) return day + "/" + month + "/" + year;
+  }
+
+  return raw;
+}
+
+function trophyImagePath(rank: Rank) {
+  if (rank === "Diamante") return "/images/trophies/maestria.png";
+  if (rank === "Ouro") return "/images/trophies/ouro.png";
+  if (rank === "Prata") return "/images/trophies/prata.png";
+  return "/images/trophies/bronze.png";
+}
+
 function getDefaultRank(achievement: AchievementInput): Rank {
   const difficulty = normalizeText(achievement.difficulty);
 
@@ -260,26 +294,65 @@ function getRankTheme(rank: Rank) {
   };
 }
 
-function buildAutoImagePath(gameSlug: string, achievementTitle: string) {
+function buildAutoImagePath(
+  gameSlug: string,
+  achievementTitle: string,
+  index?: number
+) {
   if (!gameSlug || !achievementTitle) {
     return "";
   }
 
-  return `/images/games/${gameSlug}/achievements/${slugify(
-    achievementTitle
-  )}.png`;
+  const slug = slugify(achievementTitle);
+  const numbered =
+    typeof index === "number"
+      ? `/images/games/${gameSlug}/achievements/${String(index + 1).padStart(2, "0")}-${slug}.png`
+      : "";
+
+  return numbered || `/images/games/${gameSlug}/achievements/${slug}.png`;
+}
+
+function buildAchievementImageCandidates(
+  gameSlug: string,
+  achievement: AchievementInput,
+  state?: ManualAchievementState,
+  index?: number
+) {
+  const candidates: string[] = [];
+  const explicit = state?.image?.trim() || achievement.image?.trim();
+
+  if (explicit) {
+    candidates.push(explicit);
+  }
+
+  const local = buildAutoImagePath(gameSlug, achievement.title, index);
+  if (local) candidates.push(local);
+
+  const supabaseBase = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
+  if (supabaseBase && gameSlug && achievement.title) {
+    const slug = slugify(achievement.title);
+    const bucketBase =
+      `${supabaseBase}/storage/v1/object/public/achievement-art/games/${gameSlug}/achievements/`;
+
+    if (typeof index === "number") {
+      candidates.push(
+        `${bucketBase}${String(index + 1).padStart(2, "0")}-${slug}.png`
+      );
+    }
+
+    candidates.push(`${bucketBase}${slug}.png`);
+  }
+
+  return Array.from(new Set(candidates));
 }
 
 function getImagePath(
   gameSlug: string,
   achievement: AchievementInput,
-  state?: ManualAchievementState
+  state?: ManualAchievementState,
+  index?: number
 ) {
-  return (
-    state?.image?.trim() ||
-    achievement.image?.trim() ||
-    buildAutoImagePath(gameSlug, achievement.title)
-  );
+  return buildAchievementImageCandidates(gameSlug, achievement, state, index)[0] ?? "";
 }
 
 function createDefaultStates(achievements: AchievementInput[]) {
@@ -332,15 +405,22 @@ function sortAchievements(
 }
 
 function AchievementImage({
-  src,
+  sources,
   fallback,
   locked,
 }: {
-  src: string;
+  sources: string[];
   fallback: string;
   locked: boolean;
 }) {
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const src = sources[sourceIndex] ?? "";
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setSourceIndex(0);
+    setHasError(false);
+  }, [sources.join("|")]);
 
   if (!src || hasError) {
     return (
@@ -361,7 +441,13 @@ function AchievementImage({
       className={`h-full w-full object-cover ${
         locked ? "opacity-35 grayscale" : ""
       }`}
-      onError={() => setHasError(true)}
+      onError={() => {
+        if (sourceIndex < sources.length - 1) {
+          setSourceIndex((current) => current + 1);
+          return;
+        }
+        setHasError(true);
+      }}
     />
   );
 }
@@ -428,15 +514,20 @@ export default function GameAchievementsPanel(
   const onStatesChange = props.onStatesChange;
   const journeyPreview = props.journeyPreview === true;
   const journeyLockActive = props.journeyLockActive === true;
-  const journeyIdSet = useMemo(
+  const journeyIdList = useMemo(
     () =>
-      new Set(
-        (props.journeyIds ?? [])
-          .map((id) => String(id).trim())
-          .filter(Boolean)
-      ),
+      (props.journeyIds ?? [])
+        .map((id) => String(id).trim())
+        .filter(Boolean),
     [props.journeyIds]
   );
+
+  const journeyIdSet = useMemo(
+    () => new Set(journeyIdList),
+    [journeyIdList]
+  );
+  const youtubePlaylistUrl = props.youtubePlaylistUrl?.trim() ?? "";
+  const achievementMeta = props.achievementMeta ?? {};
 
   const [manualStates, setManualStates] = useState<
     Record<string, ManualAchievementState>
@@ -890,16 +981,30 @@ export default function GameAchievementsPanel(
 
   const completedCount = allAchievements.filter((achievement) => {
     const state = manualStates[achievement.title];
-    return state?.status === "completed";
+    const achievementKey = getAchievementKey(achievement);
+    const isJourneySelected =
+      journeyLockActive &&
+      (
+        journeyIdSet.has(achievementKey) ||
+        journeyIdList.some((journeyId) => {
+          const normalizedId = slugify(journeyId);
+          const titleKey = slugify(achievement.title);
+          return (
+            normalizedId === titleKey ||
+            normalizedId.endsWith("-" + titleKey)
+          );
+        })
+      );
+
+    return state?.status === "completed" || isJourneySelected;
   }).length;
 
   const displayCompletedCount = journeyPreview ? 0 : completedCount;
   const displayTotalCount = journeyPreview ? 0 : allAchievements.length;
-  const progress = journeyPreview
-    ? 0
-    : allAchievements.length > 0
-      ? Math.round((completedCount / allAchievements.length) * 100)
-      : 0;
+  const progress =
+    journeyPreview || allAchievements.length === 0
+      ? 0
+      : Math.round((completedCount / allAchievements.length) * 100);
 
   const filteredAchievements = useMemo(() => {
     const search = normalizeText(achievementSearch).trim();
@@ -1162,7 +1267,7 @@ export default function GameAchievementsPanel(
             Nenhuma conquista cadastrada ainda.
           </div>
         ) : sortedAchievements.length > 0 ? (
-          sortedAchievements.map((achievement) => {
+          sortedAchievements.map((achievement, index) => {
             const state =
               manualStates[achievement.title] ??
               createDefaultStates([achievement])[achievement.title];
@@ -1171,41 +1276,56 @@ export default function GameAchievementsPanel(
             const status = state.status;
             const theme = getRankTheme(rank);
             const isLocked = status === "locked";
-            const isJourneyAchievement = journeyIdSet.has(
-              getAchievementKey(achievement)
-            );
+            const achievementKey = getAchievementKey(achievement);
+            const titleKey = slugify(achievement.title);
+            const isJourneyAchievement =
+              journeyIdSet.has(achievementKey) ||
+              journeyIdList.some((id) => {
+                const normalizedId = slugify(id);
+                return (
+                  normalizedId === titleKey ||
+                  normalizedId.endsWith("-" + titleKey)
+                );
+              });
             const isJourneyBlocked =
-              journeyLockActive &&
-              !isJourneyAchievement &&
-              status !== "completed";
-            const imagePath = getImagePath(gameSlug, achievement, state);
+              journeyLockActive && !isJourneyAchievement;
+            const journeyVisible =
+              journeyLockActive && isJourneyAchievement;
+            const visuallyLocked =
+              !journeyVisible && (isLocked || isJourneyBlocked);
+            const imageCandidates = buildAchievementImageCandidates(
+              gameSlug,
+              achievement,
+              state,
+              index
+            );
             const isSaved = savedAchievementTitle === achievement.title;
 
             return (
               <article
                 key={achievement.id ?? achievement.title}
                 className={`relative border-l-2 border-b border-white/[0.06] transition ${
-                  isLocked || isJourneyBlocked
+                  visuallyLocked
                     ? "border-l-white/10 bg-black/20 opacity-55"
                     : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
                 }`}
               >
                 <div className="p-3 sm:p-4">
-                  <div className="grid gap-3 md:grid-cols-[52px_1fr]">
+                  <div className="grid gap-4 md:grid-cols-[52px_minmax(0,1fr)_150px] md:items-center">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
-                        isLocked || isJourneyBlocked
+                        visuallyLocked
                           ? "border-white/10"
                           : theme.border
                       }`}
                     >
                       {isJourneyBlocked ? (
                         <div className="relative h-full w-full">
-                          <div className="absolute inset-0 blur-[4px]">
+                          <div className="absolute inset-0 scale-105 blur-[4px] opacity-75">
                             <AchievementImage
-                              src={imagePath}
+                              sources={imageCandidates}
                               fallback={rankTrophy[rank]}
-                              locked={true}
+                              locked={false}
                             />
                           </div>
                           <div className="absolute inset-0 flex items-center justify-center bg-black/35">
@@ -1216,65 +1336,96 @@ export default function GameAchievementsPanel(
                         </div>
                       ) : (
                         <AchievementImage
-                          src={imagePath}
+                          sources={imageCandidates}
                           fallback={rankTrophy[rank]}
-                          locked={isLocked}
+                          locked={visuallyLocked}
                         />
                       )}
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-sm font-black tracking-[-0.01em] text-white sm:text-[15px]">
-                          {achievement.title}
-                        </h3>
-
-                        <span
-                          className={`rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] ${
-                            isLocked || isJourneyBlocked
-                              ? "border-white/10 text-white/35"
-                              : theme.pill
-                          }`}
-                        >
-                          {rank === "Diamante" ? (
-                            <img
-                              src="/images/trophies/maestria.png"
-                              alt=""
-                              aria-hidden="true"
-                              className="inline-block h-3 w-3 object-contain align-[-2px]"
-                            />
-                          ) : (
-                            rankTrophy[rank]
-                          )} {rankLabel(rank)}
-                        </span>
-
-                        <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
-                          {rankDifficulty[rank]}
-                        </span>
-                        {isJourneyAchievement && journeyLockActive && (
-                          <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[0.06] px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-emerald-200">
-                            ✦ Jornada de Estreia
-                          </span>
-                        )}
-                        {isJourneyBlocked && (
-                          <span className="rounded-full border border-white/15 bg-black/25 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.16em] text-white/40">
-                            🔒 Fora da Jornada
-                          </span>
-                        )}
-                      </div>
+                      <h3 className="text-sm font-black tracking-[-0.01em] text-white sm:text-[15px]">
+                        {achievement.title}
+                      </h3>
 
                       <p className="mt-1 max-w-[760px] text-[10px] leading-relaxed text-white/40 sm:text-[11px]">
                         {achievement.description ||
                           "Descrição ainda não definida."}
                       </p>
-                      {isJourneyBlocked && (
-                        <p className="mt-1 text-[9px] leading-relaxed text-white/25">
-                          Fora da Jornada de Estreia. Esta conquista fica bloqueada visualmente até entrar na sua progressão.
-                        </p>
-                      )}
                     </div>
-                  </div>
 
+                    {!visuallyLocked && (
+                      <div className="flex min-w-0 flex-col items-start justify-center md:items-end md:text-right">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={trophyImagePath(rank)}
+                            alt=""
+                            aria-hidden="true"
+                            className={`h-9 w-9 shrink-0 object-contain ${
+                              rank === "Ouro"
+                                ? "sepia saturate-[500%] hue-rotate-[350deg] brightness-110"
+                                : ""
+                            }`}
+                          />
+                          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/75">
+                            {rankLabel(rank)}
+                          </span>
+                        </div>
+
+                        {isJourneyAchievement && journeyLockActive && (
+                          <a
+                            href={youtubePlaylistUrl || undefined}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`mt-1 text-[8px] font-black uppercase tracking-[0.12em] transition ${
+                              youtubePlaylistUrl
+                                ? "text-emerald-200 hover:text-emerald-100 hover:underline"
+                                : "cursor-default text-emerald-200"
+                            }`}
+                            onClick={(event) => {
+                              if (!youtubePlaylistUrl) event.preventDefault();
+                            }}
+                          >
+                            JORNADA DE ESTREIA
+                          </a>
+                        )}
+
+                        {(() => {
+                          const meta = achievementMeta[achievementKey];
+                          const episode = formatJourneyEpisode(meta?.episode);
+                          const date = formatJourneyDate(meta?.date);
+                          const hasRecord = Boolean(episode || date);
+
+                          if (!hasRecord) return null;
+
+                          return (
+                            <div className="mt-1 text-[8px] font-bold tracking-[0.03em] text-white/35">
+                              {episode ? (
+                                meta?.liveUrl ? (
+                                  <a
+                                    href={meta.liveUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-white/55 transition hover:text-white hover:underline"
+                                  >
+                                    EP {episode}
+                                  </a>
+                                ) : (
+                                  <span>EP {episode}</span>
+                                )
+                              ) : null}
+                              {date ? (
+                                <span>
+                                  {episode ? " - " : ""}
+                                  {date}
+                                </span>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                                    </div>
                   {isEditMode && (
                     <div className="mt-6 rounded-[22px] border border-white/10 bg-black/25 p-4">
                       {achievement.isCustom === true && (

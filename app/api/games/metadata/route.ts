@@ -150,21 +150,48 @@ async function fromIgdb(title: string): Promise<Metadata | null> {
 }
 
 async function fromSteam(title: string): Promise<Metadata | null> {
-  const searchResponse = await fetch(
-    `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(title)}&l=english&cc=US`,
-    { cache: "no-store" }
-  );
-  if (!searchResponse.ok) return null;
+  const compactTitle = title
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/[^a-z0-9]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  const search = (await searchResponse.json()) as {
-    items?: Array<{ id?: number; name?: string }>;
-  };
-  const items = search.items ?? [];
+  const searchTerms = Array.from(
+    new Set(
+      [title, compactTitle, compactTitle.replace(/\bpi\b/gi, "p.i.")].filter(
+        (value) => value.trim()
+      )
+    )
+  );
+
+  let items: Array<{ id?: number; name?: string }> = [];
+
+  for (const term of searchTerms) {
+    const searchResponse = await fetch(
+      `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(
+        term
+      )}&l=english&cc=US`,
+      { cache: "no-store" }
+    );
+
+    if (!searchResponse.ok) continue;
+
+    const search = (await searchResponse.json()) as {
+      items?: Array<{ id?: number; name?: string }>;
+    };
+
+    items = search.items ?? [];
+    if (items.length > 0) break;
+  }
+
   if (!items.length) return null;
 
+  const normalizedTitle = normalize(title);
   const exact =
-    items.find((item) => normalize(item.name) === normalize(title)) ??
+    items.find((item) => normalize(item.name) === normalizedTitle) ??
+    items.find((item) => normalize(item.name).includes(normalizedTitle)) ??
     items[0];
+
   if (!exact.id) return null;
 
   const response = await fetch(
@@ -173,22 +200,34 @@ async function fromSteam(title: string): Promise<Metadata | null> {
   );
   if (!response.ok) return null;
 
-  const payload = (await response.json()) as Record<string, {
-    success?: boolean;
-    data?: {
-      genres?: Array<{ description?: string }>;
-      developers?: string[];
-      platforms?: { windows?: boolean; mac?: boolean; linux?: boolean };
-      release_date?: { date?: string };
-    };
-  }>;
+  const payload = (await response.json()) as Record<
+    string,
+    {
+      success?: boolean;
+      data?: {
+        genres?: Array<{ description?: string }>;
+        developers?: string[];
+        platforms?: { windows?: boolean; mac?: boolean; linux?: boolean };
+        release_date?: { date?: string };
+      };
+    }
+  >;
 
   const data = payload[String(exact.id)]?.data;
   if (!data) return null;
 
-  const genres = cleanList((data.genres ?? []).map((item) => item.description ?? "")).map(translateGenre);
+  const genres = cleanList(
+    (data.genres ?? []).map((item) => item.description ?? "")
+  ).map(translateGenre);
+
   const platforms: string[] = [];
-  if (data.platforms?.windows || data.platforms?.mac || data.platforms?.linux) platforms.push("PC");
+  if (
+    data.platforms?.windows ||
+    data.platforms?.mac ||
+    data.platforms?.linux
+  ) {
+    platforms.push("PC");
+  }
 
   const releaseDate = data.release_date?.date ?? "";
   const yearMatch = releaseDate.match(/\b(19|20)\d{2}\b/);
@@ -214,7 +253,13 @@ export async function GET(request: NextRequest) {
   if (preferSteam) {
     try {
       const steam = await fromSteam(title);
-      if (steam) {
+      if (
+        steam &&
+        (steam.genres.length ||
+          steam.developer ||
+          steam.releaseYear ||
+          steam.platforms.length)
+      ) {
         return NextResponse.json({
           ok: true,
           metadata: { ...steam, platforms: ["Steam"] },

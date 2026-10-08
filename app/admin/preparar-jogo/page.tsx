@@ -208,6 +208,8 @@ function PrepararJogoPage() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [draftLoading, setDraftLoading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [batchSize, setBatchSize] = useState(10);
@@ -483,7 +485,10 @@ function PrepararJogoPage() {
 
         if (!cancelled && payload.found && payload.draft) {
           const draft = payload.draft;
-          const journeyIds = new Set<string>(draft.journeyIds ?? []);
+          const journeyFinalized = draft.journeyFinalized === true;
+          const journeyIds = journeyFinalized
+            ? new Set<string>()
+            : new Set<string>(draft.journeyIds ?? []);
           const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
           const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
           const episodeById = (draft.episodeById ?? {}) as Record<string, string>;
@@ -507,7 +512,10 @@ function PrepararJogoPage() {
 
                         return {
                           ...a,
-                          journey: isJourney,
+                          journey: journeyFinalized ? false : isJourney,
+                          journeySuggestion: journeyFinalized
+                            ? false
+                            : a.journeySuggestion,
                           notDoing: notDoingIds.has(a.id),
                           visualBrief: visualBriefs[a.id] ?? a.visualBrief ?? "",
                           episode:
@@ -1555,7 +1563,10 @@ function PrepararJogoPage() {
     setMergeTitle("");
     setMergeDescription("");
   }
-  async function persistPreparation(achievements: A[]) {
+  async function persistPreparation(
+    achievements: A[],
+    options: { journeyFinalized?: boolean } = {}
+  ) {
     if (!result?.game.slug) return;
 
     const response = await fetch("/api/admin/achievement-prep-draft", {
@@ -1591,6 +1602,7 @@ function PrepararJogoPage() {
               .map((a) => [a.id, a.earnedNote?.trim() ?? ""])
           ),
           customAchievements: achievements.filter((a) => a.isCustom),
+          journeyFinalized: options.journeyFinalized === true,
         },
       }),
     });
@@ -1609,6 +1621,7 @@ function PrepararJogoPage() {
 
     setDraftLoading(true);
     setError("");
+    setPublished(false);
 
     try {
       await persistPreparation(result.achievements);
@@ -1616,6 +1629,271 @@ function PrepararJogoPage() {
       setError(e instanceof Error ? e.message : "Erro ao salvar rascunho.");
     } finally {
       setDraftLoading(false);
+    }
+  }
+
+  async function publishPreparation() {
+    if (!result?.game.slug || publishing) return;
+
+    const publishable = result.achievements.filter((a) => !a.notDoing);
+    const selectedJourneyIds = publishable
+      .filter((a) => a.journey)
+      .map((a) => a.id)
+      .filter(Boolean);
+
+    if (!publishable.length) {
+      setError("Nenhuma conquista está selecionada para publicação.");
+      return;
+    }
+
+    if (publishable.some((a) => !a.description.trim())) {
+      setError("Existem conquistas selecionadas sem descrição.");
+      return;
+    }
+
+    if (selectedJourneyIds.length === 0) {
+      setError("Selecione pelo menos uma conquista da Jornada de Estreia antes de publicar.");
+      return;
+    }
+
+    setPublishing(true);
+    setError("");
+    setPublished(false);
+
+    try {
+      const gamesResponse = await fetch("/api/admin/games", {
+        cache: "no-store",
+      });
+      const gamesPayload = await gamesResponse.json().catch(() => null);
+
+      if (!gamesResponse.ok || !Array.isArray(gamesPayload?.games)) {
+        throw new Error(
+          gamesPayload?.error ||
+            "Não foi possível carregar os dados atuais do jogo."
+        );
+      }
+
+      const currentGame = gamesPayload.games.find(
+        (game: { slug?: unknown }) =>
+          String(game.slug || "") === result.game.slug
+      );
+
+      if (!currentGame) {
+        throw new Error("O jogo cadastrado não foi encontrado para publicação.");
+      }
+
+      const existingAchievements: Record<string, unknown>[] =
+        Array.isArray(currentGame.achievementsList)
+          ? currentGame.achievementsList
+          : [];
+
+      const normalizeKey = (value: unknown) =>
+        slugify(String(value || "")).trim();
+
+      const existingById = new Map<string, Record<string, unknown>>();
+      for (const achievement of existingAchievements) {
+        const id = String(achievement.id || "").trim();
+        if (id) existingById.set(id, achievement);
+      }
+
+      const existingByTitle = new Map<string, Record<string, unknown>>();
+      for (const achievement of existingAchievements) {
+        const key = normalizeKey(achievement.title);
+        if (key) existingByTitle.set(key, achievement);
+      }
+
+      const rankTrophy = {
+        Bronze: "🥉",
+        Prata: "🥈",
+        Ouro: "🥇",
+      } as const;
+
+      // Resolve os episódios registrados nas conquistas contra a playlist do jogo.
+      // Assim, o EP fica clicável na página pública e abre a live correspondente.
+      const episodeVideoByNumber = new Map<string, string>();
+      const recordedEpisodes = publishable
+        .map((achievement) => normalizeEpisode(achievement.episode))
+        .filter(Boolean);
+
+      if (recordedEpisodes.length > 0 && currentGame.youtubePlaylistUrl) {
+        const playlistId = extractYoutubePlaylistId(
+          String(currentGame.youtubePlaylistUrl)
+        );
+
+        if (playlistId) {
+          try {
+            const playlistResponse = await fetch(
+              "/api/youtube/playlist?playlistId=" + encodeURIComponent(playlistId),
+              { cache: "no-store" }
+            );
+            const playlistPayload = await playlistResponse.json().catch(() => null);
+
+            if (playlistResponse.ok && Array.isArray(playlistPayload?.videos)) {
+              for (const episode of recordedEpisodes) {
+                const video = playlistPayload.videos.find(
+                  (item: { title?: unknown; playlistWatchUrl?: unknown }) =>
+                    titleMatchesEpisode(String(item.title || ""), episode)
+                );
+
+                if (video?.playlistWatchUrl) {
+                  episodeVideoByNumber.set(
+                    episode,
+                    String(video.playlistWatchUrl)
+                  );
+                }
+              }
+            }
+          } catch {
+            // A publicação não deve falhar só porque o catálogo do YouTube
+            // não respondeu. A conquista continua publicada sem o link da live.
+          }
+        }
+      }
+
+      const firstLiveEpisode = normalizeEpisode(
+        String(currentGame.youtubeFirstLiveEpisode || "")
+      );
+      const firstLiveUrl = String(currentGame.youtubeFirstLiveUrl || "").trim();
+
+      const achievementMeta = Object.fromEntries(
+        publishable
+          .map((achievement) => {
+            const episode = achievement.episode?.trim() || "";
+            const normalizedEpisode = normalizeEpisode(episode);
+            const date = achievement.earnedDate?.trim() || "";
+            const liveUrl =
+              episodeVideoByNumber.get(normalizedEpisode) ||
+              (normalizedEpisode && normalizedEpisode === firstLiveEpisode
+                ? firstLiveUrl
+                : "");
+
+            if (!normalizedEpisode && !date) {
+              return null;
+            }
+
+            return [
+              achievement.id,
+              {
+                ...(episode ? { episode } : {}),
+                ...(date ? { date } : {}),
+                ...(liveUrl ? { liveUrl } : {}),
+              },
+            ] as const;
+          })
+          .filter(Boolean) as Array<
+            [string, { episode?: string; date?: string; liveUrl?: string }]
+          >
+      );
+
+      const originalIndexById = new Map(
+        result.achievements.map((achievement, index) => [
+          achievement.id,
+          index + 1,
+        ])
+      );
+
+      const achievementsList = publishable.map((achievement) => {
+        const existing =
+          existingById.get(achievement.id) ||
+          existingByTitle.get(normalizeKey(achievement.name));
+
+        const existingRecord = existing as Record<string, unknown> | undefined;
+        const fallbackImage =
+          achievement.image?.trim() ||
+          String(existingRecord?.image || "").trim() ||
+          "";
+        const earnedDate =
+          achievement.earnedDate?.trim() ||
+          String(existingRecord?.earnedDate || "").trim();
+
+        return {
+          id: achievement.id,
+          title: achievement.name.trim(),
+          description: achievement.description.trim(),
+          trophy:
+            String(existingRecord?.trophy || "").trim() ||
+            rankTrophy[achievement.rank],
+          rank: achievement.rank,
+          difficulty: achievement.rank,
+          status:
+            String(existingRecord?.status || "").trim() ||
+            (earnedDate ? "completed" : "locked"),
+          earnedDate,
+          image: fallbackImage,
+          isCustom: Boolean(achievement.isCustom),
+          isHidden: false,
+          source:
+            String(existingRecord?.source || "").trim() ||
+            (achievement.isCustom ? "manual" : "Exophase"),
+          externalId: existingRecord?.externalId,
+          officialImage: existingRecord?.officialImage,
+        };
+      });
+
+      const response = await fetch("/api/admin/games", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: currentGame.slug,
+          title: currentGame.title,
+          subtitle: currentGame.subtitle,
+          status: currentGame.status,
+          progress: currentGame.progress,
+          hours: currentGame.hours,
+          currentObjective: currentGame.current_objective || "",
+          image: currentGame.image,
+          cardImage: currentGame.card_image,
+          platform: currentGame.platform,
+          finalBadge: currentGame.final_badge,
+          emblem: currentGame.emblem,
+          trophies: currentGame.trophies,
+          review: currentGame.review,
+          manualTotalPlayedMinutes:
+            currentGame.manual_total_played_minutes ?? null,
+          firstJourney: {
+            status: "completed",
+            completedAt:
+              currentGame.firstJourney?.completedAt ||
+              new Date().toISOString(),
+            achievementIds: selectedJourneyIds,
+            achievementMeta,
+          },
+          achievementsList,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || "Não foi possível publicar as conquistas."
+        );
+      }
+
+      const clearedAchievements = result.achievements.map((achievement) => ({
+        ...achievement,
+        journey: false,
+        journeySuggestion: false,
+      }));
+
+      await persistPreparation(clearedAchievements, {
+        journeyFinalized: true,
+      });
+      setResult((current) =>
+        current
+          ? { ...current, achievements: clearedAchievements }
+          : current
+      );
+      setJourneyPreparedCount(null);
+      setPublished(true);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível publicar as conquistas."
+      );
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -2070,16 +2348,23 @@ function PrepararJogoPage() {
               <div className="flex flex-col items-stretch gap-1">
                 <button
                   type="button"
-                  disabled={!publicationStatus.ready || draftLoading}
+                  onClick={() => void publishPreparation()}
+                  disabled={!publicationStatus.ready || draftLoading || publishing}
                   className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-[10px] font-black uppercase text-emerald-100 disabled:cursor-not-allowed disabled:opacity-35"
                   title={publicationStatus.ready ? "Publicar conquistas" : publicationStatus.reason}
                 >
-                  🚀 Publicar conquistas
+                  {publishing
+                    ? "⏳ Publicando..."
+                    : published
+                      ? "✅ Publicado"
+                      : "🚀 Publicar conquistas"}
                 </button>
                 <span className="text-[9px] text-white/25">
-                  {publicationStatus.ready
-                    ? "Pronto para publicar"
-                    : publicationStatus.reason}
+                  {published
+                    ? `Publicado: ${publicationStatus.selected} ${publicationStatus.selected === 1 ? "conquista" : "conquistas"}.`
+                    : publicationStatus.ready
+                      ? "Pronto para publicar"
+                      : publicationStatus.reason}
                 </span>
               </div>
             </div>

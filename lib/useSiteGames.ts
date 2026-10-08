@@ -28,10 +28,17 @@ export type GameEmblemInput = {
   unlockedAt?: string;
 };
 
+export type FirstJourneyAchievementMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 export type FirstJourneyState = {
   status: "not_started" | "in_progress" | "completed";
   completedAt?: string;
   achievementIds?: string[];
+  achievementMeta?: Record<string, FirstJourneyAchievementMeta>;
 };
 
 export type SiteGame = {
@@ -60,6 +67,7 @@ export type SiteGame = {
     title: string;
     icon: string;
     image?: string;
+    description?: string;
   };
   emblem?: GameEmblemInput;
   trophies?: {
@@ -432,34 +440,46 @@ function createFinalBadgeFromAchievements(
   achievementsList: FlexibleAchievementInput[],
   fallback?: SiteGame["finalBadge"]
 ): SiteGame["finalBadge"] {
+  // O Maestria Final explicitamente cadastrada no jogo é a fonte de verdade.
+  // Isso permite guardar também sua descrição, usada pelo lote exclusivo de arte.
+  if (fallback && typeof fallback === "object") {
+    const description = readText(fallback.description, "").trim();
+
+    return {
+      title: readText(fallback.title, "Maestria Final"),
+      icon: readText(fallback.icon, "💎"),
+      image:
+        readText(fallback.image, "") ||
+        `/images/games/${finalSlug}/achievements/maestria-final.png`,
+      ...(description ? { description } : {}),
+    };
+  }
+
+  // Compatibilidade com jogos antigos que ainda não possuem Maestria Final
+  // configurada explicitamente: tenta derivá-la de uma conquista equivalente.
   const masteryAchievement = getBestMasteryAchievement(achievementsList);
 
   if (masteryAchievement) {
     return {
-      title: readText(masteryAchievement.title, "Emblema"),
+      title: readText(masteryAchievement.title, "Maestria Final"),
       icon:
         masteryAchievement.isEmblem === true
           ? "🏆"
           : readText(masteryAchievement.icon, "") ||
             readText(masteryAchievement.trophy, "") ||
             rankToTrophy("Ouro"),
-      image: readText(masteryAchievement.image, ""),
-    };
-  }
-
-  if (fallback && typeof fallback === "object") {
-    return {
-      title: readText(fallback.title, "Emblema"),
-      icon: readText(fallback.icon, "🏆"),
       image:
-        readText(fallback.image, "") ||
+        readText(masteryAchievement.image, "") ||
         `/images/games/${finalSlug}/achievements/maestria-final.png`,
+      ...(readText(masteryAchievement.description, "").trim()
+        ? { description: readText(masteryAchievement.description, "").trim() }
+        : {}),
     };
   }
 
   return {
-    title: "Emblema",
-    icon: "🏆",
+    title: "Maestria Final",
+    icon: "💎",
     image: `/images/games/${finalSlug}/achievements/maestria-final.png`,
   };
 }

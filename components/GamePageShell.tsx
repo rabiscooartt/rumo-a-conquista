@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 import GameAchievementsPanel, {
   type AchievementInput,
+  type AchievementJourneyMeta,
   type ManualAchievementState,
 } from "@/components/GameAchievementsPanel";
 
@@ -27,10 +28,14 @@ export type GamePageShellInput = {
   developer?: string;
   releaseYear?: string;
   manualTotalPlayedMinutes?: number | null;
+  youtubePlaylistUrl?: string;
+  youtubeFirstLiveUrl?: string;
+  youtubeFirstLiveEpisode?: string;
   firstJourney?: {
     status: "not_started" | "in_progress" | "completed";
     completedAt?: string;
     achievementIds?: string[];
+    achievementMeta?: Record<string, AchievementJourneyMeta>;
   };
   emblem?: {
     title?: string;
@@ -88,8 +93,15 @@ function normalizeGameKey(value?: string) {
 
 function formatDeveloperName(value?: string) {
   const name = String(value || "").trim();
-  if (!name) return "—";
-  return name.split(/[,/&]|\s{2,}/)[0].trim().split(/\s+/)[0] || "—";
+  if (!name) return "Não informado";
+  return name;
+}
+
+function developerValueClass(value?: string) {
+  const length = String(value || "").trim().length;
+  if (length >= 22) return "text-[11px]";
+  if (length >= 14) return "text-[12px]";
+  return "text-[16px]";
 }
 
 function formatPlayedTime(minutes: number) {
@@ -149,7 +161,7 @@ const TROPHY_META: Array<{
   { rank: "Bronze", label: "Bronze" },
   { rank: "Prata", label: "Prata" },
   { rank: "Ouro", label: "Ouro" },
-  { rank: "Maestria", label: "Maestria" },
+  { rank: "Maestria", label: "Maestria Final" },
 ];
 
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
@@ -287,13 +299,31 @@ export default function GamePageShell({ slug, game }: Props) {
   }, [game.title, game.platform]);
 
   const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
+  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const journeyIdList = Array.isArray(resolvedFirstJourney?.achievementIds)
+    ? resolvedFirstJourney.achievementIds.map((id) => String(id).trim()).filter(Boolean)
+    : [];
+  const journeyIdSet = new Set(journeyIdList);
+  const isJourneySelected = (achievement: AchievementInput) => {
+    const id = String(achievement.id || "").trim();
+    if (id && journeyIdSet.has(id)) return true;
+
+    const titleKey = normalizeGameKey(achievement.title);
+    if (!titleKey) return false;
+
+    return journeyIdList.some((journeyId) => normalizeGameKey(journeyId) === titleKey);
+  };
   const completedCount = useMemo(
-    () => achievements.filter((achievement) => ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status))).length,
-    [achievements]
+    () =>
+      achievements.filter(
+        (achievement) =>
+          ["completed", "concluido", "concluida"].includes(normalizeText(achievement.status)) ||
+          isJourneySelected(achievement)
+      ).length,
+    [achievements, journeyIdList]
   );
   const totalCount = achievements.length;
-  const progress = clamp(game.progress);
-  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const status =
     resolvedFirstJourney?.status === "in_progress"
       ? "progress"
@@ -402,8 +432,8 @@ export default function GamePageShell({ slug, game }: Props) {
     resolvedFirstJourney?.status === "in_progress";
   const journeyLockActive =
     resolvedFirstJourney?.status === "completed" &&
-    (Boolean(resolvedFirstJourney.completedAt) ||
-      Array.isArray(resolvedFirstJourney.achievementIds));
+    Array.isArray(resolvedFirstJourney.achievementIds) &&
+    resolvedFirstJourney.achievementIds.length > 0;
   const journeyIds = journeyLockActive
     ? resolvedFirstJourney?.achievementIds ?? []
     : [];
@@ -615,16 +645,40 @@ export default function GamePageShell({ slug, game }: Props) {
         
                         <div className="grid grid-cols-4 gap-1.5">
                           {TROPHY_META.map(({ rank, label }) => {
-                            const total = achievements.filter(
-                              (achievement) => getTrophyRank(achievement) === rank
-                            ).length;
-                            const completed = achievements.filter(
-                              (achievement) =>
-                                getTrophyRank(achievement) === rank &&
-                                ["completed", "concluido", "concluida"].includes(
-                                  normalizeText(achievement.status)
+                            const isMastery = rank === "Maestria";
+                            const masteryAchievement = isMastery
+                              ? achievements.find(
+                                  (achievement) =>
+                                    getTrophyRank(achievement) === "Maestria"
                                 )
-                            ).length;
+                              : null;
+                            const total = isMastery
+                              ? 1
+                              : achievements.filter(
+                                  (achievement) => getTrophyRank(achievement) === rank
+                                ).length;
+                            const completed = isMastery
+                              ? (
+                                  masteryAchievement &&
+                                  (
+                                    ["completed", "concluido", "concluida"].includes(
+                                      normalizeText(masteryAchievement.status)
+                                    ) ||
+                                    isJourneySelected(masteryAchievement)
+                                  )
+                                )
+                                  ? 1
+                                  : 0
+                              : achievements.filter(
+                                  (achievement) =>
+                                    getTrophyRank(achievement) === rank &&
+                                    (
+                                      ["completed", "concluido", "concluida"].includes(
+                                        normalizeText(achievement.status)
+                                      ) ||
+                                      isJourneySelected(achievement)
+                                    )
+                                ).length;
         
                             return (
                               <div
@@ -670,6 +724,8 @@ export default function GamePageShell({ slug, game }: Props) {
                       journeyPreview={showFirstJourneyPreview}
                       journeyLockActive={journeyLockActive}
                       journeyIds={journeyIds}
+                      youtubePlaylistUrl={game.youtubePlaylistUrl}
+                      achievementMeta={resolvedFirstJourney?.achievementMeta}
                       onStatesChange={setManualStates}
                     />
                   </section>
@@ -688,41 +744,44 @@ export default function GamePageShell({ slug, game }: Props) {
                           <SectionTitle>Sobre o Jogo</SectionTitle>
         
                           <div className="mt-4 space-y-4">
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconGamepad className="h-5 w-5 text-white/80" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "—"}>
-                                {genres.length > 0 ? genres.join(", ") : "—"}
+                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "Não informado"}>
+                                {genres.length > 0 ? genres.join(", ") : "Não informado"}
                               </span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconGamepad className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
-                                {game.platform || "—"}
+                                {game.platform || "Não informado"}
                               </span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconClock className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
                               <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconTrophy className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Desenvolvedora</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={game.developer || "—"}>
-                                {formatDeveloperName(developer)}
+                              <span
+                                className={`min-w-0 truncate text-right font-black text-white/95 ${developerValueClass(developer)}`}
+                                title={developer || "Não informado"}
+                              >
+                                {developer || "Não informado"}
                               </span>
                             </div>
         
-                            <div className="grid grid-cols-[20px_82px_minmax(0,1fr)] items-center gap-2.5">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconCalendar className="h-4 w-4 text-white/70" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear}>
-                                {releaseYear || "—"}
+                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear || "Não informado"}>
+                                {releaseYear || "Não informado"}
                               </span>
                             </div>
                           </div>
@@ -737,27 +796,24 @@ export default function GamePageShell({ slug, game }: Props) {
                         <SectionTitle>Emblema</SectionTitle>
         
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
-                          {emblem?.image ? (
-                            <div className="relative flex h-[210px] w-[210px] items-center justify-center">
-                              <img
-                                src={emblem.image}
-                                alt={emblem.title || "Emblema"}
-                                className={`h-full w-full object-contain transition-all ${emblemUnlocked ? "" : "scale-95 blur-[7px] opacity-45 grayscale"}`}
-                              />
-                              {!emblemUnlocked && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
-                                    🔒
-                                  </div>
+                          <div className="relative flex h-[210px] w-[210px] items-center justify-center">
+                            <img
+                              src={emblem?.image || `/images/games/${slug}/emblem.png`}
+                              alt={emblem?.title || "Emblema"}
+                              className={`h-full w-full object-contain transition-all ${
+                                emblemUnlocked
+                                  ? ""
+                                  : "scale-95 blur-[7px] opacity-45 grayscale"
+                              }`}
+                            />
+                            {!emblemUnlocked && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
+                                  🔒
                                 </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex h-[210px] w-[210px] items-center justify-center text-5xl opacity-45">
-                              🏆
-                            </div>
-                          )}
-        
+                              </div>
+                            )}
+                          </div>
                           <p className={`mt-3 text-[12px] font-black uppercase tracking-[0.12em] ${emblemUnlocked ? "text-red-500" : "text-white/40"}`}>
                             {emblemUnlocked ? "Conquistado" : "Bloqueado"}
                           </p>

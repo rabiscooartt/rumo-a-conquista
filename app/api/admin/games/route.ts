@@ -35,12 +35,96 @@ function normalizeText(value: unknown, fallback = "") {
     .replace(/\s+/g, " ");
 }
 
+function normalizeDisplayText(value: unknown, fallback = "") {
+  if (typeof value !== "string" && typeof value !== "number") return fallback;
+
+  return String(value)
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 function normalizeTitle(value?: string) {
   return normalizeText(value)
     .replace(/[^a-z0-9\s]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
+
+function normalizeAchievementFilename(value: string) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/^\d+[-_\s]*/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function recoverStoredAchievementImages(
+  client: ReturnType<typeof createAdminSupabaseClient>,
+  gameSlug: string,
+  achievements: IncomingAchievement[]
+) {
+  try {
+    const { data: files, error } = await client.storage
+      .from("achievement-art")
+      .list(`games/${gameSlug}/achievements`, {
+        limit: 1000,
+        sortBy: { column: "name", order: "asc" },
+      });
+
+    if (error || !files) {
+      if (error) {
+        console.warn("[Achievement Art Recovery]", error.message);
+      }
+      return;
+    }
+
+    const candidates = files
+      .filter((file) => typeof file.name === "string" && file.name.trim())
+      .map((file) => ({
+        name: file.name.trim(),
+        key: normalizeAchievementFilename(file.name),
+        number: Number(
+          (file.name.match(/^(\d+)[-_\s]/) ?? [])[1] || 0
+        ),
+      }));
+
+    for (let index = 0; index < achievements.length; index += 1) {
+      const achievement = achievements[index];
+      const currentImage = achievement.image?.trim() || "";
+      const looksLikeLocalPreparedImage =
+        currentImage.startsWith(
+          `/images/games/${gameSlug}/achievements/`
+        );
+      if (currentImage && !looksLikeLocalPreparedImage) continue;
+
+      const key = normalizeAchievementFilename(achievement.title || "");
+      if (!key) continue;
+
+      const numbered = candidates.find(
+        (file) => file.number === index + 1 && file.key === key
+      );
+      const direct = candidates.find((file) => file.key === key);
+      const match = numbered ?? direct;
+
+      if (!match) continue;
+
+      const storagePath = `games/${gameSlug}/achievements/${match.name}`;
+      const { data } = client.storage
+        .from("achievement-art")
+        .getPublicUrl(storagePath);
+
+      if (data?.publicUrl) {
+        achievement.image = data.publicUrl;
+      }
+    }
+  } catch (error) {
+    console.warn("[Achievement Art Recovery] Falha:", error);
+  }
+}
+
 
 function normalizeSlug(value?: string) {
   return value?.trim() || "";
@@ -92,10 +176,17 @@ type DatabaseAchievementProgressRow = {
   image_override: string | null;
 };
 
+type FirstJourneyAchievementMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 type FirstJourneyState = {
   status?: "not_started" | "in_progress" | "completed";
   completedAt?: string;
   achievementIds?: string[];
+  achievementMeta?: Record<string, FirstJourneyAchievementMeta>;
 };
 
 type GamePayload = {
@@ -137,6 +228,37 @@ function normalizeFirstJourney(
         .filter(Boolean)
     : undefined;
 
+  const achievementMeta =
+    value.achievementMeta &&
+    typeof value.achievementMeta === "object" &&
+    !Array.isArray(value.achievementMeta)
+      ? Object.fromEntries(
+          Object.entries(value.achievementMeta as Record<string, unknown>).map(
+            ([id, rawMeta]) => {
+              const meta =
+                rawMeta && typeof rawMeta === "object" && !Array.isArray(rawMeta)
+                  ? (rawMeta as Record<string, unknown>)
+                  : {};
+
+              return [
+                String(id).trim(),
+                {
+                  ...(typeof meta.episode === "string" && meta.episode.trim()
+                    ? { episode: meta.episode.trim() }
+                    : {}),
+                  ...(typeof meta.date === "string" && meta.date.trim()
+                    ? { date: meta.date.trim() }
+                    : {}),
+                  ...(typeof meta.liveUrl === "string" && meta.liveUrl.trim()
+                    ? { liveUrl: meta.liveUrl.trim() }
+                    : {}),
+                },
+              ] as const;
+            }
+          )
+        )
+      : undefined;
+
   return {
     status: value.status as FirstJourneyState["status"],
     completedAt:
@@ -144,6 +266,7 @@ function normalizeFirstJourney(
         ? value.completedAt.trim()
         : undefined,
     ...(achievementIds ? { achievementIds } : {}),
+    ...(achievementMeta ? { achievementMeta } : {}),
   };
 }
 
@@ -330,7 +453,7 @@ function buildGameData(game: GamePayload) {
 
   return {
     slug,
-    title: normalizeText(game.title, "Jogo sem nome"),
+    title: normalizeDisplayText(game.title, "Jogo sem nome"),
     subtitle: normalizeText(game.subtitle),
     status: normalizeText(game.status, "progress"),
     progress: Math.min(
@@ -383,14 +506,14 @@ function buildAchievementDefinition(
   return {
     game_slug: gameSlug,
     legacy_id: legacyId,
-    title,
-    description: normalizeText(achievement.description),
+    title: normalizeDisplayText(achievement.title, `Conquista ${index + 1}`),
+    description: normalizeDisplayText(achievement.description),
     trophy: normalizeText(achievement.trophy ?? achievement.icon, ""),
     rank: normalizeRank(achievement.rank || achievement.difficulty),
-    image: normalizeText(achievement.image),
-    source: normalizeText(achievement.source, "manual"),
-    external_id: normalizeText(achievement.externalId) || null,
-    official_image: normalizeText(achievement.officialImage) || null,
+    image: normalizeDisplayText(achievement.image),
+    source: normalizeDisplayText(achievement.source, "manual"),
+    external_id: normalizeDisplayText(achievement.externalId) || null,
+    official_image: normalizeDisplayText(achievement.officialImage) || null,
     sort_order: index,
     is_custom: achievement.isCustom === true,
     is_hidden:
@@ -408,11 +531,11 @@ function buildAchievementProgress(
       idByLegacyId.get(legacyIdFor(achievement, index)) ?? "",
     owner_key: OWNER_KEY,
     status: normalizeStatus(achievement.status),
-    earned_at: normalizeText(achievement.earnedDate) || null,
+    earned_at: normalizeDisplayText(achievement.earnedDate) || null,
     rank_override: normalizeRank(
       achievement.rank || achievement.difficulty
     ),
-    image_override: normalizeText(achievement.image) || null,
+    image_override: normalizeDisplayText(achievement.image) || null,
   };
 }
 
@@ -543,6 +666,10 @@ async function syncAchievements(
 
     if (achievementsDeleteError) throw achievementsDeleteError;
   }
+
+  // Recupera artes que já estão no bucket mesmo quando a preparação atual
+  // não trouxe a URL. Isso evita apagar a arte em uma republicação.
+  await recoverStoredAchievementImages(client, gameSlug, uniqueIncoming);
 
   // Agora salvamos somente o conjunto único e atualizado.
   const definitions = uniqueIncoming.map((achievement, index) =>

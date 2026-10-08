@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
+type FirstJourneyAchievementMeta = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 type FirstJourneyState = {
   status: "not_started" | "in_progress" | "completed";
   completedAt?: string;
   achievementIds?: string[];
+  achievementMeta?: Record<string, FirstJourneyAchievementMeta>;
 };
 
 function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
@@ -29,6 +36,37 @@ function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
         .filter(Boolean)
     : undefined;
 
+  const achievementMeta =
+    record.achievementMeta &&
+    typeof record.achievementMeta === "object" &&
+    !Array.isArray(record.achievementMeta)
+      ? Object.fromEntries(
+          Object.entries(record.achievementMeta as Record<string, unknown>).map(
+            ([id, rawMeta]) => {
+              const meta =
+                rawMeta && typeof rawMeta === "object" && !Array.isArray(rawMeta)
+                  ? (rawMeta as Record<string, unknown>)
+                  : {};
+
+              return [
+                String(id).trim(),
+                {
+                  ...(typeof meta.episode === "string" && meta.episode.trim()
+                    ? { episode: meta.episode.trim() }
+                    : {}),
+                  ...(typeof meta.date === "string" && meta.date.trim()
+                    ? { date: meta.date.trim() }
+                    : {}),
+                  ...(typeof meta.liveUrl === "string" && meta.liveUrl.trim()
+                    ? { liveUrl: meta.liveUrl.trim() }
+                    : {}),
+                },
+              ] as const;
+            }
+          )
+        )
+      : undefined;
+
   return {
     status,
     completedAt:
@@ -36,6 +74,7 @@ function normalizeFirstJourney(value: unknown): FirstJourneyState | undefined {
         ? record.completedAt.trim()
         : undefined,
     ...(achievementIds ? { achievementIds } : {}),
+    ...(achievementMeta ? { achievementMeta } : {}),
   };
 }
 
