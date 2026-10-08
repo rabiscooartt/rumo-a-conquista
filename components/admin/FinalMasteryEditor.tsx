@@ -197,12 +197,22 @@ export default function FinalMasteryEditor({
           </p>
           <h3 className="mt-1 text-xl font-black">Maestria Final</h3>
           <p className="mt-1 max-w-[820px] text-xs leading-relaxed text-white/40">
-            Aqui fica a recompensa final do jogo. Nesta arte, o título e a descrição são usados diretamente como direção criativa para criar algo específico da Maestria.
+            Aqui fica a recompensa final do jogo. A Maestria Final é separada das conquistas Bronze, Prata e Ouro; título, descrição e arte são definidos aqui.
           </p>
         </div>
 
-        <div className="shrink-0 rounded-xl border border-violet-300/20 bg-violet-300/[0.06] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-violet-100">
-          1 Maestria = 1 arte
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="rounded-xl border border-violet-300/20 bg-violet-300/[0.06] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-violet-100">
+            1 Maestria = 1 arte
+          </div>
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.08em] text-red-100 hover:bg-red-500/20 disabled:opacity-40"
+          >
+            {saving ? "Salvando..." : "💾 Salvar Maestria"}
+          </button>
         </div>
       </div>
 
@@ -309,14 +319,6 @@ export default function FinalMasteryEditor({
               className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-[9px] font-black uppercase text-emerald-100 disabled:opacity-40"
             >
               {downloading ? "Montando..." : "📦 Baixar pacote"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void save()}
-              disabled={saving}
-              className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-[9px] font-black uppercase text-red-100 disabled:opacity-40"
-            >
-              {saving ? "Salvando..." : "💾 Salvar Maestria"}
             </button>
           </div>
         </div>
