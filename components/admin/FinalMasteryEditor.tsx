@@ -101,6 +101,7 @@ export default function FinalMasteryEditor({
   onSave: (finalBadge: NonNullable<SiteGame["finalBadge"]>) => Promise<boolean>;
 }) {
   const [mastery, setMastery] = useState<FinalMastery>(() => normalizeMastery(game));
+  const [sectionCollapsed, setSectionCollapsed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [copied, setCopied] = useState(false);
@@ -242,9 +243,19 @@ export default function FinalMasteryEditor({
                   ? "⚠ Não salva"
                   : "💾 Salvar Maestria"}
           </button>
+          <button
+            type="button"
+            onClick={() => setSectionCollapsed((value) => !value)}
+            aria-expanded={!sectionCollapsed}
+            className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[10px] font-black text-white/60 transition hover:border-violet-300/30 hover:text-white"
+          >
+            {sectionCollapsed ? "+ Expandir" : "− Minimizar"}
+          </button>
         </div>
       </div>
 
+      {!sectionCollapsed && (
+        <>
       <div className="mt-5 grid gap-4 lg:grid-cols-[170px_minmax(0,1fr)]">
         <div>
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-violet-300/15 bg-black/40">
@@ -362,6 +373,8 @@ export default function FinalMasteryEditor({
           </div>
         </div>
       </div>
+        </>
+      )}
     </section>
   );
 }
