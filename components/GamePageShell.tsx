@@ -161,7 +161,7 @@ const TROPHY_META: Array<{
   { rank: "Bronze", label: "Bronze" },
   { rank: "Prata", label: "Prata" },
   { rank: "Ouro", label: "Ouro" },
-  { rank: "Maestria", label: "Maestria" },
+  { rank: "Maestria", label: "Maestria Final" },
 ];
 
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
@@ -646,13 +646,29 @@ export default function GamePageShell({ slug, game }: Props) {
                         <div className="grid grid-cols-4 gap-1.5">
                           {TROPHY_META.map(({ rank, label }) => {
                             const isMastery = rank === "Maestria";
+                            const masteryAchievement = isMastery
+                              ? achievements.find(
+                                  (achievement) =>
+                                    getTrophyRank(achievement) === "Maestria"
+                                )
+                              : null;
                             const total = isMastery
                               ? 1
                               : achievements.filter(
                                   (achievement) => getTrophyRank(achievement) === rank
                                 ).length;
                             const completed = isMastery
-                              ? (emblemUnlocked ? 1 : 0)
+                              ? (
+                                  masteryAchievement &&
+                                  (
+                                    ["completed", "concluido", "concluida"].includes(
+                                      normalizeText(masteryAchievement.status)
+                                    ) ||
+                                    isJourneySelected(masteryAchievement)
+                                  )
+                                )
+                                  ? 1
+                                  : 0
                               : achievements.filter(
                                   (achievement) =>
                                     getTrophyRank(achievement) === rank &&
