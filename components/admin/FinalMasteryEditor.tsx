@@ -52,6 +52,9 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "Não ignorar palavras ou conceitos importantes do título e da descrição.",
     "A identidade visual deve parecer feita especificamente para esta Maestria Final e para este jogo.",
     "",
+    "RANK:",
+    "MAESTRIA",
+    "",
     "TÍTULO DA MAESTRIA:",
     mastery.title || "Maestria Final",
     "",
@@ -213,8 +216,13 @@ export default function FinalMasteryEditor({
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <div className="rounded-xl border border-violet-300/20 bg-violet-300/[0.06] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-violet-100">
-            1 Maestria = 1 arte
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-xl border border-violet-300/35 bg-violet-400/[0.10] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-violet-100">
+              Rank: Maestria
+            </span>
+            <span className="rounded-xl border border-violet-300/20 bg-violet-300/[0.06] px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-violet-100">
+              1 Maestria = 1 arte
+            </span>
           </div>
           <button
             type="button"
