@@ -21,7 +21,7 @@ type IncomingAchievement = {
 };
 
 const OWNER_KEY = "default";
-const VALID_RANKS = new Set(["Bronze", "Prata", "Ouro", "Maestria", "Diamante"]);
+const VALID_RANKS = new Set(["Bronze", "Prata", "Ouro", "Diamante"]);
 const VALID_STATUSES = new Set(["locked", "progress", "completed"]);
 
 function normalizeText(value: unknown, fallback = "") {
@@ -136,7 +136,6 @@ function normalizeNumber(value: unknown, fallback = 0) {
 }
 
 function normalizeRank(value?: string) {
-  if (value === "Diamante" || value === "Extrema") return "Maestria";
   return value && VALID_RANKS.has(value) ? value : "Bronze";
 }
 
