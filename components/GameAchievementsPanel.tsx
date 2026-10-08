@@ -1411,7 +1411,7 @@ export default function GameAchievementsPanel(
                         {achievement.title}
                       </h3>
 
-                      <p className="mt-1 max-w-[760px] text-[10px] leading-relaxed text-white/40 sm:text-[11px]">
+                      <p className="mt-1 max-w-[760px] text-[11px] font-medium leading-[1.45] text-white/55 sm:text-[12px]">
                         {achievement.description ||
                           "Descrição ainda não definida."}
                       </p>
