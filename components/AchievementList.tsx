@@ -22,8 +22,7 @@ type SortDirection = "asc" | "desc";
 function getTrophyRank(trophy: string): TrophyRank {
   if (trophy === "🥈") return "Prata";
   if (trophy === "🥇") return "Ouro";
-  if (trophy === "💎") return "Maestria";
-  if (trophy === "🏆") return "Emblema";
+  if (trophy === "🏆" || trophy === "💎") return "Emblema";
   return "Bronze";
 }
 
@@ -87,7 +86,7 @@ export default function AchievementList({ achievements }: AchievementListProps) 
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const rankCounts = useMemo(() => {
-    const counts = { Bronze: 0, Prata: 0, Ouro: 0, Maestria: 0 };
+    const counts = { Bronze: 0, Prata: 0, Ouro: 0 };
     for (const achievement of achievements) {
       const rank = getTrophyRank(achievement.trophy);
       if (rank !== "Emblema") counts[rank] += 1;
