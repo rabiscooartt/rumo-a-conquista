@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useSiteAchievements } from "@/lib/useSiteAchievements";
 import type { SiteAchievement } from "@/lib/achievements/types";
 
-export type Rank = "Bronze" | "Prata" | "Ouro" | "Maestria";
+export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
 type SortMode = "rarity" | "status" | "title";
 type SortDirection = "asc" | "desc";
@@ -56,12 +56,6 @@ type GameAchievementsPanelProps = {
   journeyIds?: string[];
   youtubePlaylistUrl?: string;
   achievementMeta?: Record<string, AchievementJourneyMeta>;
-  finalBadge?: {
-    title?: string;
-    icon?: string;
-    image?: string;
-    description?: string;
-  };
   game?: {
     slug?: string;
     title?: string;
@@ -70,10 +64,10 @@ type GameAchievementsPanelProps = {
   [key: string]: unknown;
 };
 
-const RANK_OPTIONS: Rank[] = ["Bronze", "Prata", "Ouro", "Maestria"];
+const RANK_OPTIONS: Rank[] = ["Bronze", "Prata", "Ouro", "Diamante"];
 
 function rankLabel(rank: Rank) {
-  return rank;
+  return rank === "Diamante" ? "Maestria" : rank;
 }
 
 const STATUS_OPTIONS: { label: string; value: AchievementStatus }[] = [
@@ -96,21 +90,21 @@ const rankDifficulty: Record<Rank, string> = {
   Bronze: "Simples",
   Prata: "Média",
   Ouro: "Difícil",
-  Maestria: "Extrema",
+  Diamante: "Extrema",
 };
 
 const rankTrophy: Record<Rank, string> = {
   Bronze: "🥉",
   Prata: "🥈",
   Ouro: "🥇",
-  Maestria: "💎",
+  Diamante: "💎",
 };
 
 const rankOrder: Record<Rank, number> = {
   Bronze: 1,
   Prata: 2,
   Ouro: 3,
-  Maestria: 4,
+  Diamante: 4,
 };
 
 const statusOrder: Record<AchievementStatus, number> = {
@@ -197,7 +191,7 @@ function formatJourneyDate(value?: string) {
 }
 
 function trophyImagePath(rank: Rank) {
-  if (rank === "Maestria") return "/images/trophies/maestria.png";
+  if (rank === "Diamante") return "/images/trophies/maestria.png";
   if (rank === "Ouro") return "/images/trophies/ouro.png";
   if (rank === "Prata") return "/images/trophies/prata.png";
   return "/images/trophies/bronze.png";
@@ -206,7 +200,7 @@ function trophyImagePath(rank: Rank) {
 function getDefaultRank(achievement: AchievementInput): Rank {
   const difficulty = normalizeText(achievement.difficulty);
 
-  if (difficulty === "extrema" || difficulty === "diamante" || difficulty === "maestria") return "Maestria";
+  if (difficulty === "extrema" || difficulty === "diamante") return "Diamante";
 
   if (
     difficulty === "dificil" ||
@@ -225,7 +219,7 @@ function getDefaultRank(achievement: AchievementInput): Rank {
   }
 
   if (achievement.trophy?.includes("💎") || achievement.icon?.includes("💎")) {
-    return "Maestria";
+    return "Diamante";
   }
 
   if (
@@ -261,7 +255,7 @@ function toInputDate(date?: string) {
 }
 
 function getRankTheme(rank: Rank) {
-  if (rank === "Maestria") {
+  if (rank === "Diamante") {
     return {
       border: "border-rose-400/45",
       rowBorder: "border-l-rose-400/80",
@@ -1036,55 +1030,6 @@ export default function GameAchievementsPanel(
     );
   }, [filteredAchievements, manualStates, sortDirection, sortMode]);
 
-  const finalBadge = props.finalBadge;
-  const masteryConfigured = Boolean(
-    finalBadge?.title || finalBadge?.image || finalBadge?.description
-  );
-  const actualMasteryAchievement = allAchievements.find(
-    (achievement) => getDefaultRank(achievement) === "Maestria"
-  );
-  const masteryCompleted =
-    masteryConfigured &&
-    allAchievements.length > 0 &&
-    completedCount === allAchievements.length;
-
-  const masteryEntry = useMemo<AchievementInput | null>(() => {
-    if (!masteryConfigured || actualMasteryAchievement) return null;
-
-    return {
-      id: `${gameSlug}-final-mastery`,
-      title: finalBadge?.title?.trim() || "Maestria Final",
-      description: finalBadge?.description?.trim() || "Conclua todas as conquistas para alcançar a Maestria Final.",
-      trophy: "💎",
-      icon: "💎",
-      difficulty: "Maestria",
-      status: masteryCompleted ? "completed" : "locked",
-      image: finalBadge?.image?.trim() || "",
-      isCustom: false,
-      isHidden: false,
-    };
-  }, [finalBadge, gameSlug, masteryCompleted, masteryConfigured]);
-
-  const visibleSortedItems = useMemo(() => {
-    if (!masteryEntry) return sortedAchievements;
-
-    const combined = [...sortedAchievements, masteryEntry];
-    return sortAchievements(
-      combined,
-      {
-        ...manualStates,
-        [masteryEntry.title]: {
-          rank: "Maestria",
-          status: masteryEntry.status as AchievementStatus,
-          date: "",
-          image: masteryEntry.image ?? "",
-        },
-      },
-      sortMode,
-      sortDirection
-    );
-  }, [manualStates, masteryEntry, sortDirection, sortMode, sortedAchievements]);
-
   return (
     <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
       <div className="border-b border-white/[0.08] px-4 pb-4 pt-2.5 sm:px-5 sm:pb-5 sm:pt-3">
@@ -1321,19 +1266,11 @@ export default function GameAchievementsPanel(
           <div className="p-8 text-sm text-white/45">
             Nenhuma conquista cadastrada ainda.
           </div>
-        ) : visibleSortedItems.length > 0 ? (
-          visibleSortedItems.map((achievement, index) => {
-            const isFinalMastery = achievement.id === masteryEntry?.id;
+        ) : sortedAchievements.length > 0 ? (
+          sortedAchievements.map((achievement, index) => {
             const state =
               manualStates[achievement.title] ??
-              (isFinalMastery
-                ? {
-                    rank: "Diamante" as Rank,
-                    status: (masteryCompleted ? "completed" : "locked") as AchievementStatus,
-                    date: "",
-                    image: achievement.image ?? "",
-                  }
-                : createDefaultStates([achievement])[achievement.title]);
+              createDefaultStates([achievement])[achievement.title];
 
             const rank = state.rank;
             const status = state.status;
@@ -1342,17 +1279,14 @@ export default function GameAchievementsPanel(
             const achievementKey = getAchievementKey(achievement);
             const titleKey = slugify(achievement.title);
             const isJourneyAchievement =
-              !isFinalMastery &&
-              (
-                journeyIdSet.has(achievementKey) ||
-                journeyIdList.some((id) => {
-                  const normalizedId = slugify(id);
-                  return (
-                    normalizedId === titleKey ||
-                    normalizedId.endsWith("-" + titleKey)
-                  );
-                })
-              );
+              journeyIdSet.has(achievementKey) ||
+              journeyIdList.some((id) => {
+                const normalizedId = slugify(id);
+                return (
+                  normalizedId === titleKey ||
+                  normalizedId.endsWith("-" + titleKey)
+                );
+              });
             const isJourneyBlocked =
               journeyLockActive && !isJourneyAchievement;
             const journeyVisible =
@@ -1438,7 +1372,7 @@ export default function GameAchievementsPanel(
                           </span>
                         </div>
 
-                        {!isFinalMastery && isJourneyAchievement && journeyLockActive && (
+                        {isJourneyAchievement && journeyLockActive && (
                           <a
                             href={youtubePlaylistUrl || undefined}
                             target="_blank"
@@ -1456,7 +1390,7 @@ export default function GameAchievementsPanel(
                           </a>
                         )}
 
-                        {!isFinalMastery && (() => {
+                        {(() => {
                           const meta = achievementMeta[achievementKey];
                           const episode = formatJourneyEpisode(meta?.episode);
                           const date = formatJourneyDate(meta?.date);
@@ -1492,7 +1426,7 @@ export default function GameAchievementsPanel(
                       </div>
                     )}
                                     </div>
-                  {isEditMode && !isFinalMastery && (
+                  {isEditMode && (
                     <div className="mt-6 rounded-[22px] border border-white/10 bg-black/25 p-4">
                       {achievement.isCustom === true && (
                         <div className="mb-4 grid gap-4 lg:grid-cols-2">
