@@ -60,9 +60,48 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
+    const { data: achievementRows, error: achievementQueryError } = await client
+      .from("achievements")
+      .select("id, title, description")
+      .eq("game_slug", slug);
+
+    if (achievementQueryError) throw achievementQueryError;
+
+    const masteryTitle = cleanText(finalBadge.title, "Maestria Final");
+    const masteryDescription = cleanText(finalBadge.description);
+
+    const duplicateIds = (achievementRows ?? [])
+      .filter((row) => {
+        const rowTitle = cleanText(row.title);
+        const rowDescription = cleanText(row.description);
+        return (
+          rowTitle === masteryTitle &&
+          rowDescription === masteryDescription
+        );
+      })
+      .map((row) => String(row.id))
+      .filter(Boolean);
+
+    if (duplicateIds.length > 0) {
+      const { error: progressDeleteError } = await client
+        .from("achievement_progress")
+        .delete()
+        .in("achievement_id", duplicateIds);
+
+      if (progressDeleteError) throw progressDeleteError;
+
+      const { error: achievementDeleteError } = await client
+        .from("achievements")
+        .delete()
+        .in("id", duplicateIds);
+
+      if (achievementDeleteError) throw achievementDeleteError;
+    }
+
     return NextResponse.json({
       ok: true,
       finalBadge: data?.final_badge ?? finalBadge,
+      removedAchievementIds: duplicateIds,
     });
   } catch (error) {
     console.error("Erro salvando Maestria Final:", error);
