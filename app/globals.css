@@ -84,6 +84,52 @@ body :where([class~="text-white\/30"]) {
   color: rgb(255 255 255 / 0.4) !important;
 }
 
+/*
+  Contraste de leitura global para textos secundários diretamente sobre fundos escuros.
+  Atua somente no texto; não cria placas, faixas ou fundos adicionais.
+*/
+body :where([class~="text-white\/35"]) {
+  color: rgb(255 255 255 / 0.42) !important;
+}
+
+body :where([class~="text-white\/40"]) {
+  color: rgb(255 255 255 / 0.47) !important;
+}
+
+body :where([class~="text-white\/45"]) {
+  color: rgb(255 255 255 / 0.52) !important;
+}
+
+body :where([class~="text-white\/50"]) {
+  color: rgb(255 255 255 / 0.57) !important;
+}
+
+body :where([class~="text-white\/55"]) {
+  color: rgb(255 255 255 / 0.62) !important;
+}
+
+body :where(
+  [class~="text-white\/20"],
+  [class~="text-white\/25"],
+  [class~="text-white\/30"],
+  [class~="text-white\/35"],
+  [class~="text-white\/40"],
+  [class~="text-white\/45"],
+  [class~="text-white\/50"],
+  [class~="text-white\/55"],
+  [class~="text-white\/60"],
+  [class~="text-white\/65"],
+  [class~="text-white\/70"],
+  [class~="text-white\/75"],
+  [class~="text-red-300"],
+  [class~="text-red-400"],
+  [class~="text-red-500"],
+  [class~="text-emerald-300"],
+  [class~="text-cyan-300"]
+) {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.88);
+}
+
 /* ============================= */
 /* TEXTURA DO FUNDO GLOBAL */
 /* ============================= */
