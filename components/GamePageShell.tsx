@@ -802,7 +802,7 @@ export default function GamePageShell({ slug, game }: Props) {
                         <SectionTitle>Emblema</SectionTitle>
         
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
-                          <div className="relative flex h-[210px] w-[210px] items-center justify-center">
+                          <div className="relative flex h-[245px] w-full max-w-[235px] items-center justify-center">
                             <img
                               src={emblem?.image || `/images/games/${slug}/emblem.png`}
                               alt={emblem?.title || "Emblema"}
