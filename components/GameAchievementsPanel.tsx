@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useSiteAchievements } from "@/lib/useSiteAchievements";
 import type { SiteAchievement } from "@/lib/achievements/types";
 
-export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
+export type Rank = "Bronze" | "Prata" | "Ouro" | "Maestria";
 export type AchievementStatus = "locked" | "progress" | "completed";
 type SortMode = "rarity" | "status" | "title";
 type SortDirection = "asc" | "desc";
@@ -70,10 +70,10 @@ type GameAchievementsPanelProps = {
   [key: string]: unknown;
 };
 
-const RANK_OPTIONS: Rank[] = ["Bronze", "Prata", "Ouro", "Diamante"];
+const RANK_OPTIONS: Rank[] = ["Bronze", "Prata", "Ouro", "Maestria"];
 
 function rankLabel(rank: Rank) {
-  return rank === "Diamante" ? "Maestria" : rank;
+  return rank;
 }
 
 const STATUS_OPTIONS: { label: string; value: AchievementStatus }[] = [
@@ -96,21 +96,21 @@ const rankDifficulty: Record<Rank, string> = {
   Bronze: "Simples",
   Prata: "Média",
   Ouro: "Difícil",
-  Diamante: "Extrema",
+  Maestria: "Extrema",
 };
 
 const rankTrophy: Record<Rank, string> = {
   Bronze: "🥉",
   Prata: "🥈",
   Ouro: "🥇",
-  Diamante: "💎",
+  Maestria: "💎",
 };
 
 const rankOrder: Record<Rank, number> = {
   Bronze: 1,
   Prata: 2,
   Ouro: 3,
-  Diamante: 4,
+  Maestria: 4,
 };
 
 const statusOrder: Record<AchievementStatus, number> = {
@@ -197,7 +197,7 @@ function formatJourneyDate(value?: string) {
 }
 
 function trophyImagePath(rank: Rank) {
-  if (rank === "Diamante") return "/images/trophies/maestria.png";
+  if (rank === "Maestria") return "/images/trophies/maestria.png";
   if (rank === "Ouro") return "/images/trophies/ouro.png";
   if (rank === "Prata") return "/images/trophies/prata.png";
   return "/images/trophies/bronze.png";
@@ -206,7 +206,7 @@ function trophyImagePath(rank: Rank) {
 function getDefaultRank(achievement: AchievementInput): Rank {
   const difficulty = normalizeText(achievement.difficulty);
 
-  if (difficulty === "extrema" || difficulty === "diamante") return "Diamante";
+  if (difficulty === "extrema" || difficulty === "diamante" || difficulty === "maestria") return "Maestria";
 
   if (
     difficulty === "dificil" ||
@@ -225,7 +225,7 @@ function getDefaultRank(achievement: AchievementInput): Rank {
   }
 
   if (achievement.trophy?.includes("💎") || achievement.icon?.includes("💎")) {
-    return "Diamante";
+    return "Maestria";
   }
 
   if (
@@ -261,7 +261,7 @@ function toInputDate(date?: string) {
 }
 
 function getRankTheme(rank: Rank) {
-  if (rank === "Diamante") {
+  if (rank === "Maestria") {
     return {
       border: "border-rose-400/45",
       rowBorder: "border-l-rose-400/80",
@@ -1071,7 +1071,7 @@ export default function GameAchievementsPanel(
       {
         ...manualStates,
         [masteryEntry.title]: {
-          rank: "Diamante",
+          rank: "Maestria",
           status: masteryEntry.status as AchievementStatus,
           date: "",
           image: masteryEntry.image ?? "",
