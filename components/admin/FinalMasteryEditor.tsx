@@ -206,14 +206,26 @@ export default function FinalMasteryEditor({
   return (
     <section className="rounded-[20px] border border-violet-400/20 bg-violet-500/[0.035] p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-violet-300">
-            04 • Maestria Final
-          </p>
-          <h3 className="mt-1 text-xl font-black">Maestria Final</h3>
-          <p className="mt-1 max-w-[820px] text-xs leading-relaxed text-white/40">
-            Aqui fica a recompensa final do jogo. A Maestria Final é separada das conquistas Bronze, Prata e Ouro; título, descrição e arte são definidos aqui.
-          </p>
+        <div className="min-w-0">
+          <button
+            type="button"
+            onClick={() => setSectionCollapsed((value) => !value)}
+            aria-expanded={!sectionCollapsed}
+            className="group inline-flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-violet-300/50"
+          >
+            <span className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-[0.18em] text-violet-300">04 • Maestria Final</span>
+              <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-violet-100">Maestria Final</span>
+            </span>
+            <span aria-hidden="true" className="mt-3 text-lg font-black text-white/45 transition-colors group-hover:text-violet-200">
+              {sectionCollapsed ? "+" : "−"}
+            </span>
+          </button>
+          {!sectionCollapsed && (
+            <p className="mt-1 max-w-[820px] text-xs leading-relaxed text-white/40">
+              Aqui fica a recompensa final do jogo. A Maestria Final é separada das conquistas Bronze, Prata e Ouro; título, descrição e arte são definidos aqui.
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -242,14 +254,6 @@ export default function FinalMasteryEditor({
                 : saveState === "error"
                   ? "⚠ Não salva"
                   : "💾 Salvar Maestria"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSectionCollapsed((value) => !value)}
-            aria-expanded={!sectionCollapsed}
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[10px] font-black text-white/60 transition hover:border-violet-300/30 hover:text-white"
-          >
-            {sectionCollapsed ? "+ Expandir" : "− Minimizar"}
           </button>
         </div>
       </div>
