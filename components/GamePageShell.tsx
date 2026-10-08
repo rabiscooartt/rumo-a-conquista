@@ -28,6 +28,12 @@ export type GamePageShellInput = {
   developer?: string;
   releaseYear?: string;
   manualTotalPlayedMinutes?: number | null;
+  finalBadge?: {
+    title?: string;
+    icon?: string;
+    image?: string;
+    description?: string;
+  };
   youtubePlaylistUrl?: string;
   youtubeFirstLiveUrl?: string;
   youtubeFirstLiveEpisode?: string;
@@ -439,6 +445,17 @@ export default function GamePageShell({ slug, game }: Props) {
     : [];
   const showQueuePreview =
     normalizeStatus(game.status) === "planned" && !showFirstJourneyPreview;
+  const masteryConfigured = Boolean(
+    game.finalBadge?.title ||
+    game.finalBadge?.image ||
+    game.finalBadge?.description
+  );
+  const masteryUnlocked =
+    masteryConfigured &&
+    (
+      normalizeStatus(game.status) === "completed" ||
+      clamp(game.progress) >= 100
+    );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -646,29 +663,17 @@ export default function GamePageShell({ slug, game }: Props) {
                         <div className="grid grid-cols-4 gap-1.5">
                           {TROPHY_META.map(({ rank, label }) => {
                             const isMastery = rank === "Maestria";
-                            const masteryAchievement = isMastery
-                              ? achievements.find(
-                                  (achievement) =>
-                                    getTrophyRank(achievement) === "Maestria"
-                                )
-                              : null;
                             const total = isMastery
-                              ? 1
+                              ? masteryConfigured
+                                ? 1
+                                : 0
                               : achievements.filter(
                                   (achievement) => getTrophyRank(achievement) === rank
                                 ).length;
                             const completed = isMastery
-                              ? (
-                                  masteryAchievement &&
-                                  (
-                                    ["completed", "concluido", "concluida"].includes(
-                                      normalizeText(masteryAchievement.status)
-                                    ) ||
-                                    isJourneySelected(masteryAchievement)
-                                  )
-                                )
-                                  ? 1
-                                  : 0
+                              ? masteryUnlocked
+                                ? 1
+                                : 0
                               : achievements.filter(
                                   (achievement) =>
                                     getTrophyRank(achievement) === rank &&
@@ -792,6 +797,66 @@ export default function GamePageShell({ slug, game }: Props) {
         
         
         
+                      <section className="overflow-hidden rounded-[14px] border border-violet-400/[0.16] bg-[#090909] p-5">
+                        <SectionTitle>Maestria Final</SectionTitle>
+
+                        <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
+                          <div className="relative flex h-[210px] w-[210px] items-center justify-center">
+                            {game.finalBadge?.image ? (
+                              <img
+                                src={game.finalBadge.image}
+                                alt={game.finalBadge.title || "Maestria Final"}
+                                className={
+                                  masteryUnlocked
+                                    ? "h-full w-full object-contain"
+                                    : "h-full w-full scale-95 object-contain blur-[7px] opacity-45 grayscale"
+                                }
+                              />
+                            ) : (
+                              <div
+                                className={
+                                  masteryUnlocked
+                                    ? "flex h-full w-full items-center justify-center text-7xl"
+                                    : "flex h-full w-full items-center justify-center text-7xl blur-[4px] opacity-40 grayscale"
+                                }
+                              >
+                                {game.finalBadge?.icon || "💎"}
+                              </div>
+                            )}
+
+                            {!masteryUnlocked && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.14] bg-black/70 text-lg">
+                                  🔒
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <p
+                            className={
+                              masteryUnlocked
+                                ? "mt-3 text-[12px] font-black uppercase tracking-[0.12em] text-violet-300"
+                                : "mt-3 text-[12px] font-black uppercase tracking-[0.12em] text-white/40"
+                            }
+                          >
+                            {masteryUnlocked ? "Conquistada" : "Bloqueada"}
+                          </p>
+
+                          {game.finalBadge?.title ? (
+                            <h3 className="mt-1 max-w-[230px] text-[14px] font-black leading-tight text-white">
+                              {game.finalBadge.title}
+                            </h3>
+                          ) : null}
+
+                          {game.finalBadge?.description ? (
+                            <p className="mt-2 max-w-[230px] text-[10px] leading-relaxed text-white/45">
+                              {game.finalBadge.description}
+                            </p>
+                          ) : null}
+                        </div>
+                      </section>
+
                       <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <SectionTitle>Emblema</SectionTitle>
         
