@@ -1367,7 +1367,7 @@ export default function GameAchievementsPanel(
                 key={achievement.id ?? achievement.title}
                 className={`relative border-l-2 border-b border-white/[0.06] transition ${
                   visuallyLocked
-                    ? "border-l-white/10 bg-black/20 opacity-55"
+                    ? "border-l-white/10 achievement-row-bg--locked"
                     : isFinalMastery
                       ? "border-l-red-400/90 achievement-row-bg--mastery shadow-[0_0_32px_rgba(185,28,28,0.18)]"
                       : `${theme.rowBorder} ${theme.bg} ${theme.glow}`
