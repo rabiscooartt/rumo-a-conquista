@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { useSiteGames, type SiteGame } from "@/lib/useSiteGames";
+import { formatGameTitle, useSiteGames, type SiteGame } from "@/lib/useSiteGames";
 import NewGameAchievementsEditor from "@/components/admin/NewGameAchievementsEditor";
 import FinalMasteryEditor from "@/components/admin/FinalMasteryEditor";
 import GameEmblemEditor from "@/components/admin/GameEmblemEditor";
@@ -246,7 +246,7 @@ export default function NewGamesAdminPage() {
     setSaving(true);
     try {
       await updateGame(selectedGame.slug, {
-        title: values.title.trim() || selectedGame.title,
+        title: formatGameTitle(values.title) || selectedGame.title,
         subtitle: values.subtitle.trim(),
         status: values.status,
         platform: values.platform,
@@ -477,6 +477,14 @@ export default function NewGamesAdminPage() {
                             onChange={(event) =>
                               setDraft({ ...values, [key]: event.target.value })
                             }
+                            onBlur={() => {
+                              if (key === "title") {
+                                const formattedTitle = formatGameTitle(values.title);
+                                if (formattedTitle !== values.title) {
+                                  setDraft({ ...values, title: formattedTitle });
+                                }
+                              }
+                            }}
                             className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                           />
                         </label>
