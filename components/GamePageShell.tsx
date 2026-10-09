@@ -369,11 +369,25 @@ export default function GamePageShell({ slug, game }: Props) {
   const emblem = game.emblem;
   const emblemUnlocked = status === "completed" || progress >= 100 || Boolean(emblem?.unlockedAt);
   const emblemDate = emblem?.unlockedAt
-    ? new Date(emblem.unlockedAt).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
+    ? (() => {
+        const value = emblem.unlockedAt!.trim();
+        const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        // YYYY-MM-DD is a calendar date, not a UTC timestamp. Formatting it
+        // through new Date() can move it to the previous day in Brazil.
+        if (dateOnly) {
+          return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+        }
+
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime())
+          ? value
+          : parsed.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            });
+      })()
     : "";
 
   const activityPlayedMinutes = useMemo(() => {
