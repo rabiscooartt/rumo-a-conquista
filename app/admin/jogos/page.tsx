@@ -41,12 +41,33 @@ export default function NewGamesAdminPage() {
 
   const filteredGames = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return gamesList;
-    return gamesList.filter((game) =>
-      [game.title, game.slug, game.subtitle].some((value) =>
-        String(value || "").toLowerCase().includes(q)
-      )
-    );
+    const matches = q
+      ? gamesList.filter((game) =>
+          [game.title, game.slug, game.subtitle].some((value) =>
+            String(value || "").toLowerCase().includes(q)
+          )
+        )
+      : gamesList;
+
+    const statusOrder = (status?: string) => {
+      const value = String(status || "").trim().toLowerCase();
+
+      if (["completed", "finalizado", "concluido", "concluida"].includes(value)) {
+        return 2;
+      }
+
+      if (["planned", "backlog", "futuro", "planejado", "na fila"].includes(value)) {
+        return 1;
+      }
+
+      return 0;
+    };
+
+    // Stable grouping: in progress first, queue/next mastery second, completed last.
+    return matches
+      .map((game, index) => ({ game, index }))
+      .sort((a, b) => statusOrder(a.game.status) - statusOrder(b.game.status) || a.index - b.index)
+      .map(({ game }) => game);
   }, [gamesList, search]);
 
   const selectedGame = gamesList.find((game) => game.slug === selectedSlug) ?? gamesList[0];
