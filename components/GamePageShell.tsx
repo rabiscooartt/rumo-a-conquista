@@ -816,14 +816,14 @@ export default function GamePageShell({ slug, game }: Props) {
                         <SectionTitle>Emblema</SectionTitle>
         
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
-                          <div className="relative flex h-[245px] w-full max-w-[235px] items-center justify-center overflow-hidden">
+                          <div className="relative flex h-[245px] w-full max-w-[235px] items-center justify-center overflow-visible">
                             <img
                               src={emblem?.image || `/images/games/${slug}/emblem.png`}
                               alt={emblem?.title || "Emblema"}
-                              className={`h-full w-full object-contain transition-transform duration-300 ${
+                              className={`absolute left-1/2 top-1/2 h-[125%] w-[125%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain transition-all duration-300 ${
                                 emblemUnlocked
-                                  ? "scale-100"
-                                  : "scale-100 blur-[7px] opacity-45 grayscale"
+                                  ? ""
+                                  : "blur-[7px] opacity-45 grayscale"
                               }`}
                             />
                             {!emblemUnlocked && (
