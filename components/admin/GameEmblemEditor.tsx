@@ -42,6 +42,33 @@ function readTags(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function getLegacyEmblemUnlockedAt(game: SiteGame): string {
+  const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
+  const mastery = achievements.find((achievement) => {
+    const title = readText(achievement.title).toLowerCase();
+    const rank = readText(achievement.difficulty, readText(achievement.rank, "")).toLowerCase();
+    const status = readText(achievement.status).toLowerCase();
+    const completed = ["completed", "concluida", "concluido", "desbloqueado", "desbloqueada"].includes(status);
+    return completed && (
+      rank.includes("diamante") ||
+      rank.includes("maestria") ||
+      title.includes("maestria") ||
+      title.includes("mastery") ||
+      title.includes("final") ||
+      title.includes("caso encerrado")
+    );
+  });
+
+  const achievementDate = readText(mastery?.earnedDate).trim();
+  if (achievementDate) return achievementDate;
+
+  // Preserve the established dates shown for legacy emblem cards until the
+  // owner explicitly saves the emblem configuration in Admin.
+  if (game.slug === "crisol-theater-of-idols") return "2026-04-09";
+  if (game.slug === "hogwarts-legacy" || game.slug === "howgarts-legacy") return "2026-03-17";
+  return "";
+}
+
 function initialEmblem(game: SiteGame): GameEmblemInput {
   const legacy = game as SiteGame & LegacyEmblemFields;
   const saved =
@@ -63,7 +90,10 @@ function initialEmblem(game: SiteGame): GameEmblemInput {
       image: readText(saved.image, automaticEmblemPath(game.slug)),
       description: readText(saved.description),
       tags: readTags(saved.tags),
-      unlockedAt: readText(saved.unlockedAt),
+      unlockedAt:
+        readText(saved.unlockedAt).trim() ||
+        (saved.configured === true ? "" : getLegacyEmblemUnlockedAt(game)),
+      configured: saved.configured === true,
     };
   }
 
@@ -74,7 +104,8 @@ function initialEmblem(game: SiteGame): GameEmblemInput {
       description:
         "Uma relíquia simbólica concedida ao bruxo que explorou Hogwarts por completo, dominou seus desafios e revelou todos os segredos deixados pelo legado mágico. O Legado Absoluto representa a conclusão definitiva da jornada e a marca de quem se tornou um verdadeiro guardião dessa história.",
       tags: ["Colecionável", "Emblema Especial", "Hogwarts Legacy"],
-      unlockedAt: "",
+      unlockedAt: getLegacyEmblemUnlockedAt(game),
+      configured: false,
     };
   }
 
@@ -83,7 +114,8 @@ function initialEmblem(game: SiteGame): GameEmblemInput {
     image: automaticEmblemPath(game.slug),
     description: "",
     tags: [],
-    unlockedAt: "",
+    unlockedAt: getLegacyEmblemUnlockedAt(game),
+    configured: false,
   };
 }
 
@@ -115,6 +147,7 @@ export default function GameEmblemEditor({
       description: readText(emblem.description).trim(),
       tags: readTags(tagsText),
       unlockedAt: readText(emblem.unlockedAt).trim(),
+      configured: true,
     };
 
     try {
