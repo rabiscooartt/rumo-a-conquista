@@ -340,6 +340,7 @@ function getGameEmblem(
         description?: string;
         tags?: string[] | string;
         unlockedAt?: string;
+        configured?: boolean;
       }
     | undefined;
 
