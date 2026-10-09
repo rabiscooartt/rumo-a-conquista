@@ -130,17 +130,17 @@ export async function POST(request: NextRequest) {
       packageText?: string;
       gameSlug?: string;
     };
-    const packageText = body.packageText?.trim() ?? "";
+    const instructionsText = body.packageText?.trim() ?? "";
     const gameSlug = safeFilename(body.gameSlug?.trim() ?? "", "jogo");
 
-    if (!packageText) {
-      return NextResponse.json({ error: "O template do Emblema está vazio." }, { status: 400 });
+    if (!instructionsText) {
+      return NextResponse.json({ error: "As instruções de uso do Emblema V4 estão vazias." }, { status: 400 });
     }
 
     const encoder = new TextEncoder();
-    const zipName = safeFilename(body.filename?.trim() || `${gameSlug}-template-emblema.zip`, "template-emblema.zip");
+    const zipName = safeFilename(body.filename?.trim() || `${gameSlug}-referencias-emblemas.zip`, "referencias-emblemas.zip");
     const files: ZipFile[] = [
-      { name: "LEIA-PRIMEIRO-template-emblema.txt", data: encoder.encode(packageText) },
+      { name: "LEIA-PRIMEIRO-instrucoes-emblema-v4.txt", data: encoder.encode(instructionsText) },
     ];
     const referenceManifest: string[] = [];
     let totalBytes = files[0].data.length;
@@ -175,9 +175,11 @@ export async function POST(request: NextRequest) {
     files.push({
       name: "REFERENCIAS-EMBLEMAS/INDICE.txt",
       data: encoder.encode(
-        "Emblemas atuais do Rumo à Conquista incluídos neste pacote:\n\n" +
+        "REFERÊNCIAS VISUAIS — RUMO À CONQUISTA V4\n\n" +
+        "Este ZIP contém as imagens PNG dos Emblemas já existentes e um arquivo de instruções de uso V4. Ele não contém o template antigo de geração.\n\n" +
+        "Arquivos incluídos:\n" +
         referenceManifest.join("\n") +
-        "\n\nUse essas imagens para analisar a linguagem visual comum e para evitar repetir a mesma moldura."
+        "\n\nAnexe este ZIP à conversa junto do Prompt 01. Examine cada imagem visualmente, identifique a linguagem visual comum e diferenças entre as peças, e evite repetir molduras, silhuetas e composições existentes."
       ),
     });
 
