@@ -34,6 +34,38 @@ function normalizeMastery(game: SiteGame): FinalMastery {
   };
 }
 
+function buildVisualCohesionPrompt(game: SiteGame): string[] {
+  const generalRules = [
+    "",
+    "REGRA ABSOLUTA DE COERÊNCIA VISUAL COM AS CONQUISTAS NORMAIS:",
+    "A Maestria Final deve parecer a recompensa máxima da MESMA coleção visual das conquistas normais deste jogo, e não uma arte pertencente a outro jogo ou a outra coleção.",
+    "Preserve a identidade visual estabelecida para este jogo: paleta, técnica de ilustração/renderização, espessura dos contornos, textura, iluminação, contraste, atmosfera, profundidade e densidade de detalhes.",
+    "O título e a descrição determinam o significado e o símbolo principal; as conquistas normais determinam a linguagem visual. Nenhum dos dois deve apagar o outro.",
+    "A Maestria deve parecer mais especial por escala, hierarquia, silhueta, simetria e composição mais marcante — NÃO por trocar automaticamente a paleta, o estilo ou a técnica.",
+    "Não introduzir automaticamente vermelho, dourado, bronze, metal, efeitos 3D, fotorrealismo, iluminação cinematográfica ou um troféu genérico. Só usar cores e materiais se forem coerentes com a identidade visual estabelecida para este jogo.",
+    "Se as artes das conquistas normais estiverem disponíveis no material enviado, use-as apenas para analisar atributos estéticos amplos e convertê-los em descrição textual. Não use a imagem diretamente como entrada do gerador, não faça image-to-image e não copie personagens, poses, símbolos exclusivos ou composições reconhecíveis.",
+    "Se não houver referências visuais confiáveis disponíveis, não invente uma paleta ou um estilo como se estivessem confirmados. Use apenas o contexto textual conhecido do jogo e mantenha as decisões visuais contidas.",
+  ];
+
+  if (game.slug === "mouse-p-i-for-hire") {
+    return [
+      ...generalRules,
+      "",
+      "DNA VISUAL ESPECÍFICO — MOUSE - P.I. FOR HIRE:",
+      "Manter a linguagem gráfica cartunesca noir das conquistas existentes: paleta monocromática de preto, carvão, cinza, cinza-claro e branco; contornos pretos marcantes; silhuetas claras; alto contraste; retícula/pontilhismo e textura de impressão envelhecida; fundo escuro; acabamento gráfico de quadrinhos.",
+      "Não introduzir vermelho, dourado, bronze ou outras cores cromáticas. Não converter a arte em brasão luxuoso, renderização 3D realista ou pintura cinematográfica.",
+      "A Maestria pode ter um emblema de investigador mais imponente, mas deve continuar parecendo uma ilustração noir cartunesca impressa, visualmente integrada às conquistas anteriores.",
+    ];
+  }
+
+  return [
+    ...generalRules,
+    "",
+    "ADAPTAÇÃO PARA ESTE JOGO:",
+    "Siga o DNA visual específico já estabelecido pelas conquistas normais deste jogo. Não reutilize automaticamente uma paleta, uma moldura, um material ou uma fórmula artística de outro jogo.",
+  ];
+}
+
 function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
   return [
     "RUMO À CONQUISTA — LOTE EXCLUSIVO DE MAESTRIA FINAL",
@@ -51,6 +83,7 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "Não criar uma arte genérica de troféu só porque ela é a recompensa final.",
     "Não ignorar palavras ou conceitos importantes do título e da descrição.",
     "A identidade visual deve parecer feita especificamente para esta Maestria Final e para este jogo.",
+    ...buildVisualCohesionPrompt(game),
     "",
     "RANK:",
     "MAESTRIA",
@@ -344,7 +377,7 @@ export default function FinalMasteryEditor({
               Regra exclusiva da geração
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/45">
-              O gerador deve usar <strong className="text-white/70">título + descrição</strong> como briefing principal e transformar o significado deles em uma arte original específica para a Maestria Final.
+              O gerador deve usar <strong className="text-white/70">título + descrição</strong> como briefing do conceito e preservar a identidade visual das conquistas normais deste jogo. A Maestria se destaca pela composição e hierarquia, não por trocar automaticamente paleta ou estilo.
             </p>
           </div>
 
