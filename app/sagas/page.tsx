@@ -275,18 +275,6 @@ function hasExplicitEmblemData(game: Record<string, unknown>) {
       }
     | undefined;
 
-  // Quando o Emblema foi salvo no Admin, sua data também é fonte de verdade.
-  // Não reutilizar datas antigas da lista manual/da Maestria se o campo atual está vazio.
-  const currentAdminEmblem = game.emblemConfigured === true;
-  const unlockedAt = currentAdminEmblem
-    ? readText(emblem?.unlockedAt, "")
-    : readText(emblem?.unlockedAt, "") ||
-      readText(gameEmblem?.unlockedAt, "") ||
-      readText(game.emblemUnlockedAt, "") ||
-      readText(finalBadge?.unlockedAt, "") ||
-      getMasteryAchievementEarnedDate(game) ||
-      getManualEmblemUnlockedAt(gameSlug);
-
   return Boolean(
     readText(emblem?.title, "") ||
       readText(emblem?.image, "") ||
@@ -372,6 +360,18 @@ function getGameEmblem(
         unlockedAt?: string;
       }
     | undefined;
+
+  // Quando o Emblema foi salvo no Admin, ele é a fonte de verdade.
+  // Se a data atual estiver vazia, não reutilizamos uma data antiga da Maestria/lista manual.
+  const currentAdminEmblem = game.emblemConfigured === true;
+  const unlockedAt = currentAdminEmblem
+    ? readText(emblem?.unlockedAt, "")
+    : readText(emblem?.unlockedAt, "") ||
+      readText(gameEmblem?.unlockedAt, "") ||
+      readText(game.emblemUnlockedAt, "") ||
+      readText(finalBadge?.unlockedAt, "") ||
+      getMasteryAchievementEarnedDate(game) ||
+      getManualEmblemUnlockedAt(gameSlug);
 
   if (
     gameSlug === "hogwarts-legacy" ||
