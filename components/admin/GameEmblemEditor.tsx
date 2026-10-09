@@ -125,7 +125,7 @@ function buildEmblemTemplate(
     `Título / conceito: ${emblemTitle}`,
     `Descrição fornecida: ${rawDescription || "Ainda não fornecida. Desenvolva uma interpretação visual específica baseada no jogo, sem preencher lacunas com lore inventada."}`,
     `Tags atuais: ${tags.length ? tags.join(", ") : "Não definidas; identifique temas visuais específicos a partir dos dados do jogo."}`,
-    `Caminho esperado: /images/games/${game.slug}/emblem.png`,
+    `Caminho esperado: ${automaticEmblemPath(game.slug)}`,
     "",
     "CONQUISTAS QUE PODEM AJUDAR A IDENTIFICAR TEMAS",
     ...(achievementLines.length ? achievementLines : ["- Ainda não há conquistas suficientes cadastradas. Não invente detalhes narrativos específicos."]),
