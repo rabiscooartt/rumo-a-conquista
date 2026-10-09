@@ -367,7 +367,7 @@ export default function GamePageShell({ slug, game }: Props) {
   const developer = automaticMetadata?.developer || game.developer || "—";
   const releaseYear = automaticMetadata?.releaseYear || game.releaseYear || "—";
   const emblem = game.emblem;
-  const emblemUnlocked = status === "completed" || progress >= 100 || Boolean(emblem?.unlockedAt);
+  const emblemUnlocked = status === "completed" || progress >= 100;
   const emblemDate = emblem?.unlockedAt
     ? (() => {
         const value = emblem.unlockedAt!.trim();
