@@ -31,6 +31,8 @@ export type GameEmblemInput = {
   description?: string;
   tags?: string[];
   unlockedAt?: string;
+  /** Achievement required to unlock this emblem; stored in the emblem JSON. */
+  unlockAchievement?: string;
   /** True when the emblem settings were explicitly saved from Admin. */
   configured?: boolean;
 };
@@ -262,9 +264,10 @@ function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
   const description = readText(record.description, "").trim();
   const tags = readStringArray(record.tags);
   const unlockedAt = readText(record.unlockedAt, "").trim();
+  const unlockAchievement = readText(record.unlockAchievement, "").trim();
   const configured = record.configured === true;
 
-  if (!title && !image && !description && tags.length === 0 && !unlockedAt && !configured) {
+  if (!title && !image && !description && tags.length === 0 && !unlockedAt && !unlockAchievement && !configured) {
     return undefined;
   }
 
@@ -274,6 +277,7 @@ function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
     description,
     tags,
     unlockedAt,
+    unlockAchievement,
     configured,
   };
 }
