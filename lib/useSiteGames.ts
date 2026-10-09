@@ -703,7 +703,14 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
 
 async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
   try {
-    const response = await fetch("/api/admin/games", {
+    const includeHiddenAchievements =
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/admin");
+    const endpoint = includeHiddenAchievements
+      ? "/api/admin/games?includeHiddenAchievements=1"
+      : "/api/admin/games";
+
+    const response = await fetch(endpoint, {
       method: "GET",
       cache: "no-store",
     });
