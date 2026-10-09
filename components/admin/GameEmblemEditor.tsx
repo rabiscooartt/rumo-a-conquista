@@ -263,6 +263,8 @@ function buildUniversalPrompt02(
   const description = readText(emblem.description).trim() || "Use/refine a descrição temática proposta no briefing do Prompt 01";
   const gameTitle = readText(game.title, "Jogo não informado");
   const platform = readText(game.platform, "Plataforma não informada");
+  const gameSlug = readText(game.slug).trim().toLowerCase();
+  const isCrisol = gameSlug === "crisol-theater-of-idols" || gameTitle.trim().toLowerCase() === "crisol: theater of idols";
   return [
     "RUMO À CONQUISTA — PROMPT 02 — GERAÇÃO DO EMBLEMA UNIVERSAL V4",
     "",
@@ -279,11 +281,16 @@ function buildUniversalPrompt02(
     "",
     "REGRA DE PRECEDÊNCIA",
     "O briefing aprovado do Prompt 01 define a identidade visual específica deste jogo: conceito, silhueta, elementos, cores, materiais e composição. Estas especificações V4 definem o formato, acabamento e critérios técnicos. Se faltar uma informação crucial, pergunte antes de inventar. Não substitua o briefing por um emblema genérico.",
+    ...(isCrisol ? [
+      "",
+      "RESTRIÇÕES ESPECÍFICAS DO BRIEFING APROVADO — CRISOL",
+      "Para este emblema, preserve o conceito de relicário penitencial e retábulo teatral. Não incluir figura humana reconhecível, auréola nem moldura radial. Use formas originais e os materiais do briefing — ferro escurecido, cerâmica marfim rachada e vidro vermelho profundo — mantendo a composição própria deste jogo. Não copie as referências do ZIP.",
+    ] : []),
     "",
     "ESPECIFICAÇÕES DE GERAÇÃO — OBRIGATÓRIAS",
     "- Gere exatamente UMA imagem final de Emblema. Não gerar alternativas, folhas de contato, colagem, comparação, díptico ou múltiplas versões.",
     "- Proporção 1:1; canvas quadrado de 1024x1024 px; saída PNG.",
-    "- O objeto tem silhueta visual predominantemente vertical e ocupa cerca de 80–88% da altura do canvas, centralizado e sem cortes. Deixe espaço seguro acima do topo e abaixo da base.",
+    "- O objeto tem silhueta visual predominantemente vertical e ocupa cerca de 84–86% da altura do canvas, centralizado e sem cortes. Deixe espaço seguro acima do topo e abaixo da base.",
     "- O exterior da silhueta deve ter transparência alpha real. Não simular alpha com padrão quadriculado; não colocar fundo sólido, cenário de apresentação, mockup ou uma placa quadrada por trás do objeto.",
     "- A peça precisa parecer um artefato colecionável premium com profundidade 3D, volumes e relevos coerentes, materiais convincentes, detalhes intencionais, luz dramática e contraste controlado. Evite brilho/glow excessivo e ruído de microdetalhes.",
     "- O símbolo central é o ponto focal e ocupa aproximadamente 60–75% da área útil do Emblema, adaptando-se à composição sem ocultar as formas essenciais.",
