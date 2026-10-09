@@ -507,7 +507,7 @@ export default function NewGameAchievementsEditor({
 
           return (
             <article key={achievement.id} className={achievement.status === "locked"
-              ? "rounded-2xl border border-white/5 bg-white/[0.015] opacity-60"
+              ? "rounded-2xl border border-white/5 bg-white/[0.015]"
               : achievement.isHidden
                 ? "rounded-2xl border border-yellow-400/25 bg-yellow-500/[0.035]"
                 : "rounded-2xl border border-white/[0.08] bg-black/20"}
@@ -515,8 +515,20 @@ export default function NewGameAchievementsEditor({
               {isMinimized ? (
                 <div className="flex items-center justify-between gap-4 p-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                      {achievement.status === "locked" ? "🔒" : <AchievementImage achievement={achievement} />}
+                    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
+                      <AchievementImage achievement={achievement} />
+                      {achievement.status === "locked" && (
+                        <>
+                          <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-black/35" />
+                          <span
+                            title="Conquista bloqueada"
+                            aria-label="Conquista bloqueada"
+                            className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-tl-md border-l border-t border-white/20 bg-black/90 text-[10px]"
+                          >
+                            🔒
+                          </span>
+                        </>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black text-white">{achievement.title}</p>
@@ -551,8 +563,20 @@ export default function NewGameAchievementsEditor({
                 </div>
               ) : (
                 <div className="grid gap-4 p-4 lg:grid-cols-[82px_minmax(0,1fr)]">
-                  <div className="flex h-[82px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/40">
-                    {achievement.status === "locked" ? "🔒" : <AchievementImage achievement={achievement} />}
+                  <div className="relative flex h-[82px] w-[82px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                    <AchievementImage achievement={achievement} />
+                    {achievement.status === "locked" && (
+                      <>
+                        <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-black/35" />
+                        <span
+                          title="Conquista bloqueada"
+                          aria-label="Conquista bloqueada"
+                          className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-tl-lg border-l border-t border-white/20 bg-black/90 text-xs"
+                        >
+                          🔒
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <div className="min-w-0">
