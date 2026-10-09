@@ -325,7 +325,7 @@ function buildPromptUsageInstructions(game: SiteGame) {
     "O botão de template antigo está identificado como legado e pode ser ignorado no fluxo V4.",
     "",
     "Importante: os botões de prompt apenas copiam texto para a área de transferência. A geração da arte acontece na conversa em que você colar o Prompt 02."
-  ].join("\\n");
+  ].join("\n");
 }
 
 function initialEmblem(game: SiteGame): GameEmblemInput {
