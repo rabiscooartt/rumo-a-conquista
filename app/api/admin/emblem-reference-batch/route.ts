@@ -1,21 +1,110 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 
 type ZipFile = { name: string; data: Uint8Array };
 
-const REFERENCE_EMBLEMS = [
-  { slug: "crisol-theater-of-idols", title: "Crisol - Theater of Idols", path: "/images/games/crisol-theater-of-idols/emblem.png" },
-  { slug: "hades", title: "Hades", path: "/images/games/hades/emblem.png" },
-  { slug: "hollow-knight", title: "Hollow Knight", path: "/images/games/hollow-knight/emblem.png" },
-  { slug: "howgarts-legacy", title: "Hogwarts Legacy", path: "/images/games/howgarts-legacy/emblem.png" },
-  { slug: "metro-last-light", title: "Metro: Last Light", path: "/images/games/metro-last-light/emblem.png" },
-  { slug: "monster-hunter-world-iceborne", title: "Monster Hunter World: Iceborne", path: "/images/games/monster-hunter-world-iceborne/emblem.png" },
-  { slug: "mouse-p-i-for-hire", title: "MOUSE: P.I. For Hire", path: "/images/games/mouse-p-i-for-hire/emblem.png" },
-  { slug: "song-of-nunu", title: "Song of Nunu", path: "/images/games/song-of-nunu/emblem.png" },
-  { slug: "the-surge", title: "The Surge", path: "/images/games/the-surge/emblem.png" },
-  { slug: "tom-clancy-s-the-division", title: "Tom Clancy's The Division", path: "/images/games/tom-clancy-s-the-division/emblem.png" },
-] as const;
+const MAX_REFERENCE_COUNT = 10;
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 32 * 1024 * 1024;
+
+type ReferenceCandidate = {
+  slug: string;
+  title: string;
+  path: string;
+  timestamp: number;
+};
+
+type LoadedReference = ReferenceCandidate & {
+  data: Uint8Array;
+};
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  return value as Record<string, unknown>;
+}
+
+function readText(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  return "";
+}
+
+function getTimestamp(...values: unknown[]): number {
+  for (const value of values) {
+    const raw = readText(value);
+    if (!raw) continue;
+    const parsed = Date.parse(raw);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return 0;
+}
+
+function isSafeEmblemPath(value: string) {
+  if (!value.startsWith("/images/games/") || value.startsWith("//")) return false;
+  return !value.split("/").some((part) => part === "..");
+}
+
+async function loadLatestReferenceImages(origin: string): Promise<LoadedReference[]> {
+  const client = createAdminSupabaseClient();
+  const { data, error } = await client
+    .from("games")
+    .select("slug, title, emblem, updated_at, created_at")
+    .eq("is_deleted", false)
+    .eq("is_hidden", false)
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+
+  const candidates: ReferenceCandidate[] = (data ?? [])
+    .flatMap((game) => {
+      const emblem = asRecord(game.emblem);
+      const slug = readText(game.slug);
+      const title = readText(game.title);
+      const path = readText(emblem?.image);
+      if (!slug || !title || !path || !isSafeEmblemPath(path)) return [];
+      return [{
+        slug,
+        title,
+        path,
+        timestamp: getTimestamp(emblem?.updatedAt, game.updated_at, game.created_at),
+      }];
+    })
+    .sort((a, b) => b.timestamp - a.timestamp || a.slug.localeCompare(b.slug));
+
+  const references: LoadedReference[] = [];
+  let totalBytes = 0;
+
+  // Select the 10 most recent existing, valid emblem image files. If one is
+  // missing or broken, continue to the next older saved emblem.
+  for (const candidate of candidates) {
+    if (references.length >= MAX_REFERENCE_COUNT) break;
+
+    try {
+      const response = await fetch(new URL(candidate.path, origin), { cache: "no-store" });
+      if (!response.ok) continue;
+
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().startsWith("image/")) continue;
+
+      const data = new Uint8Array(await response.arrayBuffer());
+      if (data.length < 100 || data.length > MAX_IMAGE_BYTES) continue;
+      if (totalBytes + data.length > MAX_TOTAL_BYTES) {
+        throw new Error(
+          "As 10 referências mais recentes ultrapassam 32 MiB. Otimize as imagens ou diminua o tamanho dos PNGs antes de baixar o ZIP."
+        );
+      }
+
+      references.push({ ...candidate, data });
+      totalBytes += data.length;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("ultrapassam 32 MiB")) throw error;
+      // Skip a broken or missing file and continue with older saved emblems.
+    }
+  }
+
+  return references;
+}
 
 function safeFilename(value: string, fallback: string) {
   const cleaned = value
@@ -123,6 +212,39 @@ function buildZip(files: ZipFile[]) {
   return zip;
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    const references = await loadLatestReferenceImages(request.nextUrl.origin);
+    return NextResponse.json(
+      {
+        ok: true,
+        references: references.map(({ slug, title, path, timestamp }) => ({
+          slug,
+          title,
+          image: path,
+          updatedAt: timestamp ? new Date(timestamp).toISOString() : "",
+        })),
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          "X-Emblem-Reference-Count": String(references.length),
+        },
+      }
+    );
+  } catch (error) {
+    console.error("[Emblem References] Erro:", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error
+          ? error.message
+          : "Não foi possível carregar as referências de Emblemas.",
+      },
+      { status: 500, headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
@@ -142,46 +264,33 @@ export async function POST(request: NextRequest) {
     const files: ZipFile[] = [
       { name: "LEIA-PRIMEIRO-instrucoes-emblema-v4.txt", data: encoder.encode(instructionsText) },
     ];
-    const referenceManifest: string[] = [];
-    let totalBytes = files[0].data.length;
-    // The 10 current emblem PNGs exceed the old 18 MiB cap by themselves.
-    // Allow a complete package while retaining a reasonable upper bound.
-    const maxTotalBytes = 32 * 1024 * 1024;
     const origin = request.nextUrl.origin;
-
-    for (const reference of REFERENCE_EMBLEMS) {
-      try {
-        const response = await fetch(new URL(reference.path, origin), { cache: "no-store" });
-        if (!response.ok) continue;
-        const data = new Uint8Array(await response.arrayBuffer());
-        if (data.length < 100 || data.length > 8 * 1024 * 1024) continue;
-        if (totalBytes + data.length > maxTotalBytes) continue;
-
-        files.push({
-          name: `REFERENCIAS-EMBLEMAS/${reference.slug}-emblem.png`,
-          data,
-        });
-        totalBytes += data.length;
-        referenceManifest.push(`- ${reference.title} (arquivo: ${reference.slug}-emblem.png)`);
-      } catch {
-        // Se uma referência individual falhar, as demais ainda poderão ser incluídas.
-      }
+    const references = await loadLatestReferenceImages(origin);
+    if (references.length === 0) {
+      return NextResponse.json({
+        error: "Não encontrei Emblemas salvos com imagens válidas para usar como referência. Cadastre ou corrija pelo menos um Emblema antes de baixar o ZIP.",
+      }, { status: 502 });
     }
 
-    if (referenceManifest.length !== REFERENCE_EMBLEMS.length) {
-      return NextResponse.json({
-        error: `Não foi possível montar o ZIP completo: foram incluídas ${referenceManifest.length} de ${REFERENCE_EMBLEMS.length} referências. Nenhum pacote parcial foi entregue. Confira se todas as imagens existem e se respeitam os limites de tamanho.`,
-      }, { status: 502 });
+    const referenceManifest: string[] = [];
+    for (const reference of references) {
+      files.push({
+        name: `REFERENCIAS-EMBLEMAS/${reference.slug}-emblem.png`,
+        data: reference.data,
+      });
+      referenceManifest.push(
+        `- ${reference.title} (arquivo: ${reference.slug}-emblem.png; salvo/atualizado em: ${reference.timestamp ? new Date(reference.timestamp).toISOString() : "data desconhecida"})`
+      );
     }
 
     files.push({
       name: "REFERENCIAS-EMBLEMAS/INDICE.txt",
       data: encoder.encode(
         "REFERÊNCIAS VISUAIS — RUMO À CONQUISTA V4\n\n" +
-        "Este ZIP contém as imagens PNG dos Emblemas já existentes e um arquivo de instruções de uso V4. Ele não contém o template antigo de geração.\n\n" +
+        "Este ZIP contém até 10 imagens válidas dos Emblemas salvos mais recentemente, ordenados pela data específica de atualização do Emblema. Emblemas históricos sem essa data usam a última atualização do jogo como alternativa até serem salvos novamente.\n\n" +
         "Arquivos incluídos:\n" +
         referenceManifest.join("\n") +
-        "\n\nAnexe este ZIP à conversa junto do Prompt 01. Examine cada imagem visualmente, identifique a linguagem visual comum e diferenças entre as peças, e evite repetir molduras, silhuetas e composições existentes."
+        "\n\nAnexe este ZIP à conversa junto do Prompt 01. Examine cada imagem visualmente, identifique a linguagem visual comum e diferenças entre as peças, e evite repetir molduras, silhuetas e composições existentes. Se a coleção tiver menos de 10 Emblemas com imagens válidas, o ZIP incluirá todos os disponíveis."
       ),
     });
 
@@ -192,7 +301,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${zipName}"`,
         "Cache-Control": "no-store",
-        "X-Emblem-Reference-Count": String(referenceManifest.length),
+        "X-Emblem-Reference-Count": String(references.length),
       },
     });
   } catch (error) {
