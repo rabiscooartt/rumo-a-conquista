@@ -1211,6 +1211,9 @@ const hiddenGamesList = useMemo(() => {
     const nextGame = normalizeGame(slug, {
       ...currentGame,
       ...update,
+      ...(Object.prototype.hasOwnProperty.call(update, "emblem")
+        ? { emblemConfigured: Boolean(update.emblem) }
+        : {}),
       slug,
       updatedAt: new Date().toISOString(),
     });
