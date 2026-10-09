@@ -75,6 +75,8 @@ export type SiteGame = {
     description?: string;
   };
   emblem?: GameEmblemInput;
+  /** True when the emblem has been explicitly saved in the Admin editor. */
+  emblemConfigured?: boolean;
   trophies?: {
     bronze?: number;
     silver?: number;
@@ -661,6 +663,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
           : [],
         finalBadge,
         emblem,
+        emblemConfigured: Boolean(emblem),
         trophies,
         isHidden: game.is_hidden === true,
         isDeleted: Boolean(game.is_deleted),
@@ -780,6 +783,126 @@ function getGameSortTime(game: SiteGame) {
   return 0;
 }
 
+async function loadPublicFallbackGames(
+  baseGamesMap: Record<string, SiteGame>
+): Promise<Record<string, SiteGame>> {
+  let publicCatalog: Array<Record<string, unknown>> = [];
+
+  try {
+    const response = await fetch("/api/games/catalog", { cache: "no-store" });
+    const payload = (await response.json().catch(() => null)) as {
+      games?: Array<Record<string, unknown>>;
+    } | null;
+
+    if (response.ok && Array.isArray(payload?.games)) {
+      publicCatalog = payload.games;
+    }
+  } catch (error) {
+    console.warn("[Games] Catálogo público indisponível; usando dados locais:", error);
+  }
+
+  const publicGamesBySlug = new Map<string, Record<string, unknown>>();
+  for (const game of publicCatalog) {
+    const slug = readText(game.slug, "").trim();
+    if (slug) publicGamesBySlug.set(slug, game);
+  }
+
+  const slugs = Array.from(
+    new Set([...Object.keys(baseGamesMap), ...publicGamesBySlug.keys()])
+  );
+
+  const entries = await Promise.all(
+    slugs.map(async (slug) => {
+      const baseGame = baseGamesMap[slug];
+      const publicGame = publicGamesBySlug.get(slug);
+      let achievements = (baseGame?.achievementsList ?? []) as FlexibleAchievementInput[];
+
+      try {
+        const result = await loadAchievementsForGame(
+          slug,
+          achievements as Parameters<typeof loadAchievementsForGame>[1]
+        );
+        achievements = result.achievements;
+      } catch {
+        // Preserve local achievements as a safe fallback if the public repository is unavailable.
+      }
+
+      const seed: Partial<SiteGame> = baseGame ?? {
+        slug,
+        title: readText(publicGame?.title, "Jogo sem nome"),
+        status: "progress",
+        progress: 0,
+        hours: "0h",
+        image: "",
+        cardImage: "",
+        platform: "Steam",
+      };
+
+      let merged: Partial<SiteGame> = {
+        ...seed,
+        slug,
+        achievementsList: achievements,
+      };
+
+      if (publicGame) {
+        const isObject = (value: unknown) =>
+          Boolean(value && typeof value === "object" && !Array.isArray(value));
+
+        merged = {
+          ...seed,
+          slug,
+          title: readText(publicGame.title, seed.title || "Jogo sem nome"),
+          subtitle: readText(publicGame.subtitle, seed.subtitle || ""),
+          status: readText(publicGame.status, seed.status || "progress"),
+          progress:
+            typeof publicGame.progress === "number"
+              ? publicGame.progress
+              : seed.progress ?? 0,
+          hours: readText(publicGame.hours, readText(seed.hours, "0h")),
+          currentObjective: readText(
+            publicGame.currentObjective,
+            seed.currentObjective || ""
+          ),
+          objective: readText(
+            publicGame.currentObjective ?? publicGame.objective,
+            seed.objective || seed.currentObjective || ""
+          ),
+          image: readText(publicGame.image, "") || seed.image || "",
+          cardImage: readText(publicGame.cardImage, "") || seed.cardImage || "",
+          platform: readText(publicGame.platform, seed.platform || "Steam"),
+          finalBadge: isObject(publicGame.finalBadge)
+            ? (publicGame.finalBadge as SiteGame["finalBadge"])
+            : seed.finalBadge,
+          emblem: isObject(publicGame.emblem)
+            ? (publicGame.emblem as GameEmblemInput)
+            : seed.emblem,
+          emblemConfigured: publicGame.emblemConfigured === true,
+          trophies: isObject(publicGame.trophies)
+            ? (publicGame.trophies as SiteGame["trophies"])
+            : seed.trophies,
+          review: publicGame.review ?? seed.review,
+          firstJourney: isObject(publicGame.firstJourney)
+            ? (publicGame.firstJourney as FirstJourneyState)
+            : seed.firstJourney,
+          manualTotalPlayedMinutes:
+            typeof publicGame.manualTotalPlayedMinutes === "number"
+              ? publicGame.manualTotalPlayedMinutes
+              : seed.manualTotalPlayedMinutes,
+          createdAt: readText(publicGame.createdAt, seed.createdAt || ""),
+          updatedAt: readText(publicGame.updatedAt, seed.updatedAt || ""),
+          isHidden: false,
+          isDeleted: false,
+          achievementsList: achievements,
+        };
+      }
+
+      return [slug, normalizeGame(slug, merged)] as const;
+    })
+  );
+
+  return Object.fromEntries(entries);
+}
+
 export function useSiteGames() {
   const [customGames, setCustomGames] = useState<Record<string, SiteGame>>({});
   const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
@@ -813,34 +936,9 @@ export function useSiteGames() {
         return;
       }
 
-      // O endpoint administrativo pode não estar disponível para visitantes
-      // públicos. Nesse caso, usamos o mesmo repositório público de conquistas
-      // usado pela página normal do jogo, para não voltar aos dados antigos da
-      // data/games.ts (por exemplo, 11 conquistas em vez das 165 salvas).
-      const fallbackEntries = await Promise.all(
-        Object.values(baseGamesMap).map(async (baseGame) => {
-          try {
-            const result = await loadAchievementsForGame(
-              baseGame.slug,
-              (baseGame.achievementsList ?? []) as Parameters<
-                typeof loadAchievementsForGame
-              >[1]
-            );
-
-            return [
-              baseGame.slug,
-              normalizeGame(baseGame.slug, {
-                ...baseGame,
-                achievementsList: result.achievements,
-              }),
-            ] as const;
-          } catch {
-            return [baseGame.slug, baseGame] as const;
-          }
-        })
-      );
-
-      const fallbackGames = Object.fromEntries(fallbackEntries);
+      // Visitantes carregam o catálogo público do banco para que emblemas,
+      // datas e jogos cadastrados no Admin também apareçam na aba Emblemas.
+      const fallbackGames = await loadPublicFallbackGames(baseGamesMap);
       setCustomGames(fallbackGames);
       setHiddenGameSlugs(
         Object.values(fallbackGames)
@@ -864,32 +962,9 @@ export function useSiteGames() {
     } catch (error) {
       console.error("[Games] Falha ao sincronizar com a API:", error);
 
-      // Mesmo quando a API administrativa falhar, a área pública continua
-      // carregando as conquistas diretamente pelo repositório público.
-      const fallbackEntries = await Promise.all(
-        Object.values(baseGamesMap).map(async (baseGame) => {
-          try {
-            const result = await loadAchievementsForGame(
-              baseGame.slug,
-              (baseGame.achievementsList ?? []) as Parameters<
-                typeof loadAchievementsForGame
-              >[1]
-            );
-
-            return [
-              baseGame.slug,
-              normalizeGame(baseGame.slug, {
-                ...baseGame,
-                achievementsList: result.achievements,
-              }),
-            ] as const;
-          } catch {
-            return [baseGame.slug, baseGame] as const;
-          }
-        })
-      );
-
-      const fallbackGames = Object.fromEntries(fallbackEntries);
+      // Mesmo quando a API administrativa falhar, usa o catálogo público
+      // do banco e mantém o repositório público de conquistas como fallback.
+      const fallbackGames = await loadPublicFallbackGames(baseGamesMap);
       setCustomGames(fallbackGames);
       setHiddenGameSlugs([]);
       setDeletedGameSlugs([]);
