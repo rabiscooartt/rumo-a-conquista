@@ -303,17 +303,29 @@ function buildPromptUsageInstructions(game: SiteGame) {
   return [
     "RUMO À CONQUISTA — COMO USAR OS PROMPTS DO EMBLEMA V4",
     "",
-    "1. No Admin, selecione o jogo correto e confira título, plataforma, descrição e a conquista de desbloqueio.",
-    "2. Clique em “Baixar ZIP de referências”. O pacote contém os PNGs dos Emblemas existentes e estas instruções V4; ele não inclui o template antigo.",
-    "3. Abra uma conversa no ChatGPT, anexe o ZIP de referências e cole o PROMPT 01. Envie. Ele deve analisar e entregar um briefing completo, sem gerar imagem.",
-    "4. Leia e aprove o conceito e os metadados. Se algo estiver genérico ou incorreto, peça ajustes no briefing antes de avançar.",
-    "5. Na MESMA conversa, cole o PROMPT 02 para que ele use o briefing aprovado. Se iniciar outra conversa, cole também o briefing completo do Prompt 01 e anexe novamente o ZIP de referências.",
-    "6. Após gerar, confira a legibilidade do nome do jogo e da plataforma, a moldura, as margens, o tema e a transparência real. Não trate um padrão quadriculado desenhado como alpha.",
-    "7. Volte à caixa 05, confira o nome, arquivo/caminho, descrição, tags e conquista de desbloqueio, depois use “Salvar Emblema”. O botão de template antigo está identificado como legado e pode ser ignorado no fluxo V4.",
+    `ANTES DE COMEÇAR: no Admin, selecione o jogo correto e confira título, plataforma, descrição e a conquista de desbloqueio. Jogo selecionado: ${readText(game.title)} (${readText(game.platform, "plataforma não informada")}).`,
     "",
-    `Jogo selecionado nesta caixa: ${readText(game.title)} (${readText(game.platform, "plataforma não informada")}).`,
+    "PASSO 1 — BAIXAR ZIP DE REFERÊNCIAS",
+    "Clique em “1. Baixar ZIP de referências”. O pacote contém até 10 PNGs válidos dos Emblemas mais recentes, o índice e estas instruções V4; ele não inclui o template antigo.",
+    "",
+    "PASSO 2 — COPIAR E EXECUTAR O PROMPT 01",
+    "Anexe o ZIP a uma conversa no ChatGPT, copie o Prompt 01 do Admin, cole-o e envie. Ele deverá analisar o jogo e as referências e entregar um briefing completo, sem gerar imagem.",
+    "",
+    "PASSO 3 — REVISAR E APROVAR O BRIEFING",
+    "Leia o conceito, a direção de arte e os metadados propostos. Se algo estiver genérico ou incorreto, peça ajustes na mesma conversa. Só avance quando aprovar o briefing.",
+    "",
+    "PASSO 4 — COPIAR E EXECUTAR O PROMPT 02",
+    "Na MESMA conversa, copie o Prompt 02 do Admin, cole-o e envie para gerar uma única imagem com base no briefing aprovado. Se iniciar outra conversa, anexe novamente o ZIP e cole também o briefing completo do Prompt 01 antes de executar o Prompt 02.",
+    "",
+    "PASSO 5 — CONFERIR A ARTE",
+    "Confira a legibilidade do nome do jogo e da plataforma, a moldura, as margens, o tema e a transparência real. Não trate um padrão quadriculado desenhado como alpha. Corrija a imagem antes de cadastrá-la se houver algum problema.",
+    "",
+    "PASSO 6 — CADASTRAR E SALVAR",
+    "Volte à caixa 05, confira o nome, arquivo/caminho, descrição, tags e conquista de desbloqueio; depois use “Salvar Emblema”. Não substitua a arte atual até aprovar a nova.",
+    "O botão de template antigo está identificado como legado e pode ser ignorado no fluxo V4.",
+    "",
     "Importante: os botões de prompt apenas copiam texto para a área de transferência. A geração da arte acontece na conversa em que você colar o Prompt 02."
-  ].join("\n");
+  ].join("\\n");
 }
 
 function initialEmblem(game: SiteGame): GameEmblemInput {
@@ -666,8 +678,19 @@ export default function GameEmblemEditor({
               onClick={() => void copyPrompt(prompt02, "Prompt 02 — geração da arte")}
               className="rounded-xl border border-emerald-300/25 bg-emerald-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/10"
             >
-              3. 🎨 Copiar Prompt 02 — Gerar arte
+              4. 🎨 Copiar Prompt 02 — Gerar arte
             </button>
+          </div>
+          <div className="mt-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.04] p-3">
+            <div className="flex items-start gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-amber-200/20 bg-amber-200/[0.08] text-xs font-black text-amber-100">3</span>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.08em] text-amber-100">Passo 3 — Revisar e aprovar o briefing</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/55">
+                  Depois de executar o Prompt 01 na conversa do ChatGPT, revise o conceito, a direção de arte e os metadados. Peça ajustes se necessário. Só depois de aprovar o briefing use o Passo 4 para gerar a arte.
+                </p>
+              </div>
+            </div>
           </div>
           {promptFeedback && (
             <p className="mt-3 text-xs font-bold leading-relaxed text-emerald-200" role="status">
@@ -680,7 +703,7 @@ export default function GameEmblemEditor({
             </p>
           )}
           <p className="mt-3 text-[10px] leading-relaxed text-white/35">
-            Etapa 2: o Prompt 01 não deve gerar imagens. Etapa 3: o Prompt 02 depende do briefing aprovado. O ZIP contém os PNGs reais da coleção e um arquivo de instruções V4, sem o template antigo. Anexe o ZIP na conversa junto do Prompt 01. Os botões de prompt só copiam texto; a geração é feita na conversa do ChatGPT.
+            Passo 2: o Prompt 01 não deve gerar imagens. Passo 3: revise e aprove o briefing. Passo 4: o Prompt 02 usa o briefing aprovado para gerar a arte. O ZIP contém os PNGs reais da coleção e um arquivo de instruções V4, sem o template antigo. Anexe o ZIP na conversa junto do Prompt 01. Os botões de prompt só copiam texto; a geração é feita na conversa do ChatGPT.
           </p>
         </div>
 
