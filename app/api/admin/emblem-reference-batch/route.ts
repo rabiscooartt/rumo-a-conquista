@@ -308,6 +308,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Emblem Reference Package]", error);
-    return NextResponse.json({ error: "Não foi possível montar o pacote de referências de Emblema." }, { status: 500 });
+    return NextResponse.json({
+      error: error instanceof Error
+        ? error.message
+        : "Não foi possível montar o pacote de referências de Emblema.",
+    }, { status: 500 });
   }
 }
