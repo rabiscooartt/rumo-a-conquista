@@ -470,7 +470,7 @@ export default function GameEmblemEditor({
       setTemplateFeedback("Template copiado. Para que ele compare as molduras de verdade, anexe também o ZIP de referências.");
       setPackageState("idle");
     } catch {
-      setTemplateFeedback("A cópia automática não funcionou. Baixe o pacote ZIP, que inclui o template em TXT.");
+      setTemplateFeedback("A cópia automática não funcionou. Verifique a permissão da área de transferência e tente novamente.");
     }
   }
 
@@ -482,9 +482,9 @@ export default function GameEmblemEditor({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          filename: `${game.slug}-template-emblema.zip`,
+          filename: `${game.slug}-referencias-emblemas.zip`,
           gameSlug: game.slug,
-          packageText: emblemTemplate,
+          packageText: usageInstructions,
         }),
       });
 
@@ -497,13 +497,13 @@ export default function GameEmblemEditor({
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = `${game.slug}-template-emblema.zip`;
+      anchor.download = `${game.slug}-referencias-emblemas.zip`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(objectUrl);
       const count = response.headers.get("X-Emblem-Reference-Count") || "10";
-      setTemplateFeedback(`Pacote baixado com ${count} referências visuais e o template adaptado a ${game.title}.`);
+      setTemplateFeedback(`ZIP baixado com ${count} imagens de referência e instruções V4 para ${game.title}. Anexe-o à conversa junto do Prompt 01.`);
       setPackageState("idle");
     } catch (error) {
       setPackageState("error");
@@ -590,6 +590,68 @@ export default function GameEmblemEditor({
 
       {!collapsed && (
         <>
+        <div className="mt-5 rounded-2xl border border-violet-300/20 bg-violet-400/[0.04] p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h4 className="text-sm font-black text-white">Novo fluxo universal de Emblemas V4</h4>
+              <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/50">
+                Fluxo de criação antes do cadastro. Baixe as referências, execute o Prompt 01 e aprove o briefing; só depois use o Prompt 02. O template antigo permanece identificado como legado para comparação.
+              </p>
+            </div>
+            <span className="w-fit rounded-full border border-amber-300/20 bg-amber-300/[0.07] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100">Em teste</span>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <button
+              type="button"
+              onClick={() => void downloadReferencePackage()}
+              disabled={packageState === "downloading"}
+              className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/15 disabled:opacity-40"
+            >
+              {packageState === "downloading" ? "Montando ZIP..." : "📦 Baixar ZIP de referências"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyPrompt(prompt01, "Prompt 01 — análise e projeto")}
+              className="rounded-xl border border-violet-300/30 bg-violet-400/10 px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-violet-100 transition hover:bg-violet-400/15"
+            >
+              📋 Copiar Prompt 01 — Análise e projeto
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyPrompt(usageInstructions, "Instruções de uso")}
+              className="rounded-xl border border-sky-300/25 bg-sky-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-sky-100 transition hover:bg-sky-400/10"
+            >
+              🧭 Copiar instruções de uso
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyPrompt(prompt02, "Prompt 02 — geração da arte")}
+              className="rounded-xl border border-emerald-300/25 bg-emerald-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/10"
+            >
+              🎨 Copiar Prompt 02 — Gerar arte
+            </button>
+          </div>
+          {promptFeedback && (
+            <p className="mt-3 text-xs font-bold leading-relaxed text-emerald-200" role="status">
+              {promptFeedback}
+            </p>
+          )}
+          {templateFeedback && (
+            <p className={packageState === "error" ? "mt-3 text-xs font-bold leading-relaxed text-red-200" : "mt-3 text-xs font-bold leading-relaxed text-emerald-200"} role="status">
+              {templateFeedback}
+            </p>
+          )}
+          <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+            O Prompt 01 não deve gerar imagens. O Prompt 02 depende do briefing aprovado. O ZIP contém os PNGs reais da coleção e um arquivo de instruções V4, sem o template antigo. Anexe o ZIP na conversa junto do Prompt 01. Os botões de prompt só copiam texto; a geração é feita na conversa do ChatGPT.
+          </p>
+        </div>
+
+
+        <div className="mt-5 border-t border-white/[0.07] pt-5">
+          <h4 className="text-sm font-black text-white">Cadastro e arte final</h4>
+          <p className="mt-1 text-xs leading-relaxed text-white/45">Preencha ou revise estes campos depois de aprovar a arte gerada.</p>
+        </div>
         <div className="mt-5 grid gap-5 border-t border-white/[0.07] pt-5 lg:grid-cols-[190px_minmax(0,1fr)]">
           <div>
             <div className="relative flex min-h-[210px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/30 p-3">
@@ -701,73 +763,16 @@ export default function GameEmblemEditor({
               </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-violet-300/20 bg-violet-400/[0.04] p-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h4 className="text-sm font-black text-white">Novo fluxo universal de Emblemas V4</h4>
-                  <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/50">
-                    Em teste. Primeiro analise e planeje com o Prompt 01; depois gere com o Prompt 02. As opções antigas continuam logo abaixo para compararmos antes de remover qualquer coisa.
-                  </p>
-                </div>
-                <span className="w-fit rounded-full border border-amber-300/20 bg-amber-300/[0.07] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100">Em teste</span>
-              </div>
-
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                <button
-                  type="button"
-                  onClick={() => void copyPrompt(prompt01, "Prompt 01 — análise e projeto")}
-                  className="rounded-xl border border-violet-300/30 bg-violet-400/10 px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-violet-100 transition hover:bg-violet-400/15"
-                >
-                  📋 Copiar Prompt 01 — Análise e projeto
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void copyPrompt(usageInstructions, "Instruções de uso")}
-                  className="rounded-xl border border-sky-300/25 bg-sky-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-sky-100 transition hover:bg-sky-400/10"
-                >
-                  🧭 Copiar instruções de uso
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void copyPrompt(prompt02, "Prompt 02 — geração da arte")}
-                  className="rounded-xl border border-emerald-300/25 bg-emerald-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/10"
-                >
-                  🎨 Copiar Prompt 02 — Gerar arte
-                </button>
-              </div>
-              {promptFeedback && (
-                <p className="mt-3 text-xs font-bold leading-relaxed text-emerald-200" role="status">
-                  {promptFeedback}
-                </p>
-              )}
-              <p className="mt-3 text-[10px] leading-relaxed text-white/35">
-                O Prompt 01 não deve gerar imagens. O Prompt 02 depende do briefing aprovado. Os botões só copiam o texto; a geração é feita na conversa do ChatGPT.
-              </p>
-            </div>
-
             <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.07] pt-4">
+              <span className="mr-1 text-[9px] font-black uppercase tracking-[0.1em] text-white/30">Opção antiga — legado</span>
               <button
                 type="button"
                 onClick={() => void copyTemplate()}
                 className="rounded-xl border border-violet-300/30 bg-violet-400/10 px-4 py-3 text-[9px] font-black uppercase tracking-[0.08em] text-violet-100"
               >
-                📋 Copiar template do Emblema
-              </button>
-              <button
-                type="button"
-                onClick={() => void downloadReferencePackage()}
-                disabled={packageState === "downloading"}
-                className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-[9px] font-black uppercase tracking-[0.08em] text-emerald-100 disabled:opacity-40"
-              >
-                {packageState === "downloading" ? "Montando pacote..." : "📦 Baixar template + referências"}
+                📋 Copiar template antigo (legado)
               </button>
             </div>
-
-            {templateFeedback && (
-              <p className={packageState === "error" ? "mt-3 text-xs font-bold leading-relaxed text-red-200" : "mt-3 text-xs font-bold leading-relaxed text-emerald-200"} role="status">
-                {templateFeedback}
-              </p>
-            )}
           </div>
         </div>
 
