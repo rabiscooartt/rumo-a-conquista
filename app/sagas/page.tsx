@@ -510,7 +510,8 @@ function EmblemCard({
   return (
     <Link
       href={`/games/${emblem.gameSlug}`}
-      className={`group relative text-center transition hover:-translate-y-1 ${
+      id={`emblem-${emblem.gameSlug}`}
+      className={`group relative scroll-mt-24 text-center transition hover:-translate-y-1 ${
         isLarge ? "w-full max-w-[340px]" : "w-full"
       }`}
     >
@@ -666,6 +667,37 @@ export default function SagasPage() {
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const targetId = window.location.hash.slice(1);
+    if (!targetId.startsWith("emblem-")) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    let timer: number | undefined;
+
+    const findAndScrollToEmblem = () => {
+      if (cancelled) return;
+
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      attempts += 1;
+      if (attempts < 50) {
+        timer = window.setTimeout(findAndScrollToEmblem, 100);
+      }
+    };
+
+    findAndScrollToEmblem();
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, []);
 
