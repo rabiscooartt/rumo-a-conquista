@@ -12,6 +12,7 @@ type GameEmblemEditorProps = {
 
 type LegacyEmblemFields = {
   gameEmblem?: GameEmblemInput;
+  emblemUnlockAchievement?: string;
   emblemTitle?: string;
   emblemImage?: string;
   emblemDescription?: string;
@@ -173,18 +174,166 @@ function buildEmblemTemplate(
   ].join("\n");
 }
 
+function buildUniversalPrompt01(
+  game: SiteGame,
+  emblem: GameEmblemInput,
+  tagsText: string
+) {
+  const achievementLines = (game.achievementsList ?? [])
+    .filter((item) => readText(item.title).trim())
+    .slice(0, 20)
+    .map((item) => {
+      const title = readText(item.title).trim();
+      const description = readText(item.description).trim();
+      return `- ${title}${description ? `: ${description}` : ""}`;
+    });
+  const tags = readTags(tagsText);
+  const gameTitle = readText(game.title, "Jogo não informado");
+  const emblemTitle = readText(emblem.title).trim() || "Definir durante a análise";
+  const unlockAchievement = readText(emblem.unlockAchievement).trim() || "Definir com base nas conquistas reais cadastradas; não inventar.";
+  const platform = readText(game.platform, "Plataforma não informada");
+
+  return [
+    "RUMO À CONQUISTA — PROMPT 01 — ANÁLISE E PROJETO UNIVERSAL DE EMBLEMAS V4",
+    "",
+    "PAPEL",
+    "Você é diretor de arte e designer de artefatos colecionáveis para o projeto Rumo à Conquista. Este sistema precisa funcionar com QUALQUER jogo: adapte identidade, personagens, símbolos, cenário, cores, materiais, moldura, composição e atmosfera ao universo específico do jogo. Não reutilize automaticamente a mesma moldura mudando apenas o personagem.",
+    "",
+    "OBJETIVO DESTA ETAPA",
+    "Analisar a identidade do jogo e todas as referências visuais anexadas, planejar um Emblema exclusivo e entregar um briefing técnico completo para o Prompt 02. NÃO gere, desenhe ou edite imagens nesta etapa. Não tente simular a arte com texto.",
+    "",
+    "DADOS REAIS DO JOGO",
+    `Jogo: ${gameTitle}`,
+    `Slug: ${readText(game.slug)}`,
+    `Plataforma para a placa: ${platform}`,
+    `Gênero/identidade cadastrada: ${readText(game.subtitle, "Não informado; confirmar pelas referências disponíveis.")}`,
+    `Objetivo atual: ${readText(game.currentObjective || game.objective, "Não informado")}`,
+    `Título provisório do Emblema: ${emblemTitle}`,
+    `Conquista necessária para desbloquear o Emblema: ${unlockAchievement}`,
+    `Descrição atual: ${readText(emblem.description).trim() || "Criar uma descrição temática após definir o conceito."}`,
+    `Tags atuais: ${tags.length ? tags.join(", ") : "Definir após a análise."}`,
+    "",
+    "CONQUISTAS CADASTRADAS COMO CONTEXTO — NÃO TRATAR COMO LORE COMPLETA",
+    ...(achievementLines.length ? achievementLines : ["- Não há conquistas cadastradas suficientes para servir de referência."]),
+    "",
+    "ETAPA 1 — INVESTIGAR A IDENTIDADE DO JOGO",
+    "Use os dados fornecidos e as referências anexadas. Quando a pesquisa externa estiver disponível, confirme a identidade visual com fontes confiáveis. Identifique atmosfera, cenários, iconografia, personagens ou criaturas relevantes, arquitetura, equipamentos, símbolos e materiais característicos. Separe fatos confirmados de interpretações. Não invente lore, nomes, eventos ou itens específicos para preencher lacunas; indique o que não puder ser confirmado.",
+    "",
+    "ETAPA 2 — AUDITAR O ZIP DE REFERÊNCIAS",
+    "Abra e examine VISUALMENTE todos os PNGs dentro do ZIP REFERENCIAS-EMBLEMAS. Não se baseie somente nos nomes dos arquivos. Compare silhueta externa, geometria da moldura, topo, laterais, base, placas, símbolo central, paleta, materiais, pátina, ornamentos, profundidade, iluminação, densidade visual e legibilidade em tamanho pequeno.",
+    "Identifique o DNA comum da coleção Rumo à Conquista: artefato colecionável premium, acabamento intencional, volumes e relevos bem definidos, foco central legível e qualidade coerente com a interface escura. Em seguida, liste as características particulares de cada referência que NÃO devem ser copiadas literalmente.",
+    "Se o ZIP não estiver anexado, não afirme que analisou as imagens. Solicite o ZIP antes de concluir a comparação visual.",
+    "",
+    "ETAPA 3 — DESENHAR UMA IDENTIDADE EXCLUSIVA",
+    "Proponha uma composição que seja reconhecível como pertencente a este jogo e diferente das referências. Adapte formato da silhueta, perfil da moldura, ornamentos, elemento central, cenário interno, materiais e paleta. Não force vermelho, dourado, bronze, preto ou qualquer cor padrão quando não combinar com o jogo.",
+    "O Emblema deve continuar pertencendo à família visual premium do site, mas não deve parecer uma cópia ou variação mínima de outra moldura. Não reutilize automaticamente a composição da Maestria Final ou de conquistas já existentes.",
+    "",
+    "REQUISITOS OBRIGATÓRIOS DA ARTE FINAL",
+    "- Uma única peça; não fazer colagem, grade, painel, mockup, comparação ou múltiplas opções.",
+    "- Canvas quadrado de 1024x1024 px; a peça do Emblema deve ter silhueta visual predominantemente vertical.",
+    "- Preferir PNG com transparência alpha real fora da silhueta. Não desenhar fundo cinza, preto, branco ou quadriculado para simular transparência.",
+    "- O Emblema ocupa aproximadamente 80–88% da altura do canvas, centralizado e com margem de segurança suficiente. Não cortar topo, laterais, base ou placas.",
+    "- O símbolo central é dominante e ocupa aproximadamente 60–75% da área visual útil, ajustado à composição sem esconder a moldura.",
+    "- Relevo 3D, materiais plausíveis, contraste controlado, iluminação dramática e contorno limpo. Evitar glow exagerado e excesso de microdetalhes.",
+    "- A placa principal DEVE trazer o nome do jogo, legível e integrado fisicamente à peça. Abaixo dela, uma placa secundária menor DEVE trazer a plataforma cadastrada. Para este tipo de Emblema, esses dois textos nas placas são exceções intencionais à regra geral de evitar texto em artes de conquistas.",
+    "- Não adicionar slogans, parágrafos, texto aleatório, marcas-d'água, logos de terceiros, interface de jogo ou palavras ilegíveis. Não usar moldura externa quadrada como fundo.",
+    "- Personagens podem ser usados quando relevantes e permitidos; se não funcionarem, priorize símbolo, criatura, objeto, arquitetura ou ícone próprio do universo.",
+    "",
+    "ETAPA 4 — METADADOS",
+    "Defina ou refine: (1) nome exclusivo do Emblema; (2) conquista real que o desbloqueia, escolhida entre as conquistas cadastradas sempre que possível; (3) descrição temática curta para o site; (4) tags específicas; (5) nome de arquivo sugerido no formato [slug]-emblem.png. Não invente uma conquista do jogo. Se não houver dados suficientes para identificar a conquista correta, marque como pendente e faça uma recomendação claramente identificada.",
+    "",
+    "FORMATO OBRIGATÓRIO DA RESPOSTA",
+    "A. Diagnóstico da identidade do jogo (fatos confirmados e incertezas).",
+    "B. Relatório visual do ZIP, com DNA comum e diferenças entre as referências.",
+    "C. Conceito exclusivo deste Emblema e justificativa da relação com o jogo.",
+    "D. Direção de arte detalhada: silhueta, moldura, topo, laterais, base, símbolo central, cenário interno, materiais, paleta com cores nomeadas, iluminação, composição e legibilidade.",
+    "E. Especificação exata das duas placas: nome do jogo na placa principal; plataforma cadastrada na placa secundária logo abaixo; estilo tipográfico legível e coerente com o jogo.",
+    "F. Lista do que evitar para não repetir as referências nem criar ruído visual.",
+    "G. Metadados propostos: nome do Emblema, conquista real de desbloqueio, descrição e tags.",
+    "H. BRIEFING FINAL PARA O PROMPT 02, autocontido, específico e pronto para copiar, incluindo todos os requisitos técnicos e instruções para gerar UMA imagem.",
+    "",
+    "CHECKLIST ANTES DE ENTREGAR",
+    "Confirme que o conceito serve a este jogo; adapta cores e materiais em vez de impor uma paleta universal; não copia uma moldura existente; preserva a qualidade da coleção; inclui as duas placas legíveis; deixa margens seguras; e especifica transparência real. Não gerar imagem nesta etapa."
+  ].join("\n");
+}
+
+function buildUniversalPrompt02(
+  game: SiteGame,
+  emblem: GameEmblemInput,
+  tagsText: string
+) {
+  const tags = readTags(tagsText);
+  const title = readText(emblem.title).trim() || "Use o nome definido no briefing do Prompt 01";
+  const unlockAchievement = readText(emblem.unlockAchievement).trim() || "Use a conquista real identificada e validada no briefing do Prompt 01";
+  const description = readText(emblem.description).trim() || "Use/refine a descrição temática proposta no briefing do Prompt 01";
+  const gameTitle = readText(game.title, "Jogo não informado");
+  const platform = readText(game.platform, "Plataforma não informada");
+  return [
+    "RUMO À CONQUISTA — PROMPT 02 — GERAÇÃO DO EMBLEMA UNIVERSAL V4",
+    "",
+    "EXECUTE A ARTE AGORA. Use o BRIEFING FINAL PARA O PROMPT 02 produzido pelo Prompt 01 nesta conversa. Se o briefing não estiver disponível no contexto, peça para eu colá-lo antes de gerar. Se estiver trabalhando em uma nova conversa, eu também anexarei o ZIP com os Emblemas de referência; examine as imagens antes de criar.",
+    "",
+    "DADOS DO CADASTRO — PRESERVAR E CONFERIR COM O BRIEFING",
+    `Jogo: ${gameTitle}`,
+    `Plataforma: ${platform}`,
+    `Slug/arquivo sugerido: ${readText(game.slug)}-emblem.png`,
+    `Título atual/proposto: ${title}`,
+    `Conquista de desbloqueio: ${unlockAchievement}`,
+    `Descrição: ${description}`,
+    `Tags: ${tags.length ? tags.join(", ") : "Usar as tags definidas no briefing"}`,
+    "",
+    "REGRA DE PRECEDÊNCIA",
+    "O briefing aprovado do Prompt 01 define a identidade visual específica deste jogo: conceito, silhueta, elementos, cores, materiais e composição. Estas especificações V4 definem o formato, acabamento e critérios técnicos. Se faltar uma informação crucial, pergunte antes de inventar. Não substitua o briefing por um emblema genérico.",
+    "",
+    "ESPECIFICAÇÕES DE GERAÇÃO — OBRIGATÓRIAS",
+    "- Gere exatamente UMA imagem final de Emblema. Não gerar alternativas, folhas de contato, colagem, comparação, díptico ou múltiplas versões.",
+    "- Proporção 1:1; canvas quadrado de 1024x1024 px; saída PNG.",
+    "- O objeto tem silhueta visual predominantemente vertical e ocupa cerca de 80–88% da altura do canvas, centralizado e sem cortes. Deixe espaço seguro acima do topo e abaixo da base.",
+    "- O exterior da silhueta deve ter transparência alpha real. Não simular alpha com padrão quadriculado; não colocar fundo sólido, cenário de apresentação, mockup ou uma placa quadrada por trás do objeto.",
+    "- A peça precisa parecer um artefato colecionável premium com profundidade 3D, volumes e relevos coerentes, materiais convincentes, detalhes intencionais, luz dramática e contraste controlado. Evite brilho/glow excessivo e ruído de microdetalhes.",
+    "- O símbolo central é o ponto focal e ocupa aproximadamente 60–75% da área útil do Emblema, adaptando-se à composição sem ocultar as formas essenciais.",
+    "- A moldura, a paleta, os ornamentos e os materiais DEVEM seguir a identidade específica do jogo definida no briefing. Não reutilizar moldura igual para jogos diferentes; não copiar literalmente as referências do ZIP.",
+    `- A placa principal deve conter exatamente o nome do jogo: ${gameTitle}. Tipografia integrada à peça, visualmente coerente com o jogo e legível em tamanho pequeno.`,
+    `- Abaixo da placa principal, incluir uma placa secundária menor com exatamente: ${platform}.`,
+    "- O nome do jogo e a plataforma são os únicos textos permitidos dentro da arte, salvo se o briefing justificar explicitamente outro texto físico curto. Não criar letras aleatórias nem texto ilegível.",
+    "- Todos os detalhes, adornos, placas, pontas, asas, armas e efeitos devem permanecer dentro da silhueta externa do Emblema. Nada deve ser cortado pelas bordas do canvas.",
+    "- Personagens apenas quando apropriados ao conceito e permitidos. Se houver bloqueio ou risco de imitação, preserve a identidade por meio de atmosfera, materiais, símbolos, arquitetura e formas originais, sem abandonar o tema.",
+    "",
+    "ENTREGA",
+    "Produza a imagem final diretamente. Não mostre rascunhos, instruções em forma de imagem, mockups nem variações. Depois da imagem, forneça em texto separado: nome exclusivo do Emblema; conquista de desbloqueio (não inventar; indicar pendência se não foi possível verificar); descrição temática curta; tags; nome de arquivo sugerido. Não afirme que a transparência alpha foi validada se o arquivo gerado não permitir confirmar isso."
+  ].join("\n");
+}
+
+function buildPromptUsageInstructions(game: SiteGame) {
+  return [
+    "RUMO À CONQUISTA — COMO USAR OS PROMPTS DO EMBLEMA V4",
+    "",
+    "1. No Admin, selecione o jogo correto e confira título, plataforma, descrição e a conquista de desbloqueio.",
+    "2. Clique em “Baixar template + referências” para obter o ZIP com o template antigo e as imagens de referência. Mantenha esse botão disponível durante o teste.",
+    "3. Abra uma conversa no ChatGPT, anexe o ZIP de referências e cole o PROMPT 01. Envie. Ele deve analisar e entregar um briefing completo, sem gerar imagem.",
+    "4. Leia e aprove o conceito e os metadados. Se algo estiver genérico ou incorreto, peça ajustes no briefing antes de avançar.",
+    "5. Na MESMA conversa, cole o PROMPT 02 para que ele use o briefing aprovado. Se iniciar outra conversa, cole também o briefing completo do Prompt 01 e anexe novamente o ZIP de referências.",
+    "6. Após gerar, confira a legibilidade do nome do jogo e da plataforma, a moldura, as margens, o tema e a transparência real. Não trate um padrão quadriculado desenhado como alpha.",
+    "7. Volte à caixa 05, confira o nome, arquivo/caminho, descrição, tags e conquista de desbloqueio, depois use “Salvar Emblema”. Os controles atuais continuam disponíveis durante a avaliação.",
+    "",
+    `Jogo selecionado nesta caixa: ${readText(game.title)} (${readText(game.platform, "plataforma não informada")}).`,
+    "Importante: os botões de prompt apenas copiam texto para a área de transferência. A geração da arte acontece na conversa em que você colar o Prompt 02."
+  ].join("\n");
+}
+
 function initialEmblem(game: SiteGame): GameEmblemInput {
   const legacy = game as SiteGame & LegacyEmblemFields;
   const saved =
     game.emblem ??
     legacy.gameEmblem ??
-    (legacy.emblemTitle || legacy.emblemImage || legacy.emblemDescription || legacy.emblemTags || legacy.emblemUnlockedAt
+    (legacy.emblemTitle || legacy.emblemImage || legacy.emblemDescription || legacy.emblemTags || legacy.emblemUnlockedAt || legacy.emblemUnlockAchievement
       ? {
           title: legacy.emblemTitle,
           image: legacy.emblemImage,
           description: legacy.emblemDescription,
           tags: legacy.emblemTags,
           unlockedAt: legacy.emblemUnlockedAt,
+          unlockAchievement: legacy.emblemUnlockAchievement,
           configured: false,
         }
       : undefined);
@@ -195,6 +344,7 @@ function initialEmblem(game: SiteGame): GameEmblemInput {
       image: readText(saved.image, automaticEmblemPath(game.slug)),
       description: readText(saved.description),
       tags: readTags(saved.tags),
+      unlockAchievement: readText(saved.unlockAchievement, readText(legacy.emblemUnlockAchievement)).trim(),
       unlockedAt:
         readText(saved.unlockedAt).trim() ||
         (saved.configured === true ? "" : getLegacyEmblemUnlockedAt(game)),
@@ -243,6 +393,7 @@ export default function GameEmblemEditor({
       legacyGame.emblemDescription,
       legacyGame.emblemTags,
       legacyGame.emblemUnlockedAt,
+      legacyGame.emblemUnlockAchievement,
       game.achievementsList,
     ]
   );
@@ -254,6 +405,7 @@ export default function GameEmblemEditor({
   const [imageError, setImageError] = useState(false);
   const [packageState, setPackageState] = useState<PackageState>("idle");
   const [templateFeedback, setTemplateFeedback] = useState("");
+  const [promptFeedback, setPromptFeedback] = useState("");
 
   useEffect(() => {
     setEmblem(incomingEmblem);
@@ -292,6 +444,7 @@ export default function GameEmblemEditor({
       description: readText(emblem.description).trim(),
       tags: readTags(tagsText),
       unlockedAt: readText(emblem.unlockedAt).trim(),
+      unlockAchievement: readText(emblem.unlockAchievement).trim(),
       configured: true,
     };
 
@@ -358,12 +511,35 @@ export default function GameEmblemEditor({
     }
   }
 
+  const prompt01 = useMemo(
+    () => buildUniversalPrompt01(game, emblem, tagsText),
+    [game, emblem, tagsText]
+  );
+  const prompt02 = useMemo(
+    () => buildUniversalPrompt02(game, emblem, tagsText),
+    [game, emblem, tagsText]
+  );
+  const usageInstructions = useMemo(
+    () => buildPromptUsageInstructions(game),
+    [game]
+  );
+
+  async function copyPrompt(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setPromptFeedback(`${label} copiado. Use o ZIP de referências conforme as instruções.`);
+    } catch {
+      setPromptFeedback(`Não foi possível copiar automaticamente ${label.toLowerCase()}. Verifique a permissão da área de transferência e tente novamente.`);
+    }
+  }
+
   const imageSrc = readText(emblem.image).trim();
   const hasSavedData = Boolean(
     game.emblem?.title ||
       game.emblem?.image ||
       game.emblem?.description ||
       game.emblem?.tags?.length ||
+      game.emblem?.unlockAchievement ||
       legacyGame.gameEmblem?.title ||
       legacyGame.gameEmblem?.image ||
       legacyGame.gameEmblem?.description ||
@@ -371,7 +547,8 @@ export default function GameEmblemEditor({
       legacyGame.emblemTitle ||
       legacyGame.emblemImage ||
       legacyGame.emblemDescription ||
-      readTags(legacyGame.emblemTags).length
+      readTags(legacyGame.emblemTags).length ||
+      legacyGame.emblemUnlockAchievement
   );
 
   return (
@@ -474,6 +651,17 @@ export default function GameEmblemEditor({
               />
             </label>
 
+            <label className="block">
+              <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/45">Conquista necessária para desbloquear o Emblema</span>
+              <input
+                value={readText(emblem.unlockAchievement)}
+                onChange={(event) => update("unlockAchievement", event.target.value)}
+                placeholder="Selecione o nome real da conquista final"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+              />
+              <span className="mt-1 block text-[10px] leading-relaxed text-white/30">Use o nome de uma conquista existente. Esse dado será salvo junto do Emblema e incluído nos prompts.</span>
+            </label>
+
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block">
                 <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/45">Tags</span>
@@ -511,6 +699,50 @@ export default function GameEmblemEditor({
               >
                 {saving ? "Salvando..." : saveState === "saved" ? "✓ Emblema salvo" : "Salvar Emblema"}
               </button>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-violet-300/20 bg-violet-400/[0.04] p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h4 className="text-sm font-black text-white">Novo fluxo universal de Emblemas V4</h4>
+                  <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/50">
+                    Em teste. Primeiro analise e planeje com o Prompt 01; depois gere com o Prompt 02. As opções antigas continuam logo abaixo para compararmos antes de remover qualquer coisa.
+                  </p>
+                </div>
+                <span className="w-fit rounded-full border border-amber-300/20 bg-amber-300/[0.07] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100">Em teste</span>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => void copyPrompt(prompt01, "Prompt 01 — análise e projeto")}
+                  className="rounded-xl border border-violet-300/30 bg-violet-400/10 px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-violet-100 transition hover:bg-violet-400/15"
+                >
+                  📋 Copiar Prompt 01 — Análise e projeto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void copyPrompt(usageInstructions, "Instruções de uso")}
+                  className="rounded-xl border border-sky-300/25 bg-sky-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-sky-100 transition hover:bg-sky-400/10"
+                >
+                  🧭 Copiar instruções de uso
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void copyPrompt(prompt02, "Prompt 02 — geração da arte")}
+                  className="rounded-xl border border-emerald-300/25 bg-emerald-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/10"
+                >
+                  🎨 Copiar Prompt 02 — Gerar arte
+                </button>
+              </div>
+              {promptFeedback && (
+                <p className="mt-3 text-xs font-bold leading-relaxed text-emerald-200" role="status">
+                  {promptFeedback}
+                </p>
+              )}
+              <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+                O Prompt 01 não deve gerar imagens. O Prompt 02 depende do briefing aprovado. Os botões só copiam o texto; a geração é feita na conversa do ChatGPT.
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.07] pt-4">
