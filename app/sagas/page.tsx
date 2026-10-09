@@ -253,6 +253,7 @@ function hasExplicitEmblemData(game: Record<string, unknown>) {
         description?: string;
         tags?: string[] | string;
         unlockedAt?: string;
+        configured?: boolean;
       }
     | undefined;
 
@@ -363,7 +364,8 @@ function getGameEmblem(
 
   // Quando o Emblema foi salvo no Admin, ele é a fonte de verdade.
   // Se a data atual estiver vazia, não reutilizamos uma data antiga da Maestria/lista manual.
-  const currentAdminEmblem = game.emblemConfigured === true;
+  const currentAdminEmblem =
+    emblem?.configured === true || game.emblemConfigured === true;
   const unlockedAt = currentAdminEmblem
     ? readText(emblem?.unlockedAt, "")
     : readText(emblem?.unlockedAt, "") ||
