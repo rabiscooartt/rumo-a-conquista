@@ -31,6 +31,8 @@ export type GameEmblemInput = {
   description?: string;
   tags?: string[];
   unlockedAt?: string;
+  /** True when the emblem settings were explicitly saved from Admin. */
+  configured?: boolean;
 };
 
 export type FirstJourneyAchievementMeta = {
@@ -260,8 +262,9 @@ function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
   const description = readText(record.description, "").trim();
   const tags = readStringArray(record.tags);
   const unlockedAt = readText(record.unlockedAt, "").trim();
+  const configured = record.configured === true;
 
-  if (!title && !image && !description && tags.length === 0 && !unlockedAt) {
+  if (!title && !image && !description && tags.length === 0 && !unlockedAt && !configured) {
     return undefined;
   }
 
@@ -271,6 +274,7 @@ function normalizeEmblem(value: unknown): GameEmblemInput | undefined {
     description,
     tags,
     unlockedAt,
+    configured,
   };
 }
 
