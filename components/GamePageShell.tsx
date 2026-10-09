@@ -629,7 +629,7 @@ export default function GamePageShell({ slug, game }: Props) {
             </section>
           </div>
         )}
-                <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_320px] 2xl:grid-cols-[220px_minmax(0,1fr)_360px]">
+                <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
                   <aside className="game-sidebar-text-contrast hidden lg:block">
                     <div className="sticky top-24 space-y-5">
                       <div className="border-b border-white/[0.08] pb-5">
@@ -816,14 +816,14 @@ export default function GamePageShell({ slug, game }: Props) {
                         <SectionTitle>Emblema</SectionTitle>
         
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
-                          <div className="relative flex h-[245px] w-full max-w-[235px] xl:h-[300px] xl:max-w-[280px] 2xl:h-[340px] 2xl:max-w-[320px] items-center justify-center">
+                          <div className="relative flex h-[245px] w-full max-w-[235px] items-center justify-center overflow-hidden">
                             <img
                               src={emblem?.image || `/images/games/${slug}/emblem.png`}
                               alt={emblem?.title || "Emblema"}
-                              className={`h-full w-full object-contain transition-all ${
+                              className={`h-full w-full object-contain transition-transform duration-300 ${
                                 emblemUnlocked
-                                  ? ""
-                                  : "scale-95 blur-[7px] opacity-45 grayscale"
+                                  ? "scale-[1.4]"
+                                  : "scale-[1.25] blur-[7px] opacity-45 grayscale"
                               }`}
                             />
                             {!emblemUnlocked && (
