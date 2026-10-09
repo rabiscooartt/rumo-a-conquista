@@ -211,6 +211,95 @@ function readText(value: unknown, fallback = "") {
   return fallback;
 }
 
+
+const SMALL_GAME_TITLE_WORDS = new Set([
+  "a", "as", "o", "os", "um", "uma", "uns", "umas",
+  "de", "da", "do", "das", "dos", "e", "em", "no", "na", "nos", "nas",
+  "ao", "aos", "à", "às", "com", "sem", "por", "para", "pela", "pelo",
+  "pelas", "pelos", "entre", "sobre", "sob",
+  "the", "a", "an", "and", "but", "or", "nor", "of", "in", "on", "at",
+  "by", "as", "via", "per"
+]);
+
+const STYLIZED_GAME_TITLE_WORDS: Record<string, string> = {
+  "pi": "P.I",
+  "gta": "GTA",
+  "doom": "DOOM",
+  "dmc": "DMC",
+  "fps": "FPS",
+  "rpg": "RPG",
+  "mmorpg": "MMORPG",
+  "dlc": "DLC",
+  "vr": "VR",
+  "ea": "EA",
+  "fc": "FC",
+  "mgs": "MGS"
+};
+
+/**
+ * Formats newly entered game titles without rewriting existing catalog titles
+ * or destroying deliberate mixed-case brand styling such as iRacing and NieR.
+ */
+export function formatGameTitle(value: string): string {
+  const clean = String(value ?? "").trim().replace(/\s+/g, " ");
+  if (!clean) return "";
+
+  const letters = clean.match(/\p{L}/gu) ?? [];
+  const forceTitleCase =
+    letters.length > 0 &&
+    letters.every((letter) => letter === letter.toLocaleUpperCase("pt-BR"));
+  const parts = clean.split(" ");
+  let firstWordSeen = false;
+
+  return parts.map((part, index) => {
+    if (!/[\p{L}\p{N}]/u.test(part)) return part;
+
+    const prefix = part.match(/^[^\p{L}\p{N}]*/u)?.[0] ?? "";
+    const suffix = part.match(/[^\p{L}\p{N}]*$/u)?.[0] ?? "";
+    const core = part.slice(prefix.length, part.length - suffix.length);
+    if (!core) return part;
+
+    const key = core.toLocaleLowerCase("pt-BR").replace(/[^\p{L}\p{N}]/gu, "");
+    const previousPart = parts[index - 1] ?? "";
+    const startsNewPhrase =
+      !firstWordSeen ||
+      /[-–—:]$/.test(previousPart);
+    firstWordSeen = true;
+
+    let formatted: string;
+    if (STYLIZED_GAME_TITLE_WORDS[key]) {
+      formatted = STYLIZED_GAME_TITLE_WORDS[key];
+      if (suffix.startsWith(".") && !formatted.endsWith(".")) {
+        formatted += ".";
+      }
+    } else if (
+      /^(i|ii|iii|iv|v|vi|vii|viii|ix|x)$/i.test(core) &&
+      (forceTitleCase || core === core.toLocaleLowerCase("pt-BR"))
+    ) {
+      formatted = core.toUpperCase();
+    } else if (!startsNewPhrase && SMALL_GAME_TITLE_WORDS.has(key)) {
+      formatted = core.toLocaleLowerCase("pt-BR");
+    } else {
+      const hasUpper = core !== core.toLocaleLowerCase("pt-BR");
+      const hasLower = core !== core.toLocaleUpperCase("pt-BR");
+
+      if (!forceTitleCase && hasUpper && hasLower) {
+        // Keep official stylization already entered by the user.
+        formatted = core;
+      } else {
+        const lower = core.toLocaleLowerCase("pt-BR");
+        formatted = lower.replace(
+          /(^|[-–—])(\p{L})/gu,
+          (_match, separator: string, letter: string) =>
+            separator + letter.toLocaleUpperCase("pt-BR")
+        );
+      }
+    }
+
+    return prefix + formatted + suffix;
+  }).join(" ");
+}
+
 function normalizeText(value?: string) {
   return readText(value, "")
     .toLowerCase()
@@ -1113,7 +1202,7 @@ const hiddenGamesList = useMemo(() => {
 
     const normalizedGame = normalizeGame(slug, {
       slug,
-      title: input.title.trim() || "Jogo sem nome",
+      title: formatGameTitle(input.title) || "Jogo sem nome",
       subtitle: input.subtitle.trim(),
       status: input.status,
       progress: Number(input.progress) || 0,
@@ -1221,9 +1310,18 @@ const hiddenGamesList = useMemo(() => {
       return false;
     }
 
+    const normalizedUpdate =
+      Object.prototype.hasOwnProperty.call(update, "title") &&
+      typeof update.title === "string"
+        ? {
+            ...update,
+            title: formatGameTitle(update.title) || currentGame.title,
+          }
+        : update;
+
     const nextGame = normalizeGame(slug, {
       ...currentGame,
-      ...update,
+      ...normalizedUpdate,
       ...(Object.prototype.hasOwnProperty.call(update, "emblem")
         ? { emblemConfigured: Boolean(update.emblem) }
         : {}),
