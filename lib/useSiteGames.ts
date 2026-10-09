@@ -667,7 +667,8 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
           : [],
         finalBadge,
         emblem,
-        emblemConfigured: Boolean(emblem),
+        // Only explicit saves made from Admin disable legacy date fallbacks.
+        emblemConfigured: emblem?.configured === true,
         trophies,
         isHidden: game.is_hidden === true,
         isDeleted: Boolean(game.is_deleted),
