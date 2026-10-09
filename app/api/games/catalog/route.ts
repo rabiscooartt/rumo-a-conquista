@@ -74,6 +74,11 @@ export async function GET() {
       platform: game.platform ?? "Steam",
       finalBadge: game.final_badge ?? undefined,
       emblem: game.emblem ?? undefined,
+      emblemConfigured: Boolean(
+        game.emblem &&
+          typeof game.emblem === "object" &&
+          !Array.isArray(game.emblem)
+      ),
       trophies: game.trophies ?? undefined,
       review: game.review ?? undefined,
       firstJourney: extractFirstJourney(game.review),
