@@ -817,10 +817,18 @@ export default function GamePageShell({ slug, game }: Props) {
         
                         <div className="mt-3 flex flex-col items-center justify-center px-1 pb-1 text-center">
                           <div className="relative flex h-[245px] w-full max-w-[235px] items-center justify-center overflow-visible">
+                            {emblemUnlocked && (
+                              <Link
+                                href={`/sagas#emblem-${slug}`}
+                                aria-label={`Ver ${emblem?.title || "emblema"} na coleção de emblemas`}
+                                title="Ver este emblema na coleção"
+                                className="absolute inset-0 z-10 cursor-pointer rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500"
+                              />
+                            )}
                             <img
                               src={emblem?.image || `/images/games/${slug}/emblem.png`}
                               alt={emblem?.title || "Emblema"}
-                              className={`absolute left-1/2 top-1/2 h-[125%] w-[125%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain transition-all duration-300 ${
+                              className={`pointer-events-none absolute left-1/2 top-1/2 h-[125%] w-[125%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain transition-all duration-300 ${
                                 emblemUnlocked
                                   ? ""
                                   : "blur-[7px] opacity-45 grayscale"
