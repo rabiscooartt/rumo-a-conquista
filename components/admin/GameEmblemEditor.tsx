@@ -632,7 +632,7 @@ export default function GameEmblemEditor({
             <div>
               <h4 className="text-sm font-black text-white">Novo fluxo universal de Emblemas V4</h4>
               <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/50">
-                Fluxo de criação antes do cadastro. Baixe as referências, execute o Prompt 01 e aprove o briefing; só depois use o Prompt 02. O template antigo permanece identificado como legado para comparação.
+                Fluxo antes do cadastro: 1) baixe o ZIP; 2) copie e execute o Prompt 01; 3) aprove o briefing e só depois copie e execute o Prompt 02. O template antigo permanece identificado como legado para comparação.
               </p>
             </div>
             <span className="w-fit rounded-full border border-amber-300/20 bg-amber-300/[0.07] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100">Em teste</span>
@@ -652,7 +652,7 @@ export default function GameEmblemEditor({
               onClick={() => void copyPrompt(prompt01, "Prompt 01 — análise e projeto")}
               className="rounded-xl border border-violet-300/30 bg-violet-400/10 px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-violet-100 transition hover:bg-violet-400/15"
             >
-              📋 Copiar Prompt 01 — Análise e projeto
+              2. 📋 Copiar Prompt 01 — Análise e projeto
             </button>
             <button
               type="button"
@@ -666,7 +666,7 @@ export default function GameEmblemEditor({
               onClick={() => void copyPrompt(prompt02, "Prompt 02 — geração da arte")}
               className="rounded-xl border border-emerald-300/25 bg-emerald-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/10"
             >
-              🎨 Copiar Prompt 02 — Gerar arte
+              3. 🎨 Copiar Prompt 02 — Gerar arte
             </button>
           </div>
           {promptFeedback && (
@@ -680,7 +680,7 @@ export default function GameEmblemEditor({
             </p>
           )}
           <p className="mt-3 text-[10px] leading-relaxed text-white/35">
-            O Prompt 01 não deve gerar imagens. O Prompt 02 depende do briefing aprovado. O ZIP contém os PNGs reais da coleção e um arquivo de instruções V4, sem o template antigo. Anexe o ZIP na conversa junto do Prompt 01. Os botões de prompt só copiam texto; a geração é feita na conversa do ChatGPT.
+            Etapa 2: o Prompt 01 não deve gerar imagens. Etapa 3: o Prompt 02 depende do briefing aprovado. O ZIP contém os PNGs reais da coleção e um arquivo de instruções V4, sem o template antigo. Anexe o ZIP na conversa junto do Prompt 01. Os botões de prompt só copiam texto; a geração é feita na conversa do ChatGPT.
           </p>
         </div>
 
