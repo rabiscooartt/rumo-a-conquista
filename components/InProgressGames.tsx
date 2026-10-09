@@ -70,9 +70,16 @@ export default function InProgressGames() {
               ? game.achievementsList
               : [];
 
-            const completedAchievements = achievements.filter(
-              (achievement) => achievement.status === "completed"
-            ).length;
+            const completedAchievements =
+              typeof game.achievementsUnlocked === "number"
+                ? game.achievementsUnlocked
+                : achievements.filter(
+                    (achievement) => achievement.status === "completed"
+                  ).length;
+            const totalAchievements =
+              typeof game.achievementsTotal === "number"
+                ? game.achievementsTotal
+                : achievements.length;
 
             return (
               <Link
@@ -136,7 +143,7 @@ export default function InProgressGames() {
                         </p>
 
                         <p className="mt-2 text-2xl font-black text-white">
-                          {completedAchievements}/{achievements.length}
+                          {completedAchievements}/{totalAchievements}
                         </p>
                       </div>
 
