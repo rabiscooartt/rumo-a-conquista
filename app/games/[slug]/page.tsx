@@ -180,6 +180,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       description: readText(savedEmblem.description, ""),
       tags: readStringList(savedEmblem.tags),
       unlockedAt: readText(savedEmblem.unlockedAt, ""),
+      configured: savedEmblem.configured === true,
     };
   }
 
@@ -190,6 +191,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       description: readText(game.gameEmblem.description, ""),
       tags: readStringList(game.gameEmblem.tags),
       unlockedAt: readText(game.gameEmblem.unlockedAt, ""),
+      configured: game.gameEmblem.configured === true,
     };
   }
 
@@ -200,6 +202,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       description: readText(game.emblemDescription, ""),
       tags: readStringList(game.emblemTags),
       unlockedAt: readText(game.emblemUnlockedAt, ""),
+      configured: false,
     };
   }
 
@@ -209,6 +212,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
       image: "/images/games/howgarts-legacy/emblem.png",
       description: "Uma relíquia simbólica concedida ao bruxo que explorou Hogwarts por completo, dominou seus desafios e revelou todos os segredos deixados pelo legado mágico. O Legado Absoluto representa a conclusão definitiva da jornada e a marca de quem se tornou um verdadeiro guardião dessa história.",
       tags: ["Colecionável", "Emblema Especial", "Hogwarts Legacy"],
+      configured: false,
     };
   }
 
@@ -353,7 +357,10 @@ export default function GamePage() {
           ...emblem,
           unlockedAt:
             readText(emblem.unlockedAt, "") ||
-            readText(masteryAchievement?.earnedDate, ""),
+            (emblem.configured === true
+              ? ""
+              : readText(masteryAchievement?.earnedDate, "")),
+          configured: emblem.configured === true,
         };
       })(),
       platform: readText((game as { platform?: unknown }).platform, "Steam") || "Steam",
