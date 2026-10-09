@@ -51,7 +51,6 @@ async function loadLatestReferenceImages(origin: string): Promise<LoadedReferenc
     .from("games")
     .select("slug, title, emblem, updated_at, created_at")
     .eq("is_deleted", false)
-    .eq("is_hidden", false)
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
@@ -61,7 +60,10 @@ async function loadLatestReferenceImages(origin: string): Promise<LoadedReferenc
       const emblem = asRecord(game.emblem);
       const slug = readText(game.slug);
       const title = readText(game.title);
-      const path = readText(emblem?.image);
+      // Legacy emblem artwork can exist on disk even if that game's
+      // emblem metadata has not yet been explicitly saved in Admin.
+      // Only keep the fallback if the conventional asset really responds as an image.
+      const path = readText(emblem?.image) || (slug ? `/images/games/${slug}/emblem.png` : "");
       if (!slug || !title || !path || !isSafeEmblemPath(path)) return [];
       return [{
         slug,
