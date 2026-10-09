@@ -645,7 +645,7 @@ export default function GameEmblemEditor({
               disabled={packageState === "downloading"}
               className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-400/15 disabled:opacity-40"
             >
-              {packageState === "downloading" ? "Montando ZIP..." : "📦 Baixar ZIP de referências"}
+              {packageState === "downloading" ? "Montando ZIP..." : "1. 📦 Baixar ZIP de referências"}
             </button>
             <button
               type="button"
