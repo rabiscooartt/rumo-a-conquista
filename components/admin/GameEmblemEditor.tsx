@@ -81,6 +81,7 @@ function initialEmblem(game: SiteGame): GameEmblemInput {
           description: legacy.emblemDescription,
           tags: legacy.emblemTags,
           unlockedAt: legacy.emblemUnlockedAt,
+          configured: false,
         }
       : undefined);
 
