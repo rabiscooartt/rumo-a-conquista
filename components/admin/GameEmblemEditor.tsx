@@ -366,6 +366,7 @@ export default function GameEmblemEditor({
       </button>
 
       {!collapsed && (
+        <>
         <div className="mt-5 grid gap-5 border-t border-white/[0.07] pt-5 lg:grid-cols-[190px_minmax(0,1fr)]">
           <div>
             <div className="relative flex min-h-[210px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/30 p-3">
@@ -517,6 +518,7 @@ export default function GameEmblemEditor({
             ))}
           </div>
         </div>
+        </>
       )}
     </section>
   );
