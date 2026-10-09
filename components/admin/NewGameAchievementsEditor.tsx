@@ -218,7 +218,7 @@ export default function NewGameAchievementsEditor({
 
   const journeyIdSet = useMemo(() => new Set(journeyIds), [journeyIds]);
 
-  const completedCount = achievements.filter((item) => item.status === "completed").length;
+  const completedCount = achievements.filter((item) => item.status === "completed" || journeyIdSet.has(item.id)).length;
 
   const journeyCount = achievements.filter((item) =>
     journeyIdSet.has(item.id)
@@ -247,8 +247,9 @@ export default function NewGameAchievementsEditor({
     return achievements.filter((achievement) => {
       if (q && !normalizeText(achievement.title).includes(q)) return false;
       if (exophaseOnly && !achievement.isExophase) return false;
-      if (filter === "completed" && achievement.status !== "completed") return false;
-      if (filter === "locked" && achievement.status !== "locked") return false;
+      const completedByJourney = journeyIdSet.has(achievement.id);
+      if (filter === "completed" && achievement.status !== "completed" && !completedByJourney) return false;
+      if (filter === "locked" && (achievement.status !== "locked" || completedByJourney)) return false;
       return true;
     });
   }, [achievements, exophaseOnly, filter, search]);
@@ -498,6 +499,9 @@ export default function NewGameAchievementsEditor({
           const isMinimized = minimized[achievement.id] ?? true;
           const index = achievements.findIndex((item) => item.id === achievement.id);
           const isJourneyAchievement = journeyIdSet.has(achievement.id);
+          // A conquista selecionada como obtida na Jornada é considerada liberada
+          // no site, mesmo que o status legado do registro ainda diga "locked".
+          const isVisuallyLocked = achievement.status === "locked" && !isJourneyAchievement;
           const manualRecord = isJourneyAchievement
             ? undefined
             : manualRecords[achievement.id];
@@ -506,7 +510,7 @@ export default function NewGameAchievementsEditor({
           const hasManualRecord = Boolean(recordEpisode || recordDate);
 
           return (
-            <article key={achievement.id} className={achievement.status === "locked"
+            <article key={achievement.id} className={isVisuallyLocked
               ? "rounded-2xl border border-white/5 bg-white/[0.015]"
               : achievement.isHidden
                 ? "rounded-2xl border border-yellow-400/25 bg-yellow-500/[0.035]"
@@ -517,7 +521,7 @@ export default function NewGameAchievementsEditor({
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
                       <AchievementImage achievement={achievement} />
-                      {achievement.status === "locked" && (
+                      {isVisuallyLocked && (
                         <>
                           <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-black/35" />
                           <span
@@ -565,7 +569,7 @@ export default function NewGameAchievementsEditor({
                 <div className="grid gap-4 p-4 lg:grid-cols-[82px_minmax(0,1fr)]">
                   <div className="relative flex h-[82px] w-[82px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                     <AchievementImage achievement={achievement} />
-                    {achievement.status === "locked" && (
+                    {isVisuallyLocked && (
                       <>
                         <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-black/35" />
                         <span
@@ -646,7 +650,7 @@ export default function NewGameAchievementsEditor({
                       </label>
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Status</span>
-                        <select value={achievement.status} onChange={(event) => updateAchievement(achievement.id, { status: event.target.value as AchievementStatus })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40">
+                        <select value={isJourneyAchievement ? "completed" : achievement.status} disabled={isJourneyAchievement} title={isJourneyAchievement ? "Esta conquista é considerada concluída pela Jornada de Estreia." : undefined} onChange={(event) => updateAchievement(achievement.id, { status: event.target.value as AchievementStatus })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40 disabled:opacity-60">
                           <option value="locked">Bloqueada</option>
                           <option value="progress">Em progresso</option>
                           <option value="completed">Concluída</option>
