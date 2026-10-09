@@ -144,7 +144,9 @@ export async function POST(request: NextRequest) {
     ];
     const referenceManifest: string[] = [];
     let totalBytes = files[0].data.length;
-    const maxTotalBytes = 18 * 1024 * 1024;
+    // The 10 current emblem PNGs exceed the old 18 MiB cap by themselves.
+    // Allow a complete package while retaining a reasonable upper bound.
+    const maxTotalBytes = 32 * 1024 * 1024;
     const origin = request.nextUrl.origin;
 
     for (const reference of REFERENCE_EMBLEMS) {
@@ -152,7 +154,7 @@ export async function POST(request: NextRequest) {
         const response = await fetch(new URL(reference.path, origin), { cache: "no-store" });
         if (!response.ok) continue;
         const data = new Uint8Array(await response.arrayBuffer());
-        if (data.length < 100 || data.length > 5 * 1024 * 1024) continue;
+        if (data.length < 100 || data.length > 8 * 1024 * 1024) continue;
         if (totalBytes + data.length > maxTotalBytes) continue;
 
         files.push({
@@ -166,9 +168,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (referenceManifest.length === 0) {
+    if (referenceManifest.length !== REFERENCE_EMBLEMS.length) {
       return NextResponse.json({
-        error: "Não consegui carregar as artes de referência do site. Tente novamente em alguns instantes.",
+        error: `Não foi possível montar o ZIP completo: foram incluídas ${referenceManifest.length} de ${REFERENCE_EMBLEMS.length} referências. Nenhum pacote parcial foi entregue. Confira se todas as imagens existem e se respeitam os limites de tamanho.`,
       }, { status: 502 });
     }
 
