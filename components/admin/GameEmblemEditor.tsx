@@ -98,7 +98,7 @@ function buildEmblemTemplate(
       const description = readText(item.description).trim();
       return `- ${title}${description ? `: ${description}` : ""}`;
     });
-  const tags = tagsText.split(/[,\\n]/g).map((tag) => tag.trim()).filter(Boolean);
+  const tags = tagsText.split(",").map((tag) => tag.trim()).filter(Boolean);
   const rawEmblemTitle = readText(emblem.title).trim();
   const emblemTitle = rawEmblemTitle && rawEmblemTitle.toLowerCase() !== "emblema do jogo"
     ? rawEmblemTitle
@@ -170,7 +170,7 @@ function buildEmblemTemplate(
     "",
     `ARQUIVO FINAL: ${game.slug}-emblem.png`,
     "RESULTADO: entregar somente a arte final do Emblema deste jogo.",
-  ].join("\\n");
+  ].join("\n");
 }
 
 function initialEmblem(game: SiteGame): GameEmblemInput {
