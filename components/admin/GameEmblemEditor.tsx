@@ -671,7 +671,7 @@ export default function GameEmblemEditor({
               onClick={() => void copyPrompt(usageInstructions, "Instruções de uso")}
               className="rounded-xl border border-sky-300/25 bg-sky-400/[0.07] px-3 py-3 text-left text-[10px] font-black uppercase leading-relaxed tracking-[0.06em] text-sky-100 transition hover:bg-sky-400/10"
             >
-              🧭 Copiar instruções de uso
+              3. 📘 Copiar instruções de uso
             </button>
             <button
               type="button"
@@ -683,9 +683,9 @@ export default function GameEmblemEditor({
           </div>
           <div className="mt-3 rounded-xl border border-amber-300/20 bg-amber-300/[0.04] p-3">
             <div className="flex items-start gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-amber-200/20 bg-amber-200/[0.08] text-xs font-black text-amber-100">3</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-amber-200/20 bg-amber-200/[0.08] text-xs font-black text-amber-100">!</span>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.08em] text-amber-100">Passo 3 — Revisar e aprovar o briefing</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.08em] text-amber-100">Antes do Passo 4 — Revisar e aprovar o briefing</p>
                 <p className="mt-1 text-xs leading-relaxed text-white/55">
                   Depois de executar o Prompt 01 na conversa do ChatGPT, revise o conceito, a direção de arte e os metadados. Peça ajustes se necessário. Só depois de aprovar o briefing use o Passo 4 para gerar a arte.
                 </p>
