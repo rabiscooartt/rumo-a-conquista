@@ -821,7 +821,6 @@ async function fetchEnrichedGame(
         `
       )
       .eq("game_slug", slug)
-      .eq("is_hidden", false)
       .order("sort_order", { ascending: true });
 
   if (achievementsError) throw achievementsError;
@@ -883,8 +882,12 @@ async function fetchEnrichedGame(
  * Retorna todos os jogos não excluídos junto com suas conquistas e o progresso
  * salvo no Supabase.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // O editor administrativo precisa carregar também conquistas ocultas para
+    // permitir restaurá-las. O site público continua recebendo apenas visíveis.
+    const includeHiddenAchievements =
+      new URL(request.url).searchParams.get("includeHiddenAchievements") === "1";
     const client = createAdminSupabaseClient();
 
     const { data: games, error: gamesError } = await client
@@ -929,30 +932,34 @@ export async function GET() {
       });
     }
 
+    let achievementsQuery = client
+      .from("achievements")
+      .select(
+        `
+        id,
+        game_slug,
+        legacy_id,
+        title,
+        description,
+        trophy,
+        rank,
+        image,
+        sort_order,
+        is_custom,
+        is_hidden,
+        source,
+        external_id,
+        official_image
+        `
+      )
+      .in("game_slug", gameSlugs);
+
+    if (!includeHiddenAchievements) {
+      achievementsQuery = achievementsQuery.eq("is_hidden", false);
+    }
+
     const { data: achievements, error: achievementsError } =
-      await client
-        .from("achievements")
-        .select(
-          `
-          id,
-          game_slug,
-          legacy_id,
-          title,
-          description,
-          trophy,
-          rank,
-          image,
-          sort_order,
-          is_custom,
-          is_hidden,
-          source,
-          external_id,
-          official_image
-          `
-        )
-        .in("game_slug", gameSlugs)
-        .eq("is_hidden", false)
-        .order("sort_order", { ascending: true });
+      await achievementsQuery.order("sort_order", { ascending: true });
 
     if (achievementsError) throw achievementsError;
 
