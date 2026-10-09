@@ -818,11 +818,11 @@ export default function GameEmblemEditor({
             <div>
               <h4 className="text-sm font-black text-white">Emblemas existentes — referências da coleção</h4>
               <p className="mt-1 max-w-[760px] text-xs leading-relaxed text-white/45">
-                O template compara silhuetas, molduras, materiais e símbolos. O ZIP contém estas artes reais para que o modelo analise as diferenças antes de criar o próximo Emblema.
+                A galeria e o ZIP usam a mesma seleção dinâmica: até os 10 Emblemas com imagens válidas mais recentes. A análise compara silhuetas, molduras, materiais, paletas e símbolos para evitar repetir a identidade visual de peças anteriores.
               </p>
             </div>
             <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/35">
-              {referenceStatus === "loading" ? "Carregando..." : `${emblemReferences.length} referências`}
+              {referenceStatus === "loading" ? "Carregando..." : `${emblemReferences.length} referências válidas`}
             </span>
           </div>
           {referenceStatus === "error" && (
