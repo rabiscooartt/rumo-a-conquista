@@ -17,6 +17,7 @@ type GameEmblemInput = {
   description?: string;
   tags?: string[];
   unlockedAt?: string;
+  configured?: boolean;
 };
 
 type FinalBadgeInput = {
