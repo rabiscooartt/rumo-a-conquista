@@ -822,8 +822,8 @@ export default function GamePageShell({ slug, game }: Props) {
                               alt={emblem?.title || "Emblema"}
                               className={`h-full w-full object-contain transition-transform duration-300 ${
                                 emblemUnlocked
-                                  ? "scale-[1.4]"
-                                  : "scale-[1.25] blur-[7px] opacity-45 grayscale"
+                                  ? "scale-100"
+                                  : "scale-100 blur-[7px] opacity-45 grayscale"
                               }`}
                             />
                             {!emblemUnlocked && (
