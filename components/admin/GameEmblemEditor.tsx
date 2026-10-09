@@ -227,8 +227,9 @@ function buildUniversalPrompt01(
     "",
     "ETAPA 4 — CONSTRUIR MOLDURA PREMIUM E COMPOSIÇÃO",
     "Projete uma moldura tridimensional, alta, imponente e exclusiva, com contorno externo reconhecível, camadas, relevo, materiais convincentes e ornamentos intencionais. A moldura deve enquadrar o foco central e guiar o olhar; não competir com o personagem ou símbolo. Não use apenas uma borda fina ou uma placa genérica.",
+    "REGRA DE ORNAMENTAÇÃO CONTROLADA — PREMIUM SEM EXCESSO: a peça deve continuar rica e luxuosa, mas com hierarquia visual clara. Use poucos grupos de ornamentos grandes e bem desenhados; reduza em cerca de 30% os arabescos e enfeites secundários em relação à primeira proposta. Preserve a moldura principal, os relevos maiores e os detalhes icônicos. Simplifique correntes, pontas, medalhões, pequenas esculturas, filigranas repetidas e enfeites muito miúdos. Deixe áreas de respiro ao redor do personagem e da placa do título. Cada ornamento precisa reforçar o tema ou a silhueta; não preencha todos os espaços vazios. "
     "A silhueta do Emblema deve preencher aproximadamente 92–96% da altura do canvas quadrado, preservando margens mínimas seguras e sem cortes. A largura pode variar conforme o desenho da moldura, sem perder a presença vertical.",
-    "O título deve se integrar à peça como uma marca: estudar a linguagem visual do logotipo/título do jogo nas referências disponíveis e refletir sua hierarquia tipográfica, personalidade, peso, espaçamento, formas e cores quando apropriado. Preserve as palavras exatas do título cadastrado; não invente texto nem copie literalmente o logotipo como imagem. Quando o título oficial tiver nome principal e subtítulo, use essa hierarquia apenas se combinar com a identidade do jogo.",
+    "O título deve se integrar à peça como uma marca: estudar a linguagem visual do logotipo/título do jogo nas referências disponíveis e refletir sua hierarquia tipográfica, personalidade, peso, espaçamento, formas e cores quando apropriado. Preserve as palavras exatas do título cadastrado; não invente texto nem copie literalmente o logotipo como imagem. Quando o título oficial tiver nome principal e subtítulo, use essa hierarquia apenas se combinar com a identidade do jogo. Mantenha o entorno da tipografia relativamente limpo: não coloque arabescos pequenos ou pedras brilhantes disputando atenção com as letras.",
     "A plataforma deve ocupar uma placa secundária menor e separada, subordinada ao título principal. Ambas as placas precisam fazer parte da estrutura física do Emblema, não parecer legendas sobrepostas.",
     "O Emblema deve continuar pertencendo à família visual premium do site, mas não deve parecer uma cópia ou variação mínima de outra moldura. Não reutilize automaticamente a composição da Maestria Final ou de conquistas já existentes.",
     "",
@@ -239,6 +240,7 @@ function buildUniversalPrompt01(
     "- A silhueta externa ocupa aproximadamente 92–96% da altura do canvas quadrado, centralizada e com margens mínimas seguras; não cortar topo, laterais, base ou placas.",
     "- O símbolo central é dominante e ocupa aproximadamente 60–75% da área visual útil, ajustado à composição sem esconder a moldura.",
     "- Relevo 3D, materiais plausíveis, contraste controlado, iluminação dramática e contorno limpo. Evitar glow exagerado e excesso de microdetalhes.",
+    "- Ornamentação premium, porém controlada: reduza em aproximadamente 30% os arabescos secundários da primeira proposta. Mantenha os grandes relevos e 2–3 grupos de ornamentos de destaque; elimine enfeites repetitivos, correntes e medalhões em excesso, espinhos decorativos sem função e filigrana minúscula. Priorize personagem, moldura principal e título; deixe áreas de respiro e não decore cada espaço livre.",
     "- O nome do jogo deve ser tratado visualmente como parte do logotipo/título oficial: preservar as palavras cadastradas, usar hierarquia tipográfica coerente com o jogo e integrar a placa principal fisicamente à moldura. Não inventar palavras nem copiar literalmente o arquivo do logotipo.",
     "- Não adicionar slogans, parágrafos, texto aleatório, marcas-d'água, logos de terceiros, interface de jogo ou palavras ilegíveis. Não usar moldura externa quadrada como fundo.",
     "- Avaliar personagem/criatura como primeira opção, mas não obrigatória. Se não funcionar na composição, usar elemento significativo do universo; se houver bloqueio ou risco de imitação próxima, criar uma alternativa original evocando atmosfera por cores, materiais, iluminação, arquitetura e formas gerais, sem reproduzir detalhes distintivos protegidos.",
@@ -257,7 +259,7 @@ function buildUniversalPrompt01(
     "H. BRIEFING FINAL PARA O PROMPT 02, autocontido, específico e pronto para copiar, incluindo todos os requisitos técnicos e instruções para gerar UMA imagem.",
     "",
     "CHECKLIST ANTES DE ENTREGAR",
-    "Confirme que o foco central foi escolhido criteriosamente; a alternativa reserva preserva a identidade do jogo; a moldura é premium e exclusiva; o título tem hierarquia de logotipo; adapta cores e materiais; as placas são legíveis; a silhueta ocupa 92–96% da altura sem cortes; e a arte respeita as referências sem copiá-las. Não gerar imagem nesta etapa.",
+    "Confirme que o foco central foi escolhido criteriosamente; a alternativa reserva preserva a identidade do jogo; a moldura é premium e exclusiva; a ornamentação secundária está contida e deixa áreas de respiro; o título tem hierarquia de logotipo; adapta cores e materiais; as placas são legíveis; a silhueta ocupa 92–96% da altura sem cortes; e a arte respeita as referências sem copiá-las. Não gerar imagem nesta etapa.",
   ].join("\n");
 }
 
@@ -300,7 +302,7 @@ function buildUniversalPrompt02(
     ...(isCrisol ? [
       "",
       "DIREÇÃO TEMÁTICA ESPECÍFICA — CRISOL: THEATER OF IDOLS",
-      "Preserve a atmosfera de horror religioso, teatro profano, sangue, fé, penitência e sofrimento. O briefing aprovado decide se o foco central será Gabriel ou outra figura adequada, uma criatura/artefato/elemento do universo, ou uma criação original que evoque essa atmosfera. Não proíba automaticamente personagens: escolha conforme a composição e as limitações aplicáveis. Evite moldura radial ou auréola dominante; prefira uma moldura teatral vertical, original e própria deste jogo. Ferro escurecido, cerâmica marfim rachada, bronze discreto e vidro vermelho profundo podem ser usados quando coerentes com o briefing. Não copie as referências do ZIP nem o logotipo oficial como imagem.",
+      "Preserve a atmosfera de horror religioso, teatro profano, sangue, fé, penitência e sofrimento. O briefing aprovado decide se o foco central será Gabriel ou outra figura adequada, uma criatura/artefato/elemento do universo, ou uma criação original que evoque essa atmosfera. Não proíba automaticamente personagens: escolha conforme a composição e as limitações aplicáveis. Prefira uma moldura teatral vertical original, com riqueza barroca seletiva. Evite um grande sol radial, auréola dominante ou excesso de arabescos repetidos. Preserve a personalidade do personagem, a máscara/ídolo, o tecido vermelho e os relevos principais, mas reduza aproximadamente 30% dos enfeites secundários. Use ferro escurecido, cerâmica marfim rachada, bronze discreto e vidro vermelho profundo quando coerentes com o briefing. Deixe a área do título visualmente limpa e legível. Não copie as referências do ZIP nem o logotipo oficial como imagem.",
     ] : []),
     "",
     "ESPECIFICAÇÕES DE GERAÇÃO — OBRIGATÓRIAS",
@@ -309,6 +311,7 @@ function buildUniversalPrompt02(
     "- O Emblema tem silhueta visual predominantemente vertical e ocupa cerca de 92–96% da altura do canvas quadrado, centralizado, com margens mínimas seguras e sem cortes.",
     "- O exterior da silhueta deve ter transparência alpha real. Não simular alpha com padrão quadriculado; não colocar fundo sólido, cenário de apresentação, mockup ou uma placa quadrada por trás do objeto.",
     "- A peça precisa parecer um artefato colecionável premium com profundidade 3D, volumes e relevos coerentes, materiais convincentes, detalhes intencionais, luz dramática e contraste controlado. Evite brilho/glow excessivo e ruído de microdetalhes.",
+    "- Controle a densidade ornamental: a referência é a terceira versão refinada, com cerca de 30% menos arabescos e enfeites secundários que a versão anterior. Preserve moldura imponente, personagem, elementos temáticos e placa principal; simplifique ornamentos repetitivos e deixe respiro ao redor do título e do foco central.",
     "- O símbolo central é o ponto focal e ocupa aproximadamente 60–75% da área útil do Emblema, adaptando-se à composição sem ocultar as formas essenciais.",
     "- A moldura, a paleta, os ornamentos e os materiais DEVEM seguir a identidade específica do jogo definida no briefing. Não reutilizar moldura igual para jogos diferentes; não copiar literalmente as referências do ZIP.",
     `- A placa principal deve conter o nome completo e exato do jogo: ${gameTitle}. A tipografia deve ser integrada à peça, legível em tamanho pequeno e visualmente inspirada na linguagem do logotipo/título oficial, sem copiá-lo como imagem. Quando houver nome principal e subtítulo, use hierarquia tipográfica coerente sem omitir palavras.`,
@@ -318,7 +321,17 @@ function buildUniversalPrompt02(
     "- Siga a estratégia de foco definida no briefing: personagem/criatura se melhorar a composição; elemento reconhecível do universo se for mais forte; ou criação original inspirada na atmosfera se houver bloqueio ou risco de imitação próxima. Nunca mantenha um personagem mal encaixado nem tente disfarçar uma cópia; preserve a identidade do jogo com uma alternativa original.",
     "",
     "ENTREGA",
-    "Produza a imagem final diretamente. Não mostre rascunhos, instruções em forma de imagem, mockups nem variações. Depois da imagem, forneça em texto separado: nome exclusivo do Emblema; conquista de desbloqueio (não inventar; indicar pendência se não foi possível verificar); descrição temática curta; tags; nome de arquivo sugerido. Não afirme que a transparência alpha foi validada se o arquivo gerado não permitir confirmar isso."
+    "Produza a imagem final diretamente. Não mostre rascunhos, instruções em forma de imagem, mockups nem variações. Depois da imagem, forneça em texto separado: nome exclusivo do Emblema; conquista de desbloqueio (não inventar; indicar pendência se não foi possível verificar); descrição temática curta; tags; nome exato do arquivo; caminho local de destino; e os comandos para substituir manualmente a imagem no VS Code.",
+    "",
+    "ATUALIZAÇÃO MANUAL DA IMAGEM NO VS CODE — INCLUIR NA RESPOSTA FINAL",
+    `O arquivo deve ser salvo/substituído em: public/images/games/${readText(game.slug)}-emblem.png`,
+    "Não crie um nome de arquivo diferente do padrão de destino acima. Na pasta raiz do repositório rumo-a-conquista, após substituir somente esse PNG, informe estes comandos, adaptando a mensagem do commit ao jogo:",
+    "git status",
+    `git add public/images/games/${readText(game.slug)}/emblem.png`,
+    `git commit -m "Atualiza emblema de ${gameTitle}"`,
+    "git push origin HEAD:main",
+    "Não usar git add . nem git push --force. Se o push for rejeitado por divergência/non-fast-forward, parar e pedir o print do erro antes de tentar integrar as branches. O push deve incluir apenas o arquivo do emblema; aguardar a Vercel marcar o deploy de Production como Ready.",
+    "Não afirme que a transparência alpha foi validada se o arquivo gerado não permitir confirmar isso."
   ].join("\n");
 }
 
@@ -343,8 +356,16 @@ function buildPromptUsageInstructions(game: SiteGame) {
     "PASSO 5 — CONFERIR A ARTE",
     "Confira a legibilidade do nome do jogo e da plataforma, a moldura, as margens, o tema e a transparência real. Não trate um padrão quadriculado desenhado como alpha. Corrija a imagem antes de cadastrá-la se houver algum problema.",
     "",
-    "PASSO 6 — CADASTRAR E SALVAR",
-    "Volte à caixa 05, confira o nome, arquivo/caminho, descrição, tags e conquista de desbloqueio; depois use “Salvar Emblema”. Não substitua a arte atual até aprovar a nova.",
+    "PASSO 6 — SUBSTITUIR A IMAGEM MANUALMENTE NO VS CODE",
+    `Salve a imagem aprovada em public/images/games/${readText(game.slug)}/emblem.png, substituindo somente esse arquivo. Preserve os demais arquivos e dados do jogo. Abra o terminal na raiz do repositório rumo-a-conquista e execute um comando por vez:`,
+    "git status",
+    `git add public/images/games/${readText(game.slug)}/emblem.png`,
+    `git commit -m "Atualiza emblema de ${readText(game.title)}"`,
+    "git push origin HEAD:main",
+    "Não use git add . nem git push --force. Se o push for rejeitado por divergência, pare e envie o print do erro antes de tentar outra operação. Depois, confira na Vercel se o deploy de Production fica Ready.",
+    "",
+    "PASSO 7 — CONFERIR O CADASTRO",
+    "Na caixa 05, confira nome, caminho da imagem, descrição, tags e conquista de desbloqueio. Salvar os metadados no Admin é separado da substituição manual do arquivo; não altere nem apague dados sem necessidade.",
     "O botão de template antigo está identificado como legado e pode ser ignorado no fluxo V4.",
     "",
     "Importante: os botões de prompt apenas copiam texto para a área de transferência. A geração da arte acontece na conversa em que você colar o Prompt 02."
