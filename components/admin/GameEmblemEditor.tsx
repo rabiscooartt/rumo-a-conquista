@@ -348,7 +348,7 @@ function buildUniversalPrompt02(
     `git commit -m "Atualiza emblema de ${gameTitle}"`,
     "6) Publicar a branch atual diretamente em main:",
     "git push origin HEAD:main",
-    "Nunca usar git add . nem git push --force. Se o push for rejeitado por divergência/non-fast-forward, NÃO faça pull nem force push; pare e envie o print do erro. Depois do push, aguarde a Vercel marcar o deploy de Production como Ready e confira a página do jogo."
+    "Nunca usar git add . nem git push --force. Se o push for rejeitado por divergência/non-fast-forward, NÃO faça pull nem force push; pare e envie o print do erro. Depois do push, aguarde a Vercel marcar o deploy de Production como Ready e confira a página do jogo.",
     "Não afirme que a transparência alpha foi validada se o arquivo gerado não permitir confirmar isso."
   ].join("\n");
 }
