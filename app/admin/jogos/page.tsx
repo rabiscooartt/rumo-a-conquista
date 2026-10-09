@@ -15,6 +15,49 @@ function statusLabel(status?: string) {
   return "Em progresso";
 }
 
+function statusTone(status?: string): "completed" | "planned" | "progress" {
+  const value = String(status || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "");
+
+  if (["completed", "finalizado", "concluido", "concluida"].includes(value)) {
+    return "completed";
+  }
+
+  if (["planned", "backlog", "futuro", "planejado", "na fila", "proxima maestria"].includes(value)) {
+    return "planned";
+  }
+
+  return "progress";
+}
+
+function gameCardClass(status?: string, selected = false) {
+  const tone = statusTone(status);
+  const styles = {
+    completed: selected
+      ? "w-full rounded-xl border border-emerald-400/55 bg-emerald-500/[0.12] p-3 text-left"
+      : "w-full rounded-xl border border-emerald-500/25 bg-emerald-500/[0.035] p-3 text-left hover:border-emerald-400/45",
+    planned: selected
+      ? "w-full rounded-xl border border-blue-400/55 bg-blue-500/[0.12] p-3 text-left"
+      : "w-full rounded-xl border border-blue-500/25 bg-blue-500/[0.035] p-3 text-left hover:border-blue-400/45",
+    progress: selected
+      ? "w-full rounded-xl border border-red-400/55 bg-red-500/[0.12] p-3 text-left"
+      : "w-full rounded-xl border border-red-500/25 bg-red-500/[0.035] p-3 text-left hover:border-red-400/45",
+  };
+  return styles[tone];
+}
+
+function statusBadgeClass(status?: string) {
+  const styles = {
+    completed: "rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-emerald-300",
+    planned: "rounded-full border border-blue-500/30 bg-blue-500/[0.08] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-blue-300",
+    progress: "rounded-full border border-red-500/30 bg-red-500/[0.08] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-red-300",
+  };
+  return styles[statusTone(status)];
+}
+
 function journeyActive(game: SiteGame) {
   return game.firstJourney?.status === "in_progress";
 }
@@ -419,7 +462,7 @@ export default function NewGamesAdminPage() {
               {filteredGames.map((game) => {
                 const active = game.slug === selectedGame?.slug;
                 return (
-                  <button key={game.slug} type="button" onClick={() => { setSelectedSlug(game.slug); setDraft(null); }} className={active ? "w-full rounded-xl border border-red-500/35 bg-red-500/[0.07] p-3 text-left" : "w-full rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 text-left hover:border-white/15"}>
+                  <button key={game.slug} type="button" onClick={() => { setSelectedSlug(game.slug); setDraft(null); }} className={gameCardClass(game.status, active)}>
                     <div className="flex items-center gap-3">
                       <div className="h-11 w-9 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black">
                         <img src={game.cardImage || game.image} alt="" className="h-full w-full object-cover" />
@@ -427,8 +470,8 @@ export default function NewGamesAdminPage() {
                       <div className="min-w-0">
                         <p className="truncate text-[12px] font-black">{game.title}</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
-                          <span className="rounded-full border border-white/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-white/35">{statusLabel(game.status)}</span>
-                          <span className={journeyActive(game) ? "rounded-full border border-red-500/25 bg-red-500/[0.08] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-red-300" : "rounded-full border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-white/30"}>Estreia {journeyActive(game) ? "Ativa" : "Desativada"}</span>
+                          <span className={statusBadgeClass(game.status)}>{statusLabel(game.status)}</span>
+                          <span className={journeyActive(game) ? "rounded-full border border-orange-500/35 bg-orange-500/[0.10] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-orange-300" : "rounded-full border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-white/30"}>Estreia {journeyActive(game) ? "Ativa" : "Desativada"}</span>
                         </div>
                       </div>
                     </div>
