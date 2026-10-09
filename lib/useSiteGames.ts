@@ -469,13 +469,53 @@ function normalizeAchievement(
 
 function calculateAchievementProgress(
   achievementsList: FlexibleAchievementInput[],
-  fallbackProgress: unknown
+  fallbackProgress: unknown,
+  firstJourney?: FirstJourneyState,
+  hasConfiguredMastery = false
 ): AchievementProgressStats {
   const activeAchievements = achievementsList.filter((achievement) => {
     return readText(achievement.title, "").trim().length > 0;
   });
 
-  const total = activeAchievements.length;
+  const journeyIds =
+    firstJourney?.status === "completed" &&
+    Array.isArray(firstJourney.achievementIds)
+      ? firstJourney.achievementIds.map((id) => String(id).trim()).filter(Boolean)
+      : [];
+  const journeyIdSet = new Set(journeyIds);
+  const journeyLockActive = journeyIds.length > 0;
+
+  const completedNormal = activeAchievements.filter((achievement) => {
+    if (
+      normalizeAchievementStatus(readText(achievement.status, "locked")) ===
+      "completed"
+    ) {
+      return true;
+    }
+
+    if (!journeyLockActive) return false;
+
+    const id = readText(achievement.id, "").trim();
+    const title = readText(achievement.title, "").trim();
+    const titleKey = slugify(title);
+    const achievementKey = id || `title:${normalizeText(title)}`;
+
+    return (
+      journeyIdSet.has(achievementKey) ||
+      journeyIds.some((journeyId) => {
+        const normalizedId = slugify(journeyId);
+        return normalizedId === titleKey || normalizedId.endsWith("-" + titleKey);
+      })
+    );
+  }).length;
+
+  const normalTotal = activeAchievements.length;
+  const masteryUnlocked =
+    hasConfiguredMastery &&
+    normalTotal > 0 &&
+    completedNormal === normalTotal;
+  const total = normalTotal + (hasConfiguredMastery ? 1 : 0);
+  const completed = completedNormal + (masteryUnlocked ? 1 : 0);
 
   if (total <= 0) {
     const manualProgress = Math.min(
@@ -490,19 +530,10 @@ function calculateAchievementProgress(
     };
   }
 
-  const completed = activeAchievements.filter((achievement) => {
-    return (
-      normalizeAchievementStatus(readText(achievement.status, "locked")) ===
-      "completed"
-    );
-  }).length;
-
-  const percent = Math.round((completed / total) * 100);
-
   return {
     completed,
     total,
-    percent,
+    percent: Math.round((completed / total) * 100),
   };
 }
 
@@ -648,11 +679,6 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     return readText(achievement.title, "").trim().length > 0;
   });
 
-  const progressStats = calculateAchievementProgress(
-    achievementsList,
-    game.progress
-  );
-
   const finalBadge = createFinalBadgeFromAchievements(
     finalSlug,
     activeAchievementsForBadge,
@@ -666,6 +692,20 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
       : rawStatus === "completed"
         ? { status: "completed" as const }
         : { status: "not_started" as const };
+
+  // Match the detail page: a finalized First Journey counts its selected
+  // achievements as completed, and a configured final mastery adds one slot.
+  const hasConfiguredMastery = Boolean(
+    game.finalBadge &&
+      typeof game.finalBadge === "object" &&
+      (game.finalBadge.title || game.finalBadge.image || game.finalBadge.description)
+  );
+  const progressStats = calculateAchievementProgress(
+    achievementsList,
+    game.progress,
+    firstJourney,
+    hasConfiguredMastery
+  );
 
   // Uma Jornada de Estreia ativa implica que o jogo já está em progresso.
   // Isso mantém Biblioteca, página do jogo e Admin coerentes.
