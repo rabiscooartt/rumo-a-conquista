@@ -80,6 +80,8 @@ export type SiteGame = {
     image?: string;
     description?: string;
   };
+  /** Preserves whether a final mastery was explicitly configured in source data. */
+  finalBadgeConfigured?: boolean;
   emblem?: GameEmblemInput;
   /** True when the emblem has been explicitly saved in the Admin editor. */
   emblemConfigured?: boolean;
@@ -679,6 +681,17 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     return readText(achievement.title, "").trim().length > 0;
   });
 
+  const hasConfiguredMastery =
+    typeof game.finalBadgeConfigured === "boolean"
+      ? game.finalBadgeConfigured
+      : Boolean(
+          game.finalBadge &&
+            typeof game.finalBadge === "object" &&
+            (game.finalBadge.title ||
+              game.finalBadge.image ||
+              game.finalBadge.description)
+        );
+
   const finalBadge = createFinalBadgeFromAchievements(
     finalSlug,
     activeAchievementsForBadge,
@@ -695,11 +708,6 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
 
   // Match the detail page: a finalized First Journey counts its selected
   // achievements as completed, and a configured final mastery adds one slot.
-  const hasConfiguredMastery = Boolean(
-    game.finalBadge &&
-      typeof game.finalBadge === "object" &&
-      (game.finalBadge.title || game.finalBadge.image || game.finalBadge.description)
-  );
   const progressStats = calculateAchievementProgress(
     achievementsList,
     game.progress,
@@ -734,6 +742,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     achievementsUnlocked: progressStats.completed,
     achievementsTotal: progressStats.total,
     finalBadge,
+    finalBadgeConfigured: hasConfiguredMastery,
     emblem,
     firstJourney,
     createdAt: readText(game.createdAt, new Date().toISOString()),
