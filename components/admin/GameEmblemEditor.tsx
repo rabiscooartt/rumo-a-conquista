@@ -250,6 +250,7 @@ export default function GameEmblemEditor({
   const [tagsText, setTagsText] = useState(() => incomingEmblem.tags?.join(", ") ?? "");
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
+  const [validationError, setValidationError] = useState("");
   const [imageError, setImageError] = useState(false);
   const [packageState, setPackageState] = useState<PackageState>("idle");
   const [templateFeedback, setTemplateFeedback] = useState("");
@@ -265,15 +266,29 @@ export default function GameEmblemEditor({
     setEmblem((current) => ({ ...current, [field]: value }));
     if (field === "image") setImageError(false);
     setSaveState("idle");
+    setValidationError("");
   }
 
   async function save() {
+    const title = readText(emblem.title).trim();
+    const image = readText(emblem.image).trim();
+    if (!title || !image) {
+      setSaveState("error");
+      setValidationError(!title && !image
+        ? "Informe o título e o caminho/URL da imagem antes de salvar."
+        : !title
+          ? "Informe o título do emblema antes de salvar."
+          : "Informe o caminho ou URL da imagem antes de salvar.");
+      return;
+    }
+
     setSaving(true);
     setSaveState("idle");
+    setValidationError("");
 
     const payload: GameEmblemInput = {
-      title: readText(emblem.title).trim() || "Emblema do Jogo",
-      image: readText(emblem.image).trim(),
+      title,
+      image,
       description: readText(emblem.description).trim(),
       tags: readTags(tagsText),
       unlockedAt: readText(emblem.unlockedAt).trim(),
@@ -486,7 +501,8 @@ export default function GameEmblemEditor({
 
             <div className="flex flex-wrap items-center justify-end gap-3 border-t border-white/[0.07] pt-4">
               {saveState === "saved" && <span role="status" className="text-xs font-bold text-emerald-200">Emblema salvo com sucesso.</span>}
-              {saveState === "error" && <span role="alert" className="text-xs font-bold text-red-200">Não foi possível salvar o emblema.</span>}
+              {validationError && <span role="alert" className="text-xs font-bold text-red-200">{validationError}</span>}
+              {saveState === "error" && !validationError && <span role="alert" className="text-xs font-bold text-red-200">Não foi possível salvar o emblema. Verifique a conexão e tente novamente.</span>}
               <button
                 type="button"
                 onClick={() => void save()}
