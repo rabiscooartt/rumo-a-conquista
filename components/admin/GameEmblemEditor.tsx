@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GameEmblemInput, SiteGame } from "@/lib/useSiteGames";
 
 type GameEmblemEditorProps = {
@@ -230,13 +230,36 @@ export default function GameEmblemEditor({
   onToggle,
   onSave,
 }: GameEmblemEditorProps) {
-  const [emblem, setEmblem] = useState<GameEmblemInput>(() => initialEmblem(game));
-  const [tagsText, setTagsText] = useState(() => initialEmblem(game).tags?.join(", ") ?? "");
+  const legacyGame = game as SiteGame & LegacyEmblemFields;
+  const incomingEmblem = useMemo(
+    () => initialEmblem(game),
+    [
+      game.slug,
+      game.title,
+      game.emblem,
+      legacyGame.gameEmblem,
+      legacyGame.emblemTitle,
+      legacyGame.emblemImage,
+      legacyGame.emblemDescription,
+      legacyGame.emblemTags,
+      legacyGame.emblemUnlockedAt,
+      game.achievementsList,
+    ]
+  );
+  const [emblem, setEmblem] = useState<GameEmblemInput>(() => incomingEmblem);
+  const [tagsText, setTagsText] = useState(() => incomingEmblem.tags?.join(", ") ?? "");
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [imageError, setImageError] = useState(false);
   const [packageState, setPackageState] = useState<PackageState>("idle");
   const [templateFeedback, setTemplateFeedback] = useState("");
+
+  useEffect(() => {
+    setEmblem(incomingEmblem);
+    setTagsText(incomingEmblem.tags?.join(", ") ?? "");
+    setImageError(false);
+    setSaveState("idle");
+  }, [incomingEmblem]);
 
   function update(field: keyof GameEmblemInput, value: string) {
     setEmblem((current) => ({ ...current, [field]: value }));
@@ -325,7 +348,15 @@ export default function GameEmblemEditor({
     game.emblem?.title ||
       game.emblem?.image ||
       game.emblem?.description ||
-      game.emblem?.tags?.length
+      game.emblem?.tags?.length ||
+      legacyGame.gameEmblem?.title ||
+      legacyGame.gameEmblem?.image ||
+      legacyGame.gameEmblem?.description ||
+      legacyGame.gameEmblem?.tags?.length ||
+      legacyGame.emblemTitle ||
+      legacyGame.emblemImage ||
+      legacyGame.emblemDescription ||
+      readTags(legacyGame.emblemTags).length
   );
 
   return (
