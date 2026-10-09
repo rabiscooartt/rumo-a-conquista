@@ -22,18 +22,12 @@ type LegacyEmblemFields = {
 
 type PackageState = "idle" | "downloading" | "error";
 
-const EMBLEM_REFERENCES = [
-  { title: "Crisol: Theater of Idols", slug: "crisol-theater-of-idols" },
-  { title: "Hades", slug: "hades" },
-  { title: "Hollow Knight", slug: "hollow-knight" },
-  { title: "Hogwarts Legacy", slug: "howgarts-legacy" },
-  { title: "Metro: Last Light", slug: "metro-last-light" },
-  { title: "Monster Hunter World: Iceborne", slug: "monster-hunter-world-iceborne" },
-  { title: "MOUSE: P.I. For Hire", slug: "mouse-p-i-for-hire" },
-  { title: "Song of Nunu", slug: "song-of-nunu" },
-  { title: "The Surge", slug: "the-surge" },
-  { title: "Tom Clancy's The Division", slug: "tom-clancy-s-the-division" },
-] as const;
+type EmblemReference = {
+  slug: string;
+  title: string;
+  image: string;
+  updatedAt?: string;
+};
 
 function readText(value: unknown, fallback = "") {
   if (typeof value === "string") return value;
@@ -89,7 +83,8 @@ function getLegacyEmblemUnlockedAt(game: SiteGame): string {
 function buildEmblemTemplate(
   game: SiteGame,
   emblem: GameEmblemInput,
-  tagsText: string
+  tagsText: string,
+  referenceItems: EmblemReference[]
 ) {
   const achievementLines = (game.achievementsList ?? [])
     .filter((item) => readText(item.title).trim())
@@ -105,7 +100,7 @@ function buildEmblemTemplate(
     ? rawEmblemTitle
     : `Crie um nome original para o Emblema de ${game.title}`;
   const rawDescription = readText(emblem.description).trim();
-  const references = EMBLEM_REFERENCES.map(
+  const references = referenceItems.map(
     (item) => `- ${item.title}: REFERENCIAS-EMBLEMAS/${item.slug}-emblem.png`
   );
 
@@ -406,6 +401,10 @@ export default function GameEmblemEditor({
   const [packageState, setPackageState] = useState<PackageState>("idle");
   const [templateFeedback, setTemplateFeedback] = useState("");
   const [promptFeedback, setPromptFeedback] = useState("");
+  const [emblemReferences, setEmblemReferences] = useState<EmblemReference[]>([]);
+  const [referenceStatus, setReferenceStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [referenceError, setReferenceError] = useState("");
+  const [referenceRefresh, setReferenceRefresh] = useState(0);
 
   useEffect(() => {
     setEmblem(incomingEmblem);
@@ -413,6 +412,42 @@ export default function GameEmblemEditor({
     setImageError(false);
     setSaveState("idle");
   }, [incomingEmblem]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setReferenceStatus("loading");
+    setReferenceError("");
+
+    void fetch("/api/admin/emblem-reference-batch", {
+      method: "GET",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as {
+          references?: EmblemReference[];
+          error?: string;
+        } | null;
+
+        if (!response.ok) {
+          throw new Error(payload?.error || "Não foi possível carregar as referências da coleção.");
+        }
+
+        const refs = Array.isArray(payload?.references) ? payload.references : [];
+        setEmblemReferences(refs);
+        setReferenceStatus("ready");
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setEmblemReferences([]);
+        setReferenceStatus("error");
+        setReferenceError(
+          error instanceof Error ? error.message : "Não foi possível carregar as referências da coleção."
+        );
+      });
+
+    return () => controller.abort();
+  }, [referenceRefresh]);
 
   function update(field: keyof GameEmblemInput, value: string) {
     setEmblem((current) => ({ ...current, [field]: value }));
@@ -445,12 +480,14 @@ export default function GameEmblemEditor({
       tags: readTags(tagsText),
       unlockedAt: readText(emblem.unlockedAt).trim(),
       unlockAchievement: readText(emblem.unlockAchievement).trim(),
+      updatedAt: new Date().toISOString(),
       configured: true,
     };
 
     try {
       const ok = await onSave(payload);
       setSaveState(ok ? "saved" : "error");
+      if (ok) setReferenceRefresh((current) => current + 1);
     } catch {
       setSaveState("error");
     } finally {
@@ -460,8 +497,8 @@ export default function GameEmblemEditor({
 
 
   const emblemTemplate = useMemo(
-    () => buildEmblemTemplate(game, emblem, tagsText),
-    [game, emblem, tagsText]
+    () => buildEmblemTemplate(game, emblem, tagsText, emblemReferences),
+    [game, emblem, tagsText, emblemReferences]
   );
 
   async function copyTemplate() {
@@ -784,23 +821,43 @@ export default function GameEmblemEditor({
                 O template compara silhuetas, molduras, materiais e símbolos. O ZIP contém estas artes reais para que o modelo analise as diferenças antes de criar o próximo Emblema.
               </p>
             </div>
-            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/35">10 referências</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/35">
+              {referenceStatus === "loading" ? "Carregando..." : `${emblemReferences.length} referências`}
+            </span>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {EMBLEM_REFERENCES.map((reference) => (
-              <div key={reference.slug} className="min-w-0 rounded-xl border border-white/[0.08] bg-black/25 p-2">
-                <div className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-black/40 p-1">
-                  <img
-                    src={`/images/games/${reference.slug}/emblem.png`}
-                    alt={reference.title}
-                    className="h-full w-full object-contain"
-                    loading="lazy"
-                  />
+          {referenceStatus === "error" && (
+            <p role="alert" className="mt-4 rounded-xl border border-red-400/20 bg-red-400/[0.05] p-3 text-xs leading-relaxed text-red-200">
+              {referenceError || "Não foi possível carregar as referências."}
+            </p>
+          )}
+          {referenceStatus === "ready" && emblemReferences.length === 0 && (
+            <p className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/[0.04] p-3 text-xs leading-relaxed text-amber-100">
+              Ainda não há Emblemas salvos com imagens válidas para usar como referência.
+            </p>
+          )}
+          {emblemReferences.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {emblemReferences.map((reference, index) => (
+                <div key={reference.slug} className="relative min-w-0 rounded-xl border border-white/[0.08] bg-black/25 p-2">
+                  <span className="absolute left-3 top-3 z-10 rounded-md border border-white/10 bg-black/75 px-1.5 py-0.5 text-[9px] font-black text-white/70">
+                    #{index + 1}
+                  </span>
+                  <div className="flex h-28 items-center justify-center overflow-hidden rounded-lg bg-black/40 p-1">
+                    <img
+                      src={reference.image}
+                      alt={reference.title}
+                      className="h-full w-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="mt-2 line-clamp-2 min-h-8 text-[10px] font-bold leading-relaxed text-white/60">{reference.title}</p>
+                  <p className="mt-1 text-[9px] text-white/25">
+                    {reference.updatedAt ? new Date(reference.updatedAt).toLocaleDateString("pt-BR") : "Data não disponível"}
+                  </p>
                 </div>
-                <p className="mt-2 line-clamp-2 min-h-8 text-[10px] font-bold leading-relaxed text-white/60">{reference.title}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
         </>
       )}
