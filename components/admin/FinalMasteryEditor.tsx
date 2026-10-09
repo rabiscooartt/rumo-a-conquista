@@ -37,14 +37,16 @@ function normalizeMastery(game: SiteGame): FinalMastery {
 function buildVisualCohesionPrompt(game: SiteGame): string[] {
   const generalRules = [
     "",
-    "REGRA ABSOLUTA DE COERÊNCIA VISUAL COM AS CONQUISTAS NORMAIS:",
-    "A Maestria Final deve parecer a recompensa máxima da MESMA coleção visual das conquistas normais deste jogo, e não uma arte pertencente a outro jogo ou a outra coleção.",
-    "Preserve a identidade visual estabelecida para este jogo: paleta, técnica de ilustração/renderização, espessura dos contornos, textura, iluminação, contraste, atmosfera, profundidade e densidade de detalhes.",
-    "O título e a descrição determinam o significado e o símbolo principal; as conquistas normais determinam a linguagem visual. Nenhum dos dois deve apagar o outro.",
-    "A Maestria deve parecer mais especial por escala, hierarquia, silhueta, simetria e composição mais marcante — NÃO por trocar automaticamente a paleta, o estilo ou a técnica.",
-    "Não introduzir automaticamente vermelho, dourado, bronze, metal, efeitos 3D, fotorrealismo, iluminação cinematográfica ou um troféu genérico. Só usar cores e materiais se forem coerentes com a identidade visual estabelecida para este jogo.",
-    "Se as artes das conquistas normais estiverem disponíveis no material enviado, use-as apenas para analisar atributos estéticos amplos e convertê-los em descrição textual. Não use a imagem diretamente como entrada do gerador, não faça image-to-image e não copie personagens, poses, símbolos exclusivos ou composições reconhecíveis.",
-    "Se não houver referências visuais confiáveis disponíveis, não invente uma paleta ou um estilo como se estivessem confirmados. Use apenas o contexto textual conhecido do jogo e mantenha as decisões visuais contidas.",
+    "REGRA SUPREMA — USAR AS CONQUISTAS QUE NÓS CRIAMOS COMO REFERÊNCIA:",
+    "A referência prioritária e obrigatória é o conjunto de imagens das CONQUISTAS NORMAIS JÁ CRIADAS PARA O PROJETO RUMO À CONQUISTA NESTE MESMO JOGO. Não substitua essas artes por imagens genéricas do jogo, artes promocionais ou referências de outros jogos.",
+    "Quando essas imagens forem anexadas ou incluídas como referências no pedido, analise-as visualmente e use-as para reproduzir a MESMA ESTRUTURA GRÁFICA da coleção: organização e proporção do símbolo central, formato e peso da moldura quando existir, distribuição dos elementos, relação entre símbolo e fundo, ocupação do canvas, espessura do traço, tratamento de sombras, textura, contraste e densidade de detalhes.",
+    "A Maestria deve parecer MAIS UMA IMAGEM DA MESMA SÉRIE que nós criamos — não um cartaz, uma ilustração promocional, uma medalha diferente ou uma arte de outro sistema. Preserve a estrutura visual comum observada nas referências, mudando o conceito central para representar a Maestria.",
+    "Não invente uma nova moldura, brasão, escudo, estrela, coroa, louros, medalha, troféu, cenário ou ornamentos se esses elementos não fizerem parte da estrutura recorrente das conquistas criadas.",
+    "O título e a descrição determinam O QUE a imagem representa; as imagens das conquistas que criamos determinam COMO a imagem é estruturada e desenhada. Nenhum dos dois deve apagar o outro.",
+    "A Maestria pode ter maior importância visual, mas deve continuar obedecendo à mesma linguagem e estrutura gráfica da coleção. Não tente mostrar que é especial mudando automaticamente paleta, estilo, técnica, moldura ou nível de realismo.",
+    "Não introduzir automaticamente vermelho, dourado, bronze, metal, efeitos 3D, fotorrealismo, iluminação cinematográfica ou um troféu genérico. Só usar cores, materiais e efeitos presentes nas referências criadas para este jogo.",
+    "Use as artes criadas para este projeto como referências visuais diretas para coerência estrutural, sem copiar exatamente o símbolo central de uma conquista específica. Não confunda essas artes próprias com referências de terceiros, nem reproduza diretamente artes de terceiros.",
+    "Se as imagens das conquistas que nós criamos NÃO estiverem anexadas ou acessíveis como referências, não afirme que a estrutura delas foi analisada nem invente uma estrutura supostamente igual. Solicite que as imagens sejam fornecidas antes de gerar uma arte que precise corresponder fielmente à coleção.",
   ];
 
   if (game.slug === "mouse-p-i-for-hire") {
@@ -52,9 +54,11 @@ function buildVisualCohesionPrompt(game: SiteGame): string[] {
       ...generalRules,
       "",
       "DNA VISUAL ESPECÍFICO — MOUSE - P.I. FOR HIRE:",
-      "Manter a linguagem gráfica cartunesca noir das conquistas existentes: paleta monocromática de preto, carvão, cinza, cinza-claro e branco; contornos pretos marcantes; silhuetas claras; alto contraste; retícula/pontilhismo e textura de impressão envelhecida; fundo escuro; acabamento gráfico de quadrinhos.",
-      "Não introduzir vermelho, dourado, bronze ou outras cores cromáticas. Não converter a arte em brasão luxuoso, renderização 3D realista ou pintura cinematográfica.",
-      "A Maestria pode ter um emblema de investigador mais imponente, mas deve continuar parecendo uma ilustração noir cartunesca impressa, visualmente integrada às conquistas anteriores.",
+      "Para MOUSE - P.I. FOR HIRE, use especificamente as imagens das conquistas deste jogo que NÓS CRIAMOS (o conjunto individual de ícones já produzido para o Rumo à Conquista) como referência visual principal. Não use apenas a aparência geral do jogo como referência.",
+      "Reproduza a estrutura gráfica observada nessas conquistas criadas: mesma lógica de composição dos ícones, escala e posicionamento do elemento central, tratamento de fundo, contornos, contraste e textura de impressão. O conceito da Maestria muda; a estrutura da coleção, não.",
+      "Preserve o preto, branco e tons de cinza, o desenho cartunesco noir, os contornos pretos marcantes, as silhuetas legíveis, a retícula/pontilhismo e a textura de impressão que aparecem nas conquistas que criamos. Não acrescente cores cromáticas.",
+      "PROIBIDO inventar um brasão de xerife, estrela, escudo, medalha, moldura de louros, coroa, cenário detalhado ou retrato de personagem como solução padrão, a menos que a estrutura recorrente das conquistas que criamos mostre claramente esse mesmo recurso.",
+      "Não transformar a imagem em pôster, arte promocional, renderização 3D realista ou pintura cinematográfica. O resultado precisa parecer que foi criado junto com os ícones das conquistas que fizemos para este jogo, e não para outra coleção.",
     ];
   }
 
@@ -82,7 +86,8 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "A arte deve ser visualmente próxima do significado comunicado pelo título e pela descrição, transformando as palavras em símbolos, objetos, ações, formas, composição, atmosfera e elementos visuais que representem claramente a ideia da Maestria.",
     "Não criar uma arte genérica de troféu só porque ela é a recompensa final.",
     "Não ignorar palavras ou conceitos importantes do título e da descrição.",
-    "A identidade visual deve parecer feita especificamente para esta Maestria Final e para este jogo.",
+    "A arte deve parecer feita junto com as conquistas normais que NÓS CRIAMOS para este mesmo jogo. Não crie uma identidade visual ou estrutura gráfica nova para a Maestria.",
+    "REFERÊNCIAS VISUAIS OBRIGATÓRIAS: anexar/fornecer as imagens das conquistas existentes criadas para este jogo ao usar este prompt. A IA deve compará-las visualmente e seguir a sua estrutura; se não tiver essas imagens, deve pedi-las em vez de improvisar.",
     ...buildVisualCohesionPrompt(game),
     "",
     "RANK:",
@@ -377,7 +382,7 @@ export default function FinalMasteryEditor({
               Regra exclusiva da geração
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/45">
-              O gerador deve usar <strong className="text-white/70">título + descrição</strong> como briefing do conceito e preservar a identidade visual das conquistas normais deste jogo. A Maestria se destaca pela composição e hierarquia, não por trocar automaticamente paleta ou estilo.
+              A Maestria deve parecer uma das <strong className="text-white/70">conquistas que nós criamos para este jogo</strong>. As imagens existentes precisam ser fornecidas como referência para manter a mesma estrutura gráfica — não basta copiar apenas as cores ou o estilo geral do jogo.
             </p>
           </div>
 
