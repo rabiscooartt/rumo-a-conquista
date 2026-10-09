@@ -252,7 +252,7 @@ export default function NewGameAchievementsEditor({
       if (filter === "locked" && (achievement.status !== "locked" || completedByJourney)) return false;
       return true;
     });
-  }, [achievements, exophaseOnly, filter, search]);
+  }, [achievements, exophaseOnly, filter, journeyIdSet, search]);
 
   function updateAchievement(id: string, update: Partial<EditableAchievement>) {
     setAchievements((current) =>
