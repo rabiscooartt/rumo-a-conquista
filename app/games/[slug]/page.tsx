@@ -173,7 +173,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
   };
 
   const savedEmblem = game.emblem;
-  if (savedEmblem && (savedEmblem.title || savedEmblem.image || savedEmblem.description || readStringList(savedEmblem.tags).length > 0)) {
+  if (savedEmblem && (savedEmblem.configured === true || savedEmblem.title || savedEmblem.image || savedEmblem.description || readStringList(savedEmblem.tags).length > 0)) {
     return {
       title: readText(savedEmblem.title, "Emblema do Jogo"),
       image: readText(savedEmblem.image, ""),
@@ -184,7 +184,7 @@ function getGameEmblem(rawGame: unknown, slug: string): GameEmblemInput | undefi
     };
   }
 
-  if (game.gameEmblem && (game.gameEmblem.title || game.gameEmblem.image || game.gameEmblem.description || readStringList(game.gameEmblem.tags).length > 0)) {
+  if (game.gameEmblem && (game.gameEmblem.configured === true || game.gameEmblem.title || game.gameEmblem.image || game.gameEmblem.description || readStringList(game.gameEmblem.tags).length > 0)) {
     return {
       title: readText(game.gameEmblem.title, "Emblema do Jogo"),
       image: readText(game.gameEmblem.image, ""),
