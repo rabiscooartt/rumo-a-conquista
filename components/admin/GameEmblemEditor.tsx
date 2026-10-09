@@ -324,7 +324,7 @@ function buildUniversalPrompt02(
     "Produza a imagem final diretamente. Não mostre rascunhos, instruções em forma de imagem, mockups nem variações. Depois da imagem, forneça em texto separado: nome exclusivo do Emblema; conquista de desbloqueio (não inventar; indicar pendência se não foi possível verificar); descrição temática curta; tags; nome exato do arquivo; caminho local de destino; e os comandos para substituir manualmente a imagem no VS Code.",
     "",
     "ATUALIZAÇÃO MANUAL DA IMAGEM NO VS CODE — INCLUIR NA RESPOSTA FINAL",
-    `O arquivo deve ser salvo/substituído em: public/images/games/${readText(game.slug)}-emblem.png`,
+    `O arquivo deve ser salvo/substituído em: public/images/games/${readText(game.slug)}/emblem.png`,
     "Não crie um nome de arquivo diferente do padrão de destino acima. Na pasta raiz do repositório rumo-a-conquista, após substituir somente esse PNG, informe estes comandos, adaptando a mensagem do commit ao jogo:",
     "git status",
     `git add public/images/games/${readText(game.slug)}/emblem.png`,
