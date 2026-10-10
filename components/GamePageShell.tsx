@@ -670,8 +670,8 @@ export default function GamePageShell({ slug, game }: Props) {
           </div>
         )}
                 <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
-                  <aside className="game-sidebar-text-contrast hidden lg:block">
-                    <div className="sticky top-24 space-y-5">
+                  <aside className="game-sidebar-text-contrast hidden lg:sticky lg:top-24 lg:block lg:self-start">
+                    <div className="space-y-5">
                       <div className="border-b border-white/[0.08] pb-5">
                         <SectionTitle>Jogo</SectionTitle>
                       </div>
@@ -790,8 +790,8 @@ export default function GamePageShell({ slug, game }: Props) {
                     />
                   </section>
         
-                  <aside className="min-w-0">
-                    <div className="space-y-5 lg:sticky lg:top-24">
+                  <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+                    <div className="space-y-5">
                       {reviewSidebarIsReady && (
                         <section className="relative overflow-hidden rounded-[14px] border border-red-500/25 bg-gradient-to-br from-[#140809] via-[#0b0808] to-[#080808] p-4 shadow-[0_0_26px_rgba(239,68,68,0.06)]">
                           <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-red-500/[0.07] blur-2xl" />
