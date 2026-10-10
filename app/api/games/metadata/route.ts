@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { inferPrimaryGenre } from "@/lib/gameGenres";
 
 type Metadata = {
   genres: string[];
+  primaryGenre: string;
   platforms: string[];
   developer: string;
   releaseYear: string;
@@ -50,6 +52,9 @@ function translateGenre(value: string) {
     arcade: "Arcade",
     casual: "Casual",
     music: "Música",
+    horror: "Terror",
+    "survival horror": "Terror",
+    terror: "Terror",
   };
   return map[normalize(value)] || value.trim();
 }
@@ -140,8 +145,11 @@ async function fromIgdb(title: string): Promise<Metadata | null> {
     ? String(new Date(exact.first_release_date * 1000).getUTCFullYear())
     : "";
 
+  const uniqueGenres = cleanList(genres).slice(0, 6);
+
   return {
-    genres: cleanList(genres).slice(0, 6),
+    genres: uniqueGenres,
+    primaryGenre: inferPrimaryGenre(uniqueGenres),
     platforms: cleanList(platforms).slice(0, 4),
     developer: developer.trim(),
     releaseYear,
@@ -232,8 +240,11 @@ async function fromSteam(title: string): Promise<Metadata | null> {
   const releaseDate = data.release_date?.date ?? "";
   const yearMatch = releaseDate.match(/\b(19|20)\d{2}\b/);
 
+  const uniqueGenres = cleanList(genres).slice(0, 6);
+
   return {
-    genres: cleanList(genres).slice(0, 6),
+    genres: uniqueGenres,
+    primaryGenre: inferPrimaryGenre(uniqueGenres),
     platforms,
     developer: data.developers?.[0]?.trim() ?? "",
     releaseYear: yearMatch?.[0] ?? "",
@@ -294,6 +305,7 @@ export async function GET(request: NextRequest) {
     ok: true,
     metadata: {
       genres: [],
+      primaryGenre: "",
       platforms: [],
       developer: "",
       releaseYear: "",
