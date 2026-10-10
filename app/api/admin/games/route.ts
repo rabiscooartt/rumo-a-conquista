@@ -192,6 +192,8 @@ type FirstJourneyState = {
 type GamePayload = {
   action?: "review";
   slug?: string;
+  /** Confirms the review editor still belongs to the game being saved. */
+  reviewOwnerSlug?: string;
   title?: string;
   subtitle?: string;
   status?: string;
@@ -1085,6 +1087,14 @@ export async function POST(request: NextRequest) {
     // conquistas. Isso mantém o salvamento de texto/nota independente do
     // tamanho e do estado da lista de conquistas.
     if (body.action === "review") {
+      const reviewOwnerSlug = normalizeSlug(body.reviewOwnerSlug);
+      if (reviewOwnerSlug && reviewOwnerSlug !== slug) {
+        return NextResponse.json(
+          { error: "A review pertence a outro jogo. O salvamento foi bloqueado." },
+          { status: 409 }
+        );
+      }
+
       if (
         !body.review ||
         typeof body.review !== "object" ||
