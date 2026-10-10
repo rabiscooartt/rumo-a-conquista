@@ -348,17 +348,24 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewUnlocked =
     reviewStatusUnlocked ||
     (totalCount > 0 && completedCount >= totalCount);
-  const reviewHasCompleteContent =
-    reviewScoreText.length > 0 &&
-    Number.isFinite(reviewScore) &&
-    reviewText.length > 0 &&
-    reviewSummarySource.length > 0;
+  const reviewHasAnyContent =
+    reviewScoreText.length > 0 ||
+    reviewText.length > 0 ||
+    reviewSummarySource.length > 0 ||
+    (Array.isArray(review?.positivos)
+      ? review.positivos.some((item) => String(item).trim().length > 0)
+      : String(review?.positivos ?? review?.pontosFortes ?? "").trim().length > 0) ||
+    (Array.isArray(review?.negativos)
+      ? review.negativos.some((item) => String(item).trim().length > 0)
+      : String(review?.negativos ?? review?.pontosFracos ?? "").trim().length > 0);
 
-  // A liberação manual no Admin é autoritativa: não esconda uma review já
-  // publicada só porque algum campo opcional (como nota ou resumo) está vazio.
+  // A publicação explícita sempre prevalece. Se o status não chegar como
+  // esperado à página pública, uma review com conteúdo também aparece quando
+  // a jornada está concluída, sem exigir que nota, resumo e texto estejam
+  // simultaneamente preenchidos.
   const reviewIsReady =
     reviewStatusUnlocked ||
-    (reviewHasCompleteContent && reviewUnlocked);
+    (reviewUnlocked && reviewHasAnyContent);
   const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
