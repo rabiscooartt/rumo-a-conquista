@@ -107,6 +107,13 @@ function normalizeReviewStatus(status?: string) {
   if (
     normalized === "liberada" ||
     normalized === "reviewliberada" ||
+    normalized === "liberadapublicada" ||
+    normalized === "publicada" ||
+    normalized === "publicado" ||
+    normalized === "reviewpublicada" ||
+    normalized === "reviewpublicado" ||
+    normalized === "released" ||
+    normalized === "published" ||
     normalized === "completed" ||
     normalized === "concluida" ||
     normalized === "concluido"
@@ -372,10 +379,8 @@ export default function GameReviewPanel({
           </h2>
 
           <p className="mt-5 whitespace-pre-line text-base font-medium leading-8 text-white/70">
-            {readText(
-              mergedReview.texto ?? mergedReview.resumo,
-              "Review ainda não escrita."
-            )}
+            {readText(mergedReview.texto ?? mergedReview.resumo, "").trim() ||
+              "A review foi liberada, mas ainda não há texto cadastrado."}
           </p>
         </div>
       </div>
