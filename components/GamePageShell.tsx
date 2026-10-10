@@ -792,51 +792,6 @@ export default function GamePageShell({ slug, game }: Props) {
         
                   <aside className="min-w-0">
                     <div className="space-y-5 lg:sticky lg:top-24">
-                      <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
-                        <img
-                          src={cover}
-                          alt=""
-                          aria-hidden="true"
-                          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.24]"
-                        />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/82 via-[#090909]/62 to-[#090909]/28" />
-                        <div className="relative">
-                          <SectionTitle>Sobre o Jogo</SectionTitle>
-        
-                          <div className="mt-4 space-y-4">
-                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
-                              <IconGamepad className="h-5 w-5 text-white/80" />
-                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "Não informado"}>
-                                {genres.length > 0 ? genres.join(", ") : "Não informado"}
-                              </span>
-                            </div>
-        
-                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
-                              <IconGamepad className="h-4 w-4 text-white/70" />
-                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
-                                {game.platform || "Não informado"}
-                              </span>
-                            </div>
-        
-                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
-                              <IconClock className="h-4 w-4 text-white/70" />
-                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
-                            </div>
-        
-                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
-                              <IconCalendar className="h-4 w-4 text-white/70" />
-                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear || "Não informado"}>
-                                {releaseYear || "Não informado"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </section>
-
                       {reviewSidebarIsReady && (
                         <section className="relative overflow-hidden rounded-[14px] border border-red-500/25 bg-gradient-to-br from-[#140809] via-[#0b0808] to-[#080808] p-4 shadow-[0_0_26px_rgba(239,68,68,0.06)]">
                           <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-red-500/[0.07] blur-2xl" />
@@ -883,6 +838,51 @@ export default function GamePageShell({ slug, game }: Props) {
                           </Link>
                         </section>
                       )}
+
+                      <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
+                        <img
+                          src={cover}
+                          alt=""
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.24]"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090909]/82 via-[#090909]/62 to-[#090909]/28" />
+                        <div className="relative">
+                          <SectionTitle>Sobre o Jogo</SectionTitle>
+        
+                          <div className="mt-4 space-y-4">
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
+                              <IconGamepad className="h-5 w-5 text-white/80" />
+                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
+                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "Não informado"}>
+                                {genres.length > 0 ? genres.join(", ") : "Não informado"}
+                              </span>
+                            </div>
+        
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
+                              <IconGamepad className="h-4 w-4 text-white/70" />
+                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Plataforma</span>
+                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={platform}>
+                                {game.platform || "Não informado"}
+                              </span>
+                            </div>
+        
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
+                              <IconClock className="h-4 w-4 text-white/70" />
+                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Tempo de jogo</span>
+                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={playedTime}>{playedTime}</span>
+                            </div>
+        
+                            <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
+                              <IconCalendar className="h-4 w-4 text-white/70" />
+                              <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Lançamento</span>
+                              <span className="min-w-0 truncate text-right text-[16px] font-black text-white/95" title={releaseYear || "Não informado"}>
+                                {releaseYear || "Não informado"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
 
                       <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <SectionTitle>Emblema</SectionTitle>
