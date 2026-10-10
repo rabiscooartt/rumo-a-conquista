@@ -359,11 +359,10 @@ export default function GamePageShell({ slug, game }: Props) {
       ? review.negativos.some((item) => String(item).trim().length > 0)
       : String(review?.negativos ?? review?.pontosFracos ?? "").trim().length > 0);
 
-  // A review deve aparecer quando estiver liberada manualmente OU quando
-  // todas as conquistas da jornada estiverem concluídas. Não condicionar sua
-  // existência à presença de nota, resumo ou texto: campos vazios devem gerar
-  // um aviso dentro da área, nunca ocultar toda a seção.
-  const reviewIsReady = reviewUnlocked;
+  // A seção pública só aparece quando existe conteúdo real para mostrar.
+  // O status "liberada" sozinho não deve exibir cards vazios com nota ?/10.
+  // O cadastro e a liberação continuam disponíveis no Admin.
+  const reviewIsReady = reviewUnlocked && reviewHasAnyContent;
   const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
