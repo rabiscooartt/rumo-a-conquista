@@ -803,49 +803,7 @@ export default function GamePageShell({ slug, game }: Props) {
         
                   <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
                     <div className="space-y-5">
-                      {reviewSidebarIsReady && (
-                        <section className="relative overflow-hidden rounded-[14px] border border-red-500/25 bg-gradient-to-br from-[#140809] via-[#0b0808] to-[#080808] p-4 shadow-[0_0_26px_rgba(239,68,68,0.06)]">
-                          <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-red-500/[0.07] blur-2xl" />
-                          <div className="relative flex items-center justify-start gap-2">
-                            <div className="flex items-center gap-2">
-                              <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                              <h2 className="text-[11px] font-black uppercase tracking-[0.14em] text-white">
-                                Nota final
-                              </h2>
-                            </div>
-                          </div>
 
-                          <div className="relative mt-4 flex flex-col items-center text-center">
-                            <div className="flex items-baseline justify-center gap-1.5">
-                              <span className="text-[36px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
-                                {reviewScoreDisplay}
-                              </span>
-                              <span className="text-[11px] font-bold text-white/40">/10</span>
-                            </div>
-                            <StarRating
-                              rating={reviewScoreValid ? reviewRatingValue : 0}
-                              size="medium"
-                              className="mt-2"
-                              ariaLabel={reviewScoreValid ? `Nota ${reviewScoreDisplay} de 10, equivalente a ${reviewRatingText} estrelas de 5` : "Nota ainda não cadastrada"}
-                              title={reviewScoreValid ? `${reviewScoreDisplay}/10 · ${reviewRatingText}/5 estrelas` : "Nota pendente"}
-                            />
-                            {!reviewScoreValid && (
-                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">
-                                Nota pendente
-                              </p>
-                            )}
-                          </div>
-
-                          <Link
-                            href={"/games/" + slug + "/review"}
-                            aria-label={"Ler a review completa de " + game.title}
-                            className="relative mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-400/35 bg-red-500/[0.10] px-3 py-3 text-[9px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:border-red-400/60 hover:bg-red-500/[0.18] focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
-                          >
-                            Ver review completa
-                            <span aria-hidden="true">→</span>
-                          </Link>
-                        </section>
-                      )}
 
                       <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <img
@@ -938,6 +896,50 @@ export default function GamePageShell({ slug, game }: Props) {
                         </div>
                       </section>
         
+
+                      {reviewSidebarIsReady && (
+                        <section className="relative overflow-hidden rounded-[14px] border border-red-500/25 bg-gradient-to-br from-[#140809] via-[#0b0808] to-[#080808] p-4 shadow-[0_0_26px_rgba(239,68,68,0.06)]">
+                          <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-red-500/[0.07] blur-2xl" />
+                          <div className="relative flex items-center justify-start gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                              <h2 className="text-[11px] font-black uppercase tracking-[0.14em] text-white">
+                                Nota final
+                              </h2>
+                            </div>
+                          </div>
+
+                          <div className="relative mt-4 flex flex-col items-center text-center">
+                            <div className="flex items-baseline justify-center gap-1.5">
+                              <span className="text-[36px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
+                                {reviewScoreDisplay}
+                              </span>
+                              <span className="text-[11px] font-bold text-white/40">/10</span>
+                            </div>
+                            <StarRating
+                              rating={reviewScoreValid ? reviewRatingValue : 0}
+                              size="medium"
+                              className="mt-2"
+                              ariaLabel={reviewScoreValid ? `Nota ${reviewScoreDisplay} de 10, equivalente a ${reviewRatingText} estrelas de 5` : "Nota ainda não cadastrada"}
+                              title={reviewScoreValid ? `${reviewScoreDisplay}/10 · ${reviewRatingText}/5 estrelas` : "Nota pendente"}
+                            />
+                            {!reviewScoreValid && (
+                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">
+                                Nota pendente
+                              </p>
+                            )}
+                          </div>
+
+                          <Link
+                            href={"/games/" + slug + "/review"}
+                            aria-label={"Ler a review completa de " + game.title}
+                            className="relative mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-400/35 bg-red-500/[0.10] px-3 py-3 text-[9px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:border-red-400/60 hover:bg-red-500/[0.18] focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
+                          >
+                            Ver review completa
+                            <span aria-hidden="true">→</span>
+                          </Link>
+                        </section>
+                      )}
                       {status !== "completed" && progress < 100 ? (
                         <section id="proxima-conquista" className="rounded-[14px] border border-white/[0.08] bg-[#090909] p-4">
                           <div className="flex items-center gap-2">
