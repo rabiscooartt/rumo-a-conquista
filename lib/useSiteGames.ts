@@ -1382,7 +1382,11 @@ const hiddenGamesList = useMemo(() => {
     }
   }
 
-  async function updateGame(slug: string, update: Partial<SiteGame>) {
+  async function updateGame(
+    slug: string,
+    update: Partial<SiteGame>,
+    reviewOwnerSlug?: string
+  ) {
     const currentGame =
       gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
 
@@ -1415,11 +1419,18 @@ const hiddenGamesList = useMemo(() => {
         Object.prototype.hasOwnProperty.call(update, "review");
 
       if (isReviewOnlyUpdate) {
+        const owningSlug = (reviewOwnerSlug || slug).trim();
+        if (owningSlug !== slug) {
+          alert("A review pertence a outro jogo. O salvamento foi bloqueado para evitar misturar reviews.");
+          return false;
+        }
+
         await requestGameApi<{ ok: boolean }>(
           "POST",
           {
             action: "review",
             slug,
+            reviewOwnerSlug: owningSlug,
             review: nextGame.review ?? null,
           }
         );
