@@ -351,12 +351,17 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewUnlocked =
     reviewStatusUnlocked ||
     (totalCount > 0 && completedCount >= totalCount);
-  const reviewSidebarIsReady =
-    reviewUnlocked &&
+  const reviewScoreValid =
     reviewScoreText.length > 0 &&
     Number.isFinite(reviewScore) &&
-    reviewSummarySource.length > 0;
-  const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
+    reviewScore >= 0 &&
+    reviewScore <= 10;
+  // A página pública mostra o cartão quando a review foi liberada,
+  // mesmo que a nota ou a frase ainda não tenham sido preenchidas.
+  const reviewSidebarIsReady = reviewStatusUnlocked;
+  const reviewScoreOutOfFive = reviewScoreValid
+    ? Math.max(0, Math.min(5, reviewScore / 2))
+    : 0;
   const status =
     resolvedFirstJourney?.status === "in_progress"
       ? "progress"
@@ -824,31 +829,45 @@ export default function GamePageShell({ slug, game }: Props) {
                       </section>
 
                       {reviewSidebarIsReady && (
-                        <section className="overflow-hidden rounded-[14px] border border-amber-400/20 bg-[#090909] p-4 shadow-[0_0_24px_rgba(251,191,36,0.04)]">
-                          <div className="flex items-center gap-2">
-                            <div className="h-[20px] w-[2px] shrink-0 bg-amber-400" />
-                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">
-                              Minha Avaliação
-                            </h2>
+                        <section className="relative overflow-hidden rounded-[14px] border border-red-500/25 bg-gradient-to-br from-[#140809] via-[#0b0808] to-[#080808] p-4 shadow-[0_0_26px_rgba(239,68,68,0.06)]">
+                          <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-red-500/[0.07] blur-2xl" />
+                          <div className="relative flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                              <h2 className="text-[11px] font-black uppercase tracking-[0.14em] text-white">
+                                Review do jogo
+                              </h2>
+                            </div>
+                            <span className="rounded-md border border-emerald-400/25 bg-emerald-400/[0.07] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-300">
+                              Liberada
+                            </span>
                           </div>
 
-                          <div className="mt-3 flex items-end gap-3">
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-[30px] font-black leading-none text-white tabular-nums">
-                                {reviewScoreText ? reviewScoreText.replace(".", ",") : "—"}
-                              </span>
-                              <span className="text-[11px] font-bold text-white/40">/10</span>
+                          <div className="relative mt-4 flex items-end justify-between gap-3">
+                            <div>
+                              <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/40">
+                                Nota final
+                              </p>
+                              <div className="mt-1 flex items-baseline gap-1">
+                                <span className="text-[34px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
+                                  {reviewScoreValid ? reviewScoreText.replace(".", ",") : "—"}
+                                </span>
+                                <span className="text-[11px] font-bold text-white/40">/10</span>
+                              </div>
                             </div>
-                            <div className="pb-0.5">
-                              <div className="flex items-center gap-0.5" aria-label={`Nota ${reviewScoreText} de 10`}>
+                            <div className="pb-1 text-right">
+                              <div
+                                className="flex items-center justify-end gap-0.5"
+                                aria-label={reviewScoreValid ? "Nota " + reviewScoreText + " de 10" : "Nota ainda não cadastrada"}
+                              >
                                 {Array.from({ length: 5 }, (_, index) => {
                                   const fill = Math.max(0, Math.min(1, reviewScoreOutOfFive - index));
                                   return (
                                     <span
                                       key={index}
-                                      className="text-[15px] leading-none"
+                                      className="text-[17px] leading-none"
                                       style={{
-                                        backgroundImage: `linear-gradient(90deg, #fbbf24 ${fill * 100}%, rgba(255,255,255,0.16) ${fill * 100}%)`,
+                                        backgroundImage: "linear-gradient(90deg, #fbbf24 " + fill * 100 + "%, rgba(255,255,255,0.16) " + fill * 100 + "%)",
                                         WebkitBackgroundClip: "text",
                                         backgroundClip: "text",
                                         color: "transparent",
@@ -859,19 +878,22 @@ export default function GamePageShell({ slug, game }: Props) {
                                   );
                                 })}
                               </div>
+                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-amber-300/75">
+                                {reviewScoreValid ? "Avaliação Rabiisco" : "Nota pendente"}
+                              </p>
                             </div>
                           </div>
 
-                          <p className="mt-3 text-[12px] font-medium leading-relaxed text-white/65">
-                            {reviewSummary}
+                          <p className="relative mt-4 border-t border-white/[0.08] pt-3 text-[12px] font-medium leading-relaxed text-white/70">
+                            {reviewSummary || "O resumo desta avaliação ainda não foi cadastrado."}
                           </p>
 
                           <Link
                             href={"/games/" + slug + "/review"}
                             aria-label={"Ler a review completa de " + game.title}
-                            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/[0.08] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:border-red-400/50 hover:bg-red-500/[0.14]"
+                            className="relative mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-400/35 bg-red-500/[0.10] px-3 py-3 text-[9px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:border-red-400/60 hover:bg-red-500/[0.18] focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
                           >
-                            Ler review completo
+                            Ver review completa
                             <span aria-hidden="true">→</span>
                           </Link>
                         </section>
