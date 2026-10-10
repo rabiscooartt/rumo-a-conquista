@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { formatGameTitle, useSiteGames, type SiteGame } from "@/lib/useSiteGames";
 import { GAME_GENRES } from "@/lib/gameGenres";
+import { games as legacyGames } from "@/data/games";
 import NewGameAchievementsEditor from "@/components/admin/NewGameAchievementsEditor";
 import FinalMasteryEditor from "@/components/admin/FinalMasteryEditor";
 import GameEmblemEditor from "@/components/admin/GameEmblemEditor";
@@ -84,7 +85,8 @@ export default function NewGamesAdminPage() {
   const [saving, setSaving] = useState(false);
   const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
-  const [reviewDraft, setReviewDraft] = useState<Record<string, string> | null>(null);
+  const [reviewDrafts, setReviewDrafts] = useState<Record<string, Record<string, string>>>({});
+  const reviewRepairStarted = useRef(false);
   const [journeyDraftIds, setJourneyDraftIds] = useState<string[]>([]);
   const [manualAchievementRecords, setManualAchievementRecords] = useState<
     Record<string, { episode?: string; earnedDate?: string }>
@@ -162,8 +164,8 @@ export default function NewGamesAdminPage() {
       : {};
 
   const reviewValues = selectedGame
-    ? reviewDraft && reviewDraft.slug === selectedGame.slug
-      ? reviewDraft
+    ? reviewDrafts[selectedGame.slug]
+      ? reviewDrafts[selectedGame.slug]
       : {
           slug: selectedGame.slug,
           status: reviewStringField(savedReview.status, "bloqueada"),
@@ -175,6 +177,77 @@ export default function NewGamesAdminPage() {
           negativos: reviewListFieldText(savedReview.negativos ?? savedReview.pontosFracos),
         }
     : null;
+
+  function patchReviewDraft(patch: Record<string, string>) {
+    if (!selectedGame || !reviewValues) return;
+    const slug = selectedGame.slug;
+    setReviewDrafts((current) => ({
+      ...current,
+      [slug]: {
+        ...(current[slug] ?? reviewValues),
+        ...patch,
+        slug,
+      },
+    }));
+  }
+
+  // Recuperação pontual: havia uma review de Crisol gravada por engano em
+  // Hogwarts Legacy. A fonte legada contém a review original de Hogwarts;
+  // restauramos apenas quando detectamos explicitamente esse título estranho.
+  useEffect(() => {
+    if (!isLoaded || reviewRepairStarted.current) return;
+
+    const hogwarts = gamesList.find((game) => game.slug === "howgarts-legacy");
+    if (!hogwarts) return;
+
+    const currentReview =
+      hogwarts.review &&
+      typeof hogwarts.review === "object" &&
+      !Array.isArray(hogwarts.review)
+        ? (hogwarts.review as Record<string, unknown>)
+        : {};
+    const currentTitle = reviewStringField(currentReview.titulo).toLowerCase();
+    const currentText = reviewStringField(currentReview.texto).toLowerCase();
+    const containsCrisolContent =
+      currentTitle.includes("crisol") ||
+      currentText.includes("crisol mistura terror em primeira pessoa");
+
+    if (!containsCrisolContent) return;
+
+    const legacyCatalog = legacyGames as unknown as Record<
+      string,
+      { review?: unknown }
+    >;
+    const sourceReview = legacyCatalog[hogwarts.slug]?.review;
+    if (
+      !sourceReview ||
+      typeof sourceReview !== "object" ||
+      Array.isArray(sourceReview)
+    ) {
+      return;
+    }
+
+    const recoveredReview = sourceReview as Record<string, unknown>;
+    if (
+      !reviewStringField(recoveredReview.titulo).trim() ||
+      !reviewStringField(recoveredReview.texto).trim()
+    ) {
+      return;
+    }
+
+    reviewRepairStarted.current = true;
+    void updateGame(hogwarts.slug, { review: recoveredReview }).then((ok) => {
+      if (ok) {
+        window.alert(
+          "Review de Hogwarts Legacy recuperada a partir do conteúdo original do jogo. A review de Crisol foi mantida separada."
+        );
+      } else {
+        reviewRepairStarted.current = false;
+      }
+    }).catch(() => {
+      reviewRepairStarted.current = false;
+    });
+  }, [isLoaded, gamesList, updateGame]);
 
   useEffect(() => {
     const slug = selectedGame?.slug ?? "";
@@ -420,12 +493,20 @@ export default function NewGamesAdminPage() {
 
     setSaving(true);
     try {
-      const ok = await updateGame(selectedGame.slug, { review });
+      if (reviewValues.slug !== selectedGame.slug) {
+        window.alert("O rascunho pertence a outro jogo. Selecione o jogo correto antes de salvar.");
+        return;
+      }
+      const ok = await updateGame(selectedGame.slug, { review }, reviewValues.slug);
       if (ok) {
-        setReviewDraft({
-          ...reviewValues,
-          resumo: review.resumo,
-        });
+        setReviewDrafts((current) => ({
+          ...current,
+          [selectedGame.slug]: {
+            ...reviewValues,
+            slug: selectedGame.slug,
+            resumo: review.resumo,
+          },
+        }));
         window.alert("Review salva com sucesso.");
       } else {
         window.alert("Não foi possível salvar a review. Verifique os dados e tente novamente.");
@@ -944,7 +1025,7 @@ export default function NewGamesAdminPage() {
                           <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Status da review</span>
                           <select
                             value={reviewValues.status}
-                            onChange={(event) => setReviewDraft({ ...reviewValues, status: event.target.value })}
+                            onChange={(event) => patchReviewDraft({ status: event.target.value })}
                             className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                           >
                             <option value="bloqueada">Bloqueada</option>
@@ -961,7 +1042,7 @@ export default function NewGamesAdminPage() {
                             max="10"
                             step="0.5"
                             value={reviewValues.nota}
-                            onChange={(event) => setReviewDraft({ ...reviewValues, nota: event.target.value })}
+                            onChange={(event) => patchReviewDraft({ nota: event.target.value })}
                             placeholder="Ex.: 8,5"
                             className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                           />
@@ -972,7 +1053,7 @@ export default function NewGamesAdminPage() {
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Título da review</span>
                         <input
                           value={reviewValues.titulo}
-                          onChange={(event) => setReviewDraft({ ...reviewValues, titulo: event.target.value })}
+                          onChange={(event) => patchReviewDraft({ titulo: event.target.value })}
                           placeholder="Ex.: Divertido, mas repetitivo"
                           className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                         />
@@ -986,7 +1067,7 @@ export default function NewGamesAdminPage() {
                         <input
                           value={reviewValues.resumo}
                           maxLength={100}
-                          onChange={(event) => setReviewDraft({ ...reviewValues, resumo: event.target.value.slice(0, 100) })}
+                          onChange={(event) => patchReviewDraft({ resumo: event.target.value.slice(0, 100) })}
                           placeholder="Ex.: Uma experiência intensa, com atmosfera marcante."
                           className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                         />
@@ -1047,7 +1128,7 @@ export default function NewGamesAdminPage() {
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Review completa</span>
                         <textarea
                           value={reviewValues.texto}
-                          onChange={(event) => setReviewDraft({ ...reviewValues, texto: event.target.value })}
+                          onChange={(event) => patchReviewDraft({ texto: event.target.value })}
                           rows={6}
                           placeholder="Escreva sua análise completa do jogo..."
                           className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
@@ -1059,7 +1140,7 @@ export default function NewGamesAdminPage() {
                           <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Pontos positivos (um por linha)</span>
                           <textarea
                             value={reviewValues.positivos}
-                            onChange={(event) => setReviewDraft({ ...reviewValues, positivos: event.target.value })}
+                            onChange={(event) => patchReviewDraft({ positivos: event.target.value })}
                             rows={4}
                             placeholder={"História envolvente\nBoa ambientação"}
                             className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
@@ -1069,7 +1150,7 @@ export default function NewGamesAdminPage() {
                           <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Pontos negativos (um por linha)</span>
                           <textarea
                             value={reviewValues.negativos}
-                            onChange={(event) => setReviewDraft({ ...reviewValues, negativos: event.target.value })}
+                            onChange={(event) => patchReviewDraft({ negativos: event.target.value })}
                             rows={4}
                             placeholder={"Atividades repetitivas\nPouca variedade"}
                             className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
