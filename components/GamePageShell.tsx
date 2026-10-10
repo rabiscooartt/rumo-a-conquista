@@ -359,11 +359,17 @@ export default function GamePageShell({ slug, game }: Props) {
   // A página pública mostra o cartão quando a review foi liberada,
   // mesmo que a nota ou a frase ainda não tenham sido preenchidas.
   const reviewSidebarIsReady = reviewUnlocked;
-  // Espelha a regra da Biblioteca: 0–10 vira 0–5 estrelas inteiras,
-  // arredondadas para o inteiro mais próximo, sem meia estrela.
-  const reviewRatingStars = reviewScoreValid
-    ? Math.min(5, Math.max(0, Math.round(reviewScore / 2)))
+  // A nota administrativa vai de 0 a 10; a apresentação usa a escala
+  // de 0 a 5 com uma casa decimal e estrelas parcialmente preenchidas.
+  const reviewRatingValue = reviewScoreValid
+    ? Math.min(5, Math.max(0, reviewScore / 2))
     : 0;
+  const reviewRatingText = reviewScoreValid
+    ? reviewRatingValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })
+    : "—";
   const status =
     resolvedFirstJourney?.status === "in_progress"
       ? "progress"
@@ -845,37 +851,43 @@ export default function GamePageShell({ slug, game }: Props) {
                             </span>
                           </div>
 
-                          <div className="relative mt-4 flex items-end justify-between gap-3">
-                            <div>
-                              <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/40">
-                                Nota final
-                              </p>
-                              <div className="mt-1 flex items-baseline gap-1">
-                                <span className="text-[34px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
-                                  {reviewScoreValid ? reviewRatingStars : "—"}
-                                </span>
-                                <span className="text-[11px] font-bold text-white/40">/5</span>
-                              </div>
-                            </div>
-                            <div className="pb-1 text-right">
-                              <div
-                                className="flex items-center justify-end gap-0.5"
-                                aria-label={reviewScoreValid ? "Nota " + reviewRatingStars + " de 5 estrelas" : "Nota ainda não cadastrada"}
-                                title={reviewScoreValid ? reviewRatingStars + " de 5 estrelas" : "Nota pendente"}
-                              >
-                                {Array.from({ length: 5 }, (_, index) => (
+                          <div className="relative mt-4 flex flex-col items-center text-center">
+                            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/40">
+                              Nota final
+                            </p>
+                            <span className="mt-1 text-[34px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
+                              {reviewRatingText}
+                            </span>
+                            <div
+                              className="mt-2 flex items-center justify-center gap-0.5"
+                              aria-label={reviewScoreValid ? "Nota " + reviewRatingText + " de 5 estrelas" : "Nota ainda não cadastrada"}
+                              title={reviewScoreValid ? reviewRatingText + " de 5 estrelas" : "Nota pendente"}
+                            >
+                              {Array.from({ length: 5 }, (_, index) => {
+                                const fill = reviewScoreValid
+                                  ? Math.max(0, Math.min(1, reviewRatingValue - index))
+                                  : 0;
+                                return (
                                   <span
                                     key={index}
-                                    className={"text-[17px] leading-none " + (index < reviewRatingStars ? "text-red-500" : "text-red-500/20")}
+                                    className="text-[20px] leading-none"
+                                    style={{
+                                      backgroundImage: `linear-gradient(90deg, #3b82f6 ${fill * 100}%, rgba(255,255,255,0.16) ${fill * 100}%)`,
+                                      WebkitBackgroundClip: "text",
+                                      backgroundClip: "text",
+                                      color: "transparent",
+                                    }}
                                   >
                                     ★
                                   </span>
-                                ))}
-                              </div>
-                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-red-300/75">
-                                {reviewScoreValid ? "Avaliação Rabiisco" : "Nota pendente"}
-                              </p>
+                                );
+                              })}
                             </div>
+                            {!reviewScoreValid && (
+                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">
+                                Nota pendente
+                              </p>
+                            )}
                           </div>
 
                           <p className="relative mt-4 border-t border-white/[0.08] pt-3 text-[12px] font-medium leading-relaxed text-white/70">
