@@ -251,7 +251,7 @@ function buildMasteryUsageInstructions(game: SiteGame) {
   return [
     "RUMO À CONQUISTA — INSTRUÇÕES DE USO — MAESTRIA FINAL (CAIXA 04)",
     "",
-    "Este fluxo pertence exclusivamente à MAESTRIA FINAL — o troféu vermelho da hierarquia do Rumo à Conquista. Não é o fluxo de criação do Emblema.",
+    "Este fluxo pertence exclusivamente à MAESTRIA FINAL — identificada pelo troféu vermelho na hierarquia do site. Essa cor identifica a categoria do rank; não obriga a desenhar um troféu literal vermelho. A arte deve seguir as referências das conquistas deste jogo. Não é o fluxo de criação do Emblema.",
     "",
     "JOGO: " + game.title,
     "SLUG: " + game.slug,
@@ -266,7 +266,7 @@ function buildMasteryUsageInstructions(game: SiteGame) {
     "O briefing aprovado do Prompt 01 e eventuais correções explícitas do usuário têm precedência sobre informações preliminares que estiverem preenchidas no Admin ou no Prompt 02.",
     "Não gerar imagem antes do Prompt 02. Não inventar nome, descrição, lore ou referência visual. A descrição final deve ser uma frase exclusiva de até 140 caracteres.",
     "A imagem e os campos textuais são operações separadas: o arquivo vai para o caminho de imagem no repositório; título e descrição devem ser inseridos e salvos nos campos da Maestria Final no Admin.",
-    "Não usar git add ponto, não usar git push force e não preparar outros arquivos no commit. Enviar a alteração somente para main e verificar a implantação de Production; nunca afirmar que a publicação foi concluída sem confirmação.",
+    "Nunca use o comando git add . nem git push --force e não prepare outros arquivos no commit. Envie a alteração somente para main e verifique a implantação de Production; nunca afirme que a publicação foi concluída sem confirmação.",
     "Se o briefing aprovado não estiver visível no contexto quando o Prompt 02 for usado, peça que o usuário cole o briefing aprovado antes de prosseguir."
   ].join("\n");
 }
@@ -281,7 +281,7 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "RUMO À CONQUISTA — PROMPT 02 — GERAÇÃO DA MAESTRIA FINAL",
     "",
     "EXECUTE A ARTE AGORA somente se o BRIEFING FINAL PARA O PROMPT 02 do Prompt 01 estiver presente nesta conversa e tiver sido aprovado pelo usuário. Se o briefing aprovado estiver ausente, peça que o usuário o cole; não invente os dados nem gere a imagem prematuramente.",
-    "Este é o fluxo da MAESTRIA FINAL — o troféu vermelho entre as conquistas Ouro e o Emblema. NÃO crie um Emblema e não use os prompts de Emblema.",
+    "Este é o fluxo da MAESTRIA FINAL — a categoria identificada pelo troféu vermelho entre as conquistas Ouro e o Emblema. Esse indicador vermelho pertence à hierarquia do site; não obriga a colocar um troféu vermelho literal na arte. A imagem segue a identidade visual das conquistas deste jogo. NÃO crie um Emblema e não use os prompts de Emblema.",
     "",
     "DADOS DO JOGO — REFERÊNCIA INICIAL; O BRIEFING APROVADO TEM PRECEDÊNCIA",
     "Jogo: " + game.title,
@@ -340,7 +340,7 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "",
     "REGRAS DE SEGURANÇA E PUBLICAÇÃO",
     "Antes do commit, confira que git diff --name-only e git diff --cached --name-only mostram somente " + imagePath + ". Se houver outras alterações, pare e não as inclua.",
-    "Nunca use git add ponto nem git push force. Se o push for rejeitado, pare e analise a causa antes de tentar novamente.",
+    "Nunca use o comando git add . nem git push --force. Se o push for rejeitado, pare e analise a causa antes de tentar novamente.",
     "Após o push, verifique o deployment do Vercel para o commit enviado e confirme Production = Ready antes de afirmar que a publicação foi concluída. Os comandos não salvam automaticamente título ou descrição no Admin.",
     "O arquivo de imagem deve ser copiado manualmente para o repositório antes dos comandos de git add/commit. Não diga que o arquivo já está no repositório nem que o deploy foi concluído sem evidência.",
     "",
@@ -749,10 +749,7 @@ export default function FinalMasteryEditor({
               </div>
             </div>
 
-            {downloading && downloadProgress && (
-              <p className="mt-3 text-[10px] font-bold text-emerald-200" role="status">{downloadProgress}</p>
-            )}
-            {!downloading && downloadProgress && (
+            {downloadProgress && (
               <p className="mt-3 text-[10px] font-bold text-emerald-200" role="status">{downloadProgress}</p>
             )}
           </div>
