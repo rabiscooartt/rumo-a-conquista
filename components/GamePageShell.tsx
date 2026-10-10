@@ -358,7 +358,7 @@ export default function GamePageShell({ slug, game }: Props) {
     reviewScore <= 10;
   // A página pública mostra o cartão quando a review foi liberada,
   // mesmo que a nota ou a frase ainda não tenham sido preenchidas.
-  const reviewSidebarIsReady = reviewStatusUnlocked;
+  const reviewSidebarIsReady = reviewUnlocked;
   const reviewScoreOutOfFive = reviewScoreValid
     ? Math.max(0, Math.min(5, reviewScore / 2))
     : 0;
