@@ -873,10 +873,6 @@ export default function GamePageShell({ slug, game }: Props) {
                             )}
                           </div>
 
-                          <p className="relative mt-4 border-t border-white/[0.08] pt-3 text-[12px] font-medium leading-relaxed text-white/70">
-                            {reviewSummary || "O resumo desta avaliação ainda não foi cadastrado."}
-                          </p>
-
                           <Link
                             href={"/games/" + slug + "/review"}
                             aria-label={"Ler a review completa de " + game.title}
