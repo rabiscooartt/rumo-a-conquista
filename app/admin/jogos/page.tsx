@@ -62,6 +62,20 @@ function journeyActive(game: SiteGame) {
   return game.firstJourney?.status === "in_progress";
 }
 
+function reviewListFieldText(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item ?? "").trim()).filter(Boolean).join("\n");
+  }
+  if (typeof value === "string") return value;
+  return "";
+}
+
+function reviewStringField(value: unknown, fallback = ""): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return fallback;
+}
+
 export default function NewGamesAdminPage() {
   const { isLoaded, gamesList, updateGame, updateFinalMastery } = useSiteGames();
   const [selectedSlug, setSelectedSlug] = useState("");
@@ -69,6 +83,7 @@ export default function NewGamesAdminPage() {
   const [saving, setSaving] = useState(false);
   const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
+  const [reviewDraft, setReviewDraft] = useState<Record<string, string> | null>(null);
   const [journeyDraftIds, setJourneyDraftIds] = useState<string[]>([]);
   const [manualAchievementRecords, setManualAchievementRecords] = useState<
     Record<string, { episode?: string; earnedDate?: string }>
@@ -130,6 +145,28 @@ export default function NewGamesAdminPage() {
               ? "manual"
               : "automatic",
           youtubeFirstLiveEpisode: selectedGame.youtubeFirstLiveEpisode || "",
+        }
+    : null;
+
+  const savedReview =
+    selectedGame?.review &&
+    typeof selectedGame.review === "object" &&
+    !Array.isArray(selectedGame.review)
+      ? (selectedGame.review as Record<string, unknown>)
+      : {};
+
+  const reviewValues = selectedGame
+    ? reviewDraft && reviewDraft.slug === selectedGame.slug
+      ? reviewDraft
+      : {
+          slug: selectedGame.slug,
+          status: reviewStringField(savedReview.status, "bloqueada"),
+          nota: reviewStringField(savedReview.nota),
+          titulo: reviewStringField(savedReview.titulo, "Análise da Jornada"),
+          resumo: reviewStringField(savedReview.resumo ?? savedReview.texto).slice(0, 100),
+          texto: reviewStringField(savedReview.texto),
+          positivos: reviewListFieldText(savedReview.positivos ?? savedReview.pontosFortes),
+          negativos: reviewListFieldText(savedReview.negativos ?? savedReview.pontosFracos),
         }
     : null;
 
@@ -343,6 +380,45 @@ export default function NewGamesAdminPage() {
           return Object.keys(review).length > 0 ? review : null;
         })(),
       });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveReview() {
+    if (!selectedGame || !reviewValues) return;
+
+    const splitLines = (value: string) =>
+      value.split("\n").map((item) => item.trim()).filter(Boolean);
+    const positivos = splitLines(reviewValues.positivos);
+    const negativos = splitLines(reviewValues.negativos);
+    const review = {
+      ...savedReview,
+      status: reviewValues.status,
+      nota: reviewValues.nota.trim(),
+      titulo: reviewValues.titulo.trim() || "Análise da Jornada",
+      resumo: reviewValues.resumo.trim().slice(0, 100),
+      texto: reviewValues.texto.trim(),
+      positivos,
+      negativos,
+      pontosFortes: positivos,
+      pontosFracos: negativos,
+    };
+
+    setSaving(true);
+    try {
+      const ok = await updateGame(selectedGame.slug, { review });
+      if (ok) {
+        setReviewDraft({
+          ...reviewValues,
+          resumo: review.resumo,
+        });
+        window.alert("Review salva com sucesso.");
+      } else {
+        window.alert("Não foi possível salvar a review. Verifique os dados e tente novamente.");
+      }
+    } catch {
+      window.alert("Não foi possível salvar a review. Tente novamente.");
     } finally {
       setSaving(false);
     }
@@ -823,10 +899,110 @@ export default function NewGamesAdminPage() {
                       {collapsedSections["06"] ? "+" : "−"}
                     </span>
                   </button>
-                  {!collapsedSections["06"] && (
-                    <p className="mt-2 text-xs text-white/35">
-                      Status, nota e conteúdo da review serão migrados para este módulo.
-                    </p>
+                  {!collapsedSections["06"] && reviewValues && (
+                    <div className="mt-5 space-y-4">
+                      <p className="text-xs leading-relaxed text-white/45">
+                        Defina a nota pessoal, o resumo exibido na sidebar e o conteúdo completo da análise. O resumo aparece com no máximo 100 caracteres.
+                      </p>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="block">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Status da review</span>
+                          <select
+                            value={reviewValues.status}
+                            onChange={(event) => setReviewDraft({ ...reviewValues, status: event.target.value })}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                          >
+                            <option value="bloqueada">Bloqueada</option>
+                            <option value="em-andamento">Em andamento</option>
+                            <option value="liberada">Liberada / Publicada</option>
+                          </select>
+                        </label>
+
+                        <label className="block">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Nota (0 a 10)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="0.5"
+                            value={reviewValues.nota}
+                            onChange={(event) => setReviewDraft({ ...reviewValues, nota: event.target.value })}
+                            placeholder="Ex.: 8,5"
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                          />
+                        </label>
+                      </div>
+
+                      <label className="block">
+                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Título da review</span>
+                        <input
+                          value={reviewValues.titulo}
+                          onChange={(event) => setReviewDraft({ ...reviewValues, titulo: event.target.value })}
+                          placeholder="Ex.: Divertido, mas repetitivo"
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="flex items-center justify-between gap-3 text-[9px] font-black uppercase tracking-[0.16em] text-white/40">
+                          <span>Resumo para a sidebar</span>
+                          <span>{reviewValues.resumo.length}/100</span>
+                        </span>
+                        <input
+                          value={reviewValues.resumo}
+                          maxLength={100}
+                          onChange={(event) => setReviewDraft({ ...reviewValues, resumo: event.target.value.slice(0, 100) })}
+                          placeholder="Uma frase curta sobre sua experiência"
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Review completa</span>
+                        <textarea
+                          value={reviewValues.texto}
+                          onChange={(event) => setReviewDraft({ ...reviewValues, texto: event.target.value })}
+                          rows={6}
+                          placeholder="Escreva sua análise completa do jogo..."
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
+                        />
+                      </label>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <label className="block">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Pontos positivos (um por linha)</span>
+                          <textarea
+                            value={reviewValues.positivos}
+                            onChange={(event) => setReviewDraft({ ...reviewValues, positivos: event.target.value })}
+                            rows={4}
+                            placeholder={"História envolvente\nBoa ambientação"}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Pontos negativos (um por linha)</span>
+                          <textarea
+                            value={reviewValues.negativos}
+                            onChange={(event) => setReviewDraft({ ...reviewValues, negativos: event.target.value })}
+                            rows={4}
+                            placeholder={"Atividades repetitivas\nPouca variedade"}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={saveReview}
+                          className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          {saving ? "Salvando..." : "Salvar review"}
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </section>
               </>
