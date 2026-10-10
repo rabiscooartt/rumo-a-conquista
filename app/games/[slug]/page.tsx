@@ -336,6 +336,16 @@ export default function GamePage() {
                   : undefined,
             }
           : undefined,
+      primaryGenre: (() => {
+        const rawReview = game.review;
+        if (!rawReview || typeof rawReview !== "object" || Array.isArray(rawReview)) {
+          return "";
+        }
+        return readText(
+          (rawReview as Record<string, unknown>).__primaryGenre,
+          ""
+        ).trim();
+      })(),
       review: normalizeReview(game.review),
       finalBadge: getFinalBadge(game),
       emblem: (() => {
