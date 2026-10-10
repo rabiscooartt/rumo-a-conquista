@@ -20,6 +20,136 @@ function masteryImagePath(slug: string) {
   return "/images/games/" + slug + "/achievements/maestria-final.png";
 }
 
+type ZipEntry = { name: string; data: Uint8Array };
+
+function zipU16(view: DataView, offset: number, value: number) {
+  view.setUint16(offset, value, true);
+}
+
+function zipU32(view: DataView, offset: number, value: number) {
+  view.setUint32(offset, value >>> 0, true);
+}
+
+function zipCrc32(data: Uint8Array) {
+  let crc = 0xffffffff;
+  for (let i = 0; i < data.length; i += 1) {
+    crc ^= data[i];
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function buildReferenceZip(files: ZipEntry[]) {
+  const encoder = new TextEncoder();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const nameBytes = encoder.encode(file.name);
+    const checksum = zipCrc32(file.data);
+    const local = new Uint8Array(30 + nameBytes.length);
+    const localView = new DataView(local.buffer);
+    zipU32(localView, 0, 0x04034b50);
+    zipU16(localView, 4, 20);
+    zipU16(localView, 6, 0x0800);
+    zipU16(localView, 8, 0);
+    zipU16(localView, 10, dosTime);
+    zipU16(localView, 12, dosDate);
+    zipU32(localView, 14, checksum);
+    zipU32(localView, 18, file.data.length);
+    zipU32(localView, 22, file.data.length);
+    zipU16(localView, 26, nameBytes.length);
+    zipU16(localView, 28, 0);
+    local.set(nameBytes, 30);
+    localParts.push(local, file.data);
+
+    const central = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(central.buffer);
+    zipU32(centralView, 0, 0x02014b50);
+    zipU16(centralView, 4, 20);
+    zipU16(centralView, 6, 20);
+    zipU16(centralView, 8, 0x0800);
+    zipU16(centralView, 10, 0);
+    zipU16(centralView, 12, dosTime);
+    zipU16(centralView, 14, dosDate);
+    zipU32(centralView, 16, checksum);
+    zipU32(centralView, 20, file.data.length);
+    zipU32(centralView, 24, file.data.length);
+    zipU16(centralView, 28, nameBytes.length);
+    zipU16(centralView, 30, 0);
+    zipU16(centralView, 32, 0);
+    zipU16(centralView, 34, 0);
+    zipU16(centralView, 36, 0);
+    zipU32(centralView, 38, 0);
+    zipU32(centralView, 42, offset);
+    central.set(nameBytes, 46);
+    centralParts.push(central);
+    offset += local.length + file.data.length;
+  }
+
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const end = new Uint8Array(22);
+  const endView = new DataView(end.buffer);
+  zipU32(endView, 0, 0x06054b50);
+  zipU16(endView, 4, 0);
+  zipU16(endView, 6, 0);
+  zipU16(endView, 8, files.length);
+  zipU16(endView, 10, files.length);
+  zipU32(endView, 12, centralSize);
+  zipU32(endView, 16, offset);
+  zipU16(endView, 20, 0);
+
+  const zip = new Uint8Array(offset + centralSize + end.length);
+  let cursor = 0;
+  for (const part of localParts) {
+    zip.set(part, cursor);
+    cursor += part.length;
+  }
+  for (const part of centralParts) {
+    zip.set(part, cursor);
+    cursor += part.length;
+  }
+  zip.set(end, cursor);
+  return zip;
+}
+
+async function optimizeReferenceImage(source: Blob) {
+  const bitmap = await createImageBitmap(source);
+  const size = 768;
+  const scale = Math.min(size / bitmap.width, size / bitmap.height);
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("Não foi possível preparar uma imagem de referência.");
+  }
+
+  context.fillStyle = "#181818";
+  context.fillRect(0, 0, size, size);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(bitmap, Math.round((size - width) / 2), Math.round((size - height) / 2), width, height);
+  bitmap.close();
+
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Não foi possível otimizar uma imagem de referência.")),
+      "image/jpeg",
+      0.76
+    );
+  });
+}
+
 function normalizeMastery(game: SiteGame): FinalMastery {
   const raw =
     game.finalBadge && typeof game.finalBadge === "object"
@@ -81,6 +211,11 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "",
     "OBJETIVO:",
     "Criar exclusivamente a arte da MAESTRIA FINAL deste jogo.",
+    "",
+    "REFERÊNCIAS VISUAIS INCLUÍDAS NO ZIP:",
+    "O ZIP baixado pelo botão Baixar pacote contém a pasta REFERENCIAS-CONQUISTAS com as imagens de conquistas encontradas para este jogo no site/repositório e nos registros ativos do catálogo. Abra e examine visualmente TODAS as imagens dessa pasta antes de elaborar a Maestria; não se limite aos nomes dos arquivos.",
+    "Use as artes do projeto para identificar a gramática visual real da coleção: arquitetura quadrada do ícone, fundo, bordas, escala e centralização do símbolo, densidade de elementos, contornos, contraste, paleta e textura. Depois crie um conceito original que pertença à mesma coleção, sem copiar exatamente o símbolo de uma conquista individual.",
+    "As referências são reduzidas para JPEG de 768 × 768 px apenas para deixar o ZIP leve e facilitar a análise; os arquivos originais das conquistas no site não são alterados.",
     "",
     "REGRA ESPECÍFICA DA MAESTRIA FINAL:",
     "Somente nesta arte, o NOME e a DESCRIÇÃO da Maestria são o briefing principal da criação.",
@@ -146,6 +281,7 @@ export default function FinalMasteryEditor({
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState("");
   const [imageError, setImageError] = useState(false);
 
   function update(field: keyof FinalMastery, value: string) {
@@ -193,49 +329,107 @@ export default function FinalMasteryEditor({
 
   async function downloadPackage() {
     setDownloading(true);
+    setDownloadProgress("Buscando as conquistas do jogo...");
 
     try {
       const packageText = buildMasteryPrompt(game, mastery);
-      const response = await fetch("/api/admin/achievement-reference-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: "Lote-Maestria-Final.zip",
-          packageText,
-          references: [],
-        }),
-      });
+      const manifestResponse = await fetch(
+        `/api/admin/final-mastery-references?gameSlug=${encodeURIComponent(game.slug)}`,
+        { cache: "no-store" }
+      );
+      const manifest = await manifestResponse.json();
 
-      if (!response.ok) {
-        let message = "Não foi possível montar o pacote da Maestria Final.";
-        try {
-          const payload = await response.json();
-          if (payload?.error) message = payload.error;
-        } catch {
-          // Mantém a mensagem padrão.
-        }
-        throw new Error(message);
+      if (!manifestResponse.ok) {
+        throw new Error(manifest?.error || "Não foi possível buscar as referências deste jogo.");
       }
 
-      const blob = await response.blob();
-      if (blob.size === 0) {
+      const references = Array.isArray(manifest.references) ? manifest.references as {
+        title: string;
+        filename: string;
+        sourceUrl: string;
+      }[] : [];
+
+      if (references.length === 0) {
+        throw new Error(
+          "Não encontrei imagens de conquistas para este jogo. Verifique se as artes estão salvas no catálogo ou na pasta public/images/games/" +
+            game.slug +
+            "/achievements."
+        );
+      }
+
+      const encoder = new TextEncoder();
+      const files: ZipEntry[] = [
+        { name: "Lote-Maestria-Final.txt", data: encoder.encode(packageText) },
+      ];
+      const indexLines = [
+        "REFERÊNCIAS VISUAIS — MAESTRIA FINAL",
+        `Jogo: ${game.title}`,
+        `Total de conquistas incluídas: ${references.length}`,
+        "As imagens foram convertidas para JPEG de 768 × 768 px com qualidade otimizada para manter o pacote leve. Os arquivos originais do site não foram modificados.",
+        "",
+        "ARQUIVOS INCLUÍDOS:",
+      ];
+
+      for (let i = 0; i < references.length; i += 1) {
+        const reference = references[i];
+        setDownloadProgress(`Preparando referência ${i + 1}/${references.length}...`);
+
+        const imageResponse = await fetch(
+          `/api/admin/final-mastery-references?gameSlug=${encodeURIComponent(game.slug)}&source=${encodeURIComponent(reference.sourceUrl)}`,
+          { cache: "no-store" }
+        );
+
+        if (!imageResponse.ok) {
+          let message = `Não consegui carregar a imagem "${reference.title}".`;
+          try {
+            const payload = await imageResponse.json();
+            if (payload?.error) message = payload.error;
+          } catch {
+            // Mantém a mensagem padrão com o nome da referência.
+          }
+          throw new Error(message + " O pacote não foi baixado para evitar omitir referências.");
+        }
+
+        const original = await imageResponse.blob();
+        const optimized = await optimizeReferenceImage(original);
+        const outputName = reference.filename.replace(/\.(png|jpe?g|webp)$/i, ".jpg");
+        files.push({
+          name: `REFERENCIAS-CONQUISTAS/${outputName}`,
+          data: new Uint8Array(await optimized.arrayBuffer()),
+        });
+        indexLines.push(`- ${reference.title}: ${outputName}`);
+      }
+
+      files.push({
+        name: "REFERENCIAS-CONQUISTAS/INDICE.txt",
+        data: encoder.encode(indexLines.join("\n")),
+      });
+
+      setDownloadProgress(`Montando ZIP com ${references.length} referências...`);
+      const zipBytes = buildReferenceZip(files);
+      const zipBlob = new Blob([zipBytes.buffer as ArrayBuffer], { type: "application/zip" });
+
+      if (zipBlob.size === 0) {
         throw new Error("O pacote da Maestria Final veio vazio.");
       }
 
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(zipBlob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "Lote-Maestria-Final.zip";
+      anchor.download = `Lote-Maestria-Final-${game.slug}.zip`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+      setDownloadProgress(`ZIP pronto: ${references.length} referências incluídas.`);
+      window.setTimeout(() => setDownloadProgress(""), 4000);
     } catch (error) {
       window.alert(
         error instanceof Error
           ? error.message
           : "Não foi possível baixar o pacote da Maestria Final."
       );
+      setDownloadProgress("");
     } finally {
       setDownloading(false);
     }
@@ -384,7 +578,7 @@ export default function FinalMasteryEditor({
               Regra exclusiva da geração
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/45">
-              A Maestria deve seguir o fluxo das conquistas: criar primeiro um conceito original e aplicar depois a estrutura gráfica geral dos ícones que nós criamos. Se houver bloqueio, simplificar e trocar o elemento específico por um símbolo abstrato original — sem imitar uma personagem com pequenas mudanças.
+              O botão <strong className="text-white/70">Baixar pacote</strong> inclui o prompt e as imagens das conquistas encontradas para este jogo, otimizadas para análise. Use todas as referências para manter a mesma estrutura visual da coleção.
             </p>
           </div>
 
@@ -412,7 +606,7 @@ export default function FinalMasteryEditor({
               disabled={downloading}
               className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-[9px] font-black uppercase text-emerald-100 disabled:opacity-40"
             >
-              {downloading ? "Montando..." : "📦 Baixar pacote"}
+              {downloading ? (downloadProgress || "Preparando...") : "📦 Baixar pacote"}
             </button>
           </div>
         </div>
