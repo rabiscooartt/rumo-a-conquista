@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { formatGameTitle, useSiteGames, type SiteGame } from "@/lib/useSiteGames";
+import { GAME_GENRES } from "@/lib/gameGenres";
 import NewGameAchievementsEditor from "@/components/admin/NewGameAchievementsEditor";
 import FinalMasteryEditor from "@/components/admin/FinalMasteryEditor";
 import GameEmblemEditor from "@/components/admin/GameEmblemEditor";
@@ -138,6 +139,11 @@ export default function NewGamesAdminPage() {
           subtitle: selectedGame.subtitle || "",
           status: selectedGame.status || "progress",
           platform: selectedGame.platform || "Steam",
+          primaryGenre: (() => {
+            const rawReview = selectedGame.review;
+            if (!rawReview || typeof rawReview !== "object" || Array.isArray(rawReview)) return "";
+            return String((rawReview as Record<string, unknown>).__primaryGenre || "");
+          })(),
           hours: String(selectedGame.hours || "0h"),
           nextAchievement: selectedGame.currentObjective || selectedGame.objective || "",
           nextAchievementMode:
@@ -370,6 +376,13 @@ export default function NewGamesAdminPage() {
           const firstLiveEpisode = String(
             values.youtubeFirstLiveEpisode || ""
           ).trim();
+          const primaryGenre = String(values.primaryGenre || "").trim();
+
+          if (primaryGenre) {
+            review.__primaryGenre = primaryGenre;
+          } else {
+            delete review.__primaryGenre;
+          }
 
           if (firstLiveEpisode) {
             review.__youtubeFirstLiveEpisode = firstLiveEpisode;
@@ -630,6 +643,27 @@ export default function NewGamesAdminPage() {
                         </label>
                       );
                     })}
+
+                    <label>
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
+                        Gênero predominante
+                      </span>
+                      <select
+                        value={values.primaryGenre}
+                        onChange={(event) =>
+                          setDraft({ ...values, primaryGenre: event.target.value })
+                        }
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                      >
+                        <option value="">Automático — análise do site</option>
+                        {GAME_GENRES.map((genre) => (
+                          <option key={genre} value={genre}>{genre}</option>
+                        ))}
+                      </select>
+                      <span className="mt-1 block text-[9px] leading-relaxed text-white/25">
+                        No automático, o site analisa os gêneros encontrados e exibe somente o predominante. Escolha um gênero apenas se quiser corrigir a análise deste jogo.
+                      </span>
+                    </label>
 
                     <label>
                       <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
