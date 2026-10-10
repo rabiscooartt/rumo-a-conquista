@@ -902,7 +902,7 @@ export default function NewGamesAdminPage() {
                   {!collapsedSections["06"] && reviewValues && (
                     <div className="mt-5 space-y-4">
                       <p className="text-xs leading-relaxed text-white/45">
-                        Defina a nota pessoal, o resumo exibido na sidebar e o conteúdo completo da análise. O resumo aparece com no máximo 100 caracteres.
+                        A nota e a frase curta alimentam o cartão de avaliação na página do jogo. Ao clicar em “Ler review completo”, o visitante abre a página exclusiva com o texto integral e os pontos positivos e negativos. A frase curta aceita até 100 caracteres.
                       </p>
 
                       <div className="grid gap-4 md:grid-cols-2">
@@ -946,17 +946,68 @@ export default function NewGamesAdminPage() {
 
                       <label className="block">
                         <span className="flex items-center justify-between gap-3 text-[9px] font-black uppercase tracking-[0.16em] text-white/40">
-                          <span>Resumo para a sidebar</span>
+                          <span>Frase curta do cartão na página do jogo</span>
                           <span>{reviewValues.resumo.length}/100</span>
                         </span>
                         <input
                           value={reviewValues.resumo}
                           maxLength={100}
                           onChange={(event) => setReviewDraft({ ...reviewValues, resumo: event.target.value.slice(0, 100) })}
-                          placeholder="Uma frase curta sobre sua experiência"
+                          placeholder="Ex.: Uma experiência intensa, com atmosfera marcante."
                           className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                         />
                       </label>
+
+                      <div className="rounded-xl border border-red-500/20 bg-red-500/[0.035] p-4">
+                        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-red-300">
+                          Prévia do cartão na página do jogo
+                        </p>
+                        <div className="mt-3 rounded-xl border border-amber-400/20 bg-[#090909] p-4">
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-white/70">
+                            Minha avaliação
+                          </p>
+                          <div className="mt-3 flex flex-wrap items-end gap-3">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-3xl font-black leading-none text-white tabular-nums">
+                                {reviewValues.nota.trim() || "—"}
+                              </span>
+                              <span className="text-[11px] font-bold text-white/40">/10</span>
+                            </div>
+                            <div className="pb-0.5">
+                              <div className="flex items-center gap-0.5" aria-label="Prévia das estrelas">
+                                {Array.from({ length: 5 }, (_, index) => {
+                                  const parsedScore = Number(reviewValues.nota.replace(",", "."));
+                                  const scoreValid = reviewValues.nota.trim().length > 0 && Number.isFinite(parsedScore);
+                                  const fill = scoreValid ? Math.max(0, Math.min(1, parsedScore / 2 - index)) : 0;
+                                  return (
+                                    <span
+                                      key={index}
+                                      className="text-[17px] leading-none"
+                                      style={{
+                                        backgroundImage: \`linear-gradient(90deg, #fbbf24 \${fill * 100}%, rgba(255,255,255,0.16) \${fill * 100}%)\`,
+                                        WebkitBackgroundClip: "text",
+                                        backgroundClip: "text",
+                                        color: "transparent",
+                                      }}
+                                    >
+                                      ★
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="mt-3 text-xs font-medium leading-relaxed text-white/65">
+                            {reviewValues.resumo.trim() || "A frase curta aparecerá aqui quando você preencher o campo acima."}
+                          </p>
+                          <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/[0.08] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-red-100">
+                            Ler review completo <span aria-hidden="true">→</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-[10px] leading-relaxed text-white/35">
+                          A prévia é ilustrativa. O cartão público só aparece quando a review está liberada, com nota válida e frase curta preenchida.
+                        </p>
+                      </div>
 
                       <label className="block">
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Review completa</span>
