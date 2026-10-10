@@ -984,7 +984,7 @@ export default function NewGamesAdminPage() {
                                       key={index}
                                       className="text-[17px] leading-none"
                                       style={{
-                                        backgroundImage: \`linear-gradient(90deg, #fbbf24 \${fill * 100}%, rgba(255,255,255,0.16) \${fill * 100}%)\`,
+                                        backgroundImage: "linear-gradient(90deg, #fbbf24 " + fill * 100 + "%, rgba(255,255,255,0.16) " + fill * 100 + "%)",
                                         WebkitBackgroundClip: "text",
                                         backgroundClip: "text",
                                         color: "transparent",
