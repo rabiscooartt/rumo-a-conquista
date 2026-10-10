@@ -190,6 +190,7 @@ type FirstJourneyState = {
 };
 
 type GamePayload = {
+  action?: "review";
   slug?: string;
   title?: string;
   subtitle?: string;
@@ -1079,6 +1080,69 @@ export async function POST(request: NextRequest) {
     }
 
     const client = createAdminSupabaseClient();
+
+    // Edição exclusiva da review: não reescreve dados do jogo nem sincroniza
+    // conquistas. Isso mantém o salvamento de texto/nota independente do
+    // tamanho e do estado da lista de conquistas.
+    if (body.action === "review") {
+      if (
+        !body.review ||
+        typeof body.review !== "object" ||
+        Array.isArray(body.review)
+      ) {
+        return NextResponse.json(
+          { error: "O conteúdo da review está vazio ou inválido." },
+          { status: 400 }
+        );
+      }
+
+      const { data: existingGame, error: existingGameError } = await client
+        .from("games")
+        .select("review")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existingGameError) throw existingGameError;
+      if (!existingGame) {
+        return NextResponse.json(
+          { error: "Jogo não encontrado para salvar a review." },
+          { status: 404 }
+        );
+      }
+
+      const currentReview =
+        existingGame.review &&
+        typeof existingGame.review === "object" &&
+        !Array.isArray(existingGame.review)
+          ? (existingGame.review as Record<string, unknown>)
+          : {};
+      const incomingReview = body.review as Record<string, unknown>;
+      const mergedReview = { ...currentReview, ...incomingReview };
+
+      const { data: savedGame, error: saveReviewError } = await client
+        .from("games")
+        .update({
+          review: mergedReview,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("slug", slug)
+        .select("slug")
+        .maybeSingle();
+
+      if (saveReviewError) throw saveReviewError;
+      if (!savedGame) {
+        return NextResponse.json(
+          { error: "O banco não confirmou o salvamento da review." },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        ok: true,
+        slug,
+        review: mergedReview,
+      });
+    }
 
     // A Jornada de Estreia fica armazenada dentro de review para preservar o
     // schema atual. Quando outro módulo salva o jogo sem enviar firstJourney,
