@@ -1410,10 +1410,25 @@ const hiddenGamesList = useMemo(() => {
     });
 
     try {
-      await saveGameToSupabase(nextGame, {
-        isHidden: hiddenGameSlugs.includes(slug),
-        isDeleted: false,
-      });
+      const isReviewOnlyUpdate =
+        Object.keys(update).length === 1 &&
+        Object.prototype.hasOwnProperty.call(update, "review");
+
+      if (isReviewOnlyUpdate) {
+        await requestGameApi<{ ok: boolean }>(
+          "POST",
+          {
+            action: "review",
+            slug,
+            review: nextGame.review ?? null,
+          }
+        );
+      } else {
+        await saveGameToSupabase(nextGame, {
+          isHidden: hiddenGameSlugs.includes(slug),
+          isDeleted: false,
+        });
+      }
     } catch (error) {
       console.error("[Games] Erro atualizando jogo no Supabase:", error);
       alert(
