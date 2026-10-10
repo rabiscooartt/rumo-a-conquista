@@ -302,6 +302,30 @@ export function formatGameTitle(value: string): string {
   }).join(" ");
 }
 
+/**
+ * Formats achievement titles using the same title-case rules as game names,
+ * while preserving intentionally stylized mixed-case names.
+ * This changes display/entry formatting only; IDs and slugs remain unchanged.
+ */
+export function formatAchievementTitle(value: string): string {
+  return formatGameTitle(value);
+}
+
+/**
+ * Capitalizes sentence starts in achievement descriptions without turning
+ * every word into title case or changing the wording.
+ */
+export function formatAchievementDescription(value: string): string {
+  const clean = String(value ?? "").trim().replace(/\s+/g, " ");
+  if (!clean) return "";
+
+  return clean.replace(
+    /(^|[.!?]\s+)(["'“‘(¿¡]*)(\p{L})/gu,
+    (_match, boundary: string, opening: string, letter: string) =>
+      boundary + opening + letter.toLocaleUpperCase("pt-BR")
+  );
+}
+
 function normalizeText(value?: string) {
   return readText(value, "")
     .toLowerCase()

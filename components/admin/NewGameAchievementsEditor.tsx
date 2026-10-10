@@ -5,6 +5,8 @@ import {
   type FlexibleAchievementInput,
   type SiteGame,
   slugify,
+  formatAchievementTitle,
+  formatAchievementDescription,
 } from "@/lib/useSiteGames";
 import TrophyIcon from "@/components/TrophyIcon";
 
@@ -104,7 +106,7 @@ function normalizeAchievements(
       isExophase?: unknown;
     };
 
-    const title = readText(achievement.title, `Conquista ${index + 1}`);
+    const title = formatAchievementTitle(readText(achievement.title, `Conquista ${index + 1}`));
     const rank = normalizeRank(
       readText(achievement.difficulty, readText(achievement.rank, "Bronze"))
     );
@@ -115,7 +117,7 @@ function normalizeAchievements(
         readText(achievement.id, "") ||
         `${slug}-achievement-${index + 1}-${slugify(title)}`,
       title,
-      description: readText(achievement.description, ""),
+      description: formatAchievementDescription(readText(achievement.description, "")),
       trophy:
         readText(achievement.trophy, "") ||
         readText(achievement.icon, "") ||
@@ -132,14 +134,14 @@ function normalizeAchievements(
 
 function toSavePayload(achievements: EditableAchievement[]): FlexibleAchievementInput[] {
   return achievements.map((achievement, index) => {
-    const title = achievement.title.trim() || `Nova conquista ${index + 1}`;
+    const title = formatAchievementTitle(achievement.title.trim() || `Nova conquista ${index + 1}`);
     const rank = normalizeRank(achievement.difficulty);
     const trophy = achievement.trophy || rankToTrophy(rank);
 
     return {
       id: achievement.id || crypto.randomUUID(),
       title,
-      description: achievement.description.trim(),
+      description: formatAchievementDescription(achievement.description.trim()),
       trophy,
       icon: trophy,
       difficulty: rank,
@@ -535,7 +537,7 @@ export default function NewGameAchievementsEditor({
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-white">{achievement.title}</p>
+                      <p className="truncate text-sm font-black text-white">{formatAchievementTitle(achievement.title)}</p>
                       <p className="mt-1 flex flex-wrap items-center gap-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
                         <TrophyIcon rank={achievement.difficulty} className="inline-block h-4 w-4 align-middle" />
                         {achievement.isExophase ? " • Exophase" : ""}
@@ -589,7 +591,7 @@ export default function NewGameAchievementsEditor({
                         <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/25">
                           Conquista {index + 1}
                         </p>
-                        <h4 className="mt-1 text-lg font-black text-white">{achievement.title}</h4>
+                        <h4 className="mt-1 text-lg font-black text-white">{formatAchievementTitle(achievement.title)}</h4>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {isJourneyAchievement && (
                             <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-red-200">
@@ -640,7 +642,7 @@ export default function NewGameAchievementsEditor({
                     <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <label className="xl:col-span-2">
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Título</span>
-                        <input value={achievement.title} onChange={(event) => updateAchievement(achievement.id, { title: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40" />
+                        <input value={achievement.title} onChange={(event) => updateAchievement(achievement.id, { title: event.target.value })} onBlur={(event) => updateAchievement(achievement.id, { title: formatAchievementTitle(event.currentTarget.value) })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40" />
                       </label>
                       <label>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Rank</span>
@@ -658,7 +660,7 @@ export default function NewGameAchievementsEditor({
                       </label>
                       <label className="md:col-span-2 xl:col-span-4">
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Descrição</span>
-                        <input value={achievement.description} onChange={(event) => updateAchievement(achievement.id, { description: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40" />
+                        <input value={achievement.description} onChange={(event) => updateAchievement(achievement.id, { description: event.target.value })} onBlur={(event) => updateAchievement(achievement.id, { description: formatAchievementDescription(event.currentTarget.value) })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-red-500/40" />
                       </label>
                       <label className="md:col-span-2 xl:col-span-4">
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/25">Imagem da conquista</span>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import TrophyIcon, { type TrophyRank } from "@/components/TrophyIcon";
+import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useSiteGames";
 
 type Achievement = {
   icon: string;
@@ -206,11 +207,11 @@ export default function AchievementList({ achievements }: AchievementListProps) 
 
                   <div>
                     <h3 className="text-xl font-bold">
-                      {achievement.title}
+                      {formatAchievementTitle(achievement.title)}
                     </h3>
 
                     <p className="text-base text-white/60 mt-1 max-w-[700px]">
-                      {achievement.description}
+                      {formatAchievementDescription(achievement.description)}
                     </p>
                   </div>
                 </div>

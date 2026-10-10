@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSiteAchievements } from "@/lib/useSiteAchievements";
 import type { SiteAchievement } from "@/lib/achievements/types";
+import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useSiteGames";
 
 export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
@@ -699,7 +700,10 @@ export default function GameAchievementsPanel(
       }
 
       const oldTitle = achievement.title;
-      const nextTitle = field === "title" ? value : achievement.title;
+      const nextTitle =
+        field === "title" ? formatAchievementTitle(value) : achievement.title;
+      const formattedValue =
+        field === "title" ? nextTitle : formatAchievementDescription(value);
 
       if (field === "title" && nextTitle.trim().length > 0) {
         const duplicateExists = [...baseAchievements, ...currentAchievements].some(
@@ -737,14 +741,14 @@ export default function GameAchievementsPanel(
 
         return {
           ...item,
-          [field]: value,
+          [field]: formattedValue,
         };
       });
     });
   }
 
   function addAchievement() {
-    const title = newAchievement.title.trim();
+    const title = formatAchievementTitle(newAchievement.title.trim());
 
     if (!title) {
       alert("Digite o nome da conquista.");
@@ -765,7 +769,7 @@ export default function GameAchievementsPanel(
       isCustom: true,
       title,
       description:
-        newAchievement.description.trim() ||
+        formatAchievementDescription(newAchievement.description.trim()) ||
         "Descrição da conquista ainda não definida.",
       trophy: rankTrophy[newAchievement.rank],
       difficulty: rankDifficulty[newAchievement.rank],
@@ -1408,11 +1412,11 @@ export default function GameAchievementsPanel(
 
                     <div className="min-w-0">
                       <h3 className="text-sm font-black tracking-[-0.01em] text-white sm:text-[15px]">
-                        {achievement.title}
+                        {formatAchievementTitle(achievement.title)}
                       </h3>
 
                       <p className="mt-1 max-w-[760px] text-[12px] font-medium leading-[1.5] text-white/65 sm:text-[13px]">
-                        {achievement.description ||
+                        {formatAchievementDescription(achievement.description) ||
                           "Descrição ainda não definida."}
                       </p>
                     </div>

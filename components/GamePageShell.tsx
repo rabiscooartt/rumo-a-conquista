@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
+import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useSiteGames";
 import GameAchievementsPanel, {
   type AchievementInput,
   type AchievementJourneyMeta,
@@ -887,12 +888,12 @@ export default function GamePageShell({ slug, game }: Props) {
                                 Objetivo atual
                               </p>
                               <p className="mt-1 truncate text-[13px] font-black leading-tight text-white">
-                                {nextAchievement?.title || objective}
+                                {formatAchievementTitle(nextAchievement?.title || objective)}
                               </p>
         
                               {nextAchievement?.description ? (
                                 <p className="mt-1 line-clamp-2 text-[9px] leading-relaxed text-white/40">
-                                  {nextAchievement.description}
+                                  {formatAchievementDescription(nextAchievement.description)}
                                 </p>
                               ) : null}
                             </div>
