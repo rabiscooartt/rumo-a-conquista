@@ -795,16 +795,13 @@ export default function GamePageShell({ slug, game }: Props) {
                       {reviewSidebarIsReady && (
                         <section className="relative overflow-hidden rounded-[14px] border border-red-500/25 bg-gradient-to-br from-[#140809] via-[#0b0808] to-[#080808] p-4 shadow-[0_0_26px_rgba(239,68,68,0.06)]">
                           <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-full bg-red-500/[0.07] blur-2xl" />
-                          <div className="relative flex items-center justify-between gap-2">
+                          <div className="relative flex items-center justify-start gap-2">
                             <div className="flex items-center gap-2">
                               <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                               <h2 className="text-[11px] font-black uppercase tracking-[0.14em] text-white">
                                 Nota final
                               </h2>
                             </div>
-                            <span className="rounded-md border border-emerald-400/25 bg-emerald-400/[0.07] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-300">
-                              Liberada
-                            </span>
                           </div>
 
                           <div className="relative mt-4 flex flex-col items-center text-center">
