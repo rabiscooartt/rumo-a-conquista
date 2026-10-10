@@ -12,6 +12,7 @@ import GameAchievementsPanel, {
   type ManualAchievementState,
 } from "@/components/GameAchievementsPanel";
 import type { ReviewInput } from "@/components/GameReviewPanel";
+import { inferPrimaryGenre } from "@/lib/gameGenres";
 
 export type GamePageShellInput = {
   title: string;
@@ -28,6 +29,8 @@ export type GamePageShellInput = {
   achievementsList: AchievementInput[];
   review?: ReviewInput;
   platform?: string;
+  /** Explicit Admin override; when empty the site picks one genre from metadata. */
+  primaryGenre?: string;
   genres?: string[];
   developer?: string;
   releaseYear?: string;
@@ -214,6 +217,7 @@ export default function GamePageShell({ slug, game }: Props) {
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
   const [automaticMetadata, setAutomaticMetadata] = useState<{
     genres: string[];
+    primaryGenre: string;
     platforms: string[];
     developer: string;
     releaseYear: string;
@@ -269,6 +273,7 @@ export default function GamePageShell({ slug, game }: Props) {
         const payload = (await response.json()) as {
           metadata?: {
             genres?: string[];
+            primaryGenre?: string;
             platforms?: string[];
             developer?: string;
             releaseYear?: string;
@@ -278,6 +283,7 @@ export default function GamePageShell({ slug, game }: Props) {
         if (!cancelled && payload.metadata) {
           setAutomaticMetadata({
             genres: Array.isArray(payload.metadata.genres) ? payload.metadata.genres : [],
+            primaryGenre: String(payload.metadata.primaryGenre || "").trim(),
             platforms: Array.isArray(payload.metadata.platforms) ? payload.metadata.platforms : [],
             developer: String(payload.metadata.developer || "").trim(),
             releaseYear: String(payload.metadata.releaseYear || "").trim(),
@@ -403,6 +409,11 @@ export default function GamePageShell({ slug, game }: Props) {
     : Array.isArray(game.genres)
       ? game.genres.filter(Boolean)
       : [];
+  const primaryGenre =
+    game.primaryGenre?.trim() ||
+    automaticMetadata?.primaryGenre ||
+    inferPrimaryGenre(genres) ||
+    "—";
   const automaticPlatform = automaticMetadata?.platforms?.[0] || "";
   const platform = automaticPlatform || game.platform || "—";
   const releaseYear = automaticMetadata?.releaseYear || game.releaseYear || "—";
@@ -851,8 +862,8 @@ export default function GamePageShell({ slug, game }: Props) {
                             <div className="grid grid-cols-[20px_96px_minmax(0,1fr)] items-center gap-2.5">
                               <IconGamepad className="h-5 w-5 text-white/80" />
                               <span className="whitespace-nowrap text-[12px] font-bold text-white/55">Gênero</span>
-                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={genres.length > 0 ? genres.join(", ") : "Não informado"}>
-                                {genres.length > 0 ? genres.join(", ") : "Não informado"}
+                              <span className="min-w-0 truncate text-right text-[16px] font-black leading-tight text-white/95" title={primaryGenre === "—" ? "Não informado" : primaryGenre}>
+                                {primaryGenre === "—" ? "Não informado" : primaryGenre}
                               </span>
                             </div>
         
