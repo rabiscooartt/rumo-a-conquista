@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { games as legacyGames } from "@/data/games";
 
 type IncomingAchievement = {
   id?: string;
@@ -924,6 +925,61 @@ export async function GET(request: NextRequest) {
     if (gamesError) throw gamesError;
 
     const gameRows = games ?? [];
+    const reviewRepairOverrides = new Map<string, Record<string, unknown>>();
+
+    // One-time data repair for a confirmed cross-game review overwrite.
+    // Hogwarts has a valid original review in data/games.ts; if the database
+    // contains Crisol's title/text under Hogwarts' slug, restore the original
+    // fields while preserving private journey/YouTube/genre metadata.
+    const hogwartsRow = gameRows.find((game) => game.slug === "howgarts-legacy");
+    const hogwartsReview =
+      hogwartsRow?.review &&
+      typeof hogwartsRow.review === "object" &&
+      !Array.isArray(hogwartsRow.review)
+        ? (hogwartsRow.review as Record<string, unknown>)
+        : {};
+    const hogwartsReviewTitle = String(hogwartsReview.titulo ?? "").toLowerCase();
+    const hogwartsReviewText = String(hogwartsReview.texto ?? "").toLowerCase();
+    const reviewContainsForeignCrisolContent =
+      hogwartsReviewTitle.includes("crisol") ||
+      hogwartsReviewText.includes("crisol mistura terror em primeira pessoa");
+
+    const legacyCatalog = legacyGames as unknown as Record<
+      string,
+      { review?: unknown }
+    >;
+    const originalHogwartsReview = legacyCatalog["howgarts-legacy"]?.review;
+
+    if (
+      reviewContainsForeignCrisolContent &&
+      originalHogwartsReview &&
+      typeof originalHogwartsReview === "object" &&
+      !Array.isArray(originalHogwartsReview)
+    ) {
+      const preservedPrivateFields = Object.fromEntries(
+        Object.entries(hogwartsReview).filter(([key]) => key.startsWith("__"))
+      );
+      const restoredReview = {
+        ...(originalHogwartsReview as Record<string, unknown>),
+        ...preservedPrivateFields,
+      };
+      const { data: repairedRow, error: repairError } = await client
+        .from("games")
+        .update({
+          review: restoredReview,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("slug", "howgarts-legacy")
+        .select("slug")
+        .maybeSingle();
+
+      if (repairError) throw repairError;
+      if (repairedRow) {
+        reviewRepairOverrides.set("howgarts-legacy", restoredReview);
+        console.warn("[Games API] Review original de Hogwarts Legacy restaurada.");
+      }
+    }
+
     const gameSlugs = gameRows
       .map((game) => game.slug)
       .filter(Boolean);
@@ -1025,15 +1081,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const enrichedGames = gameRows.map((game) => ({
-      ...game,
-      firstJourney: extractFirstJourney(game.review),
-      youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
-      youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
-      youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(game.review),
-      achievementsList:
-        achievementsByGameSlug.get(game.slug) ?? [],
-    }));
+    const enrichedGames = gameRows.map((game) => {
+      const repairedReview = reviewRepairOverrides.get(game.slug);
+      const review = repairedReview ?? game.review;
+      return {
+        ...game,
+        review,
+        firstJourney: extractFirstJourney(review),
+        youtubePlaylistUrl: extractYoutubePlaylistUrl(review),
+        youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(review),
+        youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(review),
+        achievementsList:
+          achievementsByGameSlug.get(game.slug) ?? [],
+      };
+    });
 
     console.info(
       "[Games API] Jogos:",
