@@ -10,6 +10,7 @@ import GameAchievementsPanel, {
   type AchievementJourneyMeta,
   type ManualAchievementState,
 } from "@/components/GameAchievementsPanel";
+import GameReviewPanel, { type ReviewInput } from "@/components/GameReviewPanel";
 
 export type GamePageShellInput = {
   title: string;
@@ -24,6 +25,7 @@ export type GamePageShellInput = {
   currentObjective?: string;
   objective?: string;
   achievementsList: AchievementInput[];
+  review?: ReviewInput;
   platform?: string;
   genres?: string[];
   developer?: string;
@@ -318,6 +320,34 @@ export default function GamePageShell({ slug, game }: Props) {
   );
   const totalCount = achievements.length;
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const review = game.review;
+  const reviewScoreText = String(review?.nota ?? "").trim();
+  const reviewScore = Number(reviewScoreText.replace(",", "."));
+  const reviewText = String(review?.texto ?? "").trim();
+  const reviewSummarySource = String(review?.resumo || reviewText).trim();
+  const reviewSummary =
+    reviewSummarySource.length > 100
+      ? `${reviewSummarySource.slice(0, 97).trimEnd()}…`
+      : reviewSummarySource;
+  const reviewStatus = normalizeText(review?.status);
+  const reviewStatusUnlocked = [
+    "liberada",
+    "reviewliberada",
+    "completed",
+    "concluido",
+    "concluida",
+  ].includes(reviewStatus);
+  const reviewUnlocked =
+    reviewStatusUnlocked ||
+    (totalCount > 0 && completedCount >= totalCount);
+  const reviewIsReady =
+    reviewScoreText.length > 0 &&
+    Number.isFinite(reviewScore) &&
+    reviewText.length > 0 &&
+    reviewSummarySource.length > 0 &&
+    reviewUnlocked;
+  const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
       ? "progress"
@@ -783,11 +813,60 @@ export default function GamePageShell({ slug, game }: Props) {
                           </div>
                         </div>
                       </section>
-        
-        
-        
-        
-        
+
+                      {reviewIsReady && (
+                        <section className="overflow-hidden rounded-[14px] border border-amber-400/20 bg-[#090909] p-4 shadow-[0_0_24px_rgba(251,191,36,0.04)]">
+                          <div className="flex items-center gap-2">
+                            <div className="h-[20px] w-[2px] shrink-0 bg-amber-400" />
+                            <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">
+                              Minha Avaliação
+                            </h2>
+                          </div>
+
+                          <div className="mt-3 flex items-end gap-3">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-[30px] font-black leading-none text-white tabular-nums">
+                                {reviewScoreText.replace(".", ",")}
+                              </span>
+                              <span className="text-[11px] font-bold text-white/40">/10</span>
+                            </div>
+                            <div className="pb-0.5">
+                              <div className="flex items-center gap-0.5" aria-label={`Nota ${reviewScoreText} de 10`}>
+                                {Array.from({ length: 5 }, (_, index) => {
+                                  const fill = Math.max(0, Math.min(1, reviewScoreOutOfFive - index));
+                                  return (
+                                    <span
+                                      key={index}
+                                      className="text-[15px] leading-none"
+                                      style={{
+                                        backgroundImage: `linear-gradient(90deg, #fbbf24 ${fill * 100}%, rgba(255,255,255,0.16) ${fill * 100}%)`,
+                                        WebkitBackgroundClip: "text",
+                                        backgroundClip: "text",
+                                        color: "transparent",
+                                      }}
+                                    >
+                                      ★
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="mt-3 text-[12px] font-medium leading-relaxed text-white/65">
+                            {reviewSummary}
+                          </p>
+
+                          <a
+                            href="#review-section"
+                            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/[0.08] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:border-red-400/50 hover:bg-red-500/[0.14]"
+                          >
+                            Ler review completo
+                            <span aria-hidden="true">→</span>
+                          </a>
+                        </section>
+                      )}
+
                       <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <SectionTitle>Emblema</SectionTitle>
         
@@ -881,6 +960,17 @@ export default function GamePageShell({ slug, game }: Props) {
                   </aside>
                 </div>
 
+        {reviewIsReady && (
+          <div className="mt-8 scroll-mt-24">
+            <GameReviewPanel
+              slug={slug}
+              review={review}
+              isUnlocked={reviewStatusUnlocked}
+              achievementsCompleted={completedCount}
+              achievementsTotal={totalCount}
+            />
+          </div>
+        )}
       </div>
     </main>
   );
