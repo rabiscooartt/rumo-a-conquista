@@ -10,7 +10,7 @@ import GameAchievementsPanel, {
   type AchievementJourneyMeta,
   type ManualAchievementState,
 } from "@/components/GameAchievementsPanel";
-import GameReviewPanel, { type ReviewInput } from "@/components/GameReviewPanel";
+import type { ReviewInput } from "@/components/GameReviewPanel";
 
 export type GamePageShellInput = {
   title: string;
@@ -362,7 +362,9 @@ export default function GamePageShell({ slug, game }: Props) {
   // A seção pública só aparece quando existe conteúdo real para mostrar.
   // O status "liberada" sozinho não deve exibir cards vazios com nota ?/10.
   // O cadastro e a liberação continuam disponíveis no Admin.
-  const reviewIsReady = reviewUnlocked && reviewHasAnyContent;
+  // O cartão compacto do sidebar permanece disponível quando a review foi liberada.
+  // O painel longo de análise no corpo da página foi removido separadamente.
+  const reviewSidebarIsReady = reviewStatusUnlocked || (reviewUnlocked && reviewHasAnyContent);
   const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
@@ -830,7 +832,7 @@ export default function GamePageShell({ slug, game }: Props) {
                         </div>
                       </section>
 
-                      {reviewIsReady && (
+                      {reviewSidebarIsReady && (
                         <section className="overflow-hidden rounded-[14px] border border-amber-400/20 bg-[#090909] p-4 shadow-[0_0_24px_rgba(251,191,36,0.04)]">
                           <div className="flex items-center gap-2">
                             <div className="h-[20px] w-[2px] shrink-0 bg-amber-400" />
@@ -976,17 +978,7 @@ export default function GamePageShell({ slug, game }: Props) {
                   </aside>
                 </div>
 
-        {reviewIsReady && (
-          <div className="mt-8 scroll-mt-24">
-            <GameReviewPanel
-              slug={slug}
-              review={review}
-              isUnlocked={reviewStatusUnlocked}
-              achievementsCompleted={completedCount}
-              achievementsTotal={totalCount}
-            />
-          </div>
-        )}
+        
       </div>
     </main>
   );
