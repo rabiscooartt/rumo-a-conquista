@@ -365,11 +365,11 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewRatingValue = reviewScoreValid
     ? Math.min(5, Math.max(0, reviewScore / 2))
     : 0;
+  const reviewScoreDisplay = reviewScoreValid
+    ? String(Math.round(reviewScore))
+    : "—";
   const reviewRatingText = reviewScoreValid
-    ? reviewRatingValue.toLocaleString("pt-BR", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      })
+    ? String(Math.round(reviewRatingValue))
     : "—";
   const status =
     resolvedFirstJourney?.status === "in_progress"
@@ -853,18 +853,18 @@ export default function GamePageShell({ slug, game }: Props) {
                           </div>
 
                           <div className="relative mt-4 flex flex-col items-center text-center">
-                            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-white/40">
-                              Nota final
-                            </p>
-                            <span className="mt-1 text-[34px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
-                              {reviewRatingText}
-                            </span>
+                            <div className="flex items-baseline justify-center gap-1.5">
+                              <span className="text-[36px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
+                                {reviewScoreDisplay}
+                              </span>
+                              <span className="text-[11px] font-bold text-white/40">/10</span>
+                            </div>
                             <StarRating
                               rating={reviewScoreValid ? reviewRatingValue : 0}
                               size="medium"
                               className="mt-2"
-                              ariaLabel={reviewScoreValid ? `Nota ${reviewRatingText} de 5 estrelas` : "Nota ainda não cadastrada"}
-                              title={reviewScoreValid ? `${reviewRatingText} de 5 estrelas` : "Nota pendente"}
+                              ariaLabel={reviewScoreValid ? `Nota ${reviewScoreDisplay} de 10, equivalente a ${reviewRatingText} estrelas de 5` : "Nota ainda não cadastrada"}
+                              title={reviewScoreValid ? `${reviewScoreDisplay}/10 · ${reviewRatingText}/5 estrelas` : "Nota pendente"}
                             />
                             {!reviewScoreValid && (
                               <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">
