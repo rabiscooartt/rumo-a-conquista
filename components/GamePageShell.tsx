@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import StarRating from "@/components/StarRating";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useSiteGames";
 import GameAchievementsPanel, {
@@ -858,31 +859,13 @@ export default function GamePageShell({ slug, game }: Props) {
                             <span className="mt-1 text-[34px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
                               {reviewRatingText}
                             </span>
-                            <div
-                              className="mt-2 flex items-center justify-center gap-0.5"
-                              aria-label={reviewScoreValid ? "Nota " + reviewRatingText + " de 5 estrelas" : "Nota ainda não cadastrada"}
-                              title={reviewScoreValid ? reviewRatingText + " de 5 estrelas" : "Nota pendente"}
-                            >
-                              {Array.from({ length: 5 }, (_, index) => {
-                                const fill = reviewScoreValid
-                                  ? Math.max(0, Math.min(1, reviewRatingValue - index))
-                                  : 0;
-                                return (
-                                  <span
-                                    key={index}
-                                    className="text-[20px] leading-none"
-                                    style={{
-                                      backgroundImage: `linear-gradient(90deg, #3b82f6 ${fill * 100}%, rgba(255,255,255,0.16) ${fill * 100}%)`,
-                                      WebkitBackgroundClip: "text",
-                                      backgroundClip: "text",
-                                      color: "transparent",
-                                    }}
-                                  >
-                                    ★
-                                  </span>
-                                );
-                              })}
-                            </div>
+                            <StarRating
+                              rating={reviewScoreValid ? reviewRatingValue : 0}
+                              size="medium"
+                              className="mt-2"
+                              ariaLabel={reviewScoreValid ? `Nota ${reviewRatingText} de 5 estrelas` : "Nota ainda não cadastrada"}
+                              title={reviewScoreValid ? `${reviewRatingText} de 5 estrelas` : "Nota pendente"}
+                            />
                             {!reviewScoreValid && (
                               <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">
                                 Nota pendente

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
@@ -877,29 +878,23 @@ function getGameRating(game: BibliotecaGame) {
   const directRating = readNumber(directReview?.nota, 0);
 
   if (directRating > 0) {
-    return Math.min(5, Math.max(0, Math.round(directRating / 2)));
+    return Math.min(5, Math.max(0, directRating / 2));
   }
 
   const slug = readText(game.slug, "");
   const baseGame = (baseGames as unknown as Record<string, { review?: { nota?: unknown } }>)[slug];
   const baseRating = readNumber(baseGame?.review?.nota, 0);
 
-  return Math.min(5, Math.max(0, Math.round(baseRating / 2)));
+  return Math.min(5, Math.max(0, baseRating / 2));
 }
 
 function GameRating({ rating }: { rating: number }) {
   return (
-    <span
-      className="relative top-[1px] inline-flex h-[21px] shrink-0 items-center gap-0.5 text-[18px] font-black leading-none tracking-[-0.03em]"
-      aria-label={`Nota ${rating} de 5 estrelas`}
-      title={`Nota ${rating} de 5`}
-    >
-      {Array.from({ length: 5 }, (_, index) => (
-        <span key={index} className={index < rating ? "text-red-500" : "text-red-500/20"}>
-          ★
-        </span>
-      ))}
-    </span>
+    <StarRating
+      rating={rating}
+      size="small"
+      className="relative top-[1px] h-[21px]"
+    />
   );
 }
 
