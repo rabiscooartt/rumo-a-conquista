@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { formatGameTitle, useSiteGames, type SiteGame } from "@/lib/useSiteGames";
 import { GAME_GENRES } from "@/lib/gameGenres";
-import { games as legacyGames } from "@/data/games";
 import NewGameAchievementsEditor from "@/components/admin/NewGameAchievementsEditor";
 import FinalMasteryEditor from "@/components/admin/FinalMasteryEditor";
 import GameEmblemEditor from "@/components/admin/GameEmblemEditor";
@@ -86,7 +85,6 @@ export default function NewGamesAdminPage() {
   const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, Record<string, string>>>({});
-  const reviewRepairStarted = useRef(false);
   const [journeyDraftIds, setJourneyDraftIds] = useState<string[]>([]);
   const [manualAchievementRecords, setManualAchievementRecords] = useState<
     Record<string, { episode?: string; earnedDate?: string }>
@@ -190,64 +188,6 @@ export default function NewGamesAdminPage() {
       },
     }));
   }
-
-  // Recuperação pontual: havia uma review de Crisol gravada por engano em
-  // Hogwarts Legacy. A fonte legada contém a review original de Hogwarts;
-  // restauramos apenas quando detectamos explicitamente esse título estranho.
-  useEffect(() => {
-    if (!isLoaded || reviewRepairStarted.current) return;
-
-    const hogwarts = gamesList.find((game) => game.slug === "howgarts-legacy");
-    if (!hogwarts) return;
-
-    const currentReview =
-      hogwarts.review &&
-      typeof hogwarts.review === "object" &&
-      !Array.isArray(hogwarts.review)
-        ? (hogwarts.review as Record<string, unknown>)
-        : {};
-    const currentTitle = reviewStringField(currentReview.titulo).toLowerCase();
-    const currentText = reviewStringField(currentReview.texto).toLowerCase();
-    const containsCrisolContent =
-      currentTitle.includes("crisol") ||
-      currentText.includes("crisol mistura terror em primeira pessoa");
-
-    if (!containsCrisolContent) return;
-
-    const legacyCatalog = legacyGames as unknown as Record<
-      string,
-      { review?: unknown }
-    >;
-    const sourceReview = legacyCatalog[hogwarts.slug]?.review;
-    if (
-      !sourceReview ||
-      typeof sourceReview !== "object" ||
-      Array.isArray(sourceReview)
-    ) {
-      return;
-    }
-
-    const recoveredReview = sourceReview as Record<string, unknown>;
-    if (
-      !reviewStringField(recoveredReview.titulo).trim() ||
-      !reviewStringField(recoveredReview.texto).trim()
-    ) {
-      return;
-    }
-
-    reviewRepairStarted.current = true;
-    void updateGame(hogwarts.slug, { review: recoveredReview }).then((ok) => {
-      if (ok) {
-        window.alert(
-          "Review de Hogwarts Legacy recuperada a partir do conteúdo original do jogo. A review de Crisol foi mantida separada."
-        );
-      } else {
-        reviewRepairStarted.current = false;
-      }
-    }).catch(() => {
-      reviewRepairStarted.current = false;
-    });
-  }, [isLoaded, gamesList, updateGame]);
 
   useEffect(() => {
     const slug = selectedGame?.slug ?? "";
