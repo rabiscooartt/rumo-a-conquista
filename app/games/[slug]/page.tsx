@@ -153,7 +153,7 @@ function normalizeReview(rawReview: unknown): ReviewInput {
     status: review.status ?? "pendente",
     nota: review.nota ?? "",
     titulo: review.titulo ?? "Análise da Jornada",
-    texto: review.texto ?? review.resumo ?? "Review completa da jornada, com pontos fortes, pontos fracos e experiência geral do jogo.",
+    texto: review.texto ?? review.resumo ?? "",
     resumo: review.resumo,
     positivos: normalizeReviewList(review.positivos ?? review.pontosFortes),
     negativos: normalizeReviewList(review.negativos ?? review.pontosFracos),
