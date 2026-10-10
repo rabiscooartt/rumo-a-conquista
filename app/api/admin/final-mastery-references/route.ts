@@ -118,6 +118,50 @@ async function loadReferences(gameSlug: string, origin: string): Promise<Referen
     console.warn("[Final Mastery References] Não foi possível listar artes do banco:", error);
   }
 
+  // Inclui também arquivos do bucket de artes, inclusive quando o arquivo foi
+  // carregado no Storage mas ainda não existe uma linha correspondente no catálogo.
+  try {
+    const client = createAdminSupabaseClient();
+    const prefix = `games/${gameSlug}/achievements`;
+    const { data, error } = await client.storage
+      .from("achievement-art")
+      .list(prefix, {
+        limit: 1000,
+        sortBy: { column: "name", order: "asc" },
+      });
+
+    if (error) throw error;
+
+    for (const item of data ?? []) {
+      const filename = String(item.name ?? "");
+      if (!/\.(png|jpe?g|webp)$/i.test(filename) || /maestria[-_]final/i.test(filename)) {
+        continue;
+      }
+
+      const title = displayTitleFromFilename(filename);
+      const key = normalizeKey(filename);
+      if (!key || byKey.has(key)) continue;
+
+      const storagePath = `${prefix}/${filename}`;
+      const { data: publicUrl } = client.storage
+        .from("achievement-art")
+        .getPublicUrl(storagePath);
+      const sourceUrl = publicUrl.publicUrl;
+      if (!sourceUrl || !safeReferenceSource(sourceUrl, gameSlug, origin)) continue;
+
+      nextOrder += 1;
+      byKey.set(key, {
+        key,
+        title: title || key,
+        filename: `${String(nextOrder).padStart(2, "0")}-${key}.jpg`,
+        sourceUrl,
+        order: 50000 + nextOrder,
+      });
+    }
+  } catch (error) {
+    console.warn("[Final Mastery References] Não foi possível listar artes do Storage:", error);
+  }
+
   // Também inclui PNG/JPG/WebP mantidos no próprio repositório, mesmo que ainda
   // não exista um registro correspondente na tabela de conquistas.
   try {
