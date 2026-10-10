@@ -359,13 +359,11 @@ export default function GamePageShell({ slug, game }: Props) {
       ? review.negativos.some((item) => String(item).trim().length > 0)
       : String(review?.negativos ?? review?.pontosFracos ?? "").trim().length > 0);
 
-  // A publicação explícita sempre prevalece. Se o status não chegar como
-  // esperado à página pública, uma review com conteúdo também aparece quando
-  // a jornada está concluída, sem exigir que nota, resumo e texto estejam
-  // simultaneamente preenchidos.
-  const reviewIsReady =
-    reviewStatusUnlocked ||
-    (reviewUnlocked && reviewHasAnyContent);
+  // A review deve aparecer quando estiver liberada manualmente OU quando
+  // todas as conquistas da jornada estiverem concluídas. Não condicionar sua
+  // existência à presença de nota, resumo ou texto: campos vazios devem gerar
+  // um aviso dentro da área, nunca ocultar toda a seção.
+  const reviewIsReady = reviewUnlocked;
   const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
