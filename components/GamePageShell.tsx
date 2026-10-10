@@ -334,6 +334,13 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewStatusUnlocked = [
     "liberada",
     "reviewliberada",
+    "liberadapublicada",
+    "publicada",
+    "publicado",
+    "reviewpublicada",
+    "reviewpublicado",
+    "released",
+    "published",
     "completed",
     "concluido",
     "concluida",
@@ -341,12 +348,17 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewUnlocked =
     reviewStatusUnlocked ||
     (totalCount > 0 && completedCount >= totalCount);
-  const reviewIsReady =
+  const reviewHasCompleteContent =
     reviewScoreText.length > 0 &&
     Number.isFinite(reviewScore) &&
     reviewText.length > 0 &&
-    reviewSummarySource.length > 0 &&
-    reviewUnlocked;
+    reviewSummarySource.length > 0;
+
+  // A liberação manual no Admin é autoritativa: não esconda uma review já
+  // publicada só porque algum campo opcional (como nota ou resumo) está vazio.
+  const reviewIsReady =
+    reviewStatusUnlocked ||
+    (reviewHasCompleteContent && reviewUnlocked);
   const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
@@ -826,7 +838,7 @@ export default function GamePageShell({ slug, game }: Props) {
                           <div className="mt-3 flex items-end gap-3">
                             <div className="flex items-baseline gap-1">
                               <span className="text-[30px] font-black leading-none text-white tabular-nums">
-                                {reviewScoreText.replace(".", ",")}
+                                {reviewScoreText ? reviewScoreText.replace(".", ",") : "—"}
                               </span>
                               <span className="text-[11px] font-bold text-white/40">/10</span>
                             </div>
