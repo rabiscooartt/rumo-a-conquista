@@ -844,7 +844,7 @@ export default function GamePageShell({ slug, game }: Props) {
                             <div className="flex items-center gap-2">
                               <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                               <h2 className="text-[11px] font-black uppercase tracking-[0.14em] text-white">
-                                Review do jogo
+                                Nota final
                               </h2>
                             </div>
                             <span className="rounded-md border border-emerald-400/25 bg-emerald-400/[0.07] px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-300">
