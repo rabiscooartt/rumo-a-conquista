@@ -351,22 +351,6 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewUnlocked =
     reviewStatusUnlocked ||
     (totalCount > 0 && completedCount >= totalCount);
-  const reviewHasAnyContent =
-    reviewScoreText.length > 0 ||
-    reviewText.length > 0 ||
-    reviewSummarySource.length > 0 ||
-    (Array.isArray(review?.positivos)
-      ? review.positivos.some((item) => String(item).trim().length > 0)
-      : String(review?.positivos ?? review?.pontosFortes ?? "").trim().length > 0) ||
-    (Array.isArray(review?.negativos)
-      ? review.negativos.some((item) => String(item).trim().length > 0)
-      : String(review?.negativos ?? review?.pontosFracos ?? "").trim().length > 0);
-
-  // A seção pública só aparece quando existe conteúdo real para mostrar.
-  // O status "liberada" sozinho não deve exibir cards vazios com nota ?/10.
-  // O cadastro e a liberação continuam disponíveis no Admin.
-  // O cartão compacto do sidebar permanece disponível quando a review foi liberada.
-  // O painel longo de análise no corpo da página foi removido separadamente.
   const reviewSidebarIsReady =
     reviewUnlocked &&
     reviewScoreText.length > 0 &&
