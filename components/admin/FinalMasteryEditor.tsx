@@ -201,70 +201,150 @@ function buildVisualCohesionPrompt(game: SiteGame): string[] {
   ];
 }
 
-function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
+function buildMasteryAnalysisPrompt(game: SiteGame, mastery: FinalMastery) {
   return [
-    "RUMO À CONQUISTA — LOTE EXCLUSIVO DE MAESTRIA FINAL",
+    "RUMO À CONQUISTA — PROMPT 01 — ANÁLISE E PROJETO DA MAESTRIA FINAL",
     "",
-    "LOTE: MAESTRIA FINAL",
-    "QUANTIDADE: 1",
+    "PAPEL",
+    "Você é diretor de arte da Maestria Final do projeto Rumo à Conquista. Trabalhe exclusivamente na MAESTRIA FINAL deste jogo, não no Emblema e não nas conquistas Bronze, Prata ou Ouro.",
+    "",
+    "OBJETIVO DESTA ETAPA",
+    "Analise as referências anexadas, desenvolva um conceito individual para a Maestria Final e entregue um briefing completo para o Prompt 02. NÃO gere, desenhe, edite ou simule a imagem nesta etapa. Aguarde minha aprovação do briefing.",
+    "",
+    "DADOS DO JOGO",
+    "Jogo: " + game.title,
+    "Slug real do projeto: " + game.slug,
+    "Título atualmente cadastrado (pode ser aprimorado após análise): " + (mastery.title.trim() || "Ainda não definido; propor um título exclusivo."),
+    "Descrição atualmente cadastrada (pode ser aprimorada após análise): " + (mastery.description.trim() || "Ainda não definida; criar uma frase exclusiva de até 140 caracteres."),
+    "Caminho esperado da imagem no projeto: public/images/games/" + game.slug + "/achievements/maestria-final.png",
+    "",
+    "AUDITORIA VISUAL OBRIGATÓRIA DO ZIP",
+    "O ZIP anexado contém a pasta REFERENCIAS-CONQUISTAS. Examine visualmente todas as imagens dessa pasta antes de definir o conceito. Não se limite aos nomes dos arquivos.",
+    "Derive a linguagem visual das conquistas normais que foram criadas para ESTE jogo: estilo de ilustração, paleta, contraste, contorno, textura, fundo, escala e centralização do símbolo, densidade visual e acabamento.",
+    "A Maestria Final precisa parecer a evolução máxima da mesma coleção, mas não pode simplesmente copiar o símbolo central de uma conquista existente.",
+    "Não use Mouse P.I. For Hire, outro jogo, artes promocionais ou uma fórmula genérica como referência universal. Cada jogo mantém sua própria identidade visual.",
+    "Não introduza automaticamente vermelho, dourado, metal, 3D, troféu, moldura ornamentada, coroa ou efeitos cinematográficos se as imagens reais do jogo não justificarem esses elementos.",
+    "Se o ZIP não estiver anexado, vazio ou ilegível, pare e peça o pacote. Não diga que analisou imagens que não conseguiu visualizar.",
+    "",
+    "TÍTULO EXCLUSIVO",
+    "Crie ou refine um nome memorável e específico para este jogo. Deve representar a conclusão de todas as conquistas e ter relação clara com seu universo e sua jornada. Evite títulos genéricos e fórmulas repetidas automaticamente entre jogos.",
+    "",
+    "DESCRIÇÃO EXCLUSIVA",
+    "Escreva uma única frase, exclusiva para este jogo, com no máximo 140 caracteres incluindo espaços e pontuação. Deve definir o significado da Maestria Final, não ser apenas uma chamada genérica e não inventar fatos do jogo. Conte os caracteres antes de entregar. Esta descrição será cadastrada no Admin e NÃO deverá aparecer escrita na imagem.",
+    "",
+    "CONCEITO VISUAL",
+    "Defina o símbolo principal, por que representa a conclusão da jornada, composição, fundo, paleta, traço, textura, iluminação e como a qualidade/complexidade aumenta em relação às conquistas normais sem criar uma linguagem visual incompatível.",
+    "A imagem final deverá ser quadrada 1:1, 1024 × 1024, uma única imagem, sem texto, letras, números, logos, colagens ou múltiplas versões.",
+    "",
+    "FORMATO OBRIGATÓRIO DA RESPOSTA",
+    "1. Resultado da análise das referências do jogo.",
+    "2. Nome proposto da Maestria Final.",
+    "3. Descrição de uma frase e contagem de caracteres (máximo 140).",
+    "4. Conceito visual e justificativa.",
+    "5. BRIEFING FINAL PARA O PROMPT 02, em bloco claramente delimitado e copiável, contendo jogo, slug, título aprovado/proposto, descrição exata, símbolo, composição, paleta, estilo das referências e restrições.",
+    "",
+    "Não gere a imagem agora. Termine pedindo minha aprovação ou correções ao nome, à descrição e ao conceito. Só depois da aprovação deve ser usado o Prompt 02."
+  ].join("\n");
+}
+
+function buildMasteryUsageInstructions(game: SiteGame) {
+  return [
+    "RUMO À CONQUISTA — INSTRUÇÕES DE USO — MAESTRIA FINAL (CAIXA 04)",
+    "",
+    "Este fluxo pertence exclusivamente à MAESTRIA FINAL — o troféu vermelho da hierarquia do Rumo à Conquista. Não é o fluxo de criação do Emblema.",
+    "",
     "JOGO: " + game.title,
+    "SLUG: " + game.slug,
     "",
-    "OBJETIVO:",
-    "Criar exclusivamente a arte da MAESTRIA FINAL deste jogo.",
+    "SIGA ESTA ORDEM NA MESMA CONVERSA:",
+    "1. Baixe o pacote ZIP pelo botão 1 do Admin e anexe esse ZIP à conversa nova. Ele contém os prompts e as imagens de referência das conquistas deste jogo.",
+    "2. Cole o PROMPT 01 — Análise e projeto. Ele deve analisar todas as referências, propor o nome, escrever uma descrição de uma frase com até 140 caracteres e preparar o briefing. Não deve gerar imagem.",
+    "3. Leia o briefing e aprove o nome, a descrição e o conceito ou peça ajustes. Depois cole estas Instruções de Uso na mesma conversa para reforçar a ordem e a precedência do briefing aprovado.",
+    "4. Cole o PROMPT 02 — Gerar Maestria Final. Ele deve gerar a imagem individual e entregar novamente o título, a descrição com contagem, o nome do arquivo, o caminho e os comandos PowerShell completos para publicar somente a imagem.",
     "",
-    "REFERÊNCIAS VISUAIS INCLUÍDAS NO ZIP:",
-    "O ZIP baixado pelo botão Baixar pacote contém a pasta REFERENCIAS-CONQUISTAS com as imagens de conquistas encontradas para este jogo no site/repositório e nos registros ativos do catálogo. Abra e examine visualmente TODAS as imagens dessa pasta antes de elaborar a Maestria; não se limite aos nomes dos arquivos.",
-    "Use as artes do projeto para identificar a gramática visual real da coleção: arquitetura quadrada do ícone, fundo, bordas, escala e centralização do símbolo, densidade de elementos, contornos, contraste, paleta e textura. Depois crie um conceito original que pertença à mesma coleção, sem copiar exatamente o símbolo de uma conquista individual.",
-    "As referências são reduzidas para JPEG de 768 × 768 px apenas para deixar o ZIP leve e facilitar a análise; os arquivos originais das conquistas no site não são alterados.",
+    "REGRAS DE CONTINUIDADE",
+    "O briefing aprovado do Prompt 01 e eventuais correções explícitas do usuário têm precedência sobre informações preliminares que estiverem preenchidas no Admin ou no Prompt 02.",
+    "Não gerar imagem antes do Prompt 02. Não inventar nome, descrição, lore ou referência visual. A descrição final deve ser uma frase exclusiva de até 140 caracteres.",
+    "A imagem e os campos textuais são operações separadas: o arquivo vai para o caminho de imagem no repositório; título e descrição devem ser inseridos e salvos nos campos da Maestria Final no Admin.",
+    "Não usar git add ponto, não usar git push force e não preparar outros arquivos no commit. Enviar a alteração somente para main e verificar a implantação de Production; nunca afirmar que a publicação foi concluída sem confirmação.",
+    "Se o briefing aprovado não estiver visível no contexto quando o Prompt 02 for usado, peça que o usuário cole o briefing aprovado antes de prosseguir."
+  ].join("\n");
+}
+
+function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
+  const imagePath = "public/images/games/" + game.slug + "/achievements/maestria-final.png";
+  const webImagePath = "/images/games/" + game.slug + "/achievements/maestria-final.png";
+  const exportName = game.slug + "-maestria-final.png";
+  const branchPrefix = "publicar-maestria-" + game.slug + "-";
+
+  return [
+    "RUMO À CONQUISTA — PROMPT 02 — GERAÇÃO DA MAESTRIA FINAL",
     "",
-    "REGRA ESPECÍFICA DA MAESTRIA FINAL:",
-    "Somente nesta arte, o NOME e a DESCRIÇÃO da Maestria são o briefing principal da criação.",
-    "A arte deve ser visualmente próxima do significado comunicado pelo título e pela descrição, transformando as palavras em símbolos, objetos, ações, formas, composição, atmosfera e elementos visuais que representem claramente a ideia da Maestria.",
-    "Não criar uma arte genérica de troféu só porque ela é a recompensa final.",
-    "Não ignorar palavras ou conceitos importantes do título e da descrição.",
-    "A arte deve seguir o fluxo usado com sucesso nas conquistas: criar primeiro um conceito original a partir do significado; aplicar depois somente a linguagem gráfica geral da coleção. Não comece reproduzindo a ilustração de uma personagem oficial.",
-    "REFERÊNCIAS VISUAIS: quando as imagens das conquistas que nós criamos estiverem anexadas, analise-as primeiro e extraia um brief textual da estrutura comum (formato, fundo, contorno, escala do símbolo, contraste, traço e textura). Use o brief textual como ajuste visual; não envie uma referência protegida diretamente ao gerador nem copie personagens, desenhos reconhecíveis ou composições específicas.",
-    ...buildVisualCohesionPrompt(game),
+    "EXECUTE A ARTE AGORA somente se o BRIEFING FINAL PARA O PROMPT 02 do Prompt 01 estiver presente nesta conversa e tiver sido aprovado pelo usuário. Se o briefing aprovado estiver ausente, peça que o usuário o cole; não invente os dados nem gere a imagem prematuramente.",
+    "Este é o fluxo da MAESTRIA FINAL — o troféu vermelho entre as conquistas Ouro e o Emblema. NÃO crie um Emblema e não use os prompts de Emblema.",
     "",
-    "RANK:",
-    "MAESTRIA",
+    "DADOS DO JOGO — REFERÊNCIA INICIAL; O BRIEFING APROVADO TEM PRECEDÊNCIA",
+    "Jogo: " + game.title,
+    "Slug do projeto: " + game.slug,
+    "Título atualmente cadastrado: " + (mastery.title.trim() || "Usar o título do briefing aprovado."),
+    "Descrição atualmente cadastrada: " + (mastery.description.trim() || "Usar a descrição do briefing aprovado."),
+    "Nome do arquivo exportado: " + exportName,
+    "Caminho obrigatório dentro do projeto: " + imagePath,
+    "Caminho público usado no Admin: " + webImagePath,
     "",
-    "TÍTULO DA MAESTRIA:",
-    mastery.title || "Maestria Final",
+    "PACOTE DE REFERÊNCIAS",
+    "Se houver um ZIP anexado, examine todas as imagens da pasta REFERENCIAS-CONQUISTAS. Elas representam as conquistas normais criadas para este mesmo jogo. Use-as como referência visual prioritária para a arquitetura do ícone, estilo, paleta, contornos, textura, fundo, escala do símbolo e legibilidade.",
+    "Não confunda a Maestria Final com o Emblema do jogo. Não use uma placa de título, placa de plataforma ou moldura própria dos emblemas.",
+    "O briefing aprovado define o conceito e os elementos visuais da Maestria; as referências das conquistas definem a linguagem gráfica do ícone. Nenhum outro jogo deve servir como modelo visual universal.",
     "",
-    "DESCRIÇÃO DA MAESTRIA:",
-    mastery.description || "Sem descrição disponível. Criar a direção visual a partir do título e do universo do jogo.",
+    "INSTRUÇÃO DE GERAÇÃO",
+    "Gere uma única imagem individual da Maestria Final usando o gerador de imagens, não apenas uma descrição escrita.",
+    "Siga o símbolo, a composição, a paleta e as restrições do briefing aprovado. O título e a descrição determinam o significado; as referências próprias deste jogo determinam o estilo. Não copie literalmente uma conquista existente nem reproduza personagem, logo ou composição distintiva de terceiros.",
+    "A Maestria deverá parecer a recompensa máxima da coleção por meio de conceito forte, silhueta, execução e acabamento. Não acrescente automaticamente troféu literal, vermelho, dourado, metal, moldura, coroa, medalha, 3D ou ornamentos quando não combinarem com as referências.",
     "",
-    "DIREÇÃO CRIATIVA — FLUXO EM DUAS FASES:",
-    "1. CONSTRUA A BASE ORIGINAL: extraia do título e da descrição o conceito a comunicar e escolha um símbolo novo, simples e imediatamente compreensível. Se a descrição estiver ausente, não invente uma cena complexa.",
-    "2. APLIQUE O AJUSTE VISUAL: use apenas os atributos gerais da estrutura das conquistas que criamos — proporções do ícone, fundo, contorno discreto, escala do símbolo, paleta, linha e textura. Não copie um desenho específico.",
-    "3. MANTENHA UM FOCO CENTRAL dominante e poucos elementos secundários. A importância da Maestria vem da clareza do símbolo e da execução, não de novas molduras, mais ornamentos ou um cenário maior.",
-    "4. Use apenas temas gerais do universo do jogo. Não reproduza a aparência específica de personagem oficial, logo, ilustração promocional ou outro design reconhecível.",
-    "5. PLANO DE RECUPERAÇÃO SE HOUVER BLOQUEIO: não repita a mesma figura com pequenas alterações. Simplifique a imagem, substitua personagens/elementos específicos por um símbolo original mais abstrato e mantenha somente a atmosfera geral, a paleta e a estrutura visual do ícone. Não tente disfarçar uma cópia; mude de fato o conceito para uma alternativa independente.",
+    "ESPECIFICAÇÕES OBRIGATÓRIAS",
+    "• Uma única imagem, sem colagem ou múltiplas versões.",
+    "• Formato quadrado 1:1, resolução 1024 × 1024, PNG.",
+    "• Imagem edge-to-edge, seguindo o fundo e a arquitetura dos ícones das conquistas do jogo.",
+    "• Símbolo central forte, composição legível em tamanho pequeno e detalhes controlados.",
+    "• Sem palavras, letras, números, título, descrição, logotipos ou interface dentro da imagem.",
     "",
-    "MATRIZ VISUAL OFICIAL:",
-    "• 1 imagem individual.",
-    "• 1024x1024 px.",
-    "• Proporção 1:1.",
-    "• PNG.",
-    "• Arte edge-to-edge, ocupando 100% do canvas e tocando diretamente as quatro bordas.",
-    "• Legibilidade é prioridade absoluta.",
-    "• Um elemento principal dominante e poucos elementos secundários.",
-    "• Silhueta e leitura claras mesmo em tamanho reduzido.",
-    "• Sem texto, letras, números ou logotipos dentro da imagem.",
-    "• Sem colagem, mosaico, painel, contact sheet ou múltiplas artes.",
-    "• Criar uma composição nova, independente e específica para esta Maestria.",
+    "ENTREGA OBRIGATÓRIA NA RESPOSTA",
+    "Depois de gerar a imagem, apresentar:",
+    "1. TÍTULO DA MAESTRIA FINAL: usar o nome do briefing aprovado.",
+    "2. DESCRIÇÃO PARA O SITE: usar a frase do briefing aprovado e informar a contagem; confirmar que tem no máximo 140 caracteres incluindo espaços e pontuação. Se ultrapassar o limite, ajustar sem mudar o sentido e informar a versão final.",
+    "3. ARQUIVO GERADO: " + exportName,
+    "4. CAMINHO DO ARQUIVO: " + imagePath,
+    "5. CAMPOS PARA CADASTRAR NO ADMIN: título, descrição e caminho público " + webImagePath,
+    "6. COMANDOS POWERSHELL COMPLETOS, preenchidos com os caminhos e o jogo atuais, para substituir somente a imagem da Maestria Final no GitHub.",
     "",
-    "REGRA DE ORIGINALIDADE:",
-    "O resultado deve representar visualmente o título e a descrição, sem transformar a frase em texto dentro da imagem.",
-    "Não reproduzir nem tentar contornar bloqueios com alterações superficiais. Se uma opção resultar em semelhança excessiva com personagem ou obra de terceiros, substitua o foco por um símbolo realmente original, simples e abstrato, mantendo apenas as características gerais da coleção.",
-    "Nunca copiar personagem reconhecível, rosto, figurino, pose, silhueta distintiva, logo, texto ou composição específica de terceiros. A arte final deve ser independente.",
+    "COMANDOS QUE DEVEM SER ENTREGUES EM BLOCOS POWERSHELL COPIÁVEIS",
+    "Etapa A — Atualize a referência local:",
+    "git fetch origin",
+    "git switch -c " + branchPrefix + "$(Get-Date -Format 'yyyyMMdd-HHmmss') origin/main",
     "",
-    "ARQUIVO FINAL: " + game.slug + "-maestria-final.png",
+    "Etapa B — Copie manualmente o PNG gerado para o arquivo exato:",
+    imagePath,
     "",
-    "RESULTADO:",
-    "Somente a arte da MAESTRIA FINAL.",
-    "1 MAESTRIA = 1 IMAGEM = 1 ARQUIVO.",
+    "Etapa C — Confira se somente essa imagem foi alterada:",
+    "git status --short",
+    "git diff --name-only",
+    "",
+    "Etapa D — Prepare exclusivamente a imagem e confira o que será enviado:",
+    "git add -- " + imagePath,
+    "git diff --cached --name-only",
+    "",
+    "Etapa E — Crie o commit e envie para main:",
+    "git commit -m \"Atualiza maestria final de " + game.title + "\"",
+    "git push origin HEAD:main",
+    "",
+    "REGRAS DE SEGURANÇA E PUBLICAÇÃO",
+    "Antes do commit, confira que git diff --name-only e git diff --cached --name-only mostram somente " + imagePath + ". Se houver outras alterações, pare e não as inclua.",
+    "Nunca use git add ponto nem git push force. Se o push for rejeitado, pare e analise a causa antes de tentar novamente.",
+    "Após o push, verifique o deployment do Vercel para o commit enviado e confirme Production = Ready antes de afirmar que a publicação foi concluída. Os comandos não salvam automaticamente título ou descrição no Admin.",
+    "O arquivo de imagem deve ser copiado manualmente para o repositório antes dos comandos de git add/commit. Não diga que o arquivo já está no repositório nem que o deploy foi concluído sem evidência.",
+    "",
+    "RESULTADO FINAL: imagem individual da MAESTRIA FINAL + título exclusivo + descrição de uma frase de até 140 caracteres + nome/caminho do arquivo + comandos PowerShell completos e específicos. Não omitir nenhum desses itens."
   ].join("\n");
 }
 
@@ -279,7 +359,7 @@ export default function FinalMasteryEditor({
   const [sectionCollapsed, setSectionCollapsed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
-  const [copied, setCopied] = useState(false);
+  const [copiedAction, setCopiedAction] = useState<"analysis" | "instructions" | "generation" | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState("");
   const [imageError, setImageError] = useState(false);
@@ -317,14 +397,26 @@ export default function FinalMasteryEditor({
     setImageError(false);
   }
 
-  async function copyPrompt() {
+  async function copyText(action: "analysis" | "instructions" | "generation", content: string) {
     try {
-      await navigator.clipboard.writeText(buildMasteryPrompt(game, mastery));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
+      await navigator.clipboard.writeText(content);
+      setCopiedAction(action);
+      window.setTimeout(() => setCopiedAction(null), 2200);
     } catch {
-      window.alert("Não foi possível copiar o prompt da Maestria Final.");
+      window.alert("Não foi possível copiar o texto. Verifique a permissão de área de transferência do navegador.");
     }
+  }
+
+  async function copyAnalysisPrompt() {
+    await copyText("analysis", buildMasteryAnalysisPrompt(game, mastery));
+  }
+
+  async function copyUsageInstructions() {
+    await copyText("instructions", buildMasteryUsageInstructions(game));
+  }
+
+  async function copyPrompt() {
+    await copyText("generation", buildMasteryPrompt(game, mastery));
   }
 
   async function downloadPackage() {
@@ -358,8 +450,13 @@ export default function FinalMasteryEditor({
       }
 
       const encoder = new TextEncoder();
+      const analysisPrompt = buildMasteryAnalysisPrompt(game, mastery);
+      const usageInstructions = buildMasteryUsageInstructions(game);
+      const generationPrompt = buildMasteryPrompt(game, mastery);
       const files: ZipEntry[] = [
-        { name: "Lote-Maestria-Final.txt", data: encoder.encode(packageText) },
+        { name: "PROMPT-01-ANALISE-E-PROJETO-MAESTRIA.txt", data: encoder.encode(analysisPrompt) },
+        { name: "INSTRUCOES-DE-USO-MAESTRIA.txt", data: encoder.encode(usageInstructions) },
+        { name: "PROMPT-02-GERAR-MAESTRIA-FINAL.txt", data: encoder.encode(generationPrompt) },
       ];
       const indexLines = [
         "REFERÊNCIAS VISUAIS — MAESTRIA FINAL",
@@ -369,6 +466,18 @@ export default function FinalMasteryEditor({
         "",
         "ARQUIVOS INCLUÍDOS:",
       ];
+      indexLines.unshift(
+        "PACOTE DE MAESTRIA FINAL — " + game.title,
+        "Ordem: 1) anexar o ZIP; 2) colar Prompt 01 e aprovar o briefing; 3) colar as instruções; 4) colar Prompt 02 para gerar a imagem.",
+        "Este fluxo pertence somente à Maestria Final. Não confundir com o fluxo de Emblema.",
+        "",
+        "ARQUIVOS DE INSTRUÇÃO:",
+        "- PROMPT-01-ANALISE-E-PROJETO-MAESTRIA.txt",
+        "- INSTRUCOES-DE-USO-MAESTRIA.txt",
+        "- PROMPT-02-GERAR-MAESTRIA-FINAL.txt",
+        ""
+      );
+
 
       for (let i = 0; i < references.length; i += 1) {
         const reference = references[i];
@@ -573,41 +682,79 @@ export default function FinalMasteryEditor({
             />
           </label>
 
-          <div className="mt-4 rounded-xl border border-violet-300/15 bg-black/20 p-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.14em] text-violet-200/70">
-              Regra exclusiva da geração
+          <div className="mt-4 rounded-xl border border-violet-300/15 bg-black/20 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-violet-100">
+              Fluxo oficial — Maestria Final em 4 etapas
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/45">
-              O botão <strong className="text-white/70">Baixar pacote</strong> inclui o prompt e as imagens das conquistas encontradas para este jogo, otimizadas para análise. Use todas as referências para manter a mesma estrutura visual da coleção.
+              Use estes passos em uma conversa nova. O pacote inclui as referências deste jogo e os três textos de apoio. A Maestria é separada do Emblema.
             </p>
-          </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-            {saveState === "saved" && (
-              <span className="text-[9px] font-black uppercase tracking-[0.12em] text-emerald-200">
-                Maestria salva com sucesso.
-              </span>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/[0.04] p-3">
+                <p className="text-xs font-black text-emerald-100">1. 📦 Baixar pacote de referências</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                  Baixe o ZIP e anexe-o à conversa nova. Ele contém as referências das conquistas, o Prompt 01, as instruções e o Prompt 02.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void downloadPackage()}
+                  disabled={downloading}
+                  className="mt-3 w-full rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.08em] text-emerald-100 disabled:opacity-40"
+                >
+                  {downloading ? "Preparando pacote..." : "1. Baixar pacote ZIP"}
+                </button>
+              </div>
+
+              <div className="rounded-xl border border-violet-300/20 bg-violet-500/[0.04] p-3">
+                <p className="text-xs font-black text-violet-100">2. 📋 Analisar e projetar</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                  Analisa as imagens deste jogo e prepara nome, descrição de até 140 caracteres e conceito. Não gera imagem.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void copyAnalysisPrompt()}
+                  className="mt-3 w-full rounded-xl border border-violet-300/30 bg-violet-400/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.04em] text-violet-100"
+                >
+                  {copiedAction === "analysis" ? "✓ Prompt 01 copiado" : "2. Copiar Prompt 01 — Análise"}
+                </button>
+              </div>
+
+              <div className="rounded-xl border border-sky-400/20 bg-sky-500/[0.04] p-3">
+                <p className="text-xs font-black text-sky-100">3. 📘 Instruções de uso</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                  Reforça a ordem, a aprovação do briefing e a separação entre Maestria Final e Emblema.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void copyUsageInstructions()}
+                  className="mt-3 w-full rounded-xl border border-sky-400/30 bg-sky-500/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.04em] text-sky-100"
+                >
+                  {copiedAction === "instructions" ? "✓ Instruções copiadas" : "3. Copiar instruções de uso"}
+                </button>
+              </div>
+
+              <div className="rounded-xl border border-red-400/20 bg-red-500/[0.04] p-3">
+                <p className="text-xs font-black text-red-100">4. 🎨 Gerar a Maestria Final</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                  Depois de aprovar o briefing, gera uma imagem e entrega título, descrição, caminho e comandos PowerShell específicos para atualizar somente essa imagem.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void copyPrompt()}
+                  className="mt-3 w-full rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.04em] text-red-100"
+                >
+                  {copiedAction === "generation" ? "✓ Prompt 02 copiado" : "4. Copiar Prompt 02 — Gerar arte"}
+                </button>
+              </div>
+            </div>
+
+            {downloading && downloadProgress && (
+              <p className="mt-3 text-[10px] font-bold text-emerald-200" role="status">{downloadProgress}</p>
             )}
-            {saveState === "error" && (
-              <span className="text-[9px] font-black uppercase tracking-[0.12em] text-red-200">
-                Não foi possível salvar.
-              </span>
+            {!downloading && downloadProgress && (
+              <p className="mt-3 text-[10px] font-bold text-emerald-200" role="status">{downloadProgress}</p>
             )}
-            <button
-              type="button"
-              onClick={() => void copyPrompt()}
-              className="rounded-xl border border-violet-300/30 bg-violet-400/10 px-4 py-2.5 text-[9px] font-black uppercase text-violet-100"
-            >
-              {copied ? "Copiado" : "📋 Copiar lote Maestria"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void downloadPackage()}
-              disabled={downloading}
-              className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-[9px] font-black uppercase text-emerald-100 disabled:opacity-40"
-            >
-              {downloading ? (downloadProgress || "Preparando...") : "📦 Baixar pacote"}
-            </button>
           </div>
         </div>
       </div>
