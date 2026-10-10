@@ -326,10 +326,13 @@ export default function GamePageShell({ slug, game }: Props) {
   const reviewScore = Number(reviewScoreText.replace(",", "."));
   const reviewText = String(review?.texto ?? "").trim();
   const reviewSummarySource = String(review?.resumo || reviewText).trim();
+  const reviewSummarySentence = (
+    reviewSummarySource.match(/^.*?[.!?](?=\s|$)/)?.[0] || reviewSummarySource
+  ).trim();
   const reviewSummary =
-    reviewSummarySource.length > 100
-      ? `${reviewSummarySource.slice(0, 97).trimEnd()}…`
-      : reviewSummarySource;
+    reviewSummarySentence.length > 110
+      ? reviewSummarySentence.slice(0, 107).trimEnd() + "…"
+      : reviewSummarySentence;
   const reviewStatus = normalizeText(review?.status);
   const reviewStatusUnlocked = [
     "liberada",
@@ -364,7 +367,11 @@ export default function GamePageShell({ slug, game }: Props) {
   // O cadastro e a liberação continuam disponíveis no Admin.
   // O cartão compacto do sidebar permanece disponível quando a review foi liberada.
   // O painel longo de análise no corpo da página foi removido separadamente.
-  const reviewSidebarIsReady = reviewStatusUnlocked || (reviewUnlocked && reviewHasAnyContent);
+  const reviewSidebarIsReady =
+    reviewUnlocked &&
+    reviewScoreText.length > 0 &&
+    Number.isFinite(reviewScore) &&
+    reviewSummarySource.length > 0;
   const reviewScoreOutOfFive = Math.max(0, Math.min(5, reviewScore / 2));
   const status =
     resolvedFirstJourney?.status === "in_progress"
@@ -875,13 +882,14 @@ export default function GamePageShell({ slug, game }: Props) {
                             {reviewSummary}
                           </p>
 
-                          <a
-                            href="#review-section"
+                          <Link
+                            href={"/games/" + slug + "/review"}
+                            aria-label={"Ler a review completa de " + game.title}
                             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/[0.08] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:border-red-400/50 hover:bg-red-500/[0.14]"
                           >
                             Ler review completo
                             <span aria-hidden="true">→</span>
-                          </a>
+                          </Link>
                         </section>
                       )}
 
