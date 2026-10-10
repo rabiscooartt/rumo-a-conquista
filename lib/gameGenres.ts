@@ -105,7 +105,11 @@ export function inferPrimaryGenre(values: unknown): string {
       original: genre,
       canonical,
       index,
-      priority: canonical ? GENRE_PRIORITY[canonical] : -1,
+      // A posição na fonte é a principal pista de predominância; a prioridade
+      // resolve empates aproximados e rebaixa rótulos amplos como "Indie".
+      priority:
+        (canonical ? GENRE_PRIORITY[canonical] : -100) +
+        (genres.length - 1 - index) * 20,
     };
   });
 
