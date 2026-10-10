@@ -1423,14 +1423,14 @@ export default function GameAchievementsPanel(
 
                     {!visuallyLocked && (
                       <div className="flex min-w-0 flex-col items-start justify-center md:items-end">
-                        <div className="flex w-[108px] items-center justify-start gap-2">
+                        <div className="flex w-[124px] items-center justify-end gap-2">
                           <img
                             src={trophyImagePath(rank)}
                             alt=""
                             aria-hidden="true"
                             className="h-9 w-9 shrink-0 object-contain"
                           />
-                          <span className="min-w-0 whitespace-nowrap text-[10px] font-black uppercase tracking-[0.16em] text-white/75">
+                          <span className="w-[76px] shrink-0 whitespace-nowrap text-right text-[10px] font-black uppercase tracking-[0.10em] text-white/75">
                             {rankLabel(rank)}
                           </span>
                         </div>
