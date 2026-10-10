@@ -359,8 +359,10 @@ export default function GamePageShell({ slug, game }: Props) {
   // A página pública mostra o cartão quando a review foi liberada,
   // mesmo que a nota ou a frase ainda não tenham sido preenchidas.
   const reviewSidebarIsReady = reviewUnlocked;
-  const reviewScoreOutOfFive = reviewScoreValid
-    ? Math.max(0, Math.min(5, reviewScore / 2))
+  // Espelha a regra da Biblioteca: 0–10 vira 0–5 estrelas inteiras,
+  // arredondadas para o inteiro mais próximo, sem meia estrela.
+  const reviewRatingStars = reviewScoreValid
+    ? Math.min(5, Math.max(0, Math.round(reviewScore / 2)))
     : 0;
   const status =
     resolvedFirstJourney?.status === "in_progress"
@@ -850,35 +852,27 @@ export default function GamePageShell({ slug, game }: Props) {
                               </p>
                               <div className="mt-1 flex items-baseline gap-1">
                                 <span className="text-[34px] font-black leading-none tracking-[-0.04em] text-white tabular-nums">
-                                  {reviewScoreValid ? reviewScoreText.replace(".", ",") : "—"}
+                                  {reviewScoreValid ? reviewRatingStars : "—"}
                                 </span>
-                                <span className="text-[11px] font-bold text-white/40">/10</span>
+                                <span className="text-[11px] font-bold text-white/40">/5</span>
                               </div>
                             </div>
                             <div className="pb-1 text-right">
                               <div
                                 className="flex items-center justify-end gap-0.5"
-                                aria-label={reviewScoreValid ? "Nota " + reviewScoreText + " de 10" : "Nota ainda não cadastrada"}
+                                aria-label={reviewScoreValid ? "Nota " + reviewRatingStars + " de 5 estrelas" : "Nota ainda não cadastrada"}
+                                title={reviewScoreValid ? reviewRatingStars + " de 5 estrelas" : "Nota pendente"}
                               >
-                                {Array.from({ length: 5 }, (_, index) => {
-                                  const fill = Math.max(0, Math.min(1, reviewScoreOutOfFive - index));
-                                  return (
-                                    <span
-                                      key={index}
-                                      className="text-[17px] leading-none"
-                                      style={{
-                                        backgroundImage: "linear-gradient(90deg, #fbbf24 " + fill * 100 + "%, rgba(255,255,255,0.16) " + fill * 100 + "%)",
-                                        WebkitBackgroundClip: "text",
-                                        backgroundClip: "text",
-                                        color: "transparent",
-                                      }}
-                                    >
-                                      ★
-                                    </span>
-                                  );
-                                })}
+                                {Array.from({ length: 5 }, (_, index) => (
+                                  <span
+                                    key={index}
+                                    className={"text-[17px] leading-none " + (index < reviewRatingStars ? "text-red-500" : "text-red-500/20")}
+                                  >
+                                    ★
+                                  </span>
+                                ))}
                               </div>
-                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-amber-300/75">
+                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-red-300/75">
                                 {reviewScoreValid ? "Avaliação Rabiisco" : "Nota pendente"}
                               </p>
                             </div>
