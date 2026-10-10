@@ -230,7 +230,7 @@ function buildMasteryAnalysisPrompt(game: SiteGame, mastery: FinalMastery) {
     "Crie ou refine um nome memorável e específico para este jogo. Deve representar a conclusão de todas as conquistas e ter relação clara com seu universo e sua jornada. Evite títulos genéricos e fórmulas repetidas automaticamente entre jogos.",
     "",
     "DESCRIÇÃO EXCLUSIVA",
-    "Escreva uma única frase, exclusiva para este jogo, com no máximo 140 caracteres incluindo espaços e pontuação. Deve definir o significado da Maestria Final, não ser apenas uma chamada genérica e não inventar fatos do jogo. Conte os caracteres antes de entregar. Esta descrição será cadastrada no Admin e NÃO deverá aparecer escrita na imagem.",
+    "Escreva uma única frase exclusiva para este jogo, com aproximadamente 70 caracteres (preferencialmente entre 60 e 80, incluindo espaços e pontuação). O limite absoluto é 140 caracteres. Deve definir o significado da Maestria Final, não ser apenas uma chamada genérica e não inventar fatos do jogo. Se passar de 80 caracteres, tente encurtar sem perder o significado; não force exatamente 70 se isso deixar a frase pior. Conte os caracteres antes de entregar. Esta descrição será cadastrada no Admin e NÃO deverá aparecer escrita na imagem.",
     "",
     "CONCEITO VISUAL",
     "Defina o símbolo principal, por que representa a conclusão da jornada, composição, fundo, paleta, traço, textura, iluminação e como a qualidade/complexidade aumenta em relação às conquistas normais sem criar uma linguagem visual incompatível.",
@@ -239,7 +239,7 @@ function buildMasteryAnalysisPrompt(game: SiteGame, mastery: FinalMastery) {
     "FORMATO OBRIGATÓRIO DA RESPOSTA",
     "1. Resultado da análise das referências do jogo.",
     "2. Nome proposto da Maestria Final.",
-    "3. Descrição de uma frase e contagem de caracteres (máximo 140).",
+    "3. Descrição de uma frase, preferencialmente entre 60 e 80 caracteres (alvo aproximado de 70), com contagem explícita; nunca ultrapassar 140.",
     "4. Conceito visual e justificativa.",
     "5. BRIEFING FINAL PARA O PROMPT 02, em bloco claramente delimitado e copiável, contendo jogo, slug, título aprovado/proposto, descrição exata, símbolo, composição, paleta, estilo das referências e restrições.",
     "",
@@ -258,13 +258,13 @@ function buildMasteryUsageInstructions(game: SiteGame) {
     "",
     "SIGA ESTA ORDEM NA MESMA CONVERSA:",
     "1. Baixe o pacote ZIP pelo botão 1 do Admin e anexe esse ZIP à conversa nova. Ele contém os prompts e as imagens de referência das conquistas deste jogo.",
-    "2. Cole o PROMPT 01 — Análise e projeto. Ele deve analisar todas as referências, propor o nome, escrever uma descrição de uma frase com até 140 caracteres e preparar o briefing. Não deve gerar imagem.",
+    "2. Cole o PROMPT 01 — Análise e projeto. Ele deve analisar todas as referências, propor o nome, escrever uma descrição de uma frase com cerca de 70 caracteres (preferencialmente entre 60 e 80; máximo absoluto de 140) e preparar o briefing. Não deve gerar imagem.",
     "3. Leia o briefing e aprove o nome, a descrição e o conceito ou peça ajustes. Depois cole estas Instruções de Uso na mesma conversa para reforçar a ordem e a precedência do briefing aprovado.",
     "4. Cole o PROMPT 02 — Gerar Maestria Final. Ele deve gerar a imagem individual e entregar novamente o título, a descrição com contagem, o nome do arquivo, o caminho e os comandos PowerShell completos para publicar somente a imagem.",
     "",
     "REGRAS DE CONTINUIDADE",
     "O briefing aprovado do Prompt 01 e eventuais correções explícitas do usuário têm precedência sobre informações preliminares que estiverem preenchidas no Admin ou no Prompt 02.",
-    "Não gerar imagem antes do Prompt 02. Não inventar nome, descrição, lore ou referência visual. A descrição final deve ser uma frase exclusiva de até 140 caracteres.",
+    "Não gerar imagem antes do Prompt 02. Não inventar nome, descrição, lore ou referência visual. A descrição final deve ser exclusiva e ter cerca de 70 caracteres, preferencialmente entre 60 e 80, sem ultrapassar 140 caracteres.",
     "A imagem e os campos textuais são operações separadas: o arquivo vai para o caminho de imagem no repositório; título e descrição devem ser inseridos e salvos nos campos da Maestria Final no Admin.",
     "Nunca use o comando git add . nem git push --force e não prepare outros arquivos no commit. Envie a alteração somente para main e verifique a implantação de Production; nunca afirme que a publicação foi concluída sem confirmação.",
     "Se o briefing aprovado não estiver visível no contexto quando o Prompt 02 for usado, peça que o usuário cole o briefing aprovado antes de prosseguir."
@@ -312,7 +312,7 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "ENTREGA OBRIGATÓRIA NA RESPOSTA",
     "Depois de gerar a imagem, apresentar:",
     "1. TÍTULO DA MAESTRIA FINAL: usar o nome do briefing aprovado.",
-    "2. DESCRIÇÃO PARA O SITE: usar a frase do briefing aprovado e informar a contagem; confirmar que tem no máximo 140 caracteres incluindo espaços e pontuação. Se ultrapassar o limite, ajustar sem mudar o sentido e informar a versão final.",
+    "2. DESCRIÇÃO PARA O SITE: reproduzir exatamente a frase aprovada no briefing e informar a contagem incluindo espaços e pontuação. O Prompt 01 deve buscar cerca de 70 caracteres (preferencialmente entre 60 e 80); o limite absoluto é 140. Não reescrever uma frase já aprovada só para atingir 70. Se ultrapassar 140, encurtar preservando o sentido e informar a versão final.",
     "3. ARQUIVO GERADO: " + exportName,
     "4. CAMINHO DO ARQUIVO: " + imagePath,
     "5. CAMPOS PARA CADASTRAR NO ADMIN: título, descrição e caminho público " + webImagePath,
@@ -344,7 +344,7 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
     "Após o push, verifique o deployment do Vercel para o commit enviado e confirme Production = Ready antes de afirmar que a publicação foi concluída. Os comandos não salvam automaticamente título ou descrição no Admin.",
     "O arquivo de imagem deve ser copiado manualmente para o repositório antes dos comandos de git add/commit. Não diga que o arquivo já está no repositório nem que o deploy foi concluído sem evidência.",
     "",
-    "RESULTADO FINAL: imagem individual da MAESTRIA FINAL + título exclusivo + descrição de uma frase de até 140 caracteres + nome/caminho do arquivo + comandos PowerShell completos e específicos. Não omitir nenhum desses itens."
+    "RESULTADO FINAL: imagem individual da MAESTRIA FINAL + título exclusivo + descrição curta, idealmente com cerca de 70 caracteres (preferencialmente 60–80; máximo 140) + nome/caminho do arquivo + comandos PowerShell completos e específicos. Não omitir nenhum desses itens."
   ].join("\n");
 }
 
@@ -662,7 +662,7 @@ export default function FinalMasteryEditor({
               value={mastery.description}
               onChange={(event) => update("description", event.target.value)}
               rows={5}
-              placeholder="Explique o que representa a conclusão máxima deste jogo."
+              placeholder="Descrição exclusiva e curta, idealmente com cerca de 70 caracteres."
               className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold leading-relaxed text-white outline-none focus:border-violet-400/40"
             />
           </label>
@@ -709,7 +709,7 @@ export default function FinalMasteryEditor({
               <div className="rounded-xl border border-violet-300/20 bg-violet-500/[0.04] p-3">
                 <p className="text-xs font-black text-violet-100">2. 📋 Analisar e projetar</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-white/45">
-                  Analisa as imagens deste jogo e prepara nome, descrição de até 140 caracteres e conceito. Não gera imagem.
+                  Analisa as imagens deste jogo e prepara nome, descrição idealmente com cerca de 70 caracteres (preferencialmente 60–80; máximo 140) e conceito. Não gera imagem.
                 </p>
                 <button
                   type="button"
