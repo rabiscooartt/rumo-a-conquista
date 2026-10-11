@@ -1165,7 +1165,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2 text-[9px] font-semibold leading-none text-white/55">
+        <div className="mt-1.5 flex min-w-0 items-center justify-center gap-4 text-[9px] font-semibold leading-none text-white/55">
           <span
             className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
