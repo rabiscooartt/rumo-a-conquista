@@ -1140,7 +1140,7 @@ function GameGridCard({
 
       <div className="flex min-w-0 flex-1 flex-col pt-1">
         <h3
-          className="line-clamp-2 min-h-[1.25rem] text-[12px] font-black leading-4 tracking-tight text-white transition-colors group-hover/card:text-red-100"
+          className="h-8 line-clamp-2 text-[12px] font-bold leading-4 tracking-tight text-white transition-colors group-hover/card:text-red-100"
           title={gameTitle}
         >
           {gameTitle}
