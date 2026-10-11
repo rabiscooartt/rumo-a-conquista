@@ -1119,7 +1119,11 @@ function GameGridCard({
         </span>
 
         {isCompleted ? (
-          <div className="absolute bottom-1.5 right-2 z-10 rounded-md bg-black/65 px-1.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.45)] backdrop-blur-[2px]">
+          <div
+            className="absolute right-2 top-2 z-10 rounded-md border border-white/15 bg-black/85 px-1.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.55)] backdrop-blur-sm"
+            aria-label={`Avaliação: ${rating * 2}/10`}
+            title={`Avaliação: ${rating * 2}/10`}
+          >
             <GameRating rating={rating} />
           </div>
         ) : null}
@@ -1130,7 +1134,7 @@ function GameGridCard({
           {gameTitle}
         </h3>
 
-        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-semibold text-white/45">
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[11px] font-bold text-white/80">
           <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
             <IconTrophy
               className="h-3.5 w-3.5 text-amber-400"
@@ -1145,11 +1149,11 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-auto pt-1.5 flex items-center gap-2">
-          <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+        <div className="mt-auto flex items-center gap-2 pt-2">
+          <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.10]">
             <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
           </div>
-          <span className={`w-8 shrink-0 text-right text-[9px] font-black ${isCompleted ? "text-emerald-300" : "text-white/50"}`}>
+          <span className={`w-9 shrink-0 text-right text-[11px] font-black ${isCompleted ? "text-emerald-300" : "text-white/80"}`}>
             {progress}%
           </span>
         </div>
