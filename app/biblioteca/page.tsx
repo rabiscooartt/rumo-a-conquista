@@ -1108,9 +1108,9 @@ function GameGridCard({
     <Link
       href={`/games/${gameSlug}`}
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
-      className="group group/card relative mx-auto flex h-full w-full max-w-[230px] min-w-0 flex-col rounded-xl border border-white/[0.09] bg-[#0b0c10] p-2 transition duration-200 hover:-translate-y-0.5 hover:border-red-500/35 hover:bg-[#0e0f14] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/75"
+      className="group group/card relative mx-auto flex h-full w-full max-w-[230px] min-w-0 flex-col rounded-lg border border-white/[0.09] bg-[#0b0c10] p-1.5 transition duration-200 hover:-translate-y-0.5 hover:border-red-500/35 hover:bg-[#0e0f14] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/75"
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.10] bg-black shadow-[0_7px_18px_rgba(0,0,0,0.25)]">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-md border border-white/[0.10] bg-black shadow-[0_7px_18px_rgba(0,0,0,0.25)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-20 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -1138,35 +1138,17 @@ function GameGridCard({
         ) : null}
       </div>
 
-      <div className="flex min-h-[76px] min-w-0 flex-1 flex-col pt-2">
+      <div className="flex min-w-0 flex-1 flex-col pt-1.5">
         <h3
-          className="line-clamp-2 min-h-[2rem] text-[12px] font-black leading-4 tracking-tight text-white transition-colors group-hover/card:text-red-100"
+          className="line-clamp-2 min-h-[1.9rem] text-[12px] font-black leading-[1.15rem] tracking-tight text-white transition-colors group-hover/card:text-red-100"
           title={gameTitle}
         >
           {gameTitle}
         </h3>
 
-        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-bold text-white/65">
-          <span
-            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
-            title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
-          >
-            <IconTrophy
-              className="h-3.5 w-3.5 text-amber-400"
-              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
-            />
-            {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}
-          </span>
-          <span className="h-3 w-px shrink-0 bg-white/10" aria-hidden="true" />
-          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap" title="Tempo de jogo">
-            <IconClock className="h-3.5 w-3.5 shrink-0 text-sky-400" />
-            <span className="truncate">{playedTime}</span>
-          </span>
-        </div>
-
-        <div className="mt-auto flex items-center gap-2 pt-1.5">
+        <div className="mt-1 flex items-center gap-2">
           <div
-            className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.09]"
+            className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.09]"
             role="progressbar"
             aria-label={`Progresso de ${gameTitle}`}
             aria-valuemin={0}
@@ -1178,8 +1160,25 @@ function GameGridCard({
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span className={`w-8 shrink-0 text-right text-[10px] font-black tabular-nums ${isCompleted ? "text-emerald-300" : isBacklog ? "text-cyan-300" : "text-white/70"}`}>
+          <span className={`w-7 shrink-0 text-right text-[9px] font-bold tabular-nums ${isCompleted ? "text-emerald-300" : isBacklog ? "text-cyan-300" : "text-white/55"}`}>
             {progress}%
+          </span>
+        </div>
+
+        <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2 text-[9px] font-semibold leading-none text-white/55">
+          <span
+            className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap"
+            title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
+          >
+            <IconTrophy
+              className="h-3 w-3 shrink-0 text-white/45"
+              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
+            />
+            <span>{isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}</span>
+          </span>
+          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap" title="Tempo de jogo">
+            <IconClock className="h-3 w-3 shrink-0 text-white/45" />
+            <span className="truncate">{playedTime}</span>
           </span>
         </div>
       </div>
@@ -2576,7 +2575,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-3 xl:grid-cols-4">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
