@@ -1138,7 +1138,7 @@ function GameGridCard({
         ) : null}
       </div>
 
-      <div className="flex min-h-[88px] min-w-0 flex-1 flex-col pt-2.5">
+      <div className="flex min-h-[76px] min-w-0 flex-1 flex-col pt-2">
         <h3
           className="line-clamp-2 min-h-[2rem] text-[12px] font-black leading-4 tracking-tight text-white transition-colors group-hover/card:text-red-100"
           title={gameTitle}
@@ -1146,7 +1146,7 @@ function GameGridCard({
           {gameTitle}
         </h3>
 
-        <div className="mt-2 flex min-w-0 items-center gap-2 text-[10px] font-bold text-white/65">
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-bold text-white/65">
           <span
             className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
@@ -1164,7 +1164,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-auto flex items-center gap-2 pt-2.5">
+        <div className="mt-auto flex items-center gap-2 pt-1.5">
           <div
             className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.09]"
             role="progressbar"
