@@ -1128,13 +1128,13 @@ function GameGridCard({
 
       <div className="flex min-w-0 flex-col pt-2">
         <h3
-          className="h-7 line-clamp-2 text-[12px] font-semibold leading-[14px] text-white"
+          className="h-8 line-clamp-2 text-[12px] font-semibold leading-4 text-white"
           title={gameTitle}
         >
           {gameTitle}
         </h3>
 
-        <div className="mt-0.5 flex items-center gap-2">
+        <div className="mt-1 flex items-center gap-2">
           <div
             className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]"
             role="progressbar"
