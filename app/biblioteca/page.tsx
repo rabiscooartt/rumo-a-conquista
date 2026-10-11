@@ -1108,9 +1108,9 @@ function GameGridCard({
     <Link
       href={`/games/${gameSlug}`}
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
-      className="group group/card relative mx-auto flex h-full w-full max-w-[230px] min-w-0 flex-col rounded-lg border border-white/[0.09] bg-[#0b0c10] p-1.5 transition duration-200 hover:-translate-y-0.5 hover:border-red-500/35 hover:bg-[#0e0f14] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/75"
+      className="group group/card relative mx-auto flex h-full w-full max-w-[230px] min-w-0 flex-col rounded-md border border-white/[0.06] bg-[#0b0c10] p-1 transition duration-200 hover:-translate-y-0.5 hover:border-red-500/35 hover:bg-[#0e0f14] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/75"
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-md border border-white/[0.10] bg-black shadow-[0_7px_18px_rgba(0,0,0,0.25)]">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-sm border border-white/[0.08] bg-black shadow-[0_3px_10px_rgba(0,0,0,0.18)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-20 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -1138,9 +1138,9 @@ function GameGridCard({
         ) : null}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col pt-1.5">
+      <div className="flex min-w-0 flex-1 flex-col pt-1">
         <h3
-          className="line-clamp-2 min-h-[1.5rem] text-[12px] font-black leading-4 tracking-tight text-white transition-colors group-hover/card:text-red-100"
+          className="line-clamp-2 min-h-[1.25rem] text-[12px] font-black leading-4 tracking-tight text-white transition-colors group-hover/card:text-red-100"
           title={gameTitle}
         >
           {gameTitle}
@@ -1165,7 +1165,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex min-w-0 items-center justify-center gap-4 text-[9px] font-semibold leading-none text-white/55">
+        <div className="mt-1 flex min-w-0 items-center justify-center gap-3 text-[9px] font-semibold leading-none text-white/55">
           <span
             className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
