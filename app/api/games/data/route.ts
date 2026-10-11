@@ -216,6 +216,56 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    let effectiveReview: unknown = game.review;
+
+    // Also repair through the public game-data path, so the persisted record
+    // is corrected the next time Hogwarts Legacy is opened.
+    if (slug === "howgarts-legacy") {
+      const currentReview =
+        game.review &&
+        typeof game.review === "object" &&
+        !Array.isArray(game.review)
+          ? (game.review as Record<string, unknown>)
+          : {};
+      const currentTitle = String(currentReview.titulo ?? "").toLowerCase();
+      const currentText = String(currentReview.texto ?? "").toLowerCase();
+      const containsForeignCrisolReview =
+        currentTitle.includes("crisol") ||
+        currentText.includes("crisol mistura terror em primeira pessoa");
+
+      const legacyRecord = (
+        legacyGames as unknown as Record<string, { review?: unknown }>
+      )[slug];
+      const originalReview = legacyRecord?.review;
+
+      if (
+        containsForeignCrisolReview &&
+        originalReview &&
+        typeof originalReview === "object" &&
+        !Array.isArray(originalReview)
+      ) {
+        const privateMetadata = Object.fromEntries(
+          Object.entries(currentReview).filter(([key]) => key.startsWith("__"))
+        );
+        const restoredReview = {
+          ...(originalReview as Record<string, unknown>),
+          ...privateMetadata,
+        };
+        const { data: repairedRow, error: repairError } = await client
+          .from("games")
+          .update({
+            review: restoredReview,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("slug", slug)
+          .select("slug")
+          .maybeSingle();
+
+        if (repairError) throw repairError;
+        if (repairedRow) effectiveReview = restoredReview;
+      }
+    }
+
     const achievementRows =
       (achievements ?? []) as unknown as DatabaseAchievementWithProgressRow[];
 
@@ -257,11 +307,11 @@ export async function GET(request: NextRequest) {
           finalBadge: game.final_badge ?? undefined,
           emblem: game.emblem ?? undefined,
           trophies: game.trophies ?? undefined,
-          review: game.review ?? undefined,
-          firstJourney: extractFirstJourney(game.review),
-          youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
-          youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
-          youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(game.review),
+          review: effectiveReview ?? undefined,
+          firstJourney: extractFirstJourney(effectiveReview),
+          youtubePlaylistUrl: extractYoutubePlaylistUrl(effectiveReview),
+          youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(effectiveReview),
+          youtubeFirstLiveEpisode: extractYoutubeFirstLiveEpisode(effectiveReview),
           manualTotalPlayedMinutes: game.manual_total_played_minutes ?? null,
           achievementsList,
         },
