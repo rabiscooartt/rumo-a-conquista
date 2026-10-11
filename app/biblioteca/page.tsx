@@ -1108,7 +1108,7 @@ function GameGridCard({
     <Link
       href={`/games/${gameSlug}`}
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
-      className="group group/card relative flex h-full min-w-0 flex-col rounded-xl border border-white/[0.09] bg-[#0b0c10] p-2 transition duration-200 hover:-translate-y-0.5 hover:border-red-500/35 hover:bg-[#0e0f14] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/75"
+      className="group group/card relative mx-auto flex h-full w-full max-w-[230px] min-w-0 flex-col rounded-xl border border-white/[0.09] bg-[#0b0c10] p-2 transition duration-200 hover:-translate-y-0.5 hover:border-red-500/35 hover:bg-[#0e0f14] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/75"
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.10] bg-black shadow-[0_7px_18px_rgba(0,0,0,0.25)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
@@ -2576,7 +2576,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 2xl:grid-cols-4">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
