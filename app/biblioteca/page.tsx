@@ -893,7 +893,7 @@ function GameRating({ rating }: { rating: number }) {
     <StarRating
       rating={rating}
       size="small"
-      className="relative top-[1px] h-[21px]"
+      className="h-[14px] !text-[12px] !tracking-[-0.04em]"
     />
   );
 }
@@ -1120,18 +1120,18 @@ function GameGridCard({
         </span>
 
         {isCompleted ? (
-          <div className="absolute right-2 top-2 z-10 rounded-md border border-white/15 bg-black/85 px-1.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+          <div className="absolute right-2 top-2 z-10 rounded-md border border-white/10 bg-black/75 px-1 py-0.5 shadow-[0_2px_8px_rgba(0,0,0,0.35)] backdrop-blur-sm">
             <GameRating rating={rating} />
           </div>
         ) : null}
       </div>
 
-      <div className="flex min-h-[60px] min-w-0 flex-1 flex-col pt-2.5">
-        <h3 className="truncate text-[13px] font-black leading-tight text-white" title={gameTitle}>
+      <div className="flex min-w-0 flex-col pt-2">
+        <h3 className="h-8 line-clamp-2 text-[12px] font-bold leading-4 text-white" title={gameTitle}>
           {gameTitle}
         </h3>
 
-        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-semibold text-white/65">
+        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-2 text-[10px] font-semibold text-white/75">
           <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
             <IconTrophy
               className="h-3.5 w-3.5 text-amber-400"
@@ -1146,11 +1146,11 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-auto pt-1.5 flex items-center gap-2">
+        <div className="mt-1.5 flex items-center gap-2">
           <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
             <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
           </div>
-          <span className={`w-8 shrink-0 text-right text-[9px] font-black ${isCompleted ? "text-emerald-300" : "text-white/50"}`}>
+          <span className={`w-8 shrink-0 text-right text-[9px] font-black ${isCompleted ? "text-emerald-300" : "text-white/70"}`}>
             {progress}%
           </span>
         </div>
@@ -2549,7 +2549,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-3.5 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
