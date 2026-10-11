@@ -1120,7 +1120,7 @@ function GameGridCard({
         </span>
 
         {isCompleted ? (
-          <div className="absolute bottom-1.5 right-2 z-10 rounded-md bg-black/65 px-1.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.45)] backdrop-blur-[2px]">
+          <div className="absolute right-2 top-2 z-10 rounded-md border border-white/15 bg-black/85 px-1.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.45)] backdrop-blur-sm">
             <GameRating rating={rating} />
           </div>
         ) : null}
@@ -1131,7 +1131,7 @@ function GameGridCard({
           {gameTitle}
         </h3>
 
-        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-semibold text-white/45">
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[10px] font-semibold text-white/65">
           <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
             <IconTrophy
               className="h-3.5 w-3.5 text-amber-400"
@@ -2549,7 +2549,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
