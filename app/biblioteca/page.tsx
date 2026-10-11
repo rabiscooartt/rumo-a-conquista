@@ -1093,10 +1093,10 @@ function GameGridCard({
     : readText(game.hours, "0h");
 
   const statusClass = isCompleted
-    ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+    ? "border-emerald-300/35 bg-emerald-500/20 text-emerald-200"
     : isBacklog
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-300"
-    : "border-red-500/25 bg-red-500/10 text-red-300";
+    ? "border-cyan-300/35 bg-cyan-500/20 text-cyan-200"
+    : "border-red-400/35 bg-red-600/25 text-red-200";
 
   const progressClass = isCompleted
     ? "bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
@@ -1120,19 +1120,27 @@ function GameGridCard({
         </span>
 
         {isCompleted ? (
-          <div className="absolute right-2 top-2 z-10 rounded bg-black/60 px-1 py-0 shadow-sm backdrop-blur-sm">
+          <div className="absolute right-2 top-2 z-10 rounded bg-black/65 px-1 py-0 opacity-90 shadow-sm backdrop-blur-sm">
             <GameRating rating={rating} />
           </div>
         ) : null}
       </div>
 
       <div className="flex min-w-0 flex-col pt-2">
-        <h3
-          className="h-4 truncate text-[12px] font-semibold leading-4 text-white"
-          title={gameTitle}
-        >
-          {gameTitle}
-        </h3>
+        <div className="group/title relative min-w-0">
+          <h3
+            className="h-4 truncate text-[12px] font-semibold leading-4 text-white"
+            title={gameTitle}
+          >
+            {gameTitle}
+          </h3>
+          <span
+            role="tooltip"
+            className="pointer-events-none invisible absolute left-0 top-full z-30 mt-1 w-max max-w-[260px] whitespace-normal break-words rounded-md border border-white/15 bg-[#101116] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover/title:visible group-hover/title:opacity-100 group-focus-visible/card:visible group-focus-visible/card:opacity-100"
+          >
+            {gameTitle}
+          </span>
+        </div>
 
         <div className="mt-1 flex items-center gap-2">
           <div
@@ -1145,7 +1153,7 @@ function GameGridCard({
           >
             <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
           </div>
-          <span className={`w-8 shrink-0 text-right text-[9px] font-black tabular-nums ${isCompleted ? "text-emerald-300" : "text-white/70"}`}>
+          <span className={`w-8 shrink-0 text-right text-[9px] font-black tabular-nums ${isCompleted ? "text-emerald-300" : isBacklog ? "text-cyan-200" : "text-white/85"}`}>
             {progress}%
           </span>
         </div>
