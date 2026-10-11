@@ -1105,7 +1105,7 @@ function GameGridCard({
   return (
     <Link
       href={`/games/${gameSlug}`}
-      className="group/card mx-auto flex h-full w-full max-w-[230px] min-w-0 flex-col rounded-xl border border-white/[0.08] bg-white/[0.015] p-2.5 transition duration-300 hover:border-white/15 hover:bg-white/[0.035]"
+      className="group/card mx-auto flex h-full w-full max-w-[205px] min-w-0 flex-col rounded-xl border border-white/[0.08] bg-white/[0.015] p-2.5 transition duration-300 hover:border-white/15 hover:bg-white/[0.035]"
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
@@ -2548,7 +2548,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-4">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
