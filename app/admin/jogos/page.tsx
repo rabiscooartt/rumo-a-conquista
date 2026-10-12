@@ -920,12 +920,16 @@ export default function NewGamesAdminPage() {
                   manualRecords={manualAchievementRecords}
                   journeySelectionEnabled={journeyCompleted}
                   onJourneyIdsChange={setJourneyDraftIds}
+                  collapsed={Boolean(collapsedSections["03"])}
+                  onToggle={() => toggleAdminSection("03")}
                   onSave={(update) => updateGame(selectedGame.slug, update)}
                 />
 
                 <FinalMasteryEditor
                   key={"mastery-" + selectedGame.slug}
                   game={selectedGame}
+                  collapsed={Boolean(collapsedSections["04"])}
+                  onToggle={() => toggleAdminSection("04")}
                   onSave={(finalBadge) =>
                     updateFinalMastery(selectedGame.slug, finalBadge)
                   }
