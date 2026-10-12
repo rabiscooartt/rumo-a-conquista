@@ -12,34 +12,34 @@ function normalize(value: string) {
   return value
     .toLocaleLowerCase("pt-BR")
     .normalize("NFD")
-    .replace(/[\\u0300-\\u036f]/g, "")
-    .replace(/\\s+/g, " ")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function fallbackSuggestion(note: string): AchievementSuggestion {
-  const value = note.trim().replace(/\\s+/g, " ");
+  const value = note.trim().replace(/\s+/g, " ");
   const key = normalize(value);
-  const difficultyMatch = value.match(/(?:dificuldade|modo)\\s+(muito facil|facil|normal|medio|médio|dificil|difícil|muito dificil|muito difícil|hard|nightmare|insano)/i);
+  const difficultyMatch = value.match(/(?:dificuldade|modo)\s+(muito facil|facil|normal|medio|médio|dificil|difícil|muito dificil|muito difícil|hard|nightmare|insano)/i);
   const difficultyRaw = difficultyMatch?.[1] ?? "";
   const difficulty = difficultyRaw
     ? difficultyRaw.charAt(0).toLocaleUpperCase("pt-BR") + difficultyRaw.slice(1).toLocaleLowerCase("pt-BR")
     : "";
 
-  const isCompletion = /\\b(finalizei|terminei|conclui|concluí|zerei|completei|finalizar|finalize|concluir|conclua|termine|terminar|complete|completei)\\b/.test(key);
-  const gameOrCampaign = /\\b(jogo|campanha|historia|historia principal|game|campanha principal)\\b/.test(key);
-  const isHard = /\\b(dificuldade dificil|muito dificil|hard|nightmare|insano|sem tomar dano|sem receber dano|sem morrer|sem ser atingido|no hit|100%|todos os trofeus|todas as conquistas|platina)\\b/.test(key);
-  const isNormal = /\\b(normal|medio|medium)\\b/.test(key);
-  const isEasy = /\\b(facil|easy)\\b/.test(key);
+  const isCompletion = /\b(finalizei|terminei|conclui|concluí|zerei|completei|finalizar|finalize|concluir|conclua|termine|terminar|complete|completei)\b/.test(key);
+  const gameOrCampaign = /\b(jogo|campanha|historia|historia principal|game|campanha principal)\b/.test(key);
+  const isHard = /\b(dificuldade dificil|muito dificil|hard|nightmare|insano|sem tomar dano|sem receber dano|sem morrer|sem ser atingido|no hit|100%|todos os trofeus|todas as conquistas|platina)\b/.test(key);
+  const isNormal = /\b(normal|medio|medium)\b/.test(key);
+  const isEasy = /\b(facil|easy)\b/.test(key);
   const rank: AchievementRank = isHard
     ? "Ouro"
     : isCompletion && isNormal
       ? "Prata"
       : isCompletion && isEasy
         ? "Bronze"
-        : /\\b(todos|todas|100%|maximo|maxima|completo|completa)\\b/.test(key)
+        : /\b(todos|todas|100%|maximo|maxima|completo|completa)\b/.test(key)
           ? "Ouro"
-          : /\\b(derrote|derrotar|chefe|boss|complete|finalize|conclua)\\b/.test(key)
+          : /\b(derrote|derrotar|chefe|boss|complete|finalize|conclua)\b/.test(key)
             ? "Prata"
             : "Bronze";
 
@@ -48,38 +48,38 @@ function fallbackSuggestion(note: string): AchievementSuggestion {
   else if (isCompletion && gameOrCampaign && isHard) title = "Prova de Ferro";
   else if (isCompletion && gameOrCampaign && isEasy) title = "Uma Jornada Tranquila";
   else if (isCompletion && gameOrCampaign) title = "Até o Fim";
-  else if (/\\b(sem tomar dano|sem receber dano|sem ser atingido|no hit)\\b/.test(key)) title = "Intocável";
-  else if (/\\b(um unico tiro|uma unica bala|um so tiro|uma so bala)\\b/.test(key)) title = "Um Tiro, Alvo Certo";
-  else if (/\\b(derrote|derrotar|mate|matar|elimine|eliminar)\\b/.test(key)) title = "Precisão Mortal";
-  else if (/\\b(colete|coletar|encontre|encontrar|pegue|pegar)\\b/.test(key)) title = /\\b(todos|todas|100%)\\b/.test(key) ? "Nada Ficou Para Trás" : "Em Busca do Inesperado";
-  else if (/\\b(explore|explorar|visite|visitar|descubra|descobrir)\\b/.test(key)) title = "Além do Caminho";
+  else if (/\b(sem tomar dano|sem receber dano|sem ser atingido|no hit)\b/.test(key)) title = "Intocável";
+  else if (/\b(um unico tiro|uma unica bala|um so tiro|uma so bala)\b/.test(key)) title = "Um Tiro, Alvo Certo";
+  else if (/\b(derrote|derrotar|mate|matar|elimine|eliminar)\b/.test(key)) title = "Precisão Mortal";
+  else if (/\b(colete|coletar|encontre|encontrar|pegue|pegar)\b/.test(key)) title = /\b(todos|todas|100%)\b/.test(key) ? "Nada Ficou Para Trás" : "Em Busca do Inesperado";
+  else if (/\b(explore|explorar|visite|visitar|descubra|descobrir)\b/.test(key)) title = "Além do Caminho";
 
   let description = value.replace(/[.!?]+$/, "");
-  if (/\\b(finalizei|terminei|conclui|concluí|zerei|completei)\\b/i.test(description)) {
-    description = description.replace(/^(eu\\s+)?(finalizei|terminei|conclui|concluí|zerei|completei)\\b/i, "Conclua");
-  } else if (/\\b(matei|mate|mat(ar|e)|eliminei|elimine|derrotei|derrote)\\b/i.test(description)) {
-    description = description.replace(/^(eu\\s+)?(matei|eliminei|derrotei)\\b/i, (_match, _prefix, verb) =>
+  if (/\b(finalizei|terminei|conclui|concluí|zerei|completei)\b/i.test(description)) {
+    description = description.replace(/^(eu\s+)?(finalizei|terminei|conclui|concluí|zerei|completei)\b/i, "Conclua");
+  } else if (/\b(matei|mate|mat(ar|e)|eliminei|elimine|derrotei|derrote)\b/i.test(description)) {
+    description = description.replace(/^(eu\s+)?(matei|eliminei|derrotei)\b/i, (_match, _prefix, verb) =>
       verb.toLocaleLowerCase("pt-BR") === "matei" ? "Elimine" :
       verb.toLocaleLowerCase("pt-BR") === "eliminei" ? "Elimine" : "Derrote"
     );
-  } else if (/\\b(coletei|encontrei|peguei|recolhi)\\b/i.test(description)) {
-    description = description.replace(/^(eu\\s+)?(coletei|encontrei|peguei|recolhi)\\b/i, (_match, _prefix, verb) => {
+  } else if (/\b(coletei|encontrei|peguei|recolhi)\b/i.test(description)) {
+    description = description.replace(/^(eu\s+)?(coletei|encontrei|peguei|recolhi)\b/i, (_match, _prefix, verb) => {
       const verbs: Record<string, string> = { coletei: "Colete", encontrei: "Encontre", peguei: "Colete", recolhi: "Recolha" };
       return verbs[String(verb).toLocaleLowerCase("pt-BR")] ?? "Conclua";
     });
-  } else if (/\\b(ganhei|venci|vençi|conquistei)\\b/i.test(description)) {
-    description = description.replace(/^(eu\\s+)?(ganhei|venci|vençi|conquistei)\\b/i, "Conquiste");
-  } else if (/\\b(finalizar|finalize|concluir|conclua|termine|complete)\\b/i.test(description)) {
-    description = description.replace(/^(eu\\s+)?/i, "");
+  } else if (/\b(ganhei|venci|vençi|conquistei)\b/i.test(description)) {
+    description = description.replace(/^(eu\s+)?(ganhei|venci|vençi|conquistei)\b/i, "Conquiste");
+  } else if (/\b(finalizar|finalize|concluir|conclua|termine|complete)\b/i.test(description)) {
+    description = description.replace(/^(eu\s+)?/i, "");
     description = description.charAt(0).toLocaleUpperCase("pt-BR") + description.slice(1);
   } else {
     description = description.charAt(0).toLocaleUpperCase("pt-BR") + description.slice(1);
   }
 
-  if (difficulty && /\\b(jogo|campanha|historia|historia principal)\\b/i.test(description) && !/\\b(dificuldade|modo)\\b/i.test(description)) {
-    description = description.replace(/\\b(jogo|campanha|historia principal|historia)\\b/i, (target) => `${target} na dificuldade ${difficulty}`);
+  if (difficulty && /\b(jogo|campanha|historia|historia principal)\b/i.test(description) && !/\b(dificuldade|modo)\b/i.test(description)) {
+    description = description.replace(/\b(jogo|campanha|historia principal|historia)\b/i, (target) => `${target} na dificuldade ${difficulty}`);
   }
-  description = description.replace(/\\s+/g, " ").trim();
+  description = description.replace(/\s+/g, " ").trim();
   if (!/[.!?]$/.test(description)) description += ".";
 
   return {
@@ -212,8 +212,13 @@ export async function POST(request: Request) {
     try {
       suggestion = JSON.parse(raw);
     } catch {
-      const fenced = raw.match(/\`\`\`(?:json)?\\s*([\\s\\S]*?)\`\`\`/i);
-      suggestion = JSON.parse(fenced?.[1] ?? raw);
+      const firstBrace = raw.indexOf("{");
+      const lastBrace = raw.lastIndexOf("}");
+      const jsonText =
+        firstBrace >= 0 && lastBrace > firstBrace
+          ? raw.slice(firstBrace, lastBrace + 1)
+          : raw;
+      suggestion = JSON.parse(jsonText);
     }
 
     const candidate = suggestion as Partial<AchievementSuggestion>;
