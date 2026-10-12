@@ -28,6 +28,7 @@ type A = {
   image?: string;
   rankReason?: string;
   suggestionSource?: "ia" | "regras";
+  status?: "locked" | "progress" | "completed";
 };
 
 function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achievement: A }) {
@@ -225,6 +226,8 @@ function PrepararJogoPage() {
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [generatingManualAchievement, setGeneratingManualAchievement] = useState(false);
   const [manualSuggestionNotice, setManualSuggestionNotice] = useState("");
+  const [preparationMode, setPreparationMode] = useState<"edit" | "append">("edit");
+  const [preparationModeNotice, setPreparationModeNotice] = useState("");
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -315,7 +318,11 @@ function PrepararJogoPage() {
     };
   }, [result, saved]);
 
-  async function search(gameSlug = registeredSlug, gameTitle = title) {
+  async function search(
+    gameSlug = registeredSlug,
+    gameTitle = title,
+    options: { forceFresh?: boolean } = {}
+  ) {
     setJourneyPreparedCount(null);
     setExpandedRecordIds(new Set());
     setRealizedDescription("");
@@ -335,10 +342,58 @@ function PrepararJogoPage() {
 
     setLoading(true);
     setError("");
-    setSaved(false);
-    setResult(null);
 
     try {
+      // Ao abrir um jogo já preparado, use primeiro o snapshot completo.
+      // Assim não consultamos o Exophase nem substituímos a lista editada.
+      if (gameSlug && !options.forceFresh) {
+        let draftResponse: Response;
+        let draftPayload: { found?: boolean; draft?: Record<string, unknown>; error?: string };
+        try {
+          draftResponse = await fetch(
+            "/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(gameSlug),
+            { cache: "no-store" }
+          );
+          draftPayload = await draftResponse.json();
+        } catch {
+          throw new Error("Não consegui verificar o rascunho salvo. Nenhuma análise foi refeita; tente novamente.");
+        }
+
+        if (!draftResponse.ok) {
+          throw new Error(draftPayload.error || "Não consegui verificar o rascunho salvo. Nenhuma análise foi refeita.");
+        }
+
+        const draft = draftPayload.found ? draftPayload.draft : undefined;
+        const savedGame = draft?.preparedGame;
+        const savedAchievements = draft?.preparedAchievements;
+        if (
+          savedGame &&
+          typeof savedGame === "object" &&
+          Array.isArray(savedAchievements)
+        ) {
+          setResult({
+            game: savedGame as R["game"],
+            achievements: savedAchievements as A[],
+            warnings: Array.isArray(draft?.preparedWarnings)
+              ? draft.preparedWarnings as string[]
+              : [],
+          });
+          setJourneyStartEpisode(
+            String((savedGame as R["game"]).youtubeFirstLiveEpisode || "")
+          );
+          setDraftUpdatedAt(
+            typeof draft?.updatedAt === "string" ? draft.updatedAt : null
+          );
+          setSaved(true);
+          setPreparationMode("edit");
+          setPreparationModeNotice("Preparação existente carregada. A lista foi mantida sem refazer a análise.");
+          return;
+        }
+      }
+
+      setSaved(false);
+      setResult(null);
+
       const query = gameSlug
         ? "slug=" + encodeURIComponent(gameSlug)
         : "title=" + encodeURIComponent(gameTitle);
@@ -499,7 +554,34 @@ function PrepararJogoPage() {
         if (!response.ok) throw new Error(payload.error || "Erro ao carregar rascunho.");
 
         if (!cancelled && payload.found && payload.draft) {
-          const draft = payload.draft;
+          const draft = payload.draft as Record<string, unknown>;
+
+          // Versão nova do rascunho: a lista inteira é a fonte da verdade.
+          // Não mesclar com Exophase, porque isso pode ressuscitar/remover itens.
+          if (
+            draft.preparedGame &&
+            typeof draft.preparedGame === "object" &&
+            Array.isArray(draft.preparedAchievements)
+          ) {
+            setResult((current) =>
+              current
+                ? {
+                    ...current,
+                    game: draft.preparedGame as R["game"],
+                    achievements: draft.preparedAchievements as A[],
+                    warnings: Array.isArray(draft.preparedWarnings)
+                      ? draft.preparedWarnings as string[]
+                      : current.warnings,
+                  }
+                : current
+            );
+            setDraftUpdatedAt(typeof draft.updatedAt === "string" ? draft.updatedAt : null);
+            setSaved(true);
+            return;
+          }
+
+          // Compatibilidade com os rascunhos anteriores, que guardavam apenas
+          // a organização e as conquistas manuais, não a lista inteira.
           const journeyFinalized = draft.journeyFinalized === true;
           const journeyIds = journeyFinalized
             ? new Set<string>()
@@ -989,9 +1071,17 @@ function PrepararJogoPage() {
       current
         ? {
             ...current,
-            achievements: current.achievements.map((a) =>
-              a.id === id ? { ...a, [field]: value } : a
-            ),
+            achievements: current.achievements.map((a) => {
+              if (a.id !== id) return a;
+              const nextEpisode = field === "episode" ? value : (a.episode ?? "");
+              const nextDate = field === "earnedDate" ? value : (a.earnedDate ?? "");
+              const hasEarnedRecord = Boolean(nextEpisode.trim() || nextDate.trim());
+              return {
+                ...a,
+                [field]: value,
+                status: hasEarnedRecord ? "completed" : "locked",
+              };
+            }),
           }
         : current
     );
@@ -1259,6 +1349,7 @@ function PrepararJogoPage() {
         earnedDate: date,
         earnedNote: value,
         isCustom: true,
+        status: "completed",
       };
 
       setSaved(false);
@@ -1285,6 +1376,7 @@ function PrepararJogoPage() {
                     episode,
                     earnedDate: date,
                     earnedNote: value,
+                    status: "completed",
                   }
                 : achievement
             ),
@@ -1614,6 +1706,9 @@ function PrepararJogoPage() {
       body: JSON.stringify({
         slug: result.game.slug,
         preparation: {
+          preparedGame: result.game,
+          preparedAchievements: achievements,
+          preparedWarnings: result.warnings ?? [],
           journeyIds: achievements
             .filter((a) => a.journey && !a.notDoing)
             .map((a) => a.id),
@@ -1855,8 +1950,12 @@ function PrepararJogoPage() {
           rank: achievement.rank,
           difficulty: achievement.rank,
           status:
-            String(existingRecord?.status || "").trim() ||
-            (earnedDate ? "completed" : "locked"),
+            achievement.status === "completed" ||
+            Boolean(achievement.episode?.trim() || earnedDate || achievement.journey)
+              ? "completed"
+              : String(existingRecord?.status || "").trim() === "completed"
+                ? "completed"
+                : "locked",
           earnedDate,
           image: fallbackImage,
           isCustom: Boolean(achievement.isCustom),
@@ -2306,7 +2405,7 @@ function PrepararJogoPage() {
     if (!result?.game.slug) return;
     if (
       !window.confirm(
-        "Limpar o rascunho desta preparação? As conquistas públicas não serão alteradas."
+        "Refazer a análise do zero? Isso apagará o rascunho desta preparação e descartará alterações ainda não salvas. As conquistas já publicadas continuarão intactas."
       )
     ) return;
 
@@ -2382,7 +2481,7 @@ function PrepararJogoPage() {
                 disabled={draftLoading}
                 className="rounded-lg border border-red-400/20 bg-red-400/[.06] px-3 py-2 text-[10px] font-black uppercase text-red-200 disabled:opacity-40"
               >
-                🗑️ Limpar preparação
+                ↻ Refazer análise do zero
               </button>
               <div className="flex flex-col items-stretch gap-1">
                 <button
@@ -2464,6 +2563,52 @@ function PrepararJogoPage() {
         {loading && !result && (
           <section className="mt-7 rounded-[20px] border border-white/[.08] bg-[#090909] p-6 text-sm text-white/35">
             Buscando as conquistas de {registeredSlug ? "este jogo cadastrado" : "este jogo"}...
+          </section>
+        )}
+
+        {result && registeredSlug && (
+          <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
+            <p className="text-[9px] font-black uppercase tracking-[.18em] text-white/35">
+              Modo de trabalho
+            </p>
+            <h2 className="mt-1 text-lg font-black">Como deseja continuar?</h2>
+            <p className="mt-1 max-w-[900px] text-xs leading-relaxed text-white/40">
+              A lista existente será preservada. Só a opção “Refazer análise do zero” apaga o rascunho e consulta novamente o Exophase.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPreparationMode("edit");
+                  setPreparationModeNotice("Modo de edição ativo. Sua lista atual foi mantida e não houve nova análise.");
+                }}
+                className={preparationMode === "edit"
+                  ? "rounded-xl border border-emerald-400/35 bg-emerald-400/[.10] px-4 py-3 text-[10px] font-black uppercase text-emerald-100"
+                  : "rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-[10px] font-black uppercase text-white/55"}
+              >
+                Continuar / editar lista
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPreparationMode("append");
+                  setPreparationModeNotice("Modo de acréscimo ativo. As conquistas existentes serão mantidas; adicione somente as novas abaixo.");
+                  window.setTimeout(() => {
+                    document.getElementById("manual-achievement-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }, 50);
+                }}
+                className={preparationMode === "append"
+                  ? "rounded-xl border border-blue-400/35 bg-blue-500/[.10] px-4 py-3 text-[10px] font-black uppercase text-blue-100"
+                  : "rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-[10px] font-black uppercase text-white/55"}
+              >
+                + Adicionar conquistas à lista atual
+              </button>
+            </div>
+            {preparationModeNotice && (
+              <p className="mt-3 rounded-lg border border-white/[.07] bg-black/20 px-3 py-2 text-xs text-white/55">
+                {preparationModeNotice}
+              </p>
+            )}
           </section>
         )}
 
@@ -2953,7 +3098,7 @@ function PrepararJogoPage() {
                 )}
               </div>
 
-              <div className="mt-5 rounded-2xl border border-zinc-400/25 bg-zinc-500/[.045] p-5">
+              <div id="manual-achievement-section" className="mt-5 rounded-2xl border border-zinc-400/25 bg-zinc-500/[.045] p-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[.18em] text-zinc-300">
@@ -2962,6 +3107,7 @@ function PrepararJogoPage() {
                     <h3 className="mt-1 text-lg font-black">Adicionar uma conquista sua</h3>
                     <p className="mt-1 text-xs text-white/45">
                       Escreva sua anotação do jeito que lembrar. O sistema sugere um título, uma descrição melhor e o rank automaticamente; você pode revisar tudo depois.
+                      {preparationMode === "append" ? " Neste modo, as conquistas que já existem são mantidas e somente as novas são acrescentadas." : ""}
                     </p>
                   </div>
                   <span className="rounded-full border border-zinc-300/20 bg-zinc-300/[.06] px-3 py-2 text-[9px] font-black uppercase text-zinc-200">
