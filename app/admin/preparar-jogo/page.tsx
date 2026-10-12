@@ -2,7 +2,7 @@
 
 // Preview: fluxo de análise visual textual das referências Exophase.
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -228,6 +228,8 @@ function PrepararJogoPage() {
   const [manualSuggestionNotice, setManualSuggestionNotice] = useState("");
   const [preparationMode, setPreparationMode] = useState<"edit" | "append">("edit");
   const [preparationModeNotice, setPreparationModeNotice] = useState("");
+  const [needsDraftSnapshotUpgrade, setNeedsDraftSnapshotUpgrade] = useState(false);
+  const draftSnapshotUpgradeStarted = useRef(false);
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -650,6 +652,9 @@ function PrepararJogoPage() {
           );
           setDraftUpdatedAt(typeof draft.updatedAt === "string" ? draft.updatedAt : null);
           setSaved(true);
+          // Migra automaticamente o rascunho antigo após mesclar a lista
+          // Exophase com as conquistas manuais e os metadados salvos.
+          setNeedsDraftSnapshotUpgrade(true);
         } else if (!cancelled) {
           // Migração de preparações antigas salvas no navegador.
           const raw = localStorage.getItem(`rumo-preparador:${slug}`);
@@ -700,6 +705,33 @@ function PrepararJogoPage() {
       cancelled = true;
     };
   }, [result?.game.slug]);
+
+  useEffect(() => {
+    if (
+      !needsDraftSnapshotUpgrade ||
+      !result?.game.slug ||
+      draftSnapshotUpgradeStarted.current
+    ) {
+      return;
+    }
+
+    draftSnapshotUpgradeStarted.current = true;
+    void persistPreparation(result.achievements)
+      .then(() => {
+        setNeedsDraftSnapshotUpgrade(false);
+      })
+      .catch((error) => {
+        setError(
+          error instanceof Error
+            ? "O rascunho antigo foi carregado, mas não consegui migrá-lo automaticamente. Salve o rascunho para evitar uma nova análise na próxima abertura."
+            : "O rascunho antigo foi carregado, mas não consegui migrá-lo automaticamente. Salve o rascunho para evitar uma nova análise na próxima abertura."
+        );
+        setNeedsDraftSnapshotUpgrade(false);
+        draftSnapshotUpgradeStarted.current = false;
+      });
+    // Executa uma vez por carregamento legado; não acompanha edições posteriores.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsDraftSnapshotUpgrade, result?.game.slug]);
 
   useEffect(() => {
     const gameSlug = result?.game.slug;
