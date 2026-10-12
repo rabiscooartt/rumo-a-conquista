@@ -1352,8 +1352,11 @@ export default function GameAchievementsPanel(
                 );
                 })
               );
+            // Fora da Jornada continuam bloqueadas somente as conquistas
+            // ainda não obtidas. Um registro manual publicado como completed
+            // deve aparecer desbloqueado mesmo quando o bloqueio da Jornada está ativo.
             const isJourneyBlocked =
-              journeyLockActive && !isJourneyAchievement;
+              journeyLockActive && !isJourneyAchievement && status !== "completed";
             const journeyVisible =
               journeyLockActive && isJourneyAchievement;
             const visuallyLocked =
