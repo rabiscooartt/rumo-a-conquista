@@ -1378,7 +1378,7 @@ export default function GameAchievementsPanel(
                 }`}
               >
                 <div className="p-3 sm:p-4">
-                  <div className="grid gap-4 md:grid-cols-[52px_minmax(0,1fr)_150px] md:items-center">
+                  <div className="grid gap-x-3 gap-y-4 md:grid-cols-[52px_minmax(0,1fr)_48px_132px] md:items-center">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
                         visuallyLocked
@@ -1410,7 +1410,7 @@ export default function GameAchievementsPanel(
                       )}
                     </div>
 
-                    <div className="min-w-0">
+                    <div className={visuallyLocked ? "min-w-0 md:col-span-3" : "min-w-0"}>
                       <h3 className="text-sm font-black tracking-[-0.01em] text-white sm:text-[15px]">
                         {formatAchievementTitle(achievement.title)}
                       </h3>
@@ -1422,8 +1422,8 @@ export default function GameAchievementsPanel(
                     </div>
 
                     {!visuallyLocked && (
-                      <div className="flex min-w-0 flex-col items-start justify-center md:items-end">
-                        <div className="flex w-[124px] items-center justify-end">
+                      <>
+                        <div className="flex min-w-0 items-center justify-center md:justify-end">
                           <img
                             src={trophyImagePath(rank)}
                             alt={rankLabel(rank)}
@@ -1433,58 +1433,77 @@ export default function GameAchievementsPanel(
                           />
                         </div>
 
-                        {!isFinalMastery && isJourneyAchievement && journeyLockActive && (
-                          <a
-                            href={youtubePlaylistUrl || undefined}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={`mt-1 text-[8px] font-black uppercase tracking-[0.12em] transition ${
-                              youtubePlaylistUrl
-                                ? "text-emerald-200 hover:text-emerald-100 hover:underline"
-                                : "cursor-default text-emerald-200"
-                            }`}
-                            onClick={(event) => {
-                              if (!youtubePlaylistUrl) event.preventDefault();
-                            }}
-                          >
-                            JORNADA DE ESTREIA
-                          </a>
-                        )}
+                        <div className="flex min-w-0 flex-col items-end justify-center gap-1 text-right">
+                          {!isFinalMastery && isJourneyAchievement && journeyLockActive ? (
+                            <a
+                              href={youtubePlaylistUrl || undefined}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label={`Abrir playlist da Jornada de Estreia de ${gameTitle}`}
+                              title={youtubePlaylistUrl ? "Abrir playlist do YouTube" : "Playlist do YouTube ainda não cadastrada"}
+                              className={`inline-flex max-w-full items-center justify-end gap-1 text-[8px] font-black uppercase tracking-[0.08em] transition ${
+                                youtubePlaylistUrl
+                                  ? "text-emerald-200 hover:text-emerald-100 hover:underline"
+                                  : "cursor-default text-emerald-200"
+                              }`}
+                              onClick={(event) => {
+                                if (!youtubePlaylistUrl) event.preventDefault();
+                              }}
+                            >
+                              <span aria-hidden="true" className="shrink-0 text-[#ff4545]">▶</span>
+                              <span className="max-w-[112px] leading-tight">JORNADA DE ESTREIA</span>
+                            </a>
+                          ) : !isFinalMastery ? (
+                            (() => {
+                              const meta = achievementMeta[achievementKey];
+                              const episode = formatJourneyEpisode(meta?.episode);
+                              const dateValue = meta?.date || achievement.earnedDate || "";
+                              const date = formatJourneyDate(dateValue);
+                              const liveUrl = readText(meta?.liveUrl, "").trim();
+                              const hasRecord = Boolean(episode || date || liveUrl);
 
-                        {!isFinalMastery && (() => {
-                          const meta = achievementMeta[achievementKey];
-                          const episode = formatJourneyEpisode(meta?.episode);
-                          const date = formatJourneyDate(meta?.date);
-                          const hasRecord = Boolean(episode || date);
+                              if (!hasRecord) return null;
 
-                          if (!hasRecord) return null;
-
-                          return (
-                            <div className="mt-1 text-[8px] font-bold tracking-[0.03em] text-white/35">
-                              {episode ? (
-                                meta?.liveUrl ? (
-                                  <a
-                                    href={meta.liveUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-white/55 transition hover:text-white hover:underline"
-                                  >
-                                    EP {episode}
-                                  </a>
-                                ) : (
-                                  <span>EP {episode}</span>
-                                )
-                              ) : null}
-                              {date ? (
-                                <span>
-                                  {episode ? " - " : ""}
-                                  {date}
-                                </span>
-                              ) : null}
-                            </div>
-                          );
-                        })()}
-                      </div>
+                              return (
+                                <div className="flex min-w-0 flex-col items-end gap-1 text-right text-[9px] font-semibold leading-tight text-white/55">
+                                  {episode ? (
+                                    liveUrl ? (
+                                      <a
+                                        href={liveUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label={`Abrir live ${episode} de ${gameTitle}`}
+                                        className="inline-flex items-center gap-1 text-white/70 transition hover:text-white hover:underline"
+                                      >
+                                        <span aria-hidden="true" className="text-[#ff4545]">▶</span>
+                                        EP {episode}
+                                      </a>
+                                    ) : (
+                                      <span>EP {episode}</span>
+                                    )
+                                  ) : liveUrl ? (
+                                    <a
+                                      href={liveUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      aria-label={`Abrir live da conquista ${achievement.title}`}
+                                      className="inline-flex items-center gap-1 text-white/70 transition hover:text-white hover:underline"
+                                    >
+                                      <span aria-hidden="true" className="text-[#ff4545]">▶</span>
+                                      LIVE
+                                    </a>
+                                  ) : null}
+                                  {date ? (
+                                    <time dateTime={dateValue} className="whitespace-nowrap">
+                                      {date}
+                                    </time>
+                                  ) : null}
+                                </div>
+                              );
+                            })()
+                          ) : null}
+                        </div>
+                      </>
                     )}
                                     </div>
                   {isEditMode && !isFinalMastery && (
