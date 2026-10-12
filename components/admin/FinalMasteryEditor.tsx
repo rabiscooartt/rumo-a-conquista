@@ -351,12 +351,15 @@ function buildMasteryPrompt(game: SiteGame, mastery: FinalMastery) {
 export default function FinalMasteryEditor({
   game,
   onSave,
+  collapsed = false,
+  onToggle,
 }: {
   game: SiteGame;
   onSave: (finalBadge: NonNullable<SiteGame["finalBadge"]>) => Promise<boolean>;
+  collapsed?: boolean;
+  onToggle?: () => void;
 }) {
   const [mastery, setMastery] = useState<FinalMastery>(() => normalizeMastery(game));
-  const [sectionCollapsed, setSectionCollapsed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [copiedAction, setCopiedAction] = useState<"analysis" | "instructions" | "generation" | null>(null);
@@ -552,8 +555,8 @@ export default function FinalMasteryEditor({
         <div className="min-w-0">
           <button
             type="button"
-            onClick={() => setSectionCollapsed((value) => !value)}
-            aria-expanded={!sectionCollapsed}
+            onClick={onToggle}
+            aria-expanded={!collapsed}
             className="group inline-flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-violet-300/50"
           >
             <span className="flex flex-col">
@@ -561,10 +564,10 @@ export default function FinalMasteryEditor({
               <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-violet-100">Maestria Final</span>
             </span>
             <span aria-hidden="true" className="mt-3 text-lg font-black text-white/45 transition-colors group-hover:text-violet-200">
-              {sectionCollapsed ? "+" : "−"}
+              {collapsed ? "+" : "−"}
             </span>
           </button>
-          {!sectionCollapsed && (
+          {!collapsed && (
             <p className="mt-1 max-w-[820px] text-xs leading-relaxed text-white/40">
               Aqui fica a recompensa final do jogo. A Maestria Final é separada das conquistas Bronze, Prata e Ouro; título, descrição e arte são definidos aqui.
             </p>
@@ -601,7 +604,7 @@ export default function FinalMasteryEditor({
         </div>
       </div>
 
-      {!sectionCollapsed && (
+      {!collapsed && (
         <>
       <div className="mt-5 grid gap-4 lg:grid-cols-[170px_minmax(0,1fr)]">
         <div>
