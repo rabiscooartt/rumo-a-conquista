@@ -1459,7 +1459,7 @@ export default function GameAchievementsPanel(
                               const episode = formatJourneyEpisode(meta?.episode);
                               const dateValue = meta?.date || achievement.earnedDate || "";
                               const date = formatJourneyDate(dateValue);
-                              const liveUrl = readText(meta?.liveUrl, "").trim();
+                              const liveUrl = String(meta?.liveUrl ?? "").trim();
                               const hasRecord = Boolean(episode || date || liveUrl);
 
                               if (!hasRecord) return null;
