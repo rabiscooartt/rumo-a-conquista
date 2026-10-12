@@ -34,10 +34,18 @@ export default function ImportArtBatchUpload({
   achievements,
   gameSlug,
   onSaved,
+  draftMode = false,
+  sectionEyebrow = "06 • Importar artes",
+  sectionTitle = "Adicionar imagens das conquistas",
+  sectionDescription = "Selecione as imagens do lote. O nome do arquivo identifica automaticamente cada conquista; você pode importar um lote por vez.",
 }: {
   achievements: PreparedAchievement[];
   gameSlug: string;
   onSaved?: (saved: SavedAchievement[]) => void;
+  draftMode?: boolean;
+  sectionEyebrow?: string;
+  sectionTitle?: string;
+  sectionDescription?: string;
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
@@ -107,9 +115,15 @@ export default function ImportArtBatchUpload({
         const body = new FormData();
         body.append("gameSlug", gameSlug);
         body.append("expectedFilenames", JSON.stringify([file.name]));
+        if (draftMode) {
+          body.append("expectedAchievements", JSON.stringify(achievements));
+        }
         body.append("files", file);
 
-        const response = await fetch("/api/admin/achievement-art", {
+        const endpoint = draftMode
+          ? "/api/admin/achievement-prep-art"
+          : "/api/admin/achievement-art";
+        const response = await fetch(endpoint, {
           method: "POST",
           body,
         });
@@ -179,14 +193,13 @@ export default function ImportArtBatchUpload({
     <details open className="mt-5 rounded-[20px] border border-white/[.07] bg-black/25 p-5">
       <summary className="cursor-pointer list-none">
         <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
-          06 • Importar artes
+          {sectionEyebrow}
         </p>
         <h2 className="mt-1 text-xl font-black">
-          Adicionar imagens das conquistas
+          {sectionTitle}
         </h2>
         <p className="mt-2 text-xs leading-relaxed text-white/35">
-          Selecione as imagens do lote. O nome do arquivo identifica
-          automaticamente cada conquista; você pode importar um lote por vez.
+          {sectionDescription}
         </p>
       </summary>
 
