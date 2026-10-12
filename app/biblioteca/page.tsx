@@ -1158,19 +1158,19 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-3 text-[11px] font-semibold leading-none text-white/80">
+        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-3 text-[11px] font-semibold leading-none text-white/72">
           <span
             className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
           >
             <IconTrophy
-              className="h-3.5 w-3.5 shrink-0 text-amber-400"
+              className="h-3.5 w-3.5 shrink-0 text-amber-500"
               filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
             />
             <span>{isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}</span>
           </span>
           <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap" title="Tempo de jogo">
-            <IconClock className="h-3.5 w-3.5 shrink-0 text-sky-400" />
+            <IconClock className="h-3.5 w-3.5 shrink-0 text-sky-500" />
             <span className="truncate">{playedTime}</span>
           </span>
         </div>
