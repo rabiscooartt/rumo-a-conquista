@@ -196,6 +196,8 @@ export default function NewGameAchievementsEditor({
   manualRecords = {},
   journeySelectionEnabled = false,
   onJourneyIdsChange,
+  collapsed = false,
+  onToggle,
 }: {
   game: SiteGame;
   onSave: (update: Partial<SiteGame>) => Promise<boolean>;
@@ -203,13 +205,14 @@ export default function NewGameAchievementsEditor({
   manualRecords?: Record<string, AchievementRecordMeta>;
   journeySelectionEnabled?: boolean;
   onJourneyIdsChange?: (ids: string[]) => void;
+  collapsed?: boolean;
+  onToggle?: () => void;
 }) {
   const initialAchievements = normalizeAchievements(
     game.achievementsList,
     game.slug
   );
   const [achievements, setAchievements] = useState(initialAchievements);
-  const [sectionCollapsed, setSectionCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<AchievementFilter>("all");
   const [exophaseOnly, setExophaseOnly] = useState(false);
@@ -400,8 +403,8 @@ export default function NewGameAchievementsEditor({
         <div>
           <button
             type="button"
-            onClick={() => setSectionCollapsed((value) => !value)}
-            aria-expanded={!sectionCollapsed}
+            onClick={onToggle}
+            aria-expanded={!collapsed}
             className="group inline-flex items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
           >
             <span className="flex flex-col">
@@ -409,7 +412,7 @@ export default function NewGameAchievementsEditor({
               <span className="mt-1 text-xl font-black text-white transition-colors group-hover:text-red-100">Conquistas</span>
             </span>
             <span aria-hidden="true" className="mt-3 text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
-              {sectionCollapsed ? "+" : "−"}
+              {collapsed ? "+" : "−"}
             </span>
           </button>
           <p className="mt-1 text-xs text-white/45">
@@ -441,7 +444,7 @@ export default function NewGameAchievementsEditor({
           </div>
         </div>
 
-        {!sectionCollapsed && (
+        {!collapsed && (
         <div className="flex flex-wrap gap-2">
           <input
             value={search}
@@ -463,7 +466,7 @@ export default function NewGameAchievementsEditor({
 
       </div>
 
-      {!sectionCollapsed && (
+      {!collapsed && (
         <>
       <div className="mt-4 flex flex-wrap gap-2">
         {([
