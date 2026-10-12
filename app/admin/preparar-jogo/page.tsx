@@ -26,6 +26,8 @@ type A = {
   visualReferenceUrl?: string | null;
   visualBrief?: string;
   image?: string;
+  rankReason?: string;
+  suggestionSource?: "ia" | "regras";
 };
 
 function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achievement: A }) {
@@ -37,7 +39,7 @@ function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achiev
       ? `/images/games/${slugify(gameSlug)}/achievements/${imageName}.png`
       : "";
 
-  if (achievement.isCustom || !imageSrc || failed) {
+  if (!imageSrc || failed) {
     return (
       <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-2xl">
         {achievement.isCustom ? "⭐" : "🏆"}
@@ -221,6 +223,8 @@ function PrepararJogoPage() {
   const [analysisProgress, setAnalysisProgress] = useState({ done: 0, total: 0 });
   const [manualAchievement, setManualAchievement] = useState("");
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
+  const [generatingManualAchievement, setGeneratingManualAchievement] = useState(false);
+  const [manualSuggestionNotice, setManualSuggestionNotice] = useState("");
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -255,6 +259,17 @@ function PrepararJogoPage() {
         .filter((a) => !a.notDoing)
         .map((a, index) => prepareAchievement(a, index)) ?? [],
     [result]
+  );
+
+  const manualSelected = useMemo(
+    () =>
+      selected
+        .filter((achievement) => achievement.isCustom)
+        .map((achievement) => ({
+          ...achievement,
+          filename: "manual-" + (slugify(achievement.name) || slugify(achievement.id)) + ".png",
+        })),
+    [selected]
   );
 
   const rankCounts = useMemo(() => {
@@ -1390,41 +1405,90 @@ function PrepararJogoPage() {
 
     return "Um Novo Começo";
   }
-  function addManualAchievement() {
+  async function createManualAchievementFromNote(value: string, closeSimilarity = false) {
+    if (!result || !value.trim() || generatingManualAchievement) return;
+
+    setGeneratingManualAchievement(true);
+    setManualSuggestionNotice("");
+
+    try {
+      const response = await fetch("/api/admin/achievement-prep/suggest-manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          gameTitle: result.game.name,
+          note: value.trim(),
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(payload?.error || "Não foi possível sugerir título, descrição e rank.");
+      }
+
+      const validRank = ["Bronze", "Prata", "Ouro"].includes(String(payload.rank))
+        ? (payload.rank as "Bronze" | "Prata" | "Ouro")
+        : manualRank;
+      const title = String(payload.title || "").trim() || generateManualTitle(value);
+      const description = String(payload.description || "").trim() || value.trim();
+
+      const custom: A = {
+        id: "custom-" + crypto.randomUUID(),
+        name: title,
+        description,
+        rank: validRank,
+        online: false,
+        momentary: false,
+        journeySuggestion: false,
+        journey: false,
+        notDoing: false,
+        episode: "",
+        earnedDate: "",
+        earnedNote: value.trim(),
+        isCustom: true,
+        rankReason: String(payload.rankReason || "").trim(),
+        suggestionSource: payload.source === "ia" ? "ia" : "regras",
+      };
+
+      setSaved(false);
+      setResult((current) =>
+        current ? { ...current, achievements: [...current.achievements, custom] } : current
+      );
+      setManualAchievement("");
+      if (closeSimilarity) {
+        setShowSimilarity(false);
+        setSimilarCandidates([]);
+      }
+      setManualSuggestionNotice(
+        payload.notice
+          ? String(payload.notice)
+          : "Conquista criada: " + title + " · Rank " + validRank + ". Você pode revisar e editar os campos abaixo."
+      );
+    } catch (error) {
+      setManualSuggestionNotice(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar a sugestão. Tente novamente."
+      );
+    } finally {
+      setGeneratingManualAchievement(false);
+    }
+  }
+
+  async function addManualAchievement() {
     const value = manualAchievement.trim();
-    if (!result || !value) return;
+    if (!result || !value || generatingManualAchievement) return;
 
     const candidates = findSimilarAchievements(value);
-
     if (candidates.length) {
       setSimilarCandidates(candidates);
       setShowSimilarity(true);
+      setManualSuggestionNotice("Encontrei possíveis correspondências. Escolha uma delas ou crie uma conquista separada.");
       return;
     }
 
-    const custom: A = {
-      id: `custom-${Date.now()}`,
-      name: generateManualTitle(value),
-      description: value,
-      rank: manualRank,
-      online: false,
-      momentary: false,
-      journeySuggestion: false,
-      journey: true,
-      notDoing: false,
-      episode: normalizeEpisode(result.game.youtubeFirstLiveEpisode)
-        ? "EP " + normalizeEpisode(result.game.youtubeFirstLiveEpisode)
-        : "",
-      earnedDate: "",
-      isCustom: true,
-    };
-
-    setSaved(false);
-    setResult((current) =>
-      current ? { ...current, achievements: [...current.achievements, custom] } : current
-    );
-    setManualAchievement("");
-    setManualRank("Bronze");
+    await createManualAchievementFromNote(value);
   }
 
   function updateCustomAchievement(
@@ -1447,35 +1511,10 @@ function PrepararJogoPage() {
     );
   }
 
-  function addCustomAsSeparate() {
+  async function addCustomAsSeparate() {
     const value = manualAchievement.trim();
-    if (!result || !value) return;
-
-    const custom: A = {
-      id: `custom-${Date.now()}`,
-      name: generateManualTitle(value),
-      description: value,
-      rank: manualRank,
-      online: false,
-      momentary: false,
-      journeySuggestion: false,
-      journey: true,
-      notDoing: false,
-      episode: normalizeEpisode(result.game.youtubeFirstLiveEpisode)
-        ? "EP " + normalizeEpisode(result.game.youtubeFirstLiveEpisode)
-        : "",
-      earnedDate: "",
-      isCustom: true,
-    };
-
-    setSaved(false);
-    setResult((current) =>
-      current ? { ...current, achievements: [...current.achievements, custom] } : current
-    );
-    setManualAchievement("");
-    setManualRank("Bronze");
-    setShowSimilarity(false);
-    setSimilarCandidates([]);
+    if (!result || !value || generatingManualAchievement) return;
+    await createManualAchievementFromNote(value, true);
   }
 
   function useExophaseCandidate(candidate: A) {
@@ -2914,51 +2953,52 @@ function PrepararJogoPage() {
                 )}
               </div>
 
-              <div className="mt-5 rounded-2xl border border-sky-400/35 bg-sky-500/[.08] p-5">
+              <div className="mt-5 rounded-2xl border border-zinc-400/25 bg-zinc-500/[.045] p-5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-300">
+                    <p className="text-[9px] font-black uppercase tracking-[.18em] text-zinc-300">
                       Conquista manual
                     </p>
                     <h3 className="mt-1 text-lg font-black">Adicionar uma conquista sua</h3>
                     <p className="mt-1 text-xs text-white/45">
-                      Digite somente o que precisa ser feito. Se for nova, o sistema cria um título automaticamente.
+                      Escreva sua anotação do jeito que lembrar. O sistema sugere um título, uma descrição melhor e o rank automaticamente; você pode revisar tudo depois.
                     </p>
                   </div>
-                  <span className="rounded-full border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-[9px] font-black uppercase text-sky-100">
-                    🔎 Verifica duplicatas
+                  <span className="rounded-full border border-zinc-300/20 bg-zinc-300/[.06] px-3 py-2 text-[9px] font-black uppercase text-zinc-200">
+                    ✨ Título + descrição + rank
                   </span>
                 </div>
-                <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+                <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto]">
                   <input
                     value={manualAchievement}
-                    onChange={(e) => setManualAchievement(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") addManualAchievement();
+                    maxLength={600}
+                    onChange={(e) => {
+                      setManualAchievement(e.target.value);
+                      setManualSuggestionNotice("");
                     }}
-                    placeholder="Ex.: Mate três inimigos com um único tiro"
-                    className="min-w-0 rounded-xl border border-sky-300/20 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/25"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void addManualAchievement();
+                      }
+                    }}
+                    placeholder="Ex.: finalizei o jogo na dificuldade normal"
+                    className="min-w-0 rounded-xl border border-zinc-400/20 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/25"
                   />
-                  <select
-                    value={manualRank}
-                    onChange={(e) =>
-                      setManualRank(e.target.value as "Bronze" | "Prata" | "Ouro")
-                    }
-                    className="rounded-xl border border-sky-300/20 bg-black/40 px-4 py-3 text-sm font-black text-white outline-none"
-                  >
-                    <option value="Bronze">Bronze</option>
-                    <option value="Prata">Prata</option>
-                    <option value="Ouro">Ouro</option>
-                  </select>
                   <button
                     type="button"
-                    onClick={addManualAchievement}
-                    disabled={!manualAchievement.trim()}
-                    className="rounded-xl border border-sky-300/30 bg-sky-300/15 px-6 py-3 text-xs font-black uppercase text-sky-50 disabled:opacity-40"
+                    onClick={() => void addManualAchievement()}
+                    disabled={!manualAchievement.trim() || generatingManualAchievement}
+                    className="rounded-xl border border-zinc-300/30 bg-zinc-300/[.08] px-6 py-3 text-xs font-black uppercase text-zinc-100 disabled:opacity-40"
                   >
-                    Adicionar
+                    {generatingManualAchievement ? "Preparando..." : "Gerar conquista"}
                   </button>
                 </div>
+                {manualSuggestionNotice && (
+                  <p className="mt-3 rounded-lg border border-zinc-400/15 bg-black/20 px-3 py-2 text-xs text-zinc-200/75">
+                    {manualSuggestionNotice}
+                  </p>
+                )}
               </div>
 
               {showSimilarity && (
@@ -3109,16 +3149,20 @@ function PrepararJogoPage() {
                   <div
                     id={"achievement-" + a.id}
                     key={a.id}
-                    className={
+                      className={
                       focusedAchievementId === a.id
                         ? "w-full rounded-2xl border border-violet-300/70 bg-violet-500/[.12] p-3 shadow-[0_0_30px_rgba(167,139,250,.12)]"
                         : a.notDoing
-                        ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3"
-                        : a.isCustom
-                          ? "w-full rounded-2xl border border-sky-400/40 bg-sky-500/[.10] p-3"
-                          : a.journey
-                            ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3"
-                            : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
+                          ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3"
+                          : a.isCustom && a.episode?.trim()
+                            ? "w-full rounded-2xl border border-blue-400/40 bg-blue-500/[.09] p-3"
+                            : a.isCustom
+                              ? "w-full rounded-2xl border border-zinc-400/25 bg-zinc-500/[.055] p-3"
+                              : a.journey
+                                ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3"
+                                : a.episode?.trim()
+                                  ? "w-full rounded-2xl border border-blue-400/40 bg-blue-500/[.09] p-3"
+                                  : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
                     }
                   >
                     <div className="flex flex-col gap-2">
@@ -3612,10 +3656,83 @@ function PrepararJogoPage() {
               </section>
             )}
 
-            {selected.length > 0 && (
+            {manualSelected.length > 0 && (
+              <section className="mt-5 rounded-[20px] border border-zinc-400/20 bg-zinc-500/[.025] p-5">
+                <p className="text-[9px] uppercase tracking-[.18em] text-zinc-300">
+                  05 • Artes manuais
+                </p>
+                <h2 className="mt-1 text-xl font-black">Imagens das conquistas manuais</h2>
+                <p className="mt-2 text-xs leading-relaxed text-white/40">
+                  Cada conquista manual tem seu próprio arquivo. Copie o prompt individual para criar a imagem e envie o PNG, JPG ou WEBP correspondente; a arte fica vinculada ao rascunho deste jogo.
+                </p>
+
+                <div className="mt-4 space-y-2">
+                  {manualSelected.map((a) => (
+                    <div key={a.id} className="flex flex-col gap-3 rounded-xl border border-zinc-400/15 bg-black/25 p-3 sm:flex-row sm:items-center">
+                      <AchievementThumb gameSlug={result.game.slug} achievement={a} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-black text-white">{a.name}</h3>
+                          <span className="rounded-full border border-zinc-400/20 bg-zinc-400/[.06] px-2 py-1 text-[9px] font-black text-zinc-200">{a.rank}</span>
+                          {a.episode?.trim() && (
+                            <span className="rounded-full border border-blue-400/25 bg-blue-500/[.08] px-2 py-1 text-[9px] font-black text-blue-200">
+                              EP {normalizeEpisode(a.episode)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs leading-relaxed text-white/45">{a.description}</p>
+                        <p className="mt-1 text-[10px] text-white/25">Arquivo: {a.filename}</p>
+                        {a.rankReason && <p className="mt-1 text-[10px] text-zinc-200/55">Rank sugerido: {a.rankReason}</p>}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void copyAchievementPrompt(a)}
+                        className="shrink-0 rounded-xl border border-zinc-300/25 bg-zinc-300/[.06] px-4 py-3 text-[10px] font-black uppercase text-zinc-100 transition hover:bg-zinc-300/[.12]"
+                      >
+                        Copiar prompt da arte
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <ImportArtBatchUpload
+                  gameSlug={result.game.slug ?? ""}
+                  draftMode
+                  sectionEyebrow="Upload manual"
+                  sectionTitle="Enviar artes das conquistas manuais"
+                  sectionDescription="Selecione somente imagens com os nomes de arquivo listados acima. As imagens serão anexadas ao rascunho; clique em Salvar rascunho para persistir a preparação."
+                  achievements={manualSelected.map((a) => ({
+                    name: a.name,
+                    filename: a.filename,
+                    rank: a.rank,
+                  }))}
+                  onSaved={(saved) => {
+                    setResult((current) =>
+                      current
+                        ? {
+                            ...current,
+                            achievements: current.achievements.map((achievement) => {
+                              if (!achievement.isCustom) return achievement;
+                              const match = saved.find(
+                                (item) =>
+                                  item.title.trim().toLocaleLowerCase("pt-BR") ===
+                                  achievement.name.trim().toLocaleLowerCase("pt-BR")
+                              );
+                              return match ? { ...achievement, image: match.image } : achievement;
+                            }),
+                          }
+                        : current
+                    );
+                    setSaved(false);
+                  }}
+                />
+              </section>
+            )}
+
+            {selected.some((a) => !a.isCustom) && (
               <ImportArtBatchUpload
                 gameSlug={result.game.slug ?? ""}
-                achievements={selected.map((a) => ({
+                achievements={selected.filter((a) => !a.isCustom).map((a) => ({
                   name: a.name,
                   filename: a.filename,
                   rank: a.rank,
@@ -3626,6 +3743,7 @@ function PrepararJogoPage() {
                       ? {
                           ...current,
                           achievements: current.achievements.map((achievement) => {
+                            if (achievement.isCustom) return achievement;
                             const match = saved.find(
                               (item) =>
                                 item.title.trim().toLocaleLowerCase("pt-BR") ===
