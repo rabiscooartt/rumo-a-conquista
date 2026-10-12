@@ -834,6 +834,34 @@ function PrepararJogoPage() {
     }
   }
 
+  function removeAchievementFromPreparation(id: string) {
+    if (!result) return;
+    const target = result.achievements.find((achievement) => achievement.id === id);
+    if (!target) return;
+
+    const confirmed = window.confirm(
+      `Remover "${target.name}" desta preparação? A remoção será salva no rascunho quando você clicar em "Salvar rascunho". Se a conquista já estiver publicada, ela continuará no site até você publicar novamente a lista atualizada.`
+    );
+    if (!confirmed) return;
+
+    setSaved(false);
+    setJourneyPreparedCount(null);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            achievements: current.achievements.filter((achievement) => achievement.id !== id),
+          }
+        : current
+    );
+    setExpandedRecordIds((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+    if (focusedAchievementId === id) setFocusedAchievementId(null);
+  }
+
   function toggle(id: string) {
     setSaved(false);
     setResult((current) => {
@@ -2666,6 +2694,8 @@ function PrepararJogoPage() {
 
         {result && (
           <>
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_270px] xl:items-start">
+              <div className="min-w-0">
             <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
               <p className="text-[9px] font-black uppercase tracking-[.18em] text-red-500">
                 02 • Resultado
@@ -3352,15 +3382,14 @@ function PrepararJogoPage() {
                         ? "w-full rounded-2xl border border-violet-300/70 bg-violet-500/[.12] p-3 shadow-[0_0_30px_rgba(167,139,250,.12)]"
                         : a.notDoing
                           ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3"
-                          : a.isCustom && a.episode?.trim()
+                          : a.journey
+                          ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3"
+                          : ((a.isCustom && Boolean(a.episode?.trim())) ||
+                              (Boolean(a.episode?.trim()) && Boolean(a.earnedNote?.trim() || a.earnedDate?.trim())))
                             ? "w-full rounded-2xl border border-blue-400/40 bg-blue-500/[.09] p-3"
                             : a.isCustom
                               ? "w-full rounded-2xl border border-zinc-400/25 bg-zinc-500/[.055] p-3"
-                              : a.journey
-                                ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3"
-                                : a.episode?.trim()
-                                  ? "w-full rounded-2xl border border-blue-400/40 bg-blue-500/[.09] p-3"
-                                  : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
+                              : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
                     }
                   >
                     <div className="flex flex-col gap-2">
@@ -3453,6 +3482,15 @@ function PrepararJogoPage() {
                             </button>
                           </>
                         )}
+                          <button
+                            type="button"
+                            onClick={() => removeAchievementFromPreparation(a.id)}
+                            title="Excluir esta conquista da preparação"
+                            aria-label={`Excluir ${a.name} da preparação`}
+                            className="rounded-full border border-red-400/25 bg-red-500/[.045] px-3 py-2 text-[10px] font-black text-red-200/80 transition hover:border-red-400/50 hover:bg-red-500/15 hover:text-red-100"
+                          >
+                            🗑 Excluir
+                          </button>
                         </div>
                       </div>
                       {!a.notDoing && (
@@ -3959,6 +3997,76 @@ function PrepararJogoPage() {
                 }}
               />
             )}
+              </div>
+              <aside
+                aria-label="Legenda fixa das cores das conquistas"
+                className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
+              >
+                <section className="rounded-2xl border border-white/10 bg-[#0a0a0b] p-4 shadow-[0_10px_35px_rgba(0,0,0,0.28)]">
+                  <p className="text-[9px] font-black uppercase tracking-[.18em] text-red-400">
+                    Referência rápida
+                  </p>
+                  <h2 className="mt-1 text-base font-black text-white">
+                    Cores das conquistas
+                  </h2>
+                  <p className="mt-1 text-[10px] leading-relaxed text-white/35">
+                    A cor indica a categoria ou decisão; a publicação é controlada separadamente.
+                  </p>
+
+                  <div className="mt-4 space-y-3">
+                    {[
+                      {
+                        color: "bg-emerald-400",
+                        name: "Verde · Jornada",
+                        detail: "Selecionada para a Jornada de Estreia.",
+                      },
+                      {
+                        color: "bg-blue-400",
+                        name: "Azul · EP / registro",
+                        detail: "Conquista manual ou registro de obtenção vinculado a EP/data.",
+                      },
+                      {
+                        color: "bg-zinc-400",
+                        name: "Cinza · Manual",
+                        detail: "Conquista adicionada manualmente, ainda sem EP vinculado.",
+                      },
+                      {
+                        color: "bg-yellow-400",
+                        name: "Amarelo · Revisar",
+                        detail: "Conquista do Exophase fora da Jornada.",
+                      },
+                      {
+                        color: "bg-red-400",
+                        name: "Vermelho · Não fazer",
+                        detail: "Fora da publicação enquanto estiver marcada como Não vou fazer.",
+                      },
+                      {
+                        color: "bg-violet-400",
+                        name: "Roxo · Em foco",
+                        detail: "Conquista aberta para edição ou análise no momento.",
+                      },
+                    ].map((item) => (
+                      <div key={item.name} className="flex items-start gap-2.5">
+                        <span className={`mt-1 h-3 w-3 shrink-0 rounded-sm ${item.color}`} />
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black text-white/80">{item.name}</p>
+                          <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">{item.detail}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 rounded-xl border border-red-400/15 bg-red-500/[.04] p-3">
+                    <p className="text-[9px] font-black uppercase tracking-[.12em] text-red-200/80">
+                      Exclusão segura
+                    </p>
+                    <p className="mt-1 text-[10px] leading-relaxed text-white/40">
+                      O botão Excluir remove a conquista desta preparação. Se ela já estiver pública, publique a lista atualizada para removê-la do site.
+                    </p>
+                  </div>
+                </section>
+              </aside>
+            </div>
           </>
         )}
       </div>
