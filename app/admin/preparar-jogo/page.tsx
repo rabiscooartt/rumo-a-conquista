@@ -583,15 +583,35 @@ function PrepararJogoPage() {
           // Compatibilidade com os rascunhos anteriores, que guardavam apenas
           // a organização e as conquistas manuais, não a lista inteira.
           const journeyFinalized = draft.journeyFinalized === true;
+          const savedJourneyIds = Array.isArray(draft.journeyIds)
+            ? draft.journeyIds.map((id) => String(id))
+            : [];
+          const savedNotDoingIds = Array.isArray(draft.notDoingIds)
+            ? draft.notDoingIds.map((id) => String(id))
+            : [];
           const journeyIds = journeyFinalized
             ? new Set<string>()
-            : new Set<string>(draft.journeyIds ?? []);
-          const notDoingIds = new Set<string>(draft.notDoingIds ?? []);
-          const visualBriefs = (draft.visualBriefs ?? {}) as Record<string, string>;
-          const episodeById = (draft.episodeById ?? {}) as Record<string, string>;
-          const earnedDateById = (draft.earnedDateById ?? {}) as Record<string, string>;
-          const earnedNoteById = (draft.earnedNoteById ?? {}) as Record<string, string>;
-          const customAchievements: A[] = draft.customAchievements ?? [];
+            : new Set<string>(savedJourneyIds);
+          const notDoingIds = new Set<string>(savedNotDoingIds);
+          const visualBriefs =
+            draft.visualBriefs && typeof draft.visualBriefs === "object" && !Array.isArray(draft.visualBriefs)
+              ? (draft.visualBriefs as Record<string, string>)
+              : {};
+          const episodeById =
+            draft.episodeById && typeof draft.episodeById === "object" && !Array.isArray(draft.episodeById)
+              ? (draft.episodeById as Record<string, string>)
+              : {};
+          const earnedDateById =
+            draft.earnedDateById && typeof draft.earnedDateById === "object" && !Array.isArray(draft.earnedDateById)
+              ? (draft.earnedDateById as Record<string, string>)
+              : {};
+          const earnedNoteById =
+            draft.earnedNoteById && typeof draft.earnedNoteById === "object" && !Array.isArray(draft.earnedNoteById)
+              ? (draft.earnedNoteById as Record<string, string>)
+              : {};
+          const customAchievements: A[] = Array.isArray(draft.customAchievements)
+            ? (draft.customAchievements as A[])
+            : [];
 
           setResult((current) =>
             current
@@ -628,7 +648,7 @@ function PrepararJogoPage() {
                 }
               : current
           );
-          setDraftUpdatedAt(draft.updatedAt ?? null);
+          setDraftUpdatedAt(typeof draft.updatedAt === "string" ? draft.updatedAt : null);
           setSaved(true);
         } else if (!cancelled) {
           // Migração de preparações antigas salvas no navegador.
