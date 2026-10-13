@@ -2608,36 +2608,28 @@ function PrepararJogoPage() {
 
         {!registeredSlug && (
           <section className="mt-7 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
-            <p className="text-[9px] font-black uppercase tracking-[.18em] text-white/25">
-              01 • Fluxo provisório
-            </p>
-            <h2 className="mt-1 text-xl font-black">Nome do jogo</h2>
-            <div className="mt-5 flex flex-col gap-3 md:flex-row">
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && void search("", title)
-                }
-                placeholder="Ex.: Black Myth: Wukong"
-                className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/20"
-              />
-              <button
-                onClick={() => void search("", title)}
-                disabled={loading}
-                className="rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-3 text-xs font-black uppercase text-red-100 disabled:opacity-50"
-              >
-                {loading ? "Buscando..." : "Buscar conquistas"}
-              </button>
-            </div>
-            <p className="mt-3 text-[10px] leading-relaxed text-white/25">
-              Esse caminho será reaproveitado depois para o fluxo completo de
-              adicionar novo jogo, incluindo capa e entrada na Fila.
-            </p>
-            {error && (
-              <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/[.06] p-3 text-xs font-bold text-red-200">
-                {error}
-              </p>
+            <button type="button" onClick={() => togglePrepItem("section-01")} aria-expanded={!collapsedPrepItems["section-01"]} className="group flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50">
+              <span className="text-base font-black text-white">01 • Nome do jogo / Fluxo provisório</span>
+              <span className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[9px] font-black uppercase text-white/65">{collapsedPrepItems["section-01"] ? "+ Expandir" : "− Minimizar"}</span>
+            </button>
+            {!collapsedPrepItems["section-01"] && (
+              <div className="mt-4">
+                <h2 className="text-xl font-black">Nome do jogo</h2>
+                <div className="mt-5 flex flex-col gap-3 md:flex-row">
+                  <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && void search("", title)}
+                    placeholder="Ex.: Black Myth: Wukong"
+                    className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm font-bold outline-none placeholder:text-white/20"
+                  />
+                  <button onClick={() => void search("", title)} disabled={loading} className="rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-3 text-xs font-black uppercase text-red-100 disabled:opacity-50">
+                    {loading ? "Buscando..." : "Buscar conquistas"}
+                  </button>
+                </div>
+                <p className="mt-3 text-[10px] leading-relaxed text-white/25">Esse caminho será reaproveitado depois para o fluxo completo de adicionar novo jogo, incluindo capa e entrada na Fila.</p>
+                {error && <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/[.06] p-3 text-xs font-bold text-red-200">{error}</p>}
+              </div>
             )}
           </section>
         )}
@@ -2656,10 +2648,13 @@ function PrepararJogoPage() {
 
         {result && registeredSlug && (
           <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
-            <p className="text-[9px] font-black uppercase tracking-[.18em] text-white/35">
-              Modo de trabalho
-            </p>
-            <h2 className="mt-1 text-lg font-black">Como deseja continuar?</h2>
+            <button type="button" onClick={() => togglePrepItem("section-01")} aria-expanded={!collapsedPrepItems["section-01"]} className="group flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50">
+              <span className="text-base font-black text-white">01 • Modo de trabalho</span>
+              <span className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[9px] font-black uppercase text-white/65">{collapsedPrepItems["section-01"] ? "+ Expandir" : "− Minimizar"}</span>
+            </button>
+            {!collapsedPrepItems["section-01"] && (
+              <div className="mt-4">
+            <h2 className="text-lg font-black">Como deseja continuar?</h2>
             <p className="mt-1 max-w-[900px] text-xs leading-relaxed text-white/40">
               A lista existente será preservada. Só a opção “Refazer análise do zero” apaga o rascunho e consulta novamente o Exophase.
             </p>
@@ -2697,6 +2692,8 @@ function PrepararJogoPage() {
                 {preparationModeNotice}
               </p>
             )}
+              </div>
+            )}
           </section>
         )}
 
@@ -2705,11 +2702,13 @@ function PrepararJogoPage() {
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_270px] xl:items-start">
               <div className="min-w-0">
             <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
-              <p className="text-[9px] font-black uppercase tracking-[.18em] text-red-500">
-                02 • Resultado
-              </p>
-
-              <div className="mt-1 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <button type="button" onClick={() => togglePrepItem("section-02")} aria-expanded={!collapsedPrepItems["section-02"]} className="group flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50">
+                <span className="text-base font-black text-white">02 • Resultado{collapsedPrepItems["section-02"] ? " · " + result.game.name : ""}</span>
+                <span className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[9px] font-black uppercase text-white/65">{collapsedPrepItems["section-02"] ? "+ Expandir" : "− Minimizar"}</span>
+              </button>
+              {!collapsedPrepItems["section-02"] && (
+                <>
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-2xl font-black">{result.game.name}</h2>
                   <p className="text-xs text-white/30">
@@ -2760,16 +2759,18 @@ function PrepararJogoPage() {
                   </a>
                 )}
               </div>
+                </>
+              )}
             </section>
 
             <section className="mt-5 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
+              <button type="button" onClick={() => togglePrepItem("section-03")} aria-expanded={!collapsedPrepItems["section-03"]} className="group mb-4 flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50">
+                <span className="text-base font-black text-white">03 • Seleção da Jornada</span>
+                <span className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-[9px] font-black uppercase text-white/65">{collapsedPrepItems["section-03"] ? "+ Expandir" : "− Minimizar"}</span>
+              </button>
+              {!collapsedPrepItems["section-03"] && (
+                <>
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <div>
-                  <p className="text-[9px] uppercase tracking-[.18em] text-white/25">
-                    03
-                  </p>
-                  <h2 className="text-xl font-black">Seleção da Jornada</h2>
-                </div>
                 <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase">
                   {([
                     ["Bronze", rankCounts.Bronze],
@@ -3702,6 +3703,8 @@ function PrepararJogoPage() {
                   {saved ? "Preparação salva" : "Salvar rascunho"}
                 </button>
               </div>
+                </>
+              )}
             </section>
 
             {selected.length > 0 && (
