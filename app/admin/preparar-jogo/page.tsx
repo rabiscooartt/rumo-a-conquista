@@ -313,28 +313,23 @@ function PrepararJogoPage() {
 
     const publishable = result.achievements.filter((a) => !a.notDoing);
     const missingDescriptions = publishable.filter((a) => !a.description.trim()).length;
-    const selectedJourneyCount = publishable.filter((a) => a.journey).length;
     const ready =
       Boolean(result.game.slug) &&
       Boolean(result.game.exophase?.found) &&
       publishable.length > 0 &&
       missingDescriptions === 0 &&
-      selectedJourneyCount > 0 &&
       saved;
 
     return {
       ready,
       total: result.achievements.length,
       selected: publishable.length,
-      selectedJourneyCount,
       missingDescriptions,
       reason: !saved
         ? "Salve o rascunho antes de publicar."
         : missingDescriptions > 0
           ? `${missingDescriptions} conquista(s) ainda estão sem descrição.`
-          : selectedJourneyCount === 0
-            ? "Marque pelo menos uma conquista como Jornada de Estreia."
-            : "Pronto para publicar as conquistas.",
+          : "Pronto para publicar as conquistas.",
     };
   }, [result, saved]);
 
@@ -1982,11 +1977,6 @@ function PrepararJogoPage() {
       return;
     }
 
-    if (selectedJourneyIds.length === 0) {
-      setError("Selecione pelo menos uma conquista da Jornada de Estreia antes de publicar.");
-      return;
-    }
-
     setPublishing(true);
     setError("");
     setPublished(false);
@@ -2185,14 +2175,20 @@ function PrepararJogoPage() {
           review: currentGame.review,
           manualTotalPlayedMinutes:
             currentGame.manual_total_played_minutes ?? null,
-          firstJourney: {
-            status: "completed",
-            completedAt:
-              currentGame.firstJourney?.completedAt ||
-              new Date().toISOString(),
-            achievementIds: selectedJourneyIds,
-            achievementMeta,
-          },
+          firstJourney: selectedJourneyIds.length > 0
+            ? {
+                status: "completed",
+                completedAt:
+                  currentGame.firstJourney?.completedAt ||
+                  new Date().toISOString(),
+                achievementIds: selectedJourneyIds,
+                achievementMeta,
+              }
+            : {
+                status: "not_started",
+                achievementIds: [],
+                achievementMeta,
+              },
           achievementsList,
         }),
       });
