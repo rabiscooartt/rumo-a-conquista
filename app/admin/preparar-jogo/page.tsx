@@ -226,6 +226,8 @@ function PrepararJogoPage() {
   const [manualRank, setManualRank] = useState<"Bronze" | "Prata" | "Ouro">("Bronze");
   const [generatingManualAchievement, setGeneratingManualAchievement] = useState(false);
   const [manualSuggestionNotice, setManualSuggestionNotice] = useState("");
+  const [rewritingAchievementId, setRewritingAchievementId] = useState<string | null>(null);
+  const [achievementRewriteNotices, setAchievementRewriteNotices] = useState<Record<string, string>>({});
   const [preparationMode, setPreparationMode] = useState<"edit" | "append">("edit");
   const [preparationModeNotice, setPreparationModeNotice] = useState("");
   const [needsDraftSnapshotUpgrade, setNeedsDraftSnapshotUpgrade] = useState(false);
@@ -1585,6 +1587,76 @@ function PrepararJogoPage() {
 
     return "Um Novo Começo";
   }
+  async function regenerateCustomAchievement(achievementId: string) {
+    if (!result || rewritingAchievementId) return;
+
+    const achievement = result.achievements.find((item) => item.id === achievementId && item.isCustom);
+    if (!achievement) return;
+    if (!achievement.name.trim() || !achievement.description.trim()) {
+      setAchievementRewriteNotices((current) => ({
+        ...current,
+        [achievementId]: "Preencha o título e a descrição antes de gerar outra versão.",
+      }));
+      return;
+    }
+
+    setRewritingAchievementId(achievementId);
+    setAchievementRewriteNotices((current) => ({ ...current, [achievementId]: "Gerando uma nova versão com o mesmo objetivo…" }));
+
+    try {
+      const gameContext = result.achievements
+        .filter((item) => !item.isCustom && item.name.trim())
+        .slice(0, 18)
+        .map((item) => ({ title: item.name.trim(), description: (item.description || "").trim().slice(0, 200) }));
+      const response = await fetch("/api/admin/achievement-prep/suggest-manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          mode: "rewrite",
+          gameTitle: result.game.name,
+          currentTitle: achievement.name.trim(),
+          note: achievement.description.trim(),
+          gameContext,
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload || typeof payload !== "object") {
+        throw new Error(payload?.error || "Não foi possível gerar outra versão. A conquista original foi mantida.");
+      }
+
+      const nextTitle = typeof payload.title === "string" ? payload.title.trim() : "";
+      const nextDescription = typeof payload.description === "string" ? payload.description.trim() : "";
+      if (!nextTitle || !nextDescription) {
+        throw new Error("A IA não retornou um título e uma descrição válidos. A conquista original foi mantida.");
+      }
+
+      setResult((current) => current
+        ? {
+            ...current,
+            achievements: current.achievements.map((item) =>
+              item.id === achievementId
+                ? { ...item, name: nextTitle, description: nextDescription }
+                : item
+            ),
+          }
+        : current
+      );
+      setSaved(false);
+      setAchievementRewriteNotices((current) => ({
+        ...current,
+        [achievementId]: "Nova versão aplicada. Rank, EP, data e demais registros foram preservados.",
+      }));
+    } catch (error) {
+      setAchievementRewriteNotices((current) => ({
+        ...current,
+        [achievementId]: error instanceof Error ? error.message : "Não foi possível gerar outra versão. A conquista original foi mantida.",
+      }));
+    } finally {
+      setRewritingAchievementId(null);
+    }
+  }
+
   async function createManualAchievementFromNote(value: string, closeSimilarity = false) {
     if (!result || !value.trim() || generatingManualAchievement) return;
 
@@ -3472,6 +3544,22 @@ function PrepararJogoPage() {
                             className="mt-2 w-full resize-none rounded-lg border border-sky-300/15 bg-black/30 px-3 py-2 text-xs font-bold outline-none"
                             aria-label="Descrição da conquista manual"
                           />
+                          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-[9px] text-white/30">Mantém o objetivo original</span>
+                            <button
+                              type="button"
+                              onClick={() => void regenerateCustomAchievement(a.id)}
+                              disabled={Boolean(rewritingAchievementId)}
+                              className="rounded-lg border border-zinc-300/20 bg-zinc-300/[.05] px-3 py-2 text-[9px] font-black uppercase text-zinc-200/80 transition hover:border-zinc-200/40 hover:bg-zinc-300/[.10] hover:text-white disabled:cursor-wait disabled:opacity-40"
+                            >
+                              {rewritingAchievementId === a.id ? "Gerando versão…" : "↻ Gerar outra versão"}
+                            </button>
+                          </div>
+                          {achievementRewriteNotices[a.id] && (
+                            <p role="status" className="mt-2 rounded-lg border border-zinc-400/10 bg-black/20 px-2.5 py-2 text-[9px] leading-relaxed text-zinc-200/65">
+                              {achievementRewriteNotices[a.id]}
+                            </p>
+                          )}
                           <select
                             value={a.rank}
                             onChange={(e) => updateCustomAchievement(a.id, "rank", e.target.value)}
