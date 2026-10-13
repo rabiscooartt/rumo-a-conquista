@@ -102,6 +102,75 @@ function fallbackSuggestion(note: string): AchievementSuggestion {
   };
 }
 
+function fallbackRewriteSuggestion(note: string, currentTitle: string): AchievementSuggestion {
+  const base = fallbackSuggestion(note);
+  const key = normalize(note);
+  const current = normalize(currentTitle);
+  let alternatives: string[] = [];
+
+  if (/\b(conclua|complete|finalize|termine|finalizei|zerei|conclui)\b/.test(key) && /\b(normal|medio|médio|medium)\b/.test(key)) {
+    alternatives = ["Finalização no Modo Normal", "Vitória no Modo Normal", "Conclusão Equilibrada"];
+  } else if (/\b(conclua|complete|finalize|termine|finalizei|zerei|conclui)\b/.test(key) && /\b(jogo|campanha|historia|história)\b/.test(key)) {
+    alternatives = ["Jornada Concluída", "Campanha Finalizada", "O Fim da Jornada"];
+  } else if (/\b(primeiro|primeira|pela primeira vez)\b/.test(key) && /\b(venca|vencer|ganhe|ganhar|vitoria|vitória|partida|rodada)\b/.test(key)) {
+    alternatives = ["Estreia Vitoriosa", "Primeira Vitória", "Vitória de Estreia"];
+  } else if (/\b(cartas|baralho|poker|beisebol)\b/.test(key) && /\b(partida|rodada|venca|vencer|ganhe|ganhar|vitoria)\b/.test(key)) {
+    alternatives = ["Vitória na Mesa", "Cartada Vencedora", "Triunfo nas Cartas"];
+  } else if (/\b(derrote|derrotar|mate|matar|elimine|eliminar|chefe|boss)\b/.test(key)) {
+    alternatives = ["Precisão Mortal", "Adversário Superado", "Triunfo em Combate"];
+  } else if (/\b(colete|coletar|encontre|encontrar|pegue|pegar|reuna|reunir)\b/.test(key)) {
+    alternatives = ["Nada Ficou Para Trás", "Coleção em Progresso", "Caçador de Itens"];
+  } else if (/\b(explore|explorar|visite|visitar|descubra|descobrir)\b/.test(key)) {
+    alternatives = ["Além do Caminho", "Explorador de Horizontes", "Descoberta Realizada"];
+  }
+
+  if (alternatives.length === 0) {
+    const meaningfulWords = note
+      .replace(/[.!?]+$/g, "")
+      .replace(/^(conclua|complete|finalize|termine|derrote|elimine|mate|colete|reúna|encontre|localize|explore|descubra|vença|ganhe)\s+/i, "")
+      .replace(/\b(o|a|os|as|um|uma|de|do|da|dos|das|no|na|nos|nas|com|para|por|em)\b/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(" ");
+    const phrase = meaningfulWords
+      ? meaningfulWords.charAt(0).toLocaleUpperCase("pt-BR") + meaningfulWords.slice(1)
+      : "Objetivo Concluído";
+    alternatives = ["Feito de " + phrase, "Marca de " + phrase, "Desafio: " + phrase];
+  }
+
+  const title = alternatives.find((candidate) => normalize(candidate) !== current) ?? alternatives[0];
+  let description = base.description.replace(/[.!?]+$/g, "").trim();
+
+  const prefixVariants: Array<[RegExp, string[]]> = [
+    [/^(conclua|complete|finalize|termine)\b/i, ["Conclua", "Finalize", "Complete", "Termine"]],
+    [/^(derrote|vença|elimine)\b/i, ["Derrote", "Elimine", "Vença"]],
+    [/^(colete|reúna|junte)\b/i, ["Colete", "Reúna", "Junte"]],
+    [/^(encontre|localize|descubra)\b/i, ["Encontre", "Localize", "Descubra"]],
+    [/^(explore|percorra|atravesse)\b/i, ["Explore", "Percorra", "Atravesse"]],
+    [/^(ganhe|vença|conquiste)\b/i, ["Ganhe", "Conquiste", "Vença"]],
+  ];
+  for (const [pattern, variants] of prefixVariants) {
+    const match = description.match(pattern);
+    if (!match) continue;
+    const currentVerb = normalize(match[1]);
+    const nextVerb = variants.find((verb) => normalize(verb) !== currentVerb) ?? variants[0];
+    description = description.replace(pattern, nextVerb);
+    break;
+  }
+  description = description.charAt(0).toLocaleUpperCase("pt-BR") + description.slice(1);
+  if (!/[.!?]$/.test(description)) description += ".";
+
+  return {
+    ...base,
+    title,
+    description,
+    rankReason: "Alternativa por regras: preserve os requisitos descritos; revise antes de salvar.",
+  };
+}
+
 function extractOutputText(payload: unknown): string {
   if (!payload || typeof payload !== "object") return "";
   const record = payload as {
@@ -153,7 +222,11 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey && mode === "rewrite") {
-      return NextResponse.json({ error: "A IA está indisponível; a conquista original foi mantida sem alterações." }, { status: 503 });
+      return NextResponse.json({
+        ...fallbackRewriteSuggestion(note, currentTitle),
+        source: "regras",
+        notice: "A IA está indisponível. Usei uma alternativa por regras; revise antes de salvar.",
+      });
     }
     if (!apiKey) {
       return NextResponse.json({ ...fallbackSuggestion(note), source: "regras", notice: "A chave da IA não está configurada; usei a sugestão automática por regras." });
@@ -261,7 +334,14 @@ export async function POST(request: Request) {
       const detail = await apiResponse.text().catch(() => "");
       console.error("[Achievement Suggestion] OpenAI response:", apiResponse.status, detail.slice(0, 800));
       if (mode === "rewrite") {
-        return NextResponse.json({ error: "Não foi possível gerar uma alternativa agora. A conquista original continua intacta; tente novamente." }, { status: 503 });
+        const quotaExhausted = apiResponse.status === 429 && /insufficient_quota|credit_balance_exhausted|no credits remaining/i.test(detail);
+        return NextResponse.json({
+          ...fallbackRewriteSuggestion(note, currentTitle),
+          source: "regras",
+          notice: quotaExhausted
+            ? "A API da OpenAI está sem créditos. Apliquei uma alternativa por regras, não por IA; para versões realmente contextualizadas ao jogo, recarregue os créditos da API. Revise antes de salvar."
+            : "A IA não ficou disponível. Apliquei uma alternativa por regras; revise antes de salvar.",
+        });
       }
       return NextResponse.json({ ...fallbackSuggestion(note), source: "regras", notice: "A IA não respondeu; usei a sugestão automática por regras." });
     }
