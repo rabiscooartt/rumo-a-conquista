@@ -1599,6 +1599,32 @@ function PrepararJogoPage() {
         body: JSON.stringify({
           gameTitle: result.game.name,
           note: value.trim(),
+          gameContext: (() => {
+            const noteTerms = value
+              .toLocaleLowerCase("pt-BR")
+              .normalize("NFD")
+              .replace(/[\\u0300-\\u036f]/g, "")
+              .split(/[^a-z0-9]+/)
+              .filter((term) => term.length >= 4);
+            return result.achievements
+              .filter((achievement) => !achievement.isCustom && achievement.name.trim())
+              .map((achievement, index) => {
+                const title = achievement.name.trim();
+                const description = (achievement.description || "").trim().slice(0, 200);
+                const searchable = (title + " " + description)
+                  .toLocaleLowerCase("pt-BR")
+                  .normalize("NFD")
+                  .replace(/[\\u0300-\\u036f]/g, "");
+                const relevance = noteTerms.reduce(
+                  (score, term) => score + Number(searchable.includes(term)),
+                  0
+                );
+                return { title, description, index, relevance };
+              })
+              .sort((a, b) => b.relevance - a.relevance || a.index - b.index)
+              .slice(0, 18)
+              .map(({ title, description }) => ({ title, description }));
+          })(),
         }),
       });
       const payload = await response.json().catch(() => null);
