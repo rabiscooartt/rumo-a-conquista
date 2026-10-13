@@ -44,6 +44,27 @@ function normalizeDisplayText(value: unknown, fallback = "") {
     .replace(/\s+/g, " ");
 }
 
+function describeSaveError(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) return error.message.trim();
+
+  if (error && typeof error === "object") {
+    const record = error as {
+      message?: unknown;
+      code?: unknown;
+      details?: unknown;
+      hint?: unknown;
+    };
+    const message = typeof record.message === "string" ? record.message.trim() : "";
+    const code = typeof record.code === "string" ? record.code.trim() : "";
+    const details = typeof record.details === "string" ? record.details.trim() : "";
+    const hint = typeof record.hint === "string" ? record.hint.trim() : "";
+    const parts = [message, code ? `Código: ${code}` : "", details, hint].filter(Boolean);
+    if (parts.length) return parts.join(" — ");
+  }
+
+  return fallback;
+}
+
 function normalizeTitle(value?: string) {
   return normalizeText(value)
     .replace(/[^a-z0-9\s]/g, "")
@@ -191,7 +212,7 @@ type FirstJourneyState = {
 };
 
 type GamePayload = {
-  action?: "review";
+  action?: "review" | "final-mastery" | "emblem";
   slug?: string;
   /** Confirms the review editor still belongs to the game being saved. */
   reviewOwnerSlug?: string;
@@ -1144,6 +1165,103 @@ export async function POST(request: NextRequest) {
 
     const client = createAdminSupabaseClient();
 
+    // Salvamentos direcionados: atualizam somente a Maestria ou o Emblema,
+    // sem reconstruir o jogo inteiro nem sincronizar a lista de conquistas.
+    if (body.action === "final-mastery") {
+      const raw = body.finalBadge && typeof body.finalBadge === "object" && !Array.isArray(body.finalBadge)
+        ? (body.finalBadge as Record<string, unknown>)
+        : {};
+      const finalBadge = {
+        title: normalizeDisplayText(raw.title, "Maestria Final") || "Maestria Final",
+        icon: normalizeDisplayText(raw.icon, "💎") || "💎",
+        image: normalizeDisplayText(raw.image),
+        description: normalizeDisplayText(raw.description),
+      };
+
+      const { data, error } = await client
+        .from("games")
+        .update({ final_badge: finalBadge, updated_at: new Date().toISOString() })
+        .eq("slug", slug)
+        .select("final_badge")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        return NextResponse.json({ error: `Jogo não encontrado para salvar a Maestria Final (slug: ${slug}).` }, { status: 404 });
+      }
+
+      const { data: achievementRows, error: achievementQueryError } = await client
+        .from("achievements")
+        .select("id, title, description")
+        .eq("game_slug", slug);
+      if (achievementQueryError) throw achievementQueryError;
+
+      const duplicateIds = (achievementRows ?? [])
+        .filter((row) =>
+          normalizeDisplayText(row.title) === finalBadge.title &&
+          normalizeDisplayText(row.description) === finalBadge.description
+        )
+        .map((row) => String(row.id))
+        .filter(Boolean);
+
+      if (duplicateIds.length) {
+        const { error: progressDeleteError } = await client
+          .from("achievement_progress")
+          .delete()
+          .in("achievement_id", duplicateIds);
+        if (progressDeleteError) throw progressDeleteError;
+
+        const { error: achievementDeleteError } = await client
+          .from("achievements")
+          .delete()
+          .in("id", duplicateIds);
+        if (achievementDeleteError) throw achievementDeleteError;
+      }
+
+      return NextResponse.json({
+        ok: true,
+        finalBadge: data.final_badge ?? finalBadge,
+        removedAchievementIds: duplicateIds,
+      });
+    }
+
+    if (body.action === "emblem") {
+      const raw = body.emblem && typeof body.emblem === "object" && !Array.isArray(body.emblem)
+        ? (body.emblem as Record<string, unknown>)
+        : {};
+      const emblem = {
+        ...raw,
+        title: normalizeDisplayText(raw.title),
+        image: normalizeDisplayText(raw.image),
+        description: normalizeDisplayText(raw.description),
+        tags: Array.isArray(raw.tags)
+          ? raw.tags.map((tag) => normalizeDisplayText(tag)).filter(Boolean)
+          : [],
+        unlockedAt: normalizeDisplayText(raw.unlockedAt),
+        unlockAchievement: normalizeDisplayText(raw.unlockAchievement),
+        updatedAt: normalizeDisplayText(raw.updatedAt) || new Date().toISOString(),
+        configured: true,
+      };
+
+      if (!emblem.title || !emblem.image) {
+        return NextResponse.json({ error: "Informe o título e a imagem do emblema antes de salvar." }, { status: 400 });
+      }
+
+      const { data, error } = await client
+        .from("games")
+        .update({ emblem, updated_at: new Date().toISOString() })
+        .eq("slug", slug)
+        .select("emblem")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        return NextResponse.json({ error: `Jogo não encontrado para salvar o Emblema (slug: ${slug}).` }, { status: 404 });
+      }
+
+      return NextResponse.json({ ok: true, emblem: data.emblem ?? emblem });
+    }
+
     // Edição exclusiva da review: não reescreve dados do jogo nem sincroniza
     // conquistas. Isso mantém o salvamento de texto/nota independente do
     // tamanho e do estado da lista de conquistas.
@@ -1261,10 +1379,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível salvar o jogo.",
+        error: describeSaveError(error, "Não foi possível salvar o jogo."),
       },
       { status: 500 }
     );
