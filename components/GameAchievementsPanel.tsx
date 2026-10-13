@@ -1438,27 +1438,44 @@ export default function GameAchievementsPanel(
 
                         <div className="flex min-w-0 flex-col items-end justify-center gap-1 text-right">
                           {!isFinalMastery && isJourneyAchievement && journeyLockActive ? (
-                            <a
-                              href={youtubePlaylistUrl || undefined}
-                              target="_blank"
-                              rel="noreferrer"
-                              aria-label={`Abrir playlist da Jornada de Estreia de ${gameTitle}`}
-                              title={youtubePlaylistUrl ? "Abrir playlist do YouTube" : "Playlist do YouTube ainda não cadastrada"}
-                              className={`inline-flex max-w-full items-center justify-end gap-1 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.04em] transition ${
-                                youtubePlaylistUrl
-                                  ? "text-emerald-200 hover:text-emerald-100 hover:underline"
-                                  : "cursor-default text-emerald-200"
-                              }`}
-                              onClick={(event) => {
-                                if (!youtubePlaylistUrl) event.preventDefault();
-                              }}
-                            >
-                              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="5" width="18" height="16" rx="2" />
-                                <path d="M16 3v4M8 3v4M3 10h18" />
-                              </svg>
-                              <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
-                            </a>
+                            (() => {
+                              const journeyDateValue =
+                                achievementMeta[achievementKey]?.date ||
+                                achievement.earnedDate ||
+                                "";
+                              const journeyDate = formatJourneyDate(journeyDateValue);
+
+                              return (
+                                <div className="flex min-w-0 flex-col items-end gap-1 text-right">
+                                  <a
+                                    href={youtubePlaylistUrl || undefined}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label={`Abrir playlist da Jornada de Estreia de ${gameTitle}`}
+                                    title={youtubePlaylistUrl ? "Abrir playlist do YouTube" : "Playlist do YouTube ainda não cadastrada"}
+                                    className={`inline-flex max-w-full items-center justify-end gap-1 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.04em] transition ${
+                                      youtubePlaylistUrl
+                                        ? "text-emerald-200 hover:text-emerald-100 hover:underline"
+                                        : "cursor-default text-emerald-200"
+                                    }`}
+                                    onClick={(event) => {
+                                      if (!youtubePlaylistUrl) event.preventDefault();
+                                    }}
+                                  >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="3" y="5" width="18" height="16" rx="2" />
+                                      <path d="M16 3v4M8 3v4M3 10h18" />
+                                    </svg>
+                                    <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
+                                  </a>
+                                  {journeyDate ? (
+                                    <time dateTime={journeyDateValue} className="whitespace-nowrap text-[9px] font-semibold leading-tight text-white/55">
+                                      {journeyDate}
+                                    </time>
+                                  ) : null}
+                                </div>
+                              );
+                            })()
                           ) : !isFinalMastery ? (
                             (() => {
                               const meta = achievementMeta[achievementKey];
