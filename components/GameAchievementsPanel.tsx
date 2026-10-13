@@ -1388,7 +1388,7 @@ export default function GameAchievementsPanel(
                 }`}
               >
                 <div className="p-3 sm:p-4">
-                  <div className="grid gap-x-3 gap-y-4 md:grid-cols-[52px_minmax(0,1fr)_48px_132px] md:items-center">
+                  <div className="grid gap-x-3 gap-y-4 md:grid-cols-[52px_minmax(0,1fr)_48px_140px] md:items-center">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
                         visuallyLocked
@@ -1462,7 +1462,7 @@ export default function GameAchievementsPanel(
                                     rel="noreferrer"
                                     aria-label={`Abrir playlist da Jornada de Estreia de ${gameTitle}`}
                                     title={youtubePlaylistUrl ? "Abrir playlist do YouTube" : "Playlist do YouTube ainda não cadastrada"}
-                                    className={`inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-400/[.07] px-1.5 py-1 text-center text-[7px] font-extrabold uppercase tracking-[0.05em] transition ${
+                                    className={`inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-400/[.07] px-1.5 py-1.5 text-center text-[8px] font-extrabold uppercase tracking-[0.02em] transition ${
                                       youtubePlaylistUrl
                                         ? "text-emerald-200 hover:border-emerald-300/45 hover:bg-emerald-400/[.12] hover:text-emerald-100"
                                         : "cursor-default text-emerald-200"
