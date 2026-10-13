@@ -3708,6 +3708,130 @@ function PrepararJogoPage() {
             </section>
 
             {selected.length > 0 && (
+              <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
+                <button
+                  type="button"
+                  onClick={() => togglePrepItem("section-prepared")}
+                  aria-expanded={!collapsedPrepItems["section-prepared"]}
+                  className="group flex w-full items-start justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[9px] uppercase tracking-[.18em] text-red-500">04 • Dados preparados</span>
+                    <span className="mt-1 block text-xl font-black text-white transition-colors group-hover:text-red-100">Pacote de cada conquista</span>
+                    {!collapsedPrepItems["section-prepared"] && (
+                      <span className="mt-2 block text-xs text-white/35">
+                        Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
+                      </span>
+                    )}
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 rounded-lg border border-red-400/25 bg-red-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-red-100 transition-colors">
+                    {collapsedPrepItems["section-prepared"] ? "+ Expandir" : "− Minimizar"}
+                  </span>
+                </button>
+                {!collapsedPrepItems["section-prepared"] && (
+                  <div className="mt-4 space-y-3">
+                    {selected.map((a, i) => {
+                      const itemKey = "prepared-" + a.id;
+                      const itemCollapsed = Boolean(collapsedPrepItems[itemKey]);
+                      return (
+                    <div
+                      key={a.id}
+                      className="rounded-2xl border border-white/[.07] bg-black/25 p-3"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => togglePrepItem(itemKey)}
+                        aria-expanded={!itemCollapsed}
+                        className="group flex w-full items-start justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-[8px] uppercase tracking-[.14em] text-white/25">Conquista {String(i + 1).padStart(2, "0")}</span>
+                          <span className="mt-1 block text-sm font-black text-white transition-colors group-hover:text-red-100">{a.name}</span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span title={a.rank} className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2">
+                            <TrophyIcon rank={a.rank} className="h-4 w-4" />
+                          </span>
+                          <span aria-hidden="true" className="rounded-lg border border-red-400/20 bg-red-400/[.05] px-2.5 py-1.5 text-[9px] font-black uppercase text-red-100">{itemCollapsed ? "+ Expandir" : "− Minimizar"}</span>
+                        </span>
+                      </button>
+                      {!itemCollapsed && (
+                        <>
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <div>
+                          <p className="text-[9px] uppercase text-white/25">Descrição</p>
+                          <p className="mt-1 text-xs text-white/55">
+                            {a.description || "Sem descrição disponível."}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase text-white/25">Arquivo</p>
+                          <p className="mt-1 text-xs font-bold text-white/70">
+                            {a.filename}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
+                          <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
+                        <p className="text-[9px] uppercase text-white/25">
+                          Referência visual
+                        </p>
+                        <p className="mt-1 text-[10px] leading-relaxed text-white/35">
+                          Esta referência será incluída no ZIP e analisada visualmente junto com as demais. O site não tenta interpretar a imagem nem envia a referência para geração.
+                        </p>
+                        {a.visualReferenceUrl ? (
+                          <a
+                            href={a.visualReferenceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-2 inline-block text-red-200 underline underline-offset-2 text-[10px]"
+                          >
+                            abrir fonte visual
+                          </a>
+                        ) : (
+                          <p className="mt-2 text-[10px] text-white/25">
+                            Referência visual não disponível.
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
+                        <p className="text-[9px] uppercase text-white/25">
+                          Conceito visual
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-white/50">
+                          {a.visualConcept}
+                        </p>
+                        <p className="mt-3 text-[10px] leading-relaxed text-white/35">
+                          Referência Exophase:{" "}
+                          {a.visualReferenceUrl ? (
+                            <a
+                              href={a.visualReferenceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-red-200 underline underline-offset-2"
+                            >
+                              abrir referência visual
+                            </a>
+                          ) : (
+                            "não disponível — criação própria baseada no jogo"
+                          )}
+                        </p>
+                      </div>
+                        </>
+                      )}
+                    </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            )}
+            {selected.length > 0 && (
               <section className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
                 <button
                   type="button"
@@ -3858,137 +3982,18 @@ function PrepararJogoPage() {
               </section>
             )}
 
-            {selected.length > 0 && (
-              <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
-                <button
-                  type="button"
-                  onClick={() => togglePrepItem("section-prepared")}
-                  aria-expanded={!collapsedPrepItems["section-prepared"]}
-                  className="group flex w-full items-start justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-[9px] uppercase tracking-[.18em] text-red-500">04 • Dados preparados</span>
-                    <span className="mt-1 block text-xl font-black text-white transition-colors group-hover:text-red-100">Pacote de cada conquista</span>
-                    {!collapsedPrepItems["section-prepared"] && (
-                      <span className="mt-2 block text-xs text-white/35">
-                        Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
-                      </span>
-                    )}
-                  </span>
-                  <span aria-hidden="true" className="shrink-0 rounded-lg border border-red-400/25 bg-red-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-red-100 transition-colors">
-                    {collapsedPrepItems["section-prepared"] ? "+ Expandir" : "− Minimizar"}
-                  </span>
-                </button>
-                {!collapsedPrepItems["section-prepared"] && (
-                  <div className="mt-4 space-y-3">
-                    {selected.map((a, i) => {
-                      const itemKey = "prepared-" + a.id;
-                      const itemCollapsed = Boolean(collapsedPrepItems[itemKey]);
-                      return (
-                    <div
-                      key={a.id}
-                      className="rounded-2xl border border-white/[.07] bg-black/25 p-3"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => togglePrepItem(itemKey)}
-                        aria-expanded={!itemCollapsed}
-                        className="group flex w-full items-start justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
-                      >
-                        <span className="min-w-0">
-                          <span className="block text-[8px] uppercase tracking-[.14em] text-white/25">Conquista {String(i + 1).padStart(2, "0")}</span>
-                          <span className="mt-1 block text-sm font-black text-white transition-colors group-hover:text-red-100">{a.name}</span>
-                        </span>
-                        <span className="flex shrink-0 items-center gap-2">
-                          <span title={a.rank} className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2">
-                            <TrophyIcon rank={a.rank} className="h-4 w-4" />
-                          </span>
-                          <span aria-hidden="true" className="rounded-lg border border-red-400/20 bg-red-400/[.05] px-2.5 py-1.5 text-[9px] font-black uppercase text-red-100">{itemCollapsed ? "+ Expandir" : "− Minimizar"}</span>
-                        </span>
-                      </button>
-                      {!itemCollapsed && (
-                        <>
-                      <div className="mt-4 grid gap-3 md:grid-cols-2">
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Descrição</p>
-                          <p className="mt-1 text-xs text-white/55">
-                            {a.description || "Sem descrição disponível."}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Arquivo</p>
-                          <p className="mt-1 text-xs font-bold text-white/70">
-                            {a.filename}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-white/25">Jornada de Estreia</p>
-                          <p className="mt-1 text-xs font-bold text-red-100">SIM — decisão do preparador</p>
-                        </div>
-                      </div>
 
-                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
-                        <p className="text-[9px] uppercase text-white/25">
-                          Referência visual
-                        </p>
-                        <p className="mt-1 text-[10px] leading-relaxed text-white/35">
-                          Esta referência será incluída no ZIP e analisada visualmente junto com as demais. O site não tenta interpretar a imagem nem envia a referência para geração.
-                        </p>
-                        {a.visualReferenceUrl ? (
-                          <a
-                            href={a.visualReferenceUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-2 inline-block text-red-200 underline underline-offset-2 text-[10px]"
-                          >
-                            abrir fonte visual
-                          </a>
-                        ) : (
-                          <p className="mt-2 text-[10px] text-white/25">
-                            Referência visual não disponível.
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="mt-3 rounded-xl border border-white/[.06] bg-white/[.02] p-3">
-                        <p className="text-[9px] uppercase text-white/25">
-                          Conceito visual
-                        </p>
-                        <p className="mt-1 text-xs leading-relaxed text-white/50">
-                          {a.visualConcept}
-                        </p>
-                        <p className="mt-3 text-[10px] leading-relaxed text-white/35">
-                          Referência Exophase:{" "}
-                          {a.visualReferenceUrl ? (
-                            <a
-                              href={a.visualReferenceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-red-200 underline underline-offset-2"
-                            >
-                              abrir referência visual
-                            </a>
-                          ) : (
-                            "não disponível — criação própria baseada no jogo"
-                          )}
-                        </p>
-                      </div>
-                        </>
-                      )}
-                    </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            )}
-
-            {manualSelected.length > 0 && (
+            {(manualSelected.length > 0 || selected.some((a) => !a.isCustom)) && (
               <section className="mt-5 rounded-[20px] border border-zinc-400/20 bg-zinc-500/[.025] p-5">
-                <p className="text-[9px] uppercase tracking-[.18em] text-zinc-300">
-                  05 • Artes manuais
-                </p>
-                <h2 className="mt-1 text-xl font-black">Imagens das conquistas manuais</h2>
+                <button type="button" onClick={() => togglePrepItem("section-06")} aria-expanded={!collapsedPrepItems["section-06"]} className="group flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-zinc-300/50">
+                  <span className="text-base font-black text-white">06 • Artes e envio de imagens</span>
+                  <span className="rounded-lg border border-zinc-300/20 bg-zinc-300/[.06] px-3 py-2 text-[9px] font-black uppercase text-zinc-100">{collapsedPrepItems["section-06"] ? "+ Expandir" : "− Minimizar"}</span>
+                </button>
+                {!collapsedPrepItems["section-06"] && (
+                  <div className="mt-4 space-y-4">
+                    {manualSelected.length > 0 && (
+                    <div className="rounded-xl border border-zinc-400/15 bg-black/15 p-4">
+                <h3 className="text-base font-black text-white">Imagens das conquistas manuais</h3>
                 <p className="mt-2 text-xs leading-relaxed text-white/40">
                   Cada conquista manual tem seu próprio arquivo. Copie o prompt individual para criar a imagem e envie o PNG, JPG ou WEBP correspondente; a arte fica vinculada ao rascunho deste jogo.
                 </p>
@@ -4053,10 +4058,9 @@ function PrepararJogoPage() {
                     setSaved(false);
                   }}
                 />
-              </section>
-            )}
-
-            {selected.some((a) => !a.isCustom) && (
+                    </div>
+                    )}
+                  {selected.some((a) => !a.isCustom) && (
               <ImportArtBatchUpload
                 gameSlug={result.game.slug ?? ""}
                 achievements={selected.filter((a) => !a.isCustom).map((a) => ({
@@ -4087,7 +4091,10 @@ function PrepararJogoPage() {
                   setSaved(false);
                 }}
               />
-            )}
+                  )}
+                  </div>
+                )}
+              </section>
               </div>
               <aside
                 aria-label="Legenda fixa das cores das conquistas"
