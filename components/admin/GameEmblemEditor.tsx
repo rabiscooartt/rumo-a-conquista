@@ -100,6 +100,7 @@ function buildEmblemTemplate(
     ? rawEmblemTitle
     : `Crie um nome original para o Emblema de ${game.title}`;
   const rawDescription = readText(emblem.description).trim();
+  const unlockAchievement = readText(emblem.unlockAchievement).trim();
   const references = referenceItems.map(
     (item) => `- ${item.title}: REFERENCIAS-EMBLEMAS/${item.slug}-emblem.png`
   );
@@ -120,6 +121,7 @@ function buildEmblemTemplate(
     "BRIEFING DO EMBLEMA",
     `Título / conceito: ${emblemTitle}`,
     `Descrição fornecida: ${rawDescription || "Ainda não fornecida. Desenvolva uma interpretação visual específica baseada no jogo, sem preencher lacunas com lore inventada."}`,
+    `Conquista necessária para desbloquear o Emblema: ${unlockAchievement || "PENDENTE — identificar e confirmar uma conquista real cadastrada; não inventar."}`,
     `Tags atuais: ${tags.length ? tags.join(", ") : "Não definidas; identifique temas visuais específicos a partir dos dados do jogo."}`,
     `Caminho esperado: ${automaticEmblemPath(game.slug)}`,
     "",
@@ -165,7 +167,7 @@ function buildEmblemTemplate(
     "5. O desenho é diferente da Maestria Final e não copia uma referência?",
     "",
     `ARQUIVO FINAL: ${game.slug}-emblem.png`,
-    "RESULTADO: entregar somente a arte final do Emblema deste jogo.",
+    "RESULTADO OBRIGATÓRIO: entregar a arte final do Emblema e, separadamente, uma ficha de metadados completa para o cadastro no site. A ficha deve conter: Título do emblema; Descrição do emblema; Conquista necessária para desbloquear o emblema; Tags; Nome do arquivo exportado; Caminho local de destino. Não omitir campos. Não inventar conquistas: se a conquista real não puder ser confirmada, marcar como PENDENTE e recomendar uma verificação.",
   ].join("\n");
 }
 
@@ -247,7 +249,7 @@ function buildUniversalPrompt01(
     "- Avaliar personagem/criatura como primeira opção, mas não obrigatória. Se não funcionar na composição, usar elemento significativo do universo; se houver bloqueio ou risco de imitação próxima, criar uma alternativa original evocando atmosfera por cores, materiais, iluminação, arquitetura e formas gerais, sem reproduzir detalhes distintivos protegidos.",
     "",
     "ETAPA 5 — METADADOS",
-    "Defina ou refine: (1) nome exclusivo do Emblema; (2) conquista real que o desbloqueia, escolhida entre as conquistas cadastradas sempre que possível; (3) descrição temática curta para o site; (4) tags específicas; (5) nome de arquivo sugerido no formato [slug]-emblem.png. Não invente uma conquista do jogo. Se não houver dados suficientes para identificar a conquista correta, marque como pendente e faça uma recomendação claramente identificada.",
+    "METADADOS OBRIGATÓRIOS EM TODO EMBLEMA: defina ou refine (1) Título exclusivo do Emblema; (2) Descrição curta e temática para a página do site; (3) Conquista necessária para desbloquear o Emblema, escolhida entre as conquistas reais cadastradas sempre que possível; (4) Tags específicas separadas por vírgula; (5) Nome de arquivo [slug]-emblem.png; (6) Caminho local public/images/games/[slug]/emblem.png. Não deixe título, descrição ou tags em branco: proponha esses campos com base no briefing. Não invente conquistas. Se não houver dados suficientes para confirmar a conquista correta, marque explicitamente como PENDENTE e indique que deve ser verificada no catálogo real do jogo.",
     "",
     "FORMATO OBRIGATÓRIO DA RESPOSTA",
     "A. Diagnóstico da identidade do jogo (fatos confirmados e incertezas).",
@@ -256,8 +258,9 @@ function buildUniversalPrompt01(
     "D. Direção de arte detalhada: foco central, silhueta, moldura premium, topo, laterais, base, cena interna, materiais, paleta nomeada, iluminação, hierarquia tipográfica inspirada no título/logotipo, placas, composição e legibilidade.",
     "E. Especificação exata das duas placas: nome do jogo com hierarquia tipográfica inspirada no logotipo/título oficial (sem copiar literalmente a arte do logo); plataforma em placa secundária menor logo abaixo, mostrando SOMENTE o nome em texto simples, sem ícone ou logotipo; ambos legíveis.",
     "F. Lista do que evitar para não repetir as referências nem criar ruído visual.",
-    "G. Metadados propostos: nome do Emblema, conquista real de desbloqueio, descrição e tags.",
+    "G. Metadados propostos para cadastro: Título do emblema; Descrição curta para o site; Conquista necessária para desbloquear; Tags separadas por vírgula; Nome do arquivo; Caminho local de destino.",
     "H. BRIEFING FINAL PARA O PROMPT 02, autocontido, específico e pronto para copiar, incluindo todos os requisitos técnicos e instruções para gerar UMA imagem.",
+    "I. Ao encerrar a resposta, reapresente uma FICHA DO EMBLEMA completa e pronta para copiar para o Admin. Não considere o trabalho concluído entregando apenas o briefing ou a imagem.",
     "",
     "CHECKLIST ANTES DE ENTREGAR",
     "Confirme que o foco central foi escolhido criteriosamente; a moldura é premium e exclusiva; os enfeites secundários foram reduzidos em cerca de 45%, com no máximo dois grupos decorativos secundários e sem padrões repetidos desnecessários; existem áreas claras de respiro; o título tem hierarquia própria; a placa da plataforma mostra apenas o nome em texto, sem ícone/logotipo; a silhueta ocupa 92–96% da altura sem cortes e respeita as referências sem copiá-las. Não gerar imagem nesta etapa.",
@@ -326,7 +329,7 @@ function buildUniversalPrompt02(
     "- Siga a estratégia de foco definida no briefing: personagem/criatura se melhorar a composição; elemento reconhecível do universo se for mais forte; ou criação original inspirada na atmosfera se houver bloqueio ou risco de imitação próxima. Nunca mantenha um personagem mal encaixado nem tente disfarçar uma cópia; preserve a identidade do jogo com uma alternativa original.",
     "",
     "ENTREGA",
-    "Produza a imagem final diretamente. Não mostre rascunhos, instruções em forma de imagem, mockups nem variações. Depois da imagem, forneça em texto separado: nome exclusivo do Emblema; conquista de desbloqueio (não inventar; indicar pendência se não foi possível verificar); descrição temática curta; tags; nome exato do arquivo; caminho local de destino; e os comandos para substituir manualmente a imagem no VS Code.",
+    "Produza a imagem final diretamente. Não mostre rascunhos, instruções em forma de imagem, mockups nem variações. Depois da imagem, forneça obrigatoriamente uma seção FICHA DO EMBLEMA, pronta para copiar ao Admin, com estes rótulos exatos: Título do emblema; Descrição do emblema (texto curto para a página do site); Conquista necessária para desbloquear o emblema; Tags (separadas por vírgula); Nome do arquivo exportado; Caminho local de destino. Não omita nenhum campo nem entregue só a imagem. Título, descrição e tags devem ser propostos com base no briefing aprovado. A conquista deve corresponder a uma conquista real cadastrada; se não puder confirmá-la, escrever PENDENTE — verificar no catálogo real, sem inventar. Depois da ficha, incluir também os comandos para substituir manualmente a imagem no VS Code.",
     "",
     "ATUALIZAÇÃO MANUAL DA IMAGEM NO VS CODE — INCLUIR NA RESPOSTA FINAL",
     `Nome sugerido do PNG exportado: ${readText(game.slug)}-emblem.png`,
@@ -366,13 +369,13 @@ function buildPromptUsageInstructions(game: SiteGame) {
     "Anexe o ZIP a uma conversa no ChatGPT, copie o Prompt 01 do Admin, cole-o e envie. Ele deverá analisar o jogo e as referências e entregar um briefing completo, sem gerar imagem.",
     "",
     "PASSO 3 — REVISAR E APROVAR O BRIEFING",
-    "Leia o conceito, a direção de arte e os metadados propostos. Se algo estiver genérico ou incorreto, peça ajustes na mesma conversa. Só avance quando aprovar o briefing.",
+    "Leia o conceito, a direção de arte e os metadados propostos. Confirme que a ficha contém título do emblema, descrição para o site, conquista real necessária para desbloquear, tags, nome do arquivo e caminho de destino. Se algo estiver genérico ou incorreto, peça ajustes na mesma conversa. Só avance quando aprovar o briefing.",
     "",
     "PASSO 4 — COPIAR E EXECUTAR O PROMPT 02",
     "Na MESMA conversa, copie o Prompt 02 do Admin, cole-o e envie para gerar uma única imagem com base no briefing aprovado. Se iniciar outra conversa, anexe novamente o ZIP e cole também o briefing completo do Prompt 01 antes de executar o Prompt 02.",
     "",
     "PASSO 5 — CONFERIR A ARTE",
-    "Confira a legibilidade do nome do jogo e da plataforma, a moldura, as margens, o tema e a transparência real. Não trate um padrão quadriculado desenhado como alpha. Corrija a imagem antes de cadastrá-la se houver algum problema.",
+    "Confira a legibilidade do nome do jogo e da plataforma, a moldura, as margens, o tema e a transparência real. Não trate um padrão quadriculado desenhado como alpha. Junto com a arte, confirme que recebeu a FICHA DO EMBLEMA completa: título, descrição, conquista necessária para desbloquear, tags, nome de arquivo e caminho local. Corrija a imagem antes de cadastrá-la se houver algum problema.",
     "",
     "PASSO 6 — PUBLICAR A IMAGEM COM SEGURANÇA NO VS CODE",
     `Primeiro salve a imagem aprovada fora da pasta do repositório (por exemplo, Downloads). Abra o terminal PowerShell na raiz do repositório rumo-a-conquista e execute um comando por vez:`,
