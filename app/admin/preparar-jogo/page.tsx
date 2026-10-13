@@ -1643,9 +1643,12 @@ function PrepararJogoPage() {
         : current
       );
       setSaved(false);
+      const responseNotice = typeof payload.notice === "string" ? payload.notice.trim() : "";
       setAchievementRewriteNotices((current) => ({
         ...current,
-        [achievementId]: "Nova versão aplicada. Rank, EP, data e demais registros foram preservados.",
+        [achievementId]: responseNotice
+          ? responseNotice + " Rank, EP, data e demais registros foram preservados."
+          : "Nova versão aplicada. Rank, EP, data e demais registros foram preservados.",
       }));
     } catch (error) {
       setAchievementRewriteNotices((current) => ({
