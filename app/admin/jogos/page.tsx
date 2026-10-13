@@ -78,7 +78,7 @@ function reviewStringField(value: unknown, fallback = ""): string {
 }
 
 export default function NewGamesAdminPage() {
-  const { isLoaded, gamesList, updateGame, updateFinalMastery } = useSiteGames();
+  const { isLoaded, gamesList, updateGame, updateFinalMastery, updateEmblem } = useSiteGames();
   const [selectedSlug, setSelectedSlug] = useState("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
@@ -940,7 +940,7 @@ export default function NewGamesAdminPage() {
                   game={selectedGame}
                   collapsed={Boolean(collapsedSections["05"])}
                   onToggle={() => toggleAdminSection("05")}
-                  onSave={(emblem) => updateGame(selectedGame.slug, { emblem })}
+                  onSave={(emblem) => updateEmblem(selectedGame.slug, emblem)}
                 />
 
                 <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
