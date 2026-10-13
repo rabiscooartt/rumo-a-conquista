@@ -4095,6 +4095,7 @@ function PrepararJogoPage() {
                   </div>
                 )}
               </section>
+            )}
               </div>
               <aside
                 aria-label="Legenda fixa das cores das conquistas"
