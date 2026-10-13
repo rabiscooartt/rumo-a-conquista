@@ -3721,8 +3721,8 @@ function PrepararJogoPage() {
                       </span>
                     )}
                   </span>
-                  <span aria-hidden="true" className="shrink-0 text-lg font-black text-white/45 transition-colors group-hover:text-emerald-300">
-                    {collapsedPrepItems["section-material"] ? "+" : "−"}
+                  <span aria-hidden="true" className="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-emerald-100 transition-colors">
+                    {collapsedPrepItems["section-material"] ? "+ Expandir" : "− Minimizar"}
                   </span>
                 </button>
                 {!collapsedPrepItems["section-material"] && (
@@ -3806,8 +3806,8 @@ function PrepararJogoPage() {
                                   Conquistas {start + 1}–{start + batch.length} • {readyCount}/{batch.length} briefs prontos
                                 </span>
                               </span>
-                              <span aria-hidden="true" className="shrink-0 text-base font-black text-white/45">
-                                {collapsedPrepItems["batch-" + batchIndex] ? "+" : "−"}
+                              <span aria-hidden="true" className="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-emerald-100">
+                                {collapsedPrepItems["batch-" + batchIndex] ? "+ Expandir" : "− Minimizar"}
                               </span>
                             </button>
 
@@ -3872,8 +3872,8 @@ function PrepararJogoPage() {
                       </span>
                     )}
                   </span>
-                  <span aria-hidden="true" className="shrink-0 text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
-                    {collapsedPrepItems["section-prepared"] ? "+" : "−"}
+                  <span aria-hidden="true" className="shrink-0 rounded-lg border border-red-400/25 bg-red-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-red-100 transition-colors">
+                    {collapsedPrepItems["section-prepared"] ? "+ Expandir" : "− Minimizar"}
                   </span>
                 </button>
                 {!collapsedPrepItems["section-prepared"] && (
@@ -3900,7 +3900,7 @@ function PrepararJogoPage() {
                           <span title={a.rank} className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2">
                             <TrophyIcon rank={a.rank} className="h-4 w-4" />
                           </span>
-                          <span aria-hidden="true" className="text-lg font-black text-white/45">{itemCollapsed ? "+" : "−"}</span>
+                          <span aria-hidden="true" className="rounded-lg border border-red-400/20 bg-red-400/[.05] px-2.5 py-1.5 text-[9px] font-black uppercase text-red-100">{itemCollapsed ? "+ Expandir" : "− Minimizar"}</span>
                         </span>
                       </button>
                       {!itemCollapsed && (
