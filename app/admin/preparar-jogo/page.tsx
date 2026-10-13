@@ -257,6 +257,14 @@ function PrepararJogoPage() {
   >([]);
   const [showRealizedMatches, setShowRealizedMatches] = useState(false);
   const [focusedAchievementId, setFocusedAchievementId] = useState<string | null>(null);
+  const [collapsedPrepItems, setCollapsedPrepItems] = useState<Record<string, boolean>>({});
+
+  function togglePrepItem(key: string) {
+    setCollapsedPrepItems((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  }
 
   const selected = useMemo(
     () =>
@@ -3664,18 +3672,27 @@ function PrepararJogoPage() {
 
             {selected.length > 0 && (
               <section className="mt-5 rounded-[20px] border border-emerald-500/20 bg-emerald-500/[.025] p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">
-                      05 • Material para ChatGPT
-                    </p>
-                    <h2 className="mt-1 text-xl font-black">Copiar instruções e preparar lotes</h2>
-                    <p className="mt-2 max-w-[900px] text-xs leading-relaxed text-white/35">
-                      O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
-                    </p>
-                  </div>
-                </div>
-
+                <button
+                  type="button"
+                  onClick={() => togglePrepItem("section-material")}
+                  aria-expanded={!collapsedPrepItems["section-material"]}
+                  className="group flex w-full items-start justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[9px] uppercase tracking-[.18em] text-emerald-400">05 • Material para ChatGPT</span>
+                    <span className="mt-1 block text-xl font-black text-white transition-colors group-hover:text-emerald-100">Copiar instruções e preparar lotes</span>
+                    {!collapsedPrepItems["section-material"] && (
+                      <span className="mt-2 block max-w-[900px] text-xs leading-relaxed text-white/35">
+                        O site prepara tudo automaticamente. Copie as instruções do lote e envie o texto junto com o ZIP + referências para o ChatGPT. A análise visual e a criação dos prompts acontecem aqui, não no site.
+                      </span>
+                    )}
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-lg font-black text-white/45 transition-colors group-hover:text-emerald-300">
+                    {collapsedPrepItems["section-material"] ? "+" : "−"}
+                  </span>
+                </button>
+                {!collapsedPrepItems["section-material"] && (
+                  <>
                 <div className="mt-4 rounded-xl border border-violet-400/15 bg-violet-400/[.025] p-3">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -3741,15 +3758,26 @@ function PrepararJogoPage() {
                           className="rounded-xl border border-white/[.06] bg-white/[.02] p-3"
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                            <div>
-                              <p className="text-xs font-black">
-                                Lote {String(batchIndex + 1).padStart(2, "0")}
-                              </p>
-                              <p className="text-[9px] text-white/30">
-                                Conquistas {start + 1}–{start + batch.length} • {readyCount}/{batch.length} briefs prontos
-                              </p>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => togglePrepItem("batch-" + batchIndex)}
+                              aria-expanded={!collapsedPrepItems["batch-" + batchIndex]}
+                              className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
+                            >
+                              <span>
+                                <span className="block text-xs font-black">
+                                  Lote {String(batchIndex + 1).padStart(2, "0")}
+                                </span>
+                                <span className="block text-[9px] text-white/30">
+                                  Conquistas {start + 1}–{start + batch.length} • {readyCount}/{batch.length} briefs prontos
+                                </span>
+                              </span>
+                              <span aria-hidden="true" className="shrink-0 text-base font-black text-white/45">
+                                {collapsedPrepItems["batch-" + batchIndex] ? "+" : "−"}
+                              </span>
+                            </button>
 
+                            {!collapsedPrepItems["batch-" + batchIndex] && (
                             <div className="flex flex-wrap justify-end gap-2">
                               <button
                                 type="button"
@@ -3769,13 +3797,16 @@ function PrepararJogoPage() {
                                   : "📦 Baixar ZIP + referências"}
                               </button>
                             </div>
+                            )}
                           </div>
 
-                          <div className="mt-3 rounded-lg border border-white/[.05] bg-black/20 p-3">
-                            <p className="text-[9px] leading-relaxed text-white/30">
-                              O texto contém as instruções completas do lote, as conquistas, as descrições, os nomes dos arquivos e o caminho de cada referência dentro do ZIP.
-                            </p>
-                          </div>
+                          {!collapsedPrepItems["batch-" + batchIndex] && (
+                            <div className="mt-3 rounded-lg border border-white/[.05] bg-black/20 p-3">
+                              <p className="text-[9px] leading-relaxed text-white/30">
+                                O texto contém as instruções completas do lote, as conquistas, as descrições, os nomes dos arquivos e o caminho de cada referência dentro do ZIP.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       );
                     }
@@ -3785,42 +3816,61 @@ function PrepararJogoPage() {
                 <p className="mt-3 text-[9px] leading-relaxed text-white/25">
                   <span className="font-black text-white/45">Fluxo:</span> Exophase → ZIP + instruções → análise visual no ChatGPT → prompts finais → geração individual das artes.
                 </p>
+                  </>
+                )}
               </section>
             )}
 
             {selected.length > 0 && (
               <section className="mt-5 rounded-[20px] border border-red-500/20 bg-red-500/[.025] p-5">
-                <p className="text-[9px] uppercase tracking-[.18em] text-red-500">
-                  04 • Dados preparados
-                </p>
-                <h2 className="mt-1 text-xl font-black">
-                  Pacote de cada conquista
-                </h2>
-                <p className="mt-2 text-xs text-white/35">
-                  Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
-                </p>
-
-                <div className="mt-4 space-y-3">
-                  {selected.map((a, i) => (
+                <button
+                  type="button"
+                  onClick={() => togglePrepItem("section-prepared")}
+                  aria-expanded={!collapsedPrepItems["section-prepared"]}
+                  className="group flex w-full items-start justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[9px] uppercase tracking-[.18em] text-red-500">04 • Dados preparados</span>
+                    <span className="mt-1 block text-xl font-black text-white transition-colors group-hover:text-red-100">Pacote de cada conquista</span>
+                    {!collapsedPrepItems["section-prepared"] && (
+                      <span className="mt-2 block text-xs text-white/35">
+                        Nada precisa ser digitado manualmente. Estes dados serão a base do próximo módulo de lotes para o ChatGPT.
+                      </span>
+                    )}
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-lg font-black text-white/45 transition-colors group-hover:text-red-300">
+                    {collapsedPrepItems["section-prepared"] ? "+" : "−"}
+                  </span>
+                </button>
+                {!collapsedPrepItems["section-prepared"] && (
+                  <div className="mt-4 space-y-3">
+                    {selected.map((a, i) => {
+                      const itemKey = "prepared-" + a.id;
+                      const itemCollapsed = Boolean(collapsedPrepItems[itemKey]);
+                      return (
                     <div
                       key={a.id}
                       className="rounded-2xl border border-white/[.07] bg-black/25 p-3"
                     >
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                          <p className="text-[8px] uppercase tracking-[.14em] text-white/25">
-                            Conquista {String(i + 1).padStart(2, "0")}
-                          </p>
-                          <h3 className="mt-1 text-sm font-black">{a.name}</h3>
-                        </div>
-                        <span
-                          title={a.rank}
-                          className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2"
-                        >
-                          <TrophyIcon rank={a.rank} className="h-4 w-4" />
+                      <button
+                        type="button"
+                        onClick={() => togglePrepItem(itemKey)}
+                        aria-expanded={!itemCollapsed}
+                        className="group flex w-full items-start justify-between gap-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-[8px] uppercase tracking-[.14em] text-white/25">Conquista {String(i + 1).padStart(2, "0")}</span>
+                          <span className="mt-1 block text-sm font-black text-white transition-colors group-hover:text-red-100">{a.name}</span>
                         </span>
-                      </div>
-
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span title={a.rank} className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/[.06] px-3.5 py-2">
+                            <TrophyIcon rank={a.rank} className="h-4 w-4" />
+                          </span>
+                          <span aria-hidden="true" className="text-lg font-black text-white/45">{itemCollapsed ? "+" : "−"}</span>
+                        </span>
+                      </button>
+                      {!itemCollapsed && (
+                        <>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         <div>
                           <p className="text-[9px] uppercase text-white/25">Descrição</p>
@@ -3886,9 +3936,13 @@ function PrepararJogoPage() {
                           )}
                         </p>
                       </div>
+                        </>
+                      )}
                     </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             )}
 
