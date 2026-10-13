@@ -1603,7 +1603,7 @@ function PrepararJogoPage() {
             const noteTerms = value
               .toLocaleLowerCase("pt-BR")
               .normalize("NFD")
-              .replace(/[\\u0300-\\u036f]/g, "")
+              .replace(/[\u0300-\u036f]/g, "")
               .split(/[^a-z0-9]+/)
               .filter((term) => term.length >= 4);
             return result.achievements
@@ -1614,7 +1614,7 @@ function PrepararJogoPage() {
                 const searchable = (title + " " + description)
                   .toLocaleLowerCase("pt-BR")
                   .normalize("NFD")
-                  .replace(/[\\u0300-\\u036f]/g, "");
+                  .replace(/[\u0300-\u036f]/g, "");
                 const relevance = noteTerms.reduce(
                   (score, term) => score + Number(searchable.includes(term)),
                   0
