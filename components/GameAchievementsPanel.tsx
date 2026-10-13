@@ -1388,7 +1388,7 @@ export default function GameAchievementsPanel(
                 }`}
               >
                 <div className="p-3 sm:p-4">
-                  <div className="grid gap-x-2 gap-y-4 md:grid-cols-[52px_minmax(0,1fr)_48px_140px] md:items-center">
+                  <div className="grid gap-x-2 gap-y-4 md:grid-cols-[52px_minmax(0,1fr)_48px_146px] md:items-center">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
                         visuallyLocked
@@ -1444,7 +1444,7 @@ export default function GameAchievementsPanel(
                         </div>
 
                         <div className={showJourneyLabel
-                          ? "flex min-w-0 flex-col items-center justify-center gap-1 text-center"
+                          ? "flex min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5"
                           : "flex min-w-0 flex-col items-end justify-center gap-1 text-right"}>
                           {showJourneyLabel ? (
                             (() => {
@@ -1478,7 +1478,7 @@ export default function GameAchievementsPanel(
                                     <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
                                   </a>
                                   {journeyDate ? (
-                                    <time dateTime={journeyDateValue} className="whitespace-nowrap text-center text-[9px] font-semibold tabular-nums leading-tight text-white/50">
+                                    <time dateTime={journeyDateValue} className="whitespace-nowrap text-center text-[10px] font-semibold tabular-nums leading-tight text-white/65">
                                       {journeyDate}
                                     </time>
                                   ) : null}
