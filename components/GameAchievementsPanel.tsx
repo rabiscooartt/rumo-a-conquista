@@ -1433,60 +1433,59 @@ export default function GameAchievementsPanel(
 
                     {!visuallyLocked && (
                       <>
-                        <div className={showJourneyLabel
-                          ? "flex min-w-0 flex-col items-center justify-center gap-1.5 text-center md:col-span-2"
-                          : "flex min-w-0 items-center justify-center md:justify-end"}>
+                        <div className="flex min-w-0 items-center justify-center md:justify-end">
                           <img
                             src={trophyImagePath(rank)}
                             alt={rankLabel(rank)}
                             title={rankLabel(rank)}
                             aria-hidden="false"
-                            className={showJourneyLabel
-                              ? "h-12 w-12 shrink-0 object-contain"
-                              : "h-11 w-11 shrink-0 object-contain"}
+                            className="h-11 w-11 shrink-0 object-contain"
                           />
-                          {showJourneyLabel && (() => {
-                            const journeyDateValue =
-                              achievementMeta[achievementKey]?.date ||
-                              achievement.earnedDate ||
-                              "";
-                            const journeyDate = formatJourneyDate(journeyDateValue);
-
-                            return (
-                              <>
-                                <a
-                                  href={youtubePlaylistUrl || undefined}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  aria-label={`Abrir playlist da Jornada de Estreia de ${gameTitle}`}
-                                  title={youtubePlaylistUrl ? "Abrir playlist do YouTube" : "Playlist do YouTube ainda não cadastrada"}
-                                  className={`inline-flex max-w-full items-center justify-center gap-1.5 rounded-md border border-emerald-400/25 bg-emerald-400/[.07] px-2.5 py-1.5 text-center text-[8px] font-extrabold uppercase tracking-[0.08em] shadow-[0_0_12px_rgba(52,211,153,0.05)] transition ${
-                                    youtubePlaylistUrl
-                                      ? "text-emerald-200 hover:border-emerald-300/45 hover:bg-emerald-400/[.12] hover:text-emerald-100"
-                                      : "cursor-default text-emerald-200"
-                                  }`}
-                                  onClick={(event) => {
-                                    if (!youtubePlaylistUrl) event.preventDefault();
-                                  }}
-                                >
-                                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3 w-3 shrink-0 opacity-90" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="3" y="5" width="18" height="16" rx="2" />
-                                    <path d="M16 3v4M8 3v4M3 10h18" />
-                                  </svg>
-                                  <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
-                                </a>
-                                {journeyDate ? (
-                                  <time dateTime={journeyDateValue} className="whitespace-nowrap text-center text-[9px] font-semibold tabular-nums leading-tight text-white/50">
-                                    {journeyDate}
-                                  </time>
-                                ) : null}
-                              </>
-                            );
-                          })()}
                         </div>
 
-                        <div className={showJourneyLabel ? "hidden" : "flex min-w-0 flex-col items-end justify-center gap-1 text-right"}>
-                          {!isFinalMastery ? (
+                        <div className={showJourneyLabel
+                          ? "flex min-w-0 flex-col items-center justify-center gap-1 text-center"
+                          : "flex min-w-0 flex-col items-end justify-center gap-1 text-right"}>
+                          {showJourneyLabel ? (
+                            (() => {
+                              const journeyDateValue =
+                                achievementMeta[achievementKey]?.date ||
+                                achievement.earnedDate ||
+                                "";
+                              const journeyDate = formatJourneyDate(journeyDateValue);
+
+                              return (
+                                <>
+                                  <a
+                                    href={youtubePlaylistUrl || undefined}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label={`Abrir playlist da Jornada de Estreia de ${gameTitle}`}
+                                    title={youtubePlaylistUrl ? "Abrir playlist do YouTube" : "Playlist do YouTube ainda não cadastrada"}
+                                    className={`inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-400/[.07] px-1.5 py-1 text-center text-[7px] font-extrabold uppercase tracking-[0.05em] transition ${
+                                      youtubePlaylistUrl
+                                        ? "text-emerald-200 hover:border-emerald-300/45 hover:bg-emerald-400/[.12] hover:text-emerald-100"
+                                        : "cursor-default text-emerald-200"
+                                    }`}
+                                    onClick={(event) => {
+                                      if (!youtubePlaylistUrl) event.preventDefault();
+                                    }}
+                                  >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3 w-3 shrink-0 opacity-90" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="3" y="5" width="18" height="16" rx="2" />
+                                      <path d="M16 3v4M8 3v4M3 10h18" />
+                                    </svg>
+                                    <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
+                                  </a>
+                                  {journeyDate ? (
+                                    <time dateTime={journeyDateValue} className="whitespace-nowrap text-center text-[9px] font-semibold tabular-nums leading-tight text-white/50">
+                                      {journeyDate}
+                                    </time>
+                                  ) : null}
+                                </>
+                              );
+                            })()
+                          ) : !isFinalMastery ? (
                             (() => {
                               const meta = achievementMeta[achievementKey];
                               const episode = formatJourneyEpisode(meta?.episode);
