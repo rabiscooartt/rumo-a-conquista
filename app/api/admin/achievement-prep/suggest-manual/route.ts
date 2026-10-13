@@ -27,6 +27,8 @@ function fallbackSuggestion(note: string): AchievementSuggestion {
     : "";
 
   const isCompletion = /\b(finalizei|terminei|conclui|concluí|zerei|completei|finalizar|finalize|concluir|conclua|termine|terminar|complete|completei)\b/.test(key);
+  const isWin = /\b(venca|vencer|ganhe|ganhar|ganhei|venci|venceu|vitoria)\b/.test(key);
+  const isFirst = /\b(primeiro|primeira|primeiros|primeiras|pela primeira vez)\b/.test(key);
   const gameOrCampaign = /\b(jogo|campanha|historia|historia principal|game|campanha principal)\b/.test(key);
   const isHard = /\b(dificuldade dificil|muito dificil|hard|nightmare|insano|sem tomar dano|sem receber dano|sem morrer|sem ser atingido|no hit|100%|todos os trofeus|todas as conquistas|platina)\b/.test(key);
   const isNormal = /\b(normal|medio|medium)\b/.test(key);
@@ -44,7 +46,13 @@ function fallbackSuggestion(note: string): AchievementSuggestion {
             : "Bronze";
 
   let title = "Um Novo Feito";
-  if (isCompletion && gameOrCampaign && isNormal) title = "Vitória Equilibrada";
+  if (isWin && /\b(partida|rodada|torneio|duelo|disputa)\b/.test(key) && /\b(cartas|baralho|poker|beisebol)\b/.test(key)) {
+    title = isFirst ? "Primeira Cartada Vencedora" : "Vitória na Mesa";
+  } else if (isWin && isFirst) {
+    title = "Primeira Vitória";
+  } else if (isWin && /\b(partida|rodada|torneio|duelo|disputa)\b/.test(key)) {
+    title = "Vitória Decisiva";
+  } else if (isCompletion && gameOrCampaign && isNormal) title = "Vitória Equilibrada";
   else if (isCompletion && gameOrCampaign && isHard) title = "Prova de Ferro";
   else if (isCompletion && gameOrCampaign && isEasy) title = "Uma Jornada Tranquila";
   else if (isCompletion && gameOrCampaign) title = "Até o Fim";
@@ -115,9 +123,22 @@ function extractOutputText(payload: unknown): string {
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { note?: unknown; gameTitle?: unknown };
+    const body = (await request.json()) as {
+      note?: unknown;
+      gameTitle?: unknown;
+      gameContext?: unknown;
+    };
     const note = typeof body.note === "string" ? body.note.trim() : "";
     const gameTitle = typeof body.gameTitle === "string" ? body.gameTitle.trim().slice(0, 120) : "";
+    const gameContext = Array.isArray(body.gameContext)
+      ? body.gameContext.slice(0, 18).flatMap((item) => {
+          if (!item || typeof item !== "object") return [];
+          const value = item as { title?: unknown; description?: unknown };
+          const title = typeof value.title === "string" ? value.title.trim().slice(0, 100) : "";
+          const description = typeof value.description === "string" ? value.description.trim().slice(0, 200) : "";
+          return title ? [{ title, description }] : [];
+        })
+      : [];
 
     if (!note) {
       return NextResponse.json({ error: "Escreva uma anotação sobre a conquista." }, { status: 400 });
@@ -143,58 +164,80 @@ export async function POST(request: Request) {
       required: ["title", "description", "rank", "rankReason"],
     };
 
-    const apiResponse = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_ACHIEVEMENT_MODEL?.trim() || "gpt-6-luna",
-        store: false,
-        max_output_tokens: 350,
-        text: {
-          format: {
-            type: "json_schema",
-            name: "manual_game_achievement",
-            strict: true,
-            schema,
-          },
+    const requestBody = (model: string) => ({
+      model,
+      store: false,
+      max_output_tokens: 450,
+      text: {
+        format: {
+          type: "json_schema",
+          name: "manual_game_achievement",
+          strict: true,
+          schema,
         },
-        input: [
-          {
-            role: "system",
-            content: [
-              {
-                type: "input_text",
-                text: [
-                  "Você é editor de conquistas de videogames do projeto Rumo à Conquista.",
-                  "O usuário fornece uma anotação informal do que fez ou quer registrar. Transforme-a em uma conquista de videogame em português brasileiro.",
-                  "Retorne somente os quatro campos do JSON definido no schema.",
-                  "TÍTULO: curto, memorável, natural, com cara de conquista; idealmente de 2 a 6 palavras. Não copie a anotação inteira e não invente detalhes do jogo.",
-                  "DESCRIÇÃO: uma frase objetiva no imperativo, dizendo exatamente o que precisa ser feito. Corrija a gramática e preserve a dificuldade/modo e os números citados. Não acrescente requisitos ausentes na anotação.",
-                  "RANK: Bronze para marcos simples ou tarefas diretas; Prata para objetivos intermediários ou concluir o jogo em dificuldade Normal; Ouro para objetivos difíceis, 100%, sem dano, dificuldade elevada ou grandes séries de tarefas. Julgue a exigência descrita, não a raridade do título.",
-                  "RANK REASON: justifique em uma frase curta, sem exagerar e sem repetir a descrição.",
-                  "Se a anotação descreve algo que já aconteceu, reescreva como objetivo que alguém pode cumprir.",
-                  "Não invente EP, data, colecionáveis, chefes ou outras condições que não foram fornecidas.",
-                  "O resultado precisa ser específico à anotação, não uma lista genérica de nomes.",
-                ].join("\n"),
-              },
-            ],
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: JSON.stringify({ jogo: gameTitle || "Jogo não especificado", anotacao: note }),
-              },
-            ],
-          },
-        ],
-      }),
+      },
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text: [
+                "Você é diretor criativo e game designer de conquistas personalizadas do projeto Rumo à Conquista.",
+                "Transforme a anotação informal do usuário em uma conquista que pareça pertencer especificamente a esse jogo, em português brasileiro.",
+                "Use o título do jogo e as conquistas existentes fornecidas como contexto para identificar tom, universo, vocabulário, atividades, itens e mecânicas. Quando uma referência existente se conectar à anotação, aproveite essa conexão com criatividade.",
+                "Não copie títulos de conquistas existentes. Não invente personagens, locais, armas, chefes, itens, missões ou mecânicas que não estejam na anotação, no contexto fornecido ou que você não conheça com segurança. Se não houver evidência suficiente sobre a lore, seja criativo a partir da ação concreta descrita sem fingir conhecer detalhes.",
+                "Retorne somente os quatro campos do JSON definido no schema.",
+                "TÍTULO: 2 a 6 palavras, marcante, específico e com cara de conquista oficial. Nomeie o feito real — ação, objeto, partida, habilidade, desafio ou marco — em vez de usar rótulos genéricos como 'Um Novo Feito', 'Novo Desafio' ou 'Até o Fim', a menos que essa seja genuinamente a melhor síntese do objetivo.",
+                "DESCRIÇÃO: uma frase clara e natural no imperativo, pronta para aparecer numa lista de conquistas. Explique exatamente o que o jogador precisa fazer; corrija a gramática; preserve números, dificuldade, modo e detalhes concretos. Não acrescente condições que não foram informadas.",
+                "RANK: Bronze para tarefas simples ou marcos iniciais; Prata para objetivos intermediários ou conclusão em Normal; Ouro para desafios difíceis, 100%, sem dano, dificuldade elevada ou grandes séries de tarefas. Classifique o esforço real exigido, não o quão épico o título soa.",
+                "RANK REASON: uma frase curta e específica explicando a exigência do objetivo, sem exagerar ou apenas repetir a descrição.",
+                "Se a anotação descreve algo que já aconteceu, transforme-o em objetivo que outra pessoa poderia cumprir. Preserve a intenção do usuário mesmo se a frase estiver incompleta ou coloquial.",
+                "Não invente EP, data, colecionáveis, chefes ou requisitos. O texto deve fazer sentido tanto para a mecânica descrita quanto para o jogo indicado.",
+              ].join("\n"),
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: JSON.stringify({
+                jogo: gameTitle || "Jogo não especificado",
+                anotacao: note,
+                referenciasDeConquistasExistentes: gameContext,
+              }),
+            },
+          ],
+        },
+      ],
+    });
+    const endpoint = "https://api.openai.com/v1/responses";
+    const headers = {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    };
+    const configuredModel = process.env.OPENAI_ACHIEVEMENT_MODEL?.trim() || "gpt-5-mini";
+    let apiResponse = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(requestBody(configuredModel)),
       cache: "no-store",
     });
+
+    // Retry once with a supported default if a saved custom model name is invalid.
+    if (!apiResponse.ok && configuredModel !== "gpt-5-mini" && [400, 404].includes(apiResponse.status)) {
+      const detail = await apiResponse.clone().text().catch(() => "");
+      if (/model|not found|does not exist|unsupported|invalid/i.test(detail)) {
+        apiResponse = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestBody("gpt-5-mini")),
+          cache: "no-store",
+        });
+      }
+    }
 
     if (!apiResponse.ok) {
       const detail = await apiResponse.text().catch(() => "");
