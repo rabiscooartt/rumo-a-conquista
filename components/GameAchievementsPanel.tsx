@@ -1352,6 +1352,10 @@ export default function GameAchievementsPanel(
                 );
                 })
               );
+            const achievementJourneyMeta = achievementMeta[achievementKey];
+            const isFirstEpisodeAchievement =
+              !isFinalMastery &&
+              formatJourneyEpisode(achievementJourneyMeta?.episode) === "1";
             // Fora da Jornada continuam bloqueadas somente as conquistas
             // ainda não obtidas. Um registro manual publicado como completed
             // deve aparecer desbloqueado mesmo quando o bloqueio da Jornada está ativo.
@@ -1437,7 +1441,8 @@ export default function GameAchievementsPanel(
                         </div>
 
                         <div className="flex min-w-0 flex-col items-end justify-center gap-1 text-right">
-                          {!isFinalMastery && isJourneyAchievement && journeyLockActive ? (
+                          {!isFinalMastery &&
+                          ((isJourneyAchievement && journeyLockActive) || isFirstEpisodeAchievement) ? (
                             (() => {
                               const journeyDateValue =
                                 achievementMeta[achievementKey]?.date ||
