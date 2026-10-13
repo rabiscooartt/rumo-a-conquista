@@ -32,7 +32,10 @@ type A = {
 };
 
 function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achievement: A }) {
-  const [failed, setFailed] = useState(false);
+  // Guarda o endereço exato que falhou, não um booleano global.
+  // Assim, se o upload vincular uma nova URL depois da primeira falha,
+  // o cartão tentará carregar essa nova imagem em vez de continuar na estrela.
+  const [failedSource, setFailedSource] = useState("");
   const imageName = slugify(achievement.name || "");
   const imageSrc = achievement.image?.trim()
     ? achievement.image.trim()
@@ -40,7 +43,7 @@ function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achiev
       ? `/images/games/${slugify(gameSlug)}/achievements/${imageName}.png`
       : "";
 
-  if (!imageSrc || failed) {
+  if (!imageSrc || failedSource === imageSrc) {
     return (
       <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-2xl">
         {achievement.isCustom ? "⭐" : "🏆"}
@@ -55,7 +58,7 @@ function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achiev
         alt={`Arte da conquista: ${achievement.name}`}
         className="h-full w-full object-cover"
         loading="lazy"
-        onError={() => setFailed(true)}
+        onError={() => setFailedSource(imageSrc)}
       />
     </div>
   );
