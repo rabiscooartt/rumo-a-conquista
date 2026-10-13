@@ -313,23 +313,28 @@ function PrepararJogoPage() {
 
     const publishable = result.achievements.filter((a) => !a.notDoing);
     const missingDescriptions = publishable.filter((a) => !a.description.trim()).length;
+    const selectedJourneyCount = publishable.filter((a) => a.journey).length;
     const ready =
       Boolean(result.game.slug) &&
       Boolean(result.game.exophase?.found) &&
       publishable.length > 0 &&
       missingDescriptions === 0 &&
+      selectedJourneyCount > 0 &&
       saved;
 
     return {
       ready,
       total: result.achievements.length,
       selected: publishable.length,
+      selectedJourneyCount,
       missingDescriptions,
       reason: !saved
         ? "Salve o rascunho antes de publicar."
         : missingDescriptions > 0
           ? `${missingDescriptions} conquista(s) ainda estão sem descrição.`
-          : "As artes ainda precisam ser validadas antes da publicação.",
+          : selectedJourneyCount === 0
+            ? "Marque pelo menos uma conquista como Jornada de Estreia."
+            : "Pronto para publicar as conquistas.",
     };
   }, [result, saved]);
 
