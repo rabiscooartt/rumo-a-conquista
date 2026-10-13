@@ -880,12 +880,34 @@ async function requestGameApi<T>(
     body: JSON.stringify(body),
   });
 
-  const payload = await response.json().catch(() => null);
+  const responseText = await response.text();
+  let payload: Record<string, unknown> | null = null;
+  if (responseText) {
+    try {
+      const parsed: unknown = JSON.parse(responseText);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        payload = parsed as Record<string, unknown>;
+      }
+    } catch {
+      payload = null;
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(
-      payload?.error || "Não foi possível salvar o jogo."
+    const serverMessage =
+      typeof payload?.error === "string" && payload.error.trim()
+        ? payload.error.trim()
+        : typeof payload?.message === "string" && payload.message.trim()
+          ? payload.message.trim()
+          : "";
+    const fallback = serverMessage || (
+      `A API respondeu HTTP ${response.status}${response.statusText ? " " + response.statusText : ""} ao salvar em ${endpoint}.`
     );
+    throw new Error(fallback);
+  }
+
+  if (!payload) {
+    throw new Error(`A API ${endpoint} retornou uma resposta vazia ou inválida.`);
   }
 
   return payload as T;
@@ -932,9 +954,24 @@ async function saveFinalMasteryToSupabase(
     finalBadge: SiteGame["finalBadge"];
     removedAchievementIds?: string[];
   }>("POST", {
+    action: "final-mastery",
     slug,
     finalBadge,
-  }, "/api/admin/games/final-mastery");
+  });
+}
+
+async function saveEmblemToSupabase(
+  slug: string,
+  emblem: GameEmblemInput
+) {
+  return requestGameApi<{
+    ok: boolean;
+    emblem: GameEmblemInput;
+  }>("POST", {
+    action: "emblem",
+    slug,
+    emblem,
+  });
 }
 
 async function changeGameVisibility(
@@ -1382,6 +1419,37 @@ const hiddenGamesList = useMemo(() => {
     }
   }
 
+  async function updateEmblem(slug: string, emblem: GameEmblemInput) {
+    const currentGame =
+      gamesMap[slug] || baseGamesMap[slug] || customGames[slug];
+
+    if (!currentGame) {
+      alert("O jogo selecionado não foi encontrado para salvar o Emblema.");
+      return false;
+    }
+
+    try {
+      const result = await saveEmblemToSupabase(slug, emblem);
+      const nextGame = normalizeGame(slug, {
+        ...currentGame,
+        emblem: result.emblem ?? emblem,
+        emblemConfigured: true,
+        updatedAt: new Date().toISOString(),
+      });
+
+      setCustomGames((current) => ({
+        ...current,
+        [slug]: nextGame,
+      }));
+      emitUpdate();
+      return true;
+    } catch (error) {
+      console.error("[Games] Erro salvando Emblema:", error);
+      alert(error instanceof Error ? error.message : "Não foi possível salvar o Emblema.");
+      return false;
+    }
+  }
+
   async function updateGame(
     slug: string,
     update: Partial<SiteGame>,
@@ -1594,6 +1662,7 @@ const hiddenGamesList = useMemo(() => {
     addGame,
     updateGame,
     updateFinalMastery,
+    updateEmblem,
     removeGame,
     deleteGamePermanently,
     restoreGame,
