@@ -2003,6 +2003,22 @@ function PrepararJogoPage() {
         throw new Error("O jogo cadastrado não foi encontrado para publicação.");
       }
 
+      // Publicar alterações sem uma seleção nova não deve apagar uma Jornada
+      // já publicada. Uma seleção nova substitui os IDs anteriores; a Jornada
+      // continua opcional para jogos que ainda não têm uma configurada.
+      const publishableIds = new Set(
+        publishable.map((achievement) => String(achievement.id || "").trim()).filter(Boolean)
+      );
+      const existingJourneyIds =
+        currentGame.firstJourney?.status === "completed" &&
+        Array.isArray(currentGame.firstJourney.achievementIds)
+          ? currentGame.firstJourney.achievementIds
+              .map((id: unknown) => String(id || "").trim())
+              .filter((id: string) => id && publishableIds.has(id))
+          : [];
+      const journeyIdsToSave =
+        selectedJourneyIds.length > 0 ? selectedJourneyIds : existingJourneyIds;
+
       const existingAchievements: Record<string, unknown>[] =
         Array.isArray(currentGame.achievementsList)
           ? currentGame.achievementsList
@@ -2076,7 +2092,7 @@ function PrepararJogoPage() {
       );
       const firstLiveUrl = String(currentGame.youtubeFirstLiveUrl || "").trim();
 
-      const achievementMeta = Object.fromEntries(
+      const refreshedAchievementMeta = Object.fromEntries(
         publishable
           .map((achievement) => {
             const episode = achievement.episode?.trim() || "";
@@ -2105,6 +2121,16 @@ function PrepararJogoPage() {
             [string, { episode?: string; date?: string; liveUrl?: string }]
           >
       );
+
+      const previousJourneyMeta =
+        currentGame.firstJourney?.achievementMeta &&
+        typeof currentGame.firstJourney.achievementMeta === "object"
+          ? currentGame.firstJourney.achievementMeta
+          : {};
+      const achievementMeta = {
+        ...previousJourneyMeta,
+        ...refreshedAchievementMeta,
+      };
 
       const originalIndexById = new Map(
         result.achievements.map((achievement, index) => [
@@ -2175,13 +2201,13 @@ function PrepararJogoPage() {
           review: currentGame.review,
           manualTotalPlayedMinutes:
             currentGame.manual_total_played_minutes ?? null,
-          firstJourney: selectedJourneyIds.length > 0
+          firstJourney: journeyIdsToSave.length > 0
             ? {
                 status: "completed",
                 completedAt:
                   currentGame.firstJourney?.completedAt ||
                   new Date().toISOString(),
-                achievementIds: selectedJourneyIds,
+                achievementIds: journeyIdsToSave,
                 achievementMeta,
               }
             : {
