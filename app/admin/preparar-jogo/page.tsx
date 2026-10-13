@@ -3401,6 +3401,29 @@ function PrepararJogoPage() {
                     }
                   >
                     <div className="flex flex-col gap-2">
+                      {collapsedPrepItems["result-" + a.id] ? (
+                        <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[.06] bg-black/20 p-3">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <AchievementThumb gameSlug={result.game.slug} achievement={a} />
+                            <div className="min-w-0">
+                              <p className="text-[8px] uppercase tracking-[.14em] text-white/25">Conquista {i + 1} · minimizada</p>
+                              <p className="truncate text-sm font-black text-white">{a.name}</p>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <TrophyIcon rank={a.rank} className="h-5 w-5" />
+                            <button
+                              type="button"
+                              onClick={() => togglePrepItem("result-" + a.id)}
+                              aria-expanded={false}
+                              className="rounded-lg border border-emerald-400/30 bg-emerald-400/[.08] px-3 py-2 text-[10px] font-black text-emerald-100 transition hover:bg-emerald-400/[.15]"
+                            >
+                              + Expandir
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
                       <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex min-w-0 flex-1 items-center gap-3">
                         <AchievementThumb gameSlug={result.game.slug} achievement={a} />
@@ -3498,6 +3521,14 @@ function PrepararJogoPage() {
                             className="rounded-full border border-red-400/25 bg-red-500/[.045] px-3 py-2 text-[10px] font-black text-red-200/80 transition hover:border-red-400/50 hover:bg-red-500/15 hover:text-red-100"
                           >
                             🗑 Excluir
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => togglePrepItem("result-" + a.id)}
+                            aria-expanded={true}
+                            className="rounded-full border border-emerald-400/25 bg-emerald-500/[.06] px-3 py-2 text-[10px] font-black text-emerald-100 transition hover:bg-emerald-500/[.14]"
+                          >
+                            − Minimizar
                           </button>
                         </div>
                       </div>
@@ -3651,7 +3682,10 @@ function PrepararJogoPage() {
                               </div>
                             ))}
                         </>
-                      )}                    </div>
+                      )}
+                      </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
