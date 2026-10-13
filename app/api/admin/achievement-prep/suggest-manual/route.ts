@@ -127,9 +127,13 @@ export async function POST(request: Request) {
       note?: unknown;
       gameTitle?: unknown;
       gameContext?: unknown;
+      mode?: unknown;
+      currentTitle?: unknown;
     };
     const note = typeof body.note === "string" ? body.note.trim() : "";
     const gameTitle = typeof body.gameTitle === "string" ? body.gameTitle.trim().slice(0, 120) : "";
+    const mode = body.mode === "rewrite" ? "rewrite" : "create";
+    const currentTitle = typeof body.currentTitle === "string" ? body.currentTitle.trim().slice(0, 100) : "";
     const gameContext = Array.isArray(body.gameContext)
       ? body.gameContext.slice(0, 18).flatMap((item) => {
           if (!item || typeof item !== "object") return [];
@@ -148,6 +152,9 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
+    if (!apiKey && mode === "rewrite") {
+      return NextResponse.json({ error: "A IA está indisponível; a conquista original foi mantida sem alterações." }, { status: 503 });
+    }
     if (!apiKey) {
       return NextResponse.json({ ...fallbackSuggestion(note), source: "regras", notice: "A chave da IA não está configurada; usei a sugestão automática por regras." });
     }
@@ -183,6 +190,15 @@ export async function POST(request: Request) {
             {
               type: "input_text",
               text: [
+                ...(mode === "rewrite"
+                  ? [
+                      "MODO REESCRITA: o usuário já tem uma conquista pronta e quer apenas uma versão alternativa de título e descrição.",
+                      "REGRA ABSOLUTA: preserve exatamente o mesmo objetivo, o mesmo sentido e o mesmo nível de exigência da conquista original. Não troque a tarefa por outra, não aumente nem diminua requisitos e não acrescente objetivos.",
+                      "Crie um novo título com palavras e imagem mental diferentes, mas que ainda identifique o mesmo feito. Reescreva a descrição para ficar natural e objetiva, mantendo todas as condições, números, dificuldade, modo e critérios da descrição original.",
+                      "Não use a anotação original como um novo objetivo: use o título e a descrição atuais como fonte principal de verdade. As referências de outras conquistas servem apenas para manter o estilo do jogo.",
+                      "O rank retornado deve permanecer equivalente ao esforço do objetivo original; a interface manterá o rank já escolhido pelo usuário.",
+                    ]
+                  : []),
                 "Você é diretor criativo e game designer de conquistas personalizadas do projeto Rumo à Conquista.",
                 "Transforme a anotação informal do usuário em uma conquista que pareça pertencer especificamente a esse jogo, em português brasileiro.",
                 "Use o título do jogo e as conquistas existentes fornecidas como contexto para identificar tom, universo, vocabulário, atividades, itens e mecânicas. Quando uma referência existente se conectar à anotação, aproveite essa conexão com criatividade.",
@@ -204,7 +220,9 @@ export async function POST(request: Request) {
             {
               type: "input_text",
               text: JSON.stringify({
+                modo: mode,
                 jogo: gameTitle || "Jogo não especificado",
+                tituloAtual: currentTitle,
                 anotacao: note,
                 referenciasDeConquistasExistentes: gameContext,
               }),
@@ -242,12 +260,18 @@ export async function POST(request: Request) {
     if (!apiResponse.ok) {
       const detail = await apiResponse.text().catch(() => "");
       console.error("[Achievement Suggestion] OpenAI response:", apiResponse.status, detail.slice(0, 800));
+      if (mode === "rewrite") {
+        return NextResponse.json({ error: "Não foi possível gerar uma alternativa agora. A conquista original continua intacta; tente novamente." }, { status: 503 });
+      }
       return NextResponse.json({ ...fallbackSuggestion(note), source: "regras", notice: "A IA não respondeu; usei a sugestão automática por regras." });
     }
 
     const payload: unknown = await apiResponse.json();
     const raw = extractOutputText(payload);
     if (!raw) {
+      if (mode === "rewrite") {
+        return NextResponse.json({ error: "A IA não retornou uma alternativa válida. A conquista original continua intacta; tente novamente." }, { status: 503 });
+      }
       return NextResponse.json({ ...fallbackSuggestion(note), source: "regras", notice: "A IA não retornou uma sugestão válida; usei regras automáticas." });
     }
 
@@ -273,6 +297,9 @@ export async function POST(request: Request) {
       !["Bronze", "Prata", "Ouro"].includes(String(candidate.rank)) ||
       typeof candidate.rankReason !== "string"
     ) {
+      if (mode === "rewrite") {
+        return NextResponse.json({ error: "A alternativa gerada não passou na validação. A conquista original continua intacta." }, { status: 503 });
+      }
       return NextResponse.json({ ...fallbackSuggestion(note), source: "regras", notice: "A IA não retornou todos os campos; usei regras automáticas." });
     }
 
