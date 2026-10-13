@@ -1353,7 +1353,11 @@ export default function GameAchievementsPanel(
                 })
               );
             const achievementJourneyMeta = achievementMeta[achievementKey];
+            // A etiqueta de estreia por EP 1 só aparece enquanto a Jornada
+            // estiver habilitada/em andamento. Depois de concluída, preservamos
+            // o marcador nas conquistas que foram selecionadas para a Jornada.
             const isFirstEpisodeAchievement =
+              journeyPreview &&
               !isFinalMastery &&
               formatJourneyEpisode(achievementJourneyMeta?.episode) === "1";
             const showJourneyLabel =
