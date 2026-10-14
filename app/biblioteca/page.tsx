@@ -1998,10 +1998,11 @@ export default function BibliotecaPage() {
       }
 
       if (aStatusOrder === 2) {
+        // Nos finalizados, mostrar primeiro o jogo concluído há mais tempo
+        // e seguir em ordem cronológica até o mais recente.
         return compareDateValues(
           getCompletionTimestamp(a, aActivity),
-          getCompletionTimestamp(b, bActivity),
-          true
+          getCompletionTimestamp(b, bActivity)
         );
       }
 
