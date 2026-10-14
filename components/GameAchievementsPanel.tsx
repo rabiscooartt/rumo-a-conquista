@@ -1480,7 +1480,7 @@ export default function GameAchievementsPanel(
                                     <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
                                   </a>
                                   {journeyDate ? (
-                                    <time dateTime={journeyDateValue} className="whitespace-nowrap text-center text-[10px] font-semibold tabular-nums leading-tight text-white/65">
+                                    <time dateTime={journeyDateValue} className="w-full whitespace-nowrap text-center text-[10px] font-semibold tabular-nums leading-tight text-white/65">
                                       {journeyDate}
                                     </time>
                                   ) : null}
@@ -1508,13 +1508,13 @@ export default function GameAchievementsPanel(
                                       rel="noreferrer"
                                       aria-label={episode ? `Abrir live do episódio ${episode} de ${gameTitle}` : `Abrir live da conquista ${achievement.title}`}
                                       title="Abrir live"
-                                      className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2 py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.01em] text-sky-200 transition hover:border-sky-300/45 hover:bg-sky-400/[.12] hover:text-sky-100"
+                                      className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2.5 py-1 text-center text-[10px] font-extrabold uppercase tracking-[0.01em] text-sky-200 transition hover:border-sky-300/45 hover:bg-sky-400/[.12] hover:text-sky-100"
                                     >
                                       <span aria-hidden="true" className="text-sky-300">▶</span>
                                       <span className="whitespace-nowrap leading-tight">{episodeLabel}</span>
                                     </a>
                                   ) : episode ? (
-                                    <span className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2 py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.01em] text-sky-200">
+                                    <span className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2.5 py-1 text-center text-[10px] font-extrabold uppercase tracking-[0.01em] text-sky-200">
                                       <span aria-hidden="true" className="text-sky-300">▶</span>
                                       <span className="whitespace-nowrap leading-tight">{episodeLabel}</span>
                                     </span>
