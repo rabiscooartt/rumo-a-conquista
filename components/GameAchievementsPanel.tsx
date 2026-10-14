@@ -1487,7 +1487,7 @@ export default function GameAchievementsPanel(
                                 </>
                               );
                             })()
-                          ) : !isFinalMastery ? (
+                          ) : (
                             (() => {
                               const meta = achievementMeta[achievementKey];
                               const episode = formatJourneyEpisode(meta?.episode);
@@ -1527,7 +1527,7 @@ export default function GameAchievementsPanel(
                                 </div>
                               );
                             })()
-                          ) : null}
+                          )}
                         </div>
                       </>
                     )}
