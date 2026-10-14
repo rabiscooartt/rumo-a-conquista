@@ -1445,7 +1445,7 @@ export default function GameAchievementsPanel(
                           />
                         </div>
 
-                        <div className={showJourneyLabel
+                        <div className={showJourneyLabel || hasEpisodeMetadata
                           ? "flex min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5"
                           : "flex min-w-0 flex-col items-end justify-center gap-1 text-right"}>
                           {showJourneyLabel ? (
@@ -1500,7 +1500,7 @@ export default function GameAchievementsPanel(
                               if (!hasRecord) return null;
 
                               return (
-                                <div className="flex min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5">
+                                <div className="flex w-full min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5">
                                   {liveUrl ? (
                                     <a
                                       href={liveUrl}
