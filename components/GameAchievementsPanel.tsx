@@ -8,7 +8,7 @@ import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useS
 
 export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
-type SortMode = "rarity" | "status" | "title";
+type SortMode = "rarity" | "status" | "date" | "episode";
 type SortDirection = "asc" | "desc";
 
 export type AchievementInput = {
@@ -86,7 +86,8 @@ const STATUS_OPTIONS: { label: string; value: AchievementStatus }[] = [
 const SORT_OPTIONS: { label: string; value: SortMode }[] = [
   { label: "Raridade", value: "rarity" },
   { label: "Status", value: "status" },
-  { label: "Nome", value: "title" },
+  { label: "Data", value: "date" },
+  { label: "Episódio", value: "episode" },
 ];
 
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
@@ -378,13 +379,71 @@ function createDefaultStates(achievements: AchievementInput[]) {
   );
 }
 
+function getSortableDate(value?: string): number | null {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+
+  let normalized = "";
+  if (/^\\d{4}-\\d{2}-\\d{2}/.test(raw)) {
+    normalized = raw.slice(0, 10);
+  } else {
+    const dmy = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+    if (dmy) {
+      normalized = `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+    }
+  }
+
+  if (!normalized) return null;
+  const [year, month, day] = normalized.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return year * 10000 + month * 100 + day;
+}
+
 function sortAchievements(
   achievements: AchievementInput[],
   states: Record<string, ManualAchievementState>,
   sortMode: SortMode,
-  sortDirection: SortDirection
+  sortDirection: SortDirection,
+  achievementMeta: Record<string, AchievementJourneyMeta>,
+  journeyIdList: string[],
+  journeyLockActive: boolean
 ) {
   const multiplier = sortDirection === "asc" ? 1 : -1;
+
+  const metadataFor = (achievement: AchievementInput) =>
+    achievementMeta[getAchievementKey(achievement)] ?? {};
+
+  const isFirstJourneyItem = (achievement: AchievementInput) => {
+    const meta = metadataFor(achievement);
+    const episode = formatJourneyEpisode(meta.episode);
+    if (episode === "1") return true;
+
+    if (!journeyLockActive) return false;
+    const hasEpisodeMetadata = Boolean(episode || String(meta.date ?? "").trim());
+    if (hasEpisodeMetadata) return false;
+
+    const achievementKey = getAchievementKey(achievement);
+    const titleKey = slugify(achievement.title);
+    return (
+      journeyIdList.includes(achievementKey) ||
+      journeyIdList.some((id) => {
+        const normalizedId = slugify(id);
+        return normalizedId === titleKey || normalizedId.endsWith("-" + titleKey);
+      })
+    );
+  };
+
+  const episodeNumberFor = (achievement: AchievementInput) => {
+    const episode = formatJourneyEpisode(metadataFor(achievement).episode);
+    if (!episode || !/^\\d+$/.test(episode)) return null;
+    const value = Number(episode);
+    return Number.isFinite(value) ? value : null;
+  };
+
+  const dateFor = (achievement: AchievementInput, state: ManualAchievementState) => {
+    const meta = metadataFor(achievement);
+    return getSortableDate(meta.date || achievement.earnedDate || state.date);
+  };
 
   return [...achievements].sort((a, b) => {
     const stateA = states[a.title] ?? createDefaultStates([a])[a.title];
@@ -392,22 +451,44 @@ function sortAchievements(
 
     if (sortMode === "rarity") {
       const result = rankOrder[stateA.rank] - rankOrder[stateB.rank];
-
-      if (result !== 0) {
-        return result * multiplier;
-      }
+      if (result !== 0) return result * multiplier;
     }
 
     if (sortMode === "status") {
       const result = statusOrder[stateA.status] - statusOrder[stateB.status];
-
-      if (result !== 0) {
-        return result * multiplier;
-      }
+      if (result !== 0) return result * multiplier;
     }
 
-    const result = a.title.localeCompare(b.title);
-    return result * multiplier;
+    if (sortMode === "date") {
+      const dateA = dateFor(a, stateA);
+      const dateB = dateFor(b, stateB);
+      // Registros sem data ficam sempre no final, independentemente da direção.
+      if (dateA === null && dateB !== null) return 1;
+      if (dateA !== null && dateB === null) return -1;
+      if (dateA !== null && dateB !== null && dateA !== dateB) {
+        return (dateA - dateB) * multiplier;
+      }
+      return 0;
+    }
+
+    if (sortMode === "episode") {
+      const journeyA = isFirstJourneyItem(a);
+      const journeyB = isFirstJourneyItem(b);
+      // A Jornada de Estreia fica sempre no topo; episódios seguintes são numéricos.
+      if (journeyA !== journeyB) return journeyA ? -1 : 1;
+
+      const episodeA = episodeNumberFor(a);
+      const episodeB = episodeNumberFor(b);
+      // Episódios não cadastrados ficam depois dos que têm número.
+      if (episodeA === null && episodeB !== null) return 1;
+      if (episodeA !== null && episodeB === null) return -1;
+      if (episodeA !== null && episodeB !== null && episodeA !== episodeB) {
+        return (episodeA - episodeB) * multiplier;
+      }
+      return 0;
+    }
+
+    return a.title.localeCompare(b.title);
   });
 }
 
@@ -986,7 +1067,9 @@ export default function GameAchievementsPanel(
     }
 
     setSortMode(nextSortMode);
-    setSortDirection(nextSortMode === "title" ? "asc" : "desc");
+    setSortDirection(
+      nextSortMode === "date" || nextSortMode === "episode" ? "asc" : "desc"
+    );
   }
 
   const finalBadge = props.finalBadge;
@@ -1087,9 +1170,20 @@ export default function GameAchievementsPanel(
       filteredAchievements,
       displayStates,
       sortMode,
-      sortDirection
+      sortDirection,
+      achievementMeta,
+      journeyIdList,
+      journeyLockActive
     );
-  }, [displayStates, filteredAchievements, sortDirection, sortMode]);
+  }, [
+    achievementMeta,
+    displayStates,
+    filteredAchievements,
+    journeyIdList,
+    journeyLockActive,
+    sortDirection,
+    sortMode,
+  ]);
 
   return (
     <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
