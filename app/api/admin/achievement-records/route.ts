@@ -47,12 +47,29 @@ export async function POST(request: Request) {
     const records = Array.isArray(body.records)
       ? body.records as IncomingRecord[]
       : [];
+    const finalMasteryRaw =
+      body.finalMastery && typeof body.finalMastery === "object" && !Array.isArray(body.finalMastery)
+        ? body.finalMastery as Record<string, unknown>
+        : null;
+    const finalMastery = finalMasteryRaw
+      ? {
+          episode: cleanText(finalMasteryRaw.episode),
+          earnedDate: normalizeDate(finalMasteryRaw.earnedDate),
+        }
+      : null;
 
     if (!slug) {
       return NextResponse.json({ error: "Slug do jogo é obrigatório." }, { status: 400 });
     }
-    if (!records.length || records.length > 200) {
-      return NextResponse.json({ error: "Informe entre 1 e 200 registros para atualizar." }, { status: 400 });
+    if ((!records.length && !finalMastery) || records.length > 200) {
+      return NextResponse.json({ error: "Informe registros existentes ou os dados da Maestria Final para atualizar." }, { status: 400 });
+    }
+    if (
+      finalMasteryRaw &&
+      cleanText(finalMasteryRaw.earnedDate) &&
+      !finalMastery?.earnedDate
+    ) {
+      return NextResponse.json({ error: "A data da Maestria Final é inválida." }, { status: 400 });
     }
 
     const normalizedRecords = records.map((record) => ({
@@ -67,8 +84,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Há registros sem identificador. Atualize a página e tente novamente." }, { status: 400 });
     }
 
-    for (const record of normalizedRecords) {
-      if (cleanText(record.earnedDate) && !/^\d{4}-\d{2}-\d{2}$/.test(record.earnedDate)) {
+    for (let i = 0; i < normalizedRecords.length; i += 1) {
+      const sourceDate = cleanText(records[i]?.earnedDate);
+      const record = normalizedRecords[i];
+      if (sourceDate && !record.earnedDate) {
         return NextResponse.json({ error: `A data de ${record.name || record.id} é inválida.` }, { status: 400 });
       }
     }
@@ -126,48 +145,50 @@ export async function POST(request: Request) {
       row: { id: string; legacy_id: string; title: string; game_slug: string };
     }>;
 
-    const progressIds = validRecords.map((record) => record.row.id);
-    const { data: existingProgress, error: progressReadError } = await client
-      .from("achievement_progress")
-      .select("achievement_id, status")
-      .eq("owner_key", OWNER_KEY)
-      .in("achievement_id", progressIds);
-
-    if (progressReadError) throw progressReadError;
-
-    const progressByAchievementId = new Map(
-      (existingProgress ?? []).map((progress) => [
-        String(progress.achievement_id),
-        String(progress.status ?? "locked"),
-      ])
-    );
-
-    for (const record of validRecords) {
-      const { data: updated, error: progressUpdateError } = await client
+    if (validRecords.length > 0) {
+      const progressIds = validRecords.map((record) => record.row.id);
+      const { data: existingProgress, error: progressReadError } = await client
         .from("achievement_progress")
-        .update({ earned_at: record.earnedDate || null })
+        .select("achievement_id, status")
         .eq("owner_key", OWNER_KEY)
-        .eq("achievement_id", record.row.id)
-        .select("achievement_id");
+        .in("achievement_id", progressIds);
 
-      if (progressUpdateError) throw progressUpdateError;
+      if (progressReadError) throw progressReadError;
 
-      if (!updated?.length && record.earnedDate) {
-        const currentStatus = progressByAchievementId.get(record.row.id);
-        const status = ["locked", "progress", "completed"].includes(currentStatus ?? "")
-          ? currentStatus
-          : ["locked", "progress", "completed"].includes(record.status)
-            ? record.status
-            : "completed";
-        const { error: progressInsertError } = await client
+      const progressByAchievementId = new Map(
+        (existingProgress ?? []).map((progress) => [
+          String(progress.achievement_id),
+          String(progress.status ?? "locked"),
+        ])
+      );
+
+      for (const record of validRecords) {
+        const { data: updated, error: progressUpdateError } = await client
           .from("achievement_progress")
-          .insert({
-            achievement_id: record.row.id,
-            owner_key: OWNER_KEY,
-            status,
-            earned_at: record.earnedDate,
-          });
-        if (progressInsertError) throw progressInsertError;
+          .update({ earned_at: record.earnedDate || null })
+          .eq("owner_key", OWNER_KEY)
+          .eq("achievement_id", record.row.id)
+          .select("achievement_id");
+
+        if (progressUpdateError) throw progressUpdateError;
+
+        if (!updated?.length && record.earnedDate) {
+          const currentStatus = progressByAchievementId.get(record.row.id);
+          const status = ["locked", "progress", "completed"].includes(currentStatus ?? "")
+            ? currentStatus
+            : ["locked", "progress", "completed"].includes(record.status)
+              ? record.status
+              : "completed";
+          const { error: progressInsertError } = await client
+            .from("achievement_progress")
+            .insert({
+              achievement_id: record.row.id,
+              owner_key: OWNER_KEY,
+              status,
+              earned_at: record.earnedDate,
+            });
+          if (progressInsertError) throw progressInsertError;
+        }
       }
     }
 
@@ -206,6 +227,31 @@ export async function POST(request: Request) {
       else delete achievementMeta[key];
     }
 
+    if (finalMastery) {
+      const key = `${slug}-final-mastery`;
+      const previous = { ...(achievementMeta[key] ?? {}) };
+      const previousEpisode = cleanText(previous.episode);
+
+      if (finalMastery.episode) {
+        previous.episode = finalMastery.episode;
+        if (normalizeEpisode(previousEpisode) !== normalizeEpisode(finalMastery.episode)) {
+          delete previous.liveUrl;
+        }
+      } else {
+        delete previous.episode;
+        delete previous.liveUrl;
+      }
+
+      if (finalMastery.earnedDate) {
+        previous.date = finalMastery.earnedDate;
+      } else {
+        delete previous.date;
+      }
+
+      if (Object.keys(previous).length > 0) achievementMeta[key] = previous;
+      else delete achievementMeta[key];
+    }
+
     const status = ["not_started", "in_progress", "completed"].includes(String(firstJourney.status))
       ? String(firstJourney.status)
       : "not_started";
@@ -231,7 +277,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      updated: validRecords.length,
+      updated: validRecords.length + (finalMastery ? 1 : 0),
+      finalMastery: finalMastery
+        ? { episode: finalMastery.episode, earnedDate: finalMastery.earnedDate }
+        : undefined,
       records: validRecords.map((record) => ({
         id: record.id,
         name: record.name || record.row.title,
