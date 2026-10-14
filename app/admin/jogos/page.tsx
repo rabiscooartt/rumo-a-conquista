@@ -77,6 +77,13 @@ function reviewStringField(value: unknown, fallback = ""): string {
   return fallback;
 }
 
+function reviewFieldTone(value: unknown): string {
+  const filled = String(value ?? "").trim().length > 0;
+  return filled
+    ? "border border-sky-400/55 bg-sky-500/[0.10] focus:border-sky-300 focus:bg-sky-500/[0.14]"
+    : "border border-white/10 bg-black/30 focus:border-sky-500/55 focus:bg-sky-500/[0.04]";
+}
+
 export default function NewGamesAdminPage() {
   const { isLoaded, gamesList, updateGame, updateFinalMastery, updateEmblem } = useSiteGames();
   const [selectedSlug, setSelectedSlug] = useState("");
@@ -1174,7 +1181,7 @@ export default function NewGamesAdminPage() {
                           <select
                             value={reviewValues.status}
                             onChange={(event) => patchReviewDraft({ status: event.target.value })}
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                            className={"mt-2 w-full rounded-xl px-3 py-3 text-sm font-bold text-white outline-none " + reviewFieldTone(reviewValues.status !== "bloqueada" ? reviewValues.status : "")}
                           >
                             <option value="bloqueada">Bloqueada</option>
                             <option value="em-andamento">Em andamento</option>
@@ -1192,7 +1199,7 @@ export default function NewGamesAdminPage() {
                             value={reviewValues.nota}
                             onChange={(event) => patchReviewDraft({ nota: event.target.value })}
                             placeholder="Ex.: 8,5"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                            className={"mt-2 w-full rounded-xl px-3 py-3 text-sm font-bold text-white outline-none " + reviewFieldTone(reviewValues.nota)}
                           />
                         </label>
                       </div>
@@ -1218,48 +1225,48 @@ export default function NewGamesAdminPage() {
                         <div className="mt-4 grid gap-4 md:grid-cols-2">
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">2. História e narrativa</span>
-                            <textarea value={reviewValues.historia} onChange={(event) => patchReviewDraft({ historia: event.target.value })} rows={4} placeholder="História, personagens e maneira de contar..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.historia} onChange={(event) => patchReviewDraft({ historia: event.target.value })} rows={4} placeholder="História, personagens e maneira de contar..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.historia)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">3. Jogabilidade</span>
-                            <textarea value={reviewValues.jogabilidade} onChange={(event) => patchReviewDraft({ jogabilidade: event.target.value })} rows={4} placeholder="Controles, combate, exploração e mecânicas..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.jogabilidade} onChange={(event) => patchReviewDraft({ jogabilidade: event.target.value })} rows={4} placeholder="Controles, combate, exploração e mecânicas..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.jogabilidade)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">4. Gráficos e direção artística</span>
-                            <textarea value={reviewValues.direcaoArtistica} onChange={(event) => patchReviewDraft({ direcaoArtistica: event.target.value })} rows={4} placeholder="Cenários, personagens, animações e estilo visual..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.direcaoArtistica} onChange={(event) => patchReviewDraft({ direcaoArtistica: event.target.value })} rows={4} placeholder="Cenários, personagens, animações e estilo visual..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.direcaoArtistica)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">5. Trilha sonora e áudio</span>
-                            <textarea value={reviewValues.trilhaSonora} onChange={(event) => patchReviewDraft({ trilhaSonora: event.target.value })} rows={4} placeholder="Músicas, efeitos sonoros e dublagem..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.trilhaSonora} onChange={(event) => patchReviewDraft({ trilhaSonora: event.target.value })} rows={4} placeholder="Músicas, efeitos sonoros e dublagem..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.trilhaSonora)} />
                           </label>
                           <label className="block md:col-span-2">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">6. Progressão e conquistas</span>
-                            <textarea value={reviewValues.progressaoConquistas} onChange={(event) => patchReviewDraft({ progressaoConquistas: event.target.value })} rows={3} placeholder="Evolução, busca pelas conquistas, repetição e desafios..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.progressaoConquistas} onChange={(event) => patchReviewDraft({ progressaoConquistas: event.target.value })} rows={3} placeholder="Evolução, busca pelas conquistas, repetição e desafios..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.progressaoConquistas)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">7. Pontos positivos</span>
-                            <textarea value={reviewValues.positivos} onChange={(event) => patchReviewDraft({ positivos: event.target.value })} rows={3} placeholder="O que mais gostou..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.positivos} onChange={(event) => patchReviewDraft({ positivos: event.target.value })} rows={3} placeholder="O que mais gostou..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.positivos)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">8. Pontos negativos</span>
-                            <textarea value={reviewValues.negativos} onChange={(event) => patchReviewDraft({ negativos: event.target.value })} rows={3} placeholder="O que incomodou ou poderia melhorar..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.negativos} onChange={(event) => patchReviewDraft({ negativos: event.target.value })} rows={3} placeholder="O que incomodou ou poderia melhorar..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.negativos)} />
                           </label>
                           <label className="block md:col-span-2">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">9. Experiência pessoal</span>
-                            <textarea value={reviewValues.experienciaPessoal} onChange={(event) => patchReviewDraft({ experienciaPessoal: event.target.value })} rows={3} placeholder="Como se sentiu ao terminar? Surpreendeu, emocionou, cansou ou marcou você?" className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.experienciaPessoal} onChange={(event) => patchReviewDraft({ experienciaPessoal: event.target.value })} rows={3} placeholder="Como se sentiu ao terminar? Surpreendeu, emocionou, cansou ou marcou você?" className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.experienciaPessoal)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">11. Recomendaria o jogo?</span>
-                            <select value={reviewValues.recomendacao} onChange={(event) => patchReviewDraft({ recomendacao: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40">
+                            <select value={reviewValues.recomendacao} onChange={(event) => patchReviewDraft({ recomendacao: event.target.value })} className={"mt-2 w-full rounded-xl px-3 py-3 text-sm font-bold text-white outline-none " + reviewFieldTone(reviewValues.recomendacao !== "Depende" ? reviewValues.recomendacao : "")}>
                               <option value="Sim">Sim</option>
                               <option value="Não">Não</option>
                               <option value="Depende">Depende</option>
                             </select>
-                            <textarea value={reviewValues.recomendacaoExplicacao} onChange={(event) => patchReviewDraft({ recomendacaoExplicacao: event.target.value })} rows={3} placeholder="Explique brevemente sua recomendação..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.recomendacaoExplicacao} onChange={(event) => patchReviewDraft({ recomendacaoExplicacao: event.target.value })} rows={3} placeholder="Explique brevemente sua recomendação..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.recomendacaoExplicacao)} />
                           </label>
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">12. Resumo da experiência em uma frase</span>
-                            <textarea value={reviewValues.fraseExperiencia} onChange={(event) => patchReviewDraft({ fraseExperiencia: event.target.value })} rows={3} placeholder="Descreva o jogo ou sua experiência em poucas palavras..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                            <textarea value={reviewValues.fraseExperiencia} onChange={(event) => patchReviewDraft({ fraseExperiencia: event.target.value })} rows={3} placeholder="Descreva o jogo ou sua experiência em poucas palavras..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.fraseExperiencia)} />
                           </label>
                         </div>
                       </section>
@@ -1270,7 +1277,7 @@ export default function NewGamesAdminPage() {
                           value={reviewValues.titulo}
                           onChange={(event) => patchReviewDraft({ titulo: event.target.value })}
                           placeholder="Ex.: Divertido, mas repetitivo"
-                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                          className={"mt-2 w-full rounded-xl px-3 py-3 text-sm font-bold text-white outline-none " + reviewFieldTone(reviewValues.titulo)}
                         />
                       </label>
 
@@ -1279,7 +1286,7 @@ export default function NewGamesAdminPage() {
                           <span>Frase curta do cartão</span>
                           <span>{reviewValues.fraseCartao.length}/100</span>
                         </span>
-                        <input value={reviewValues.fraseCartao} maxLength={100} onChange={(event) => patchReviewDraft({ fraseCartao: event.target.value.slice(0, 100) })} placeholder="Uma frase de impacto para o cartão da biblioteca." className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40" />
+                        <input value={reviewValues.fraseCartao} maxLength={100} onChange={(event) => patchReviewDraft({ fraseCartao: event.target.value.slice(0, 100) })} placeholder="Uma frase de impacto para o cartão da biblioteca." className={"mt-2 w-full rounded-xl px-3 py-3 text-sm font-bold text-white outline-none " + reviewFieldTone(reviewValues.fraseCartao)} />
                       </label>
 
                       <label className="block">
@@ -1292,7 +1299,7 @@ export default function NewGamesAdminPage() {
                           maxLength={100}
                           onChange={(event) => patchReviewDraft({ resumo: event.target.value.slice(0, 100) })}
                           placeholder="Ex.: Uma experiência intensa, com atmosfera marcante."
-                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                          className={"mt-2 w-full rounded-xl px-3 py-3 text-sm font-bold text-white outline-none " + reviewFieldTone(reviewValues.resumo)}
                         />
                       </label>
 
@@ -1357,7 +1364,7 @@ export default function NewGamesAdminPage() {
                           onChange={(event) => patchReviewDraft({ texto: event.target.value })}
                           rows={6}
                           placeholder="Escreva sua análise completa do jogo..."
-                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
+                          className={"mt-2 w-full rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.texto)}
                         />
                       </label>
 
