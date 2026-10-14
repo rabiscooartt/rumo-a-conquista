@@ -1132,6 +1132,109 @@ function PrepararJogoPage() {
   }, [result?.game.slug]);
 
   useEffect(() => {
+    const gameSlug = result?.game.slug ?? "";
+    if (!gameSlug) return;
+
+    let cancelled = false;
+    async function loadPublishedAchievementsOutsidePreparation() {
+      try {
+        const [gamesResponse, draftResponse] = await Promise.all([
+          fetch("/api/admin/games?includeHiddenAchievements=1", { cache: "no-store" }),
+          fetch("/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(gameSlug), { cache: "no-store" }),
+        ]);
+        const gamesPayload = await gamesResponse.json().catch(() => null);
+        const draftPayload = await draftResponse.json().catch(() => null);
+        if (cancelled || !gamesResponse.ok || !Array.isArray(gamesPayload?.games)) return;
+
+        const liveGame =
+          gamesPayload.games.find((game: { slug?: unknown }) => String(game.slug ?? "") === gameSlug) as Record<string, unknown> | undefined;
+        if (!liveGame || !Array.isArray(liveGame.achievementsList)) return;
+
+        const currentDraft =
+          draftPayload?.found && draftPayload?.draft && typeof draftPayload.draft === "object"
+            ? draftPayload.draft as Record<string, unknown>
+            : {};
+        const draftAchievements = Array.isArray(currentDraft.preparedAchievements)
+          ? currentDraft.preparedAchievements as A[]
+          : result?.achievements ?? [];
+        const published = mapPublishedAchievementsForPreparation(
+          liveGame.achievementsList,
+          gameSlug,
+          liveGame.firstJourney
+        );
+        const outside = published.filter(
+          (achievement) => !draftAchievements.some((draftAchievement) => sameAchievementIdentity(draftAchievement, achievement))
+        );
+        const savedRecords = Array.isArray(currentDraft.registeredAchievementRecords)
+          ? currentDraft.registeredAchievementRecords as A[]
+          : [];
+        const outsideWithDraftValues = outside.map((achievement) => {
+          const savedRecord = savedRecords.find((record) => sameAchievementIdentity(record, achievement));
+          if (!savedRecord) return achievement;
+          return {
+            ...achievement,
+            ...savedRecord,
+            id: achievement.id,
+            name: achievement.name,
+            description: achievement.description,
+            image: achievement.image || savedRecord.image || "",
+            episode: typeof savedRecord.episode === "string" ? savedRecord.episode : achievement.episode ?? "",
+            earnedDate: typeof savedRecord.earnedDate === "string"
+              ? normalizeAchievementDateInput(savedRecord.earnedDate)
+              : achievement.earnedDate ?? "",
+          };
+        });
+        if (cancelled) return;
+        setRegisteredOutsideAchievements(outsideWithDraftValues);
+
+        const hasPublishedMetadataToImport = published.some((achievement) => {
+          const draftAchievement = draftAchievements.find((candidate) => sameAchievementIdentity(candidate, achievement));
+          if (!draftAchievement) return false;
+          return Boolean(
+            (!String(draftAchievement.episode ?? "").trim() && String(achievement.episode ?? "").trim()) ||
+            (!String(draftAchievement.earnedDate ?? "").trim() && String(achievement.earnedDate ?? "").trim())
+          );
+        });
+        if (hasPublishedMetadataToImport) {
+          setResult((current) => {
+            if (!current || current.game.slug !== gameSlug) return current;
+            return {
+              ...current,
+              achievements: current.achievements.map((draftAchievement) => {
+                const achievement = published.find((candidate) => sameAchievementIdentity(candidate, draftAchievement));
+                if (!achievement) return draftAchievement;
+                return {
+                  ...draftAchievement,
+                  episode: String(draftAchievement.episode ?? "").trim()
+                    ? draftAchievement.episode
+                    : achievement.episode ?? "",
+                  earnedDate: String(draftAchievement.earnedDate ?? "").trim()
+                    ? draftAchievement.earnedDate
+                    : achievement.earnedDate ?? "",
+                  image: String(draftAchievement.image ?? "").trim()
+                    ? draftAchievement.image
+                    : achievement.image ?? "",
+                };
+              }),
+            };
+          });
+          setSaved(false);
+          setPreparationModeNotice("EPs/datas já registrados no site foram recuperados onde os campos da preparação estavam vazios. Salve o rascunho após revisar.");
+        }
+      } catch {
+        // A preparação continua disponível mesmo quando não é possível consultar a lista publicada.
+      }
+    }
+
+    void loadPublishedAchievementsOutsidePreparation();
+    return () => {
+      cancelled = true;
+    };
+    // Carrega a lista pública uma vez por jogo; edições locais não devem disparar nova leitura.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.game.slug]);
+
+  useEffect(() => {
     if (
       !needsDraftSnapshotUpgrade ||
       !result?.game.slug ||
@@ -4102,6 +4205,93 @@ function PrepararJogoPage() {
                     Ver todas
                   </button>
                 </div>
+              )}
+              {registeredOutsideAchievements.length > 0 && (
+                <section className="mb-4 rounded-2xl border border-sky-400/25 bg-sky-500/[.035] p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-black uppercase tracking-[.16em] text-sky-300/75">
+                        Registros já publicados
+                      </p>
+                      <h3 className="mt-1 text-base font-black text-white">
+                        Conquistas cadastradas fora desta preparação
+                        <span className="ml-2 rounded-full border border-sky-300/20 bg-sky-300/[.08] px-2 py-0.5 text-[10px] text-sky-100">
+                          {registeredOutsideAchievements.length}
+                        </span>
+                      </h3>
+                      <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/45">
+                        Estas conquistas já existem no site, mas não fazem parte da lista de preparação atual. Edite EP e data aqui sem adicioná-las à lista que será publicada, evitando substituir a publicação por engano.
+                      </p>
+                    </div>
+                    <span className={`shrink-0 rounded-full border px-3 py-1.5 text-[9px] font-black uppercase ${registeredRecordsDirty ? "border-amber-400/25 bg-amber-400/[.08] text-amber-100" : "border-white/10 bg-white/[.025] text-white/35"}`}>
+                      {registeredRecordsDirty ? "Alterações pendentes no site" : "Lista pública atual"}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {registeredOutsideAchievements.map((achievement) => (
+                      <div key={achievement.id} className="rounded-xl border border-white/[.08] bg-black/25 p-3">
+                        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+                          {achievement.image ? (
+                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black/30">
+                              <img src={achievement.image} alt="" className="h-full w-full object-cover" loading="lazy" />
+                            </div>
+                          ) : (
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30 text-xl">🏆</div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className="text-sm font-black text-white">{achievement.name}</h4>
+                              <span className="rounded-full border border-sky-300/20 bg-sky-300/[.06] px-2 py-0.5 text-[9px] font-black text-sky-100">JÁ CADASTRADA</span>
+                            </div>
+                            <p className="mt-1 text-xs leading-relaxed text-white/45">{achievement.description}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/45">
+                            🎬 EP da live
+                            <input
+                              type="text"
+                              value={achievement.episode ?? ""}
+                              onChange={(event) => updateRegisteredAchievementRecord(achievement.id, "episode", event.target.value)}
+                              placeholder="Ex.: EP 10"
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20 focus:border-sky-300/40"
+                            />
+                          </label>
+                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/45">
+                            📅 Data correta da conquista
+                            <input
+                              type="date"
+                              value={normalizeAchievementDateInput(achievement.earnedDate)}
+                              onChange={(event) => updateRegisteredAchievementRecord(achievement.id, "earnedDate", event.target.value)}
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-white outline-none focus:border-sky-300/40"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[10px] leading-relaxed text-white/35">
+                      Este botão atualiza apenas os EPs/datas destas conquistas existentes no site. Não publica nem remove as 29 conquistas do rascunho.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void saveRegisteredAchievementRecordsToSite()}
+                      disabled={registeredRecordsSaving || (!registeredRecordsDirty && !registeredRecordsMessage)}
+                      className="shrink-0 rounded-xl border border-sky-300/25 bg-sky-400/[.08] px-4 py-3 text-[10px] font-black uppercase text-sky-100 transition hover:bg-sky-400/[.14] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {registeredRecordsSaving ? "Salvando registros..." : registeredRecordsDirty ? "Atualizar EP/data no site" : "Registros do site atualizados"}
+                    </button>
+                  </div>
+                  {registeredRecordsMessage && (
+                    <p className={`mt-3 rounded-lg border px-3 py-2 text-[10px] leading-relaxed ${registeredRecordsMessage.includes("atualizados no site") ? "border-emerald-400/20 bg-emerald-400/[.04] text-emerald-100/80" : "border-red-400/20 bg-red-400/[.04] text-red-100/80"}`}>
+                      {registeredRecordsMessage}
+                    </p>
+                  )}
+                </section>
               )}
               <div className="mt-4 space-y-0.5">
                 {showFinalMasteryInPreparationList && (
