@@ -1998,11 +1998,14 @@ export default function BibliotecaPage() {
       }
 
       if (aStatusOrder === 2) {
-        // Nos finalizados, mostrar primeiro o jogo concluído há mais tempo
-        // e seguir em ordem cronológica até o mais recente.
+        // A grade flui da esquerda para a direita; por isso, ordenar do
+        // mais recente para o mais antigo deixa o mais antigo à direita.
+        // Assim, a leitura visual da direita para a esquerda é:
+        // conclusão mais antiga → mais recente.
         return compareDateValues(
           getCompletionTimestamp(a, aActivity),
-          getCompletionTimestamp(b, bActivity)
+          getCompletionTimestamp(b, bActivity),
+          true
         );
       }
 
