@@ -1106,16 +1106,16 @@ function GameGridCard({
     <Link
       href={`/games/${gameSlug}`}
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
-      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.055] bg-transparent p-2.5 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
+      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-1.5 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.06] bg-black shadow-[0_6px_16px_rgba(0,0,0,0.2)]">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
           <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
         </div>
 
-        <span className={`absolute bottom-2 left-2 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[0.06em] backdrop-blur-sm ${statusClass}`}>
+        <span className={`absolute bottom-2 left-2 rounded-full border px-2 py-1 text-[8.5px] font-black uppercase tracking-[0.04em] backdrop-blur-sm ${statusClass}`}>
           {statusLabel}
         </span>
 
@@ -1129,7 +1129,7 @@ function GameGridCard({
       <div className="flex min-w-0 flex-col pt-2">
         <div className="group/title relative min-w-0">
           <h3
-            className="h-4 truncate text-[12px] font-semibold leading-4 text-white"
+            className="h-4 truncate text-[12.5px] font-bold leading-4 text-white"
             title={gameTitle}
           >
             {gameTitle}
@@ -1142,9 +1142,9 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1 flex items-center gap-2">
+        <div className="mt-1.5 flex items-center gap-2">
           <div
-            className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]"
+            className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]"
             role="progressbar"
             aria-label={`Progresso de ${gameTitle}`}
             aria-valuemin={0}
@@ -1153,12 +1153,12 @@ function GameGridCard({
           >
             <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
           </div>
-          <span className={`w-8 shrink-0 text-right text-[9px] font-black tabular-nums ${isCompleted ? "text-emerald-300" : isBacklog ? "text-cyan-200" : "text-white/85"}`}>
+          <span className={`w-8 shrink-0 text-right text-[9px] font-bold tabular-nums ${isCompleted ? "text-emerald-300" : isBacklog ? "text-cyan-200" : "text-white/70"}`}>
             {progress}%
           </span>
         </div>
 
-        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-3 text-[11px] font-semibold leading-none text-white/72">
+        <div className="mt-1.5 flex h-4 min-w-0 items-center justify-center gap-2.5 text-[11px] font-semibold leading-none text-white/80">
           <span
             className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
