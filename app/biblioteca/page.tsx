@@ -1106,9 +1106,9 @@ function GameGridCard({
     <Link
       href={`/games/${gameSlug}`}
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
-      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-1.5 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
+      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-1 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
@@ -1126,7 +1126,7 @@ function GameGridCard({
         ) : null}
       </div>
 
-      <div className="flex min-w-0 flex-col pt-2">
+      <div className="flex min-w-0 flex-col pt-1.5">
         <div className="group/title relative min-w-0">
           <h3
             className="h-4 truncate text-[12.5px] font-bold leading-4 text-white"
@@ -1142,7 +1142,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="mt-1 flex items-center gap-2">
           <div
             className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]"
             role="progressbar"
@@ -1158,7 +1158,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex h-4 min-w-0 items-center justify-center gap-2.5 text-[11px] font-semibold leading-none text-white/80">
+        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-2.5 text-[11px] font-semibold leading-none text-white/80">
           <span
             className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
@@ -2418,7 +2418,7 @@ export default function BibliotecaPage() {
         </aside>
 
         {/* MAIN */}
-        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+        <div className="min-w-0 px-4 pt-3 pb-5 md:px-5 lg:px-5">
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0">
             <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
@@ -2427,7 +2427,7 @@ export default function BibliotecaPage() {
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-              <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
+              <div className="relative min-h-[210px] px-7 py-6 md:px-7 md:py-6">
                 <div className="max-w-[470px]">
                   <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                     <span className="text-[10px] leading-none">✣</span>
@@ -2569,7 +2569,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-5 py-2 sm:gap-x-3.5 sm:gap-y-6 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-3 pt-0 pb-1 sm:gap-x-3.5 sm:gap-y-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
