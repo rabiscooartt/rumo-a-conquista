@@ -1528,15 +1528,6 @@ export default function GameAchievementsPanel(
                               );
                             })()
                           ) : null}
-                                  {date ? (
-                                    <time dateTime={dateValue} className="whitespace-nowrap">
-                                      {date}
-                                    </time>
-                                  ) : null}
-                                </div>
-                              );
-                            })()
-                          ) : null}
                         </div>
                       </>
                     )}
