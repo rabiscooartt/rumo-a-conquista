@@ -1688,6 +1688,7 @@ function getCompletionTimestamp(
 ) {
   // Prefer dates saved explicitly for game completion, when available.
   const explicitDates = [
+    game.firstJourney?.completedAt,
     game.completionDate,
     game.completedAt,
     game.completedDate,
@@ -1933,25 +1934,102 @@ export default function BibliotecaPage() {
   const filteredGames = useMemo(() => {
     const term = normalizeText(search);
 
-    return bibliotecaGames.filter((game) => {
+    const matchingGames = bibliotecaGames.filter((game) => {
+      const gameHasActivity = activitySummaryByGame.has(readText(game.slug, ""));
+
       if (
         activeFilter === "progress" &&
-        !isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))
-      )
+        !isProgressGame(game, gameHasActivity)
+      ) {
         return false;
+      }
       if (activeFilter === "mastery" && !isCompletedGame(game)) return false;
       if (activeFilter === "backlog" && !isBacklogGame(game)) return false;
 
-      if (platformFilter !== "all" && normalizeText(getPlatformLabel(game)) !== normalizeText(platformFilter)) {
+      if (
+        platformFilter !== "all" &&
+        normalizeText(getPlatformLabel(game)) !== normalizeText(platformFilter)
+      ) {
         return false;
       }
 
       if (!term) return true;
-
       return normalizeText(readText(game.title, "")).includes(term);
-    }).sort((a, b) => {
-      const aActivity = activitySummaryByGame.get(readText(a.slug, ""));
-      const bActivity = activitySummaryByGame.get(readText(b.slug, ""));
+    });
+
+    const getActivity = (game: BibliotecaGame) =>
+      activitySummaryByGame.get(readText(game.slug, ""));
+    const hasActivity = (game: BibliotecaGame) =>
+      activitySummaryByGame.has(readText(game.slug, ""));
+    const compareRecent = (a: BibliotecaGame, b: BibliotecaGame) => {
+      const aRecent = getRecentTimestamp(a, getActivity(a));
+      const bRecent = getRecentTimestamp(b, getActivity(b));
+
+      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) {
+        return readText(a.title, "").localeCompare(readText(b.title, ""), "pt-BR");
+      }
+      if (Number.isNaN(aRecent)) return 1;
+      if (Number.isNaN(bRecent)) return -1;
+      return bRecent - aRecent;
+    };
+
+    // "Recentes" tem uma regra de grupos explícita para evitar que um jogo
+    // marcado como progress pelo banco, mas com 100%, apareça antes da fila.
+    // Em progresso → Na fila (ordem personalizada) → Finalizados → outros.
+    if (sortMode === "recent") {
+      const progress = matchingGames
+        .filter((game) => isProgressGame(game, hasActivity(game)))
+        .sort(compareRecent);
+
+      const backlog = matchingGames
+        .filter(
+          (game) =>
+            !isCompletedGame(game) &&
+            !isProgressGame(game, hasActivity(game)) &&
+            isBacklogGame(game)
+        )
+        .sort((a, b) => {
+          const aOrder = backlogOrder.indexOf(readText(a.slug, ""));
+          const bOrder = backlogOrder.indexOf(readText(b.slug, ""));
+
+          if (aOrder !== -1 && bOrder !== -1) return aOrder - bOrder;
+          if (aOrder !== -1) return -1;
+          if (bOrder !== -1) return 1;
+          return compareRecent(a, b);
+        });
+
+      const completed = matchingGames
+        .filter((game) => isCompletedGame(game))
+        .sort((a, b) => {
+          const aDate = getCompletionTimestamp(a, getActivity(a));
+          const bDate = getCompletionTimestamp(b, getActivity(b));
+
+          // Mais recente primeiro: novos finalizados entram antes do Mouse,
+          // seguidos por Mouse, Crisol e Hogwarts conforme suas datas.
+          if (Number.isNaN(aDate) && Number.isNaN(bDate)) {
+            return readText(a.title, "").localeCompare(readText(b.title, ""), "pt-BR");
+          }
+          if (Number.isNaN(aDate)) return 1;
+          if (Number.isNaN(bDate)) return -1;
+          return bDate - aDate;
+        });
+
+      const other = matchingGames
+        .filter(
+          (game) =>
+            !isCompletedGame(game) &&
+            !isProgressGame(game, hasActivity(game)) &&
+            !isBacklogGame(game)
+        )
+        .sort(compareRecent);
+
+      return [...progress, ...backlog, ...completed, ...other];
+    }
+
+    // Os outros modos de ordenação continuam funcionando em toda a biblioteca.
+    return matchingGames.sort((a, b) => {
+      const aActivity = getActivity(a);
+      const bActivity = getActivity(b);
       const aTitle = normalizeText(readText(a.title, ""));
       const bTitle = normalizeText(readText(b.title, ""));
 
@@ -1962,61 +2040,24 @@ export default function BibliotecaPage() {
         return bMinutes - aMinutes;
       }
       if (sortMode === "rating") return getGameRating(b) - getGameRating(a);
-      if (sortMode === "progress") return getProgressPercent(b, getAchievementStats(b)) - getProgressPercent(a, getAchievementStats(a));
-      if (sortMode === "startDate") return compareDateValues(aActivity?.firstDate ?? a.createdAt, bActivity?.firstDate ?? b.createdAt, true);
+      if (sortMode === "progress") {
+        return getProgressPercent(b, getAchievementStats(b)) -
+          getProgressPercent(a, getAchievementStats(a));
+      }
+      if (sortMode === "startDate") {
+        return compareDateValues(
+          aActivity?.firstDate ?? a.createdAt,
+          bActivity?.firstDate ?? b.createdAt,
+          true
+        );
+      }
       if (sortMode === "completionDate") {
         return compareDateValues(
           getCompletionTimestamp(b, bActivity),
           getCompletionTimestamp(a, aActivity)
         );
       }
-
-      // Na ordenação padrão, os grupos aparecem em ordem fixa:
-      // Em progresso → Na fila → Finalizados → outros status.
-      // A conclusão sempre prevalece sobre qualquer marcação antiga de fila.
-      const getStatusOrder = (game: BibliotecaGame) => {
-        if (isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))) return 0;
-        if (isCompletedGame(game)) return 2;
-        if (isBacklogGame(game)) return 1;
-        return 3;
-      };
-
-      const aStatusOrder = getStatusOrder(a);
-      const bStatusOrder = getStatusOrder(b);
-
-      if (aStatusOrder !== bStatusOrder) return aStatusOrder - bStatusOrder;
-
-      if (aStatusOrder === 1) {
-        const aSlug = readText(a.slug, "");
-        const bSlug = readText(b.slug, "");
-        const aQueueOrder = backlogOrder.indexOf(aSlug);
-        const bQueueOrder = backlogOrder.indexOf(bSlug);
-
-        if (aQueueOrder !== -1 && bQueueOrder !== -1) return aQueueOrder - bQueueOrder;
-        if (aQueueOrder !== -1) return -1;
-        if (bQueueOrder !== -1) return 1;
-      }
-
-      if (aStatusOrder === 2) {
-        // A grade flui da esquerda para a direita; por isso, ordenar do
-        // mais recente para o mais antigo deixa o mais antigo à direita.
-        // Assim, a leitura visual da direita para a esquerda é:
-        // conclusão mais antiga → mais recente.
-        return compareDateValues(
-          getCompletionTimestamp(a, aActivity),
-          getCompletionTimestamp(b, bActivity),
-          true
-        );
-      }
-
-      const aRecent = getRecentTimestamp(a, aActivity);
-      const bRecent = getRecentTimestamp(b, bActivity);
-
-      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) return aTitle.localeCompare(bTitle, "pt-BR");
-      if (Number.isNaN(aRecent)) return 1;
-      if (Number.isNaN(bRecent)) return -1;
-
-      return bRecent - aRecent;
+      return aTitle.localeCompare(bTitle, "pt-BR");
     });
   }, [activeFilter, activitySummaryByGame, backlogOrder, bibliotecaGames, platformFilter, search, sortMode]);
 
