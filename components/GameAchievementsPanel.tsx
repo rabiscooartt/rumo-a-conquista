@@ -413,14 +413,8 @@ function sortAchievements(
   const metadataFor = (achievement: AchievementInput) =>
     achievementMeta[getAchievementKey(achievement)] ?? {};
 
-  const isFirstJourneyItem = (achievement: AchievementInput) => {
-    const meta = metadataFor(achievement);
-    const episode = formatJourneyEpisode(meta.episode);
-    if (episode === "1") return true;
-
+  const isJourneySelected = (achievement: AchievementInput) => {
     if (!journeyLockActive) return false;
-    const hasEpisodeMetadata = Boolean(episode || String(meta.date ?? "").trim());
-    if (hasEpisodeMetadata) return false;
 
     const achievementKey = getAchievementKey(achievement);
     const titleKey = slugify(achievement.title);
@@ -435,9 +429,15 @@ function sortAchievements(
 
   const episodeNumberFor = (achievement: AchievementInput) => {
     const episode = formatJourneyEpisode(metadataFor(achievement).episode);
-    if (!episode || !/^\d+$/.test(episode)) return null;
-    const value = Number(episode);
-    return Number.isFinite(value) ? value : null;
+    if (episode && /^\d+$/.test(episode)) {
+      const value = Number(episode);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    // Se uma conquista pertence à Jornada mas ainda não tem EP individual,
+    // tratamos como EP 1 para ordenação. Ela continua seguindo a direção da seta:
+    // primeiro na ordem crescente e depois dos episódios maiores na decrescente.
+    return isJourneySelected(achievement) ? 1 : null;
   };
 
   const dateFor = (achievement: AchievementInput, state: ManualAchievementState) => {
@@ -472,20 +472,21 @@ function sortAchievements(
     }
 
     if (sortMode === "episode") {
-      const journeyA = isFirstJourneyItem(a);
-      const journeyB = isFirstJourneyItem(b);
-      // A Jornada de Estreia fica sempre no topo; episódios seguintes são numéricos.
-      if (journeyA !== journeyB) return journeyA ? -1 : 1;
-
       const episodeA = episodeNumberFor(a);
       const episodeB = episodeNumberFor(b);
-      // Episódios não cadastrados ficam depois dos que têm número.
+
+      // Entradas sem episódio ficam no final em ambas as direções.
       if (episodeA === null && episodeB !== null) return 1;
       if (episodeA !== null && episodeB === null) return -1;
+
+      // Ordenação numérica real: EP 2 vem antes de EP 10 na crescente,
+      // e EP 10 passa para cima de EP 2 na decrescente.
       if (episodeA !== null && episodeB !== null && episodeA !== episodeB) {
         return (episodeA - episodeB) * multiplier;
       }
-      return 0;
+
+      // Desempate pelo título também respeita a seta, inclusive para vários EP 1.
+      return a.title.localeCompare(b.title) * multiplier;
     }
 
     return a.title.localeCompare(b.title) * multiplier;
