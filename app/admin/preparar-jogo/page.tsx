@@ -141,6 +141,14 @@ type R = {
     youtubePlaylistUrl?: string;
     youtubeFirstLiveUrl?: string;
     youtubeFirstLiveEpisode?: string;
+    finalBadge?: {
+      title?: string;
+      icon?: string;
+      image?: string;
+      description?: string;
+    } | null;
+    finalMasteryEpisode?: string;
+    finalMasteryDate?: string;
     exophase?: {
       found: boolean;
       url: string | null;
@@ -517,8 +525,57 @@ function PrepararJogoPage() {
           typeof savedGame === "object" &&
           Array.isArray(savedAchievements)
         ) {
+          const savedGameRecord = savedGame as R["game"];
+          let liveGameRecord: Record<string, unknown> | null = null;
+          try {
+            const liveGamesResponse = await fetch("/api/admin/games", { cache: "no-store" });
+            const liveGamesPayload = await liveGamesResponse.json().catch(() => null);
+            if (liveGamesResponse.ok && Array.isArray(liveGamesPayload?.games)) {
+              liveGameRecord =
+                liveGamesPayload.games.find(
+                  (game: { slug?: unknown }) => String(game.slug || "") === gameSlug
+                ) ?? null;
+            }
+          } catch {
+            // O rascunho continua sendo carregado mesmo se a consulta auxiliar falhar.
+          }
+
+          const liveFirstJourney =
+            liveGameRecord?.firstJourney &&
+            typeof liveGameRecord.firstJourney === "object"
+              ? liveGameRecord.firstJourney as Record<string, unknown>
+              : {};
+          const liveAchievementMeta =
+            liveFirstJourney.achievementMeta &&
+            typeof liveFirstJourney.achievementMeta === "object"
+              ? liveFirstJourney.achievementMeta as Record<string, unknown>
+              : {};
+          const liveMasteryMetaRaw =
+            liveAchievementMeta[gameSlug + "-final-mastery"];
+          const liveMasteryMeta =
+            liveMasteryMetaRaw && typeof liveMasteryMetaRaw === "object"
+              ? liveMasteryMetaRaw as Record<string, unknown>
+              : {};
+          const liveFinalBadge =
+            liveGameRecord?.finalBadge ?? liveGameRecord?.final_badge;
+
           setResult({
-            game: savedGame as R["game"],
+            game: {
+              ...savedGameRecord,
+              finalBadge: savedGameRecord.finalBadge ?? (
+                liveFinalBadge && typeof liveFinalBadge === "object"
+                  ? liveFinalBadge as NonNullable<R["game"]["finalBadge"]>
+                  : null
+              ),
+              finalMasteryEpisode:
+                typeof savedGameRecord.finalMasteryEpisode === "string"
+                  ? savedGameRecord.finalMasteryEpisode
+                  : String(liveMasteryMeta.episode ?? ""),
+              finalMasteryDate:
+                typeof savedGameRecord.finalMasteryDate === "string"
+                  ? savedGameRecord.finalMasteryDate
+                  : String(liveMasteryMeta.date ?? ""),
+            },
             achievements: savedAchievements as A[],
             warnings: Array.isArray(draft?.preparedWarnings)
               ? draft.preparedWarnings as string[]
@@ -709,11 +766,24 @@ function PrepararJogoPage() {
             typeof draft.preparedGame === "object" &&
             Array.isArray(draft.preparedAchievements)
           ) {
+            const snapshotGame = draft.preparedGame as R["game"];
             setResult((current) =>
               current
                 ? {
                     ...current,
-                    game: draft.preparedGame as R["game"],
+                    game: {
+                      ...current.game,
+                      ...snapshotGame,
+                      finalBadge: snapshotGame.finalBadge ?? current.game.finalBadge,
+                      finalMasteryEpisode:
+                        typeof snapshotGame.finalMasteryEpisode === "string"
+                          ? snapshotGame.finalMasteryEpisode
+                          : current.game.finalMasteryEpisode ?? "",
+                      finalMasteryDate:
+                        typeof snapshotGame.finalMasteryDate === "string"
+                          ? snapshotGame.finalMasteryDate
+                          : current.game.finalMasteryDate ?? "",
+                    },
                     achievements: draft.preparedAchievements as A[],
                     warnings: Array.isArray(draft.preparedWarnings)
                       ? draft.preparedWarnings as string[]
@@ -1306,6 +1376,25 @@ function PrepararJogoPage() {
                 status: hasEarnedRecord ? "completed" : "locked",
               };
             }),
+          }
+        : current
+    );
+  }
+
+  function updateFinalMasteryRecord(
+    field: "finalMasteryEpisode" | "finalMasteryDate",
+    value: string
+  ) {
+    setSaved(false);
+    setPublished(false);
+    setResult((current) =>
+      current
+        ? {
+            ...current,
+            game: {
+              ...current.game,
+              [field]: value,
+            },
           }
         : current
     );
@@ -3658,6 +3747,66 @@ function PrepararJogoPage() {
                   </button>
                 </div>
               )}
+              <section className="mb-4 rounded-2xl border border-red-400/20 bg-red-500/[.035] p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  {result.game.finalBadge?.image ? (
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-red-400/20 bg-black/30">
+                      <img
+                        src={result.game.finalBadge.image}
+                        alt=""
+                        className="h-full w-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-red-400/20 bg-black/30 text-2xl">
+                      {result.game.finalBadge?.icon || "🏆"}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[9px] font-black uppercase tracking-[.16em] text-red-300/75">
+                      Registro da Maestria Final
+                    </p>
+                    <h3 className="mt-1 text-base font-black text-white">
+                      {result.game.finalBadge?.title?.trim() || "Maestria Final"}
+                    </h3>
+                    {result.game.finalBadge?.description?.trim() ? (
+                      <p className="mt-1 text-xs leading-relaxed text-white/40">
+                        {result.game.finalBadge.description}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs leading-relaxed text-white/35">
+                        Registre aqui o episódio e a data em que você conquistou a Maestria Final.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/40">
+                    🎬 EP da live
+                    <input
+                      type="text"
+                      value={result.game.finalMasteryEpisode ?? ""}
+                      onChange={(event) => updateFinalMasteryRecord("finalMasteryEpisode", event.target.value)}
+                      placeholder="Ex.: EP 10"
+                      className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20 focus:border-red-400/40"
+                    />
+                  </label>
+                  <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/40">
+                    📅 Data em que conseguiu
+                    <input
+                      type="date"
+                      value={result.game.finalMasteryDate ?? ""}
+                      onChange={(event) => updateFinalMasteryRecord("finalMasteryDate", event.target.value)}
+                      className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-white outline-none focus:border-red-400/40"
+                    />
+                  </label>
+                </div>
+                <p className="mt-2 text-[10px] leading-relaxed text-white/30">
+                  Esses dados serão publicados junto da Maestria Final. Salve o rascunho para continuar depois ou publique as conquistas para exibi-los no site.
+                </p>
+              </section>
+
               <div className="mt-4 space-y-0.5">
                 {filteredPreparationAchievements.length === 0 ? (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-6 text-center text-xs font-bold text-white/40">
