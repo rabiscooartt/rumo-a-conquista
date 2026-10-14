@@ -412,6 +412,8 @@ function PrepararJogoPage() {
   const [registeredRecordsDirty, setRegisteredRecordsDirty] = useState(false);
   const [registeredRecordsSaving, setRegisteredRecordsSaving] = useState(false);
   const [registeredRecordsMessage, setRegisteredRecordsMessage] = useState("");
+  const [finalMasteryRecordSaving, setFinalMasteryRecordSaving] = useState(false);
+  const [finalMasteryRecordMessage, setFinalMasteryRecordMessage] = useState("");
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -1701,6 +1703,7 @@ function PrepararJogoPage() {
   ) {
     setSaved(false);
     setPublished(false);
+    setFinalMasteryRecordMessage("");
     setResult((current) =>
       current
         ? {
@@ -2536,6 +2539,43 @@ function PrepararJogoPage() {
       );
     } finally {
       setRegisteredRecordsSaving(false);
+    }
+  }
+
+  async function saveFinalMasteryRecordToSite() {
+    if (!result?.game.slug || finalMasteryRecordSaving) return;
+
+    setFinalMasteryRecordSaving(true);
+    setFinalMasteryRecordMessage("");
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/achievement-records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: result.game.slug,
+          records: [],
+          finalMastery: {
+            episode: String(result.game.finalMasteryEpisode ?? "").trim(),
+            earnedDate: normalizeAchievementDateInput(result.game.finalMasteryDate),
+          },
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Não foi possível salvar o registro da Maestria Final no site.");
+      }
+
+      setFinalMasteryRecordMessage("EP/data da Maestria Final salvos no site. Atualize a página pública para conferir.");
+    } catch (error) {
+      setFinalMasteryRecordMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar o registro da Maestria Final no site."
+      );
+    } finally {
+      setFinalMasteryRecordSaving(false);
     }
   }
 
@@ -4372,6 +4412,24 @@ function PrepararJogoPage() {
                               {result.game.finalMasteryEpisode?.trim() && result.game.finalMasteryDate?.trim() ? "✓ Registro completo" : "Registro da Maestria"}
                             </span>
                           </div>
+                          <div className="mt-1 flex flex-col gap-2 lg:col-span-3 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-[10px] leading-relaxed text-white/40">
+                              Este botão salva o EP/data público da Maestria Final sem republicar nem substituir a lista de conquistas.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => void saveFinalMasteryRecordToSite()}
+                              disabled={finalMasteryRecordSaving}
+                              className="shrink-0 rounded-lg border border-red-400/25 bg-red-400/[.08] px-4 py-2.5 text-[10px] font-black uppercase text-red-100 transition hover:bg-red-400/[.14] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {finalMasteryRecordSaving ? "Salvando Maestria..." : "Salvar EP/data no site"}
+                            </button>
+                          </div>
+                          {finalMasteryRecordMessage && (
+                            <p className={`lg:col-span-3 rounded-lg border px-3 py-2 text-[10px] leading-relaxed ${finalMasteryRecordMessage.includes("salvos no site") ? "border-emerald-400/20 bg-emerald-400/[.04] text-emerald-100/80" : "border-red-400/20 bg-red-400/[.04] text-red-100/80"}`}>
+                              {finalMasteryRecordMessage}
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
