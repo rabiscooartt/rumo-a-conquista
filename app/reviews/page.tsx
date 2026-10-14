@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import BannerBackground from "@/components/BannerBackground";
 
 type ReviewRecord = {
   status?: unknown;
@@ -109,84 +110,60 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const filledStars = score === null ? 0 : Math.round(score / 2);
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-white/10 bg-[#090a0c] transition duration-300 hover:border-red-500/30 hover:bg-[#0b0c0f]">
-      <div className="flex h-full flex-col sm:flex-row">
-        <Link
-          href={`/games/${encodeURIComponent(game.slug)}`}
-          aria-label={`Abrir página de ${game.title}`}
-          className="relative block h-48 shrink-0 overflow-hidden border-b border-white/[.07] bg-black/30 sm:h-auto sm:min-h-[230px] sm:w-40 sm:border-b-0 sm:border-r"
-        >
-          {image ? (
-            <img
-              src={image}
-              alt={game.title}
-              loading="lazy"
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-            />
-          ) : (
-            <div className="flex h-full min-h-[190px] items-center justify-center bg-gradient-to-br from-red-950/50 via-zinc-950 to-black p-5 text-center">
-              <span className="text-sm font-black text-white/65">{game.title}</span>
-            </div>
-          )}
-          <span className="absolute left-3 top-3 rounded-full border border-emerald-300/20 bg-black/75 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-emerald-200">
+    <article className="flex flex-col gap-3 border-b border-white/[0.07] px-3 py-4 last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-4">
+      <Link
+        href={`/games/${encodeURIComponent(game.slug)}`}
+        aria-label={`Abrir página de ${game.title}`}
+        className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg"
+      >
+        {image ? (
+          <img src={image} alt={game.title} loading="lazy" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full items-center justify-center px-1 text-center text-[8px] font-black text-white/25">RC</div>
+        )}
+      </Link>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-[15px] font-black text-white sm:text-[17px]">{title}</h3>
+          <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[.05] px-2 py-0.5 text-[8px] font-black uppercase tracking-[.1em] text-emerald-200/80">
             Publicada
           </span>
-        </Link>
-
-        <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] font-black uppercase tracking-[.18em] text-red-400">
-                {cleanText(game.platform) || "Review de jogo"}
-              </p>
-              <h2 className="mt-1 text-xl font-black leading-tight text-white sm:text-2xl">
-                {title}
-              </h2>
-              <p className="mt-1 text-sm font-semibold text-white/45">{game.title}</p>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-3 rounded-xl border border-red-400/20 bg-red-500/[.06] px-3.5 py-2.5">
-              <div>
-                <p className="text-[8px] font-black uppercase tracking-[.14em] text-red-200/60">Nota final</p>
-                <p className="mt-0.5 text-2xl font-black leading-none text-white">
-                  {score === null ? "—" : score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
-                  <span className="ml-1 text-[10px] font-bold text-white/40">/10</span>
-                </p>
-              </div>
-              {score !== null && (
-                <div className="text-right">
-                  <p className="whitespace-nowrap text-sm leading-none text-red-400" aria-label={`${filledStars} de 5 estrelas`}>
-                    {"★".repeat(filledStars)}<span className="text-white/15">{"★".repeat(5 - filledStars)}</span>
-                  </p>
-                  <p className="mt-1 text-[8px] font-black uppercase tracking-[.08em] text-white/40">
-                    {scoreLabel(score)}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {excerpt && (
-            <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-white/65">
-              {excerpt}
-            </p>
-          )}
-
-          <div className="mt-auto flex flex-wrap items-center gap-3 pt-5">
-            <Link
-              href={`/games/${encodeURIComponent(game.slug)}/review`}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-500/35 bg-red-500/[.09] px-4 py-2.5 text-[10px] font-black uppercase tracking-[.08em] text-red-200 transition hover:border-red-400/55 hover:bg-red-500/[.15]"
-            >
-              Ler review completa <span aria-hidden="true">→</span>
-            </Link>
-            <Link
-              href={`/games/${encodeURIComponent(game.slug)}`}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-[.08em] text-white/50 transition hover:border-white/20 hover:text-white/80"
-            >
-              Ver jogo
-            </Link>
-          </div>
         </div>
+        <p className="mt-1 text-[11px] font-semibold text-white/45">{game.title}{cleanText(game.platform) ? ` · ${cleanText(game.platform)}` : ""}</p>
+        {excerpt ? (
+          <p className="mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-white/65">{excerpt}</p>
+        ) : null}
+      </div>
+
+      <div className="flex shrink-0 items-center justify-between gap-4 sm:w-[112px] sm:flex-col sm:items-end sm:justify-center sm:gap-1">
+        <div>
+          <p className="text-[8px] font-black uppercase tracking-[.14em] text-white/30 sm:text-right">Nota final</p>
+          <p className="mt-0.5 text-[20px] font-black leading-none text-white sm:text-right">
+            {score === null ? "—" : score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
+            <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
+          </p>
+        </div>
+        {score !== null ? (
+          <p className="whitespace-nowrap text-[12px] leading-none text-red-400 sm:text-right" aria-label={`${filledStars} de 5 estrelas`}>
+            {"★".repeat(filledStars)}<span className="text-white/15">{"★".repeat(5 - filledStars)}</span>
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex shrink-0 flex-wrap gap-2 sm:w-[160px] sm:flex-col sm:items-stretch">
+        <Link
+          href={`/games/${encodeURIComponent(game.slug)}/review`}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/[.08] px-3 py-2.5 text-[9px] font-black uppercase tracking-[.06em] text-red-200 transition hover:border-red-400/50 hover:bg-red-500/[.14]"
+        >
+          Ler review <span aria-hidden="true">→</span>
+        </Link>
+        <Link
+          href={`/games/${encodeURIComponent(game.slug)}`}
+          className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[.02] px-3 py-2.5 text-[9px] font-black uppercase tracking-[.06em] text-white/45 transition hover:border-white/20 hover:text-white/80"
+        >
+          Ver jogo
+        </Link>
       </div>
     </article>
   );
@@ -255,101 +232,258 @@ export default function ReviewsPage() {
     ? scoredGames.reduce((sum, score) => sum + score, 0) / scoredGames.length
     : null;
 
+  const topRatedGames = useMemo(
+    () =>
+      [...games]
+        .filter((game) => parseScore(game.review?.nota) !== null)
+        .sort((a, b) => (parseScore(b.review?.nota) ?? -1) - (parseScore(a.review?.nota) ?? -1))
+        .slice(0, 4),
+    [games]
+  );
+
+  const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
+  const lowScore = scoredGames.length ? Math.min(...scoredGames) : null;
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#17090b_0%,#070707_34%,#020202_100%)] text-white">
+    <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1420px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-        <div className="relative overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-950/35 via-[#090909] to-black p-6 sm:p-9">
-          <div className="pointer-events-none absolute -right-12 -top-16 h-64 w-64 rounded-full bg-red-600/[.07] blur-3xl" />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-[10px] font-black uppercase tracking-[.28em] text-red-400">Rumo à Conquista · análises</p>
-              <h1 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-5xl">
-                Reviews dos jogos
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55 sm:text-base">
-                Nossas análises, notas e impressões sobre os jogos da jornada — reunidas em um só lugar.
-              </p>
+      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block">
+          <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
+            <div>
+              <div className="border-t border-white/[0.08] pt-5">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <span className="text-base text-red-400">✎</span>
+                  Review
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Coleção</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-red-400">▤</span>
+                  <span className="text-[11px] font-semibold text-white/65">{games.length} reviews publicadas</span>
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-amber-300">★</span>
+                  <span className="text-[11px] font-semibold text-white/65">
+                    Nota média {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Navegação</p>
+                <Link href="/biblioteca" className="mt-3 flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
+                  <span>▦</span> Biblioteca de jogos
+                </Link>
+                <Link href="/atividade" className="flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
+                  <span>◷</span> Atividade
+                </Link>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:min-w-[300px]">
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/40">Reviews publicadas</p>
-                <p className="mt-1 text-3xl font-black tabular-nums text-white">{games.length}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/40">Nota média</p>
-                <p className="mt-1 text-3xl font-black tabular-nums text-white">
-                  {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
-                  <span className="ml-1 text-xs font-bold text-white/35">/10</span>
+            <div className="mt-auto space-y-2 pt-8">
+              <Link href="/configuracoes" className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55">
+                <span>⚙</span> Configurações
+              </Link>
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="min-w-0">
+              <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
+                <BannerBackground bannerKey="conteudo" imageUrl="/images/content-banner-bg.png" adminButtonClassName="top-16" />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.94)_25%,rgba(5,6,9,0.75)_49%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
+
+                <div className="relative min-h-[235px] px-7 py-7">
+                  <div className="max-w-[400px]">
+                    <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+                      <span className="text-[10px] leading-none">✣</span>
+                      Rumo à Conquista · análises
+                    </p>
+                    <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">REVIEWS</h1>
+                    <p className="mt-3 max-w-[340px] text-[12px] font-medium leading-[1.35] text-white/70">
+                      Suas análises, notas e impressões sobre os jogos da jornada, reunidas em um só lugar.
+                    </p>
+                  </div>
+
+                  <div className="absolute bottom-7 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Reviews publicadas</p>
+                      <p className="mt-1 text-[24px] font-black leading-none text-white">{loading ? "…" : games.length}</p>
+                    </div>
+                    <div className="border-l border-white/[0.12] pl-4">
+                      <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Nota média</p>
+                      <p className="mt-1 text-[24px] font-black leading-none text-white">
+                        {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
+                        <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
+                      </p>
+                    </div>
+                    <div className="hidden border-l border-white/[0.12] pl-4 sm:block">
+                      <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Melhor nota</p>
+                      <p className="mt-1 text-[24px] font-black leading-none text-white">
+                        {highScore === null ? "—" : highScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
+                        <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
+                <div className="border-b border-white/[0.08] px-3 pt-3">
+                  <div className="flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1.5 rounded-t-lg bg-red-500/10 px-4 py-3 text-[12px] font-black text-red-300">
+                      <span aria-hidden="true">✎</span> Reviews
+                    </span>
+                    <span className="px-2 py-3 text-[10px] font-black uppercase tracking-[.1em] text-white/30">
+                      {loading ? "Carregando..." : `${visibleGames.length} registros`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2.5 p-3 md:flex-row">
+                  <label className="relative block min-w-0 flex-1">
+                    <span className="sr-only">Buscar review ou jogo</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="m20 20-4-4" />
+                    </svg>
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Buscar por jogo ou título da review..."
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                    />
+                  </label>
+                  <div className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50">
+                    <span aria-hidden="true">★</span>
+                    Todas as notas
+                  </div>
+                </div>
+
+                <div className="px-3 pb-3">
+                  <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/65">
+                    Reviews publicadas
+                  </p>
+
+                  {loading ? (
+                    <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
+                      {[0, 1, 2].map((item) => (
+                        <div key={item} className="h-28 animate-pulse border-b border-white/[0.06] bg-white/[0.02] last:border-b-0" />
+                      ))}
+                    </div>
+                  ) : loadError ? (
+                    <div className="rounded-xl border border-red-400/20 bg-red-500/[.05] p-5">
+                      <p className="text-sm font-bold text-red-200">Não foi possível carregar as reviews.</p>
+                      <p className="mt-2 text-[11px] text-white/50">{loadError}</p>
+                      <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="mt-4 rounded-lg border border-red-400/25 px-4 py-2 text-[9px] font-black uppercase text-red-200 hover:bg-red-500/10"
+                      >
+                        Tentar novamente
+                      </button>
+                    </div>
+                  ) : visibleGames.length > 0 ? (
+                    <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
+                      {visibleGames.map((game) => <ReviewCard key={game.slug} game={game} />)}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-white/[0.08] bg-black/20 px-5 py-12 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-red-400/20 bg-red-500/[.07] text-xl">★</div>
+                      <h2 className="mt-4 text-sm font-black text-white">
+                        {games.length ? "Nenhuma review encontrada" : "Ainda não há reviews publicadas"}
+                      </h2>
+                      <p className="mx-auto mt-2 max-w-md text-[11px] leading-relaxed text-white/45">
+                        {games.length
+                          ? "Tente buscar pelo nome do jogo ou pelo título da análise."
+                          : "Quando uma análise for liberada no Admin, ela aparecerá automaticamente nesta página."}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <aside className="space-y-3 xl:sticky xl:top-20">
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  Resumo das reviews
+                </h2>
+
+                <div className="mt-3 space-y-3.5">
+                  {[
+                    ["Reviews publicadas", loading ? "…" : String(games.length), "▤"],
+                    ["Nota média", averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10", "★"],
+                    ["Maior nota", highScore === null ? "—" : highScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10", "↑"],
+                    ["Menor nota", lowScore === null ? "—" : lowScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10", "↓"],
+                  ].map(([label, value, icon]) => (
+                    <div key={label} className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3.5 last:border-b-0 last:pb-0">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-black/25 text-sm text-red-300">{icon}</span>
+                        <span className="truncate text-[11px] font-semibold text-white/65">{label}</span>
+                      </div>
+                      <strong className="shrink-0 text-[14px] font-black text-white">{value}</strong>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  Maiores notas
+                </h2>
+
+                {topRatedGames.length ? (
+                  <div className="mt-3 space-y-3">
+                    {topRatedGames.map((game) => {
+                      const score = parseScore(game.review?.nota);
+                      return (
+                        <Link key={game.slug} href={`/games/${encodeURIComponent(game.slug)}/review`} className="flex items-center gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0 group">
+                          <div className="h-11 w-9 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/30">
+                            {(cleanText(game.cardImage) || cleanText(game.image)) ? (
+                              <img src={cleanText(game.cardImage) || cleanText(game.image)} alt="" loading="lazy" className="h-full w-full object-cover" />
+                            ) : null}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[11px] font-bold text-white/75 group-hover:text-red-200">{game.title}</p>
+                            <p className="mt-1 truncate text-[9px] text-white/35">{cleanText(game.review?.titulo) || "Review do jogo"}</p>
+                          </div>
+                          <strong className="text-sm font-black text-white">{score === null ? "—" : score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</strong>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-[11px] text-white/35">As avaliações publicadas aparecerão aqui.</p>
+                )}
+              </section>
+
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  Sobre esta área
+                </h2>
+                <p className="mt-3 text-[11px] leading-relaxed text-white/45">
+                  As reviews aparecem aqui automaticamente quando são liberadas no Admin. Cada análise mantém sua página completa e o vínculo com o jogo correspondente.
                 </p>
-              </div>
-            </div>
+                <Link href="/biblioteca" className="mt-4 flex items-center justify-center rounded-xl border border-red-500/25 bg-red-500/[.06] px-3 py-2.5 text-[9px] font-black uppercase text-red-200 transition hover:bg-red-500/[.12]">
+                  Explorar jogos →
+                </Link>
+              </section>
+            </aside>
           </div>
         </div>
-
-        <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-lg font-black text-white">Todas as reviews</h2>
-            <p className="mt-1 text-xs text-white/40">
-              {loading ? "Carregando avaliações…" : `${visibleGames.length} de ${games.length} review(s)`}
-            </p>
-          </div>
-
-          <label className="relative block w-full sm:max-w-sm">
-            <span className="sr-only">Buscar review ou jogo</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-4-4" />
-            </svg>
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar jogo ou review…"
-              className="w-full rounded-xl border border-white/10 bg-white/[.035] py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-red-400/40"
-            />
-          </label>
-        </div>
-
-        {loading ? (
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            {[0, 1, 2, 3].map((item) => (
-              <div key={item} className="h-64 animate-pulse rounded-2xl border border-white/[.06] bg-white/[.025]" />
-            ))}
-          </div>
-        ) : loadError ? (
-          <div className="mt-5 rounded-2xl border border-red-400/20 bg-red-500/[.05] p-6">
-            <p className="font-bold text-red-200">Não foi possível carregar as reviews.</p>
-            <p className="mt-2 text-sm text-white/50">{loadError}</p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="mt-4 rounded-xl border border-red-400/25 px-4 py-2 text-xs font-black uppercase text-red-200 hover:bg-red-500/10"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        ) : visibleGames.length > 0 ? (
-          <div className="mt-5 grid items-stretch gap-4 xl:grid-cols-2">
-            {visibleGames.map((game) => (
-              <ReviewCard key={game.slug} game={game} />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.025] px-6 py-14 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-400/20 bg-red-500/[.07] text-2xl">★</div>
-            <h2 className="mt-4 text-lg font-black text-white">
-              {games.length ? "Nenhuma review encontrada" : "Ainda não há reviews publicadas"}
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-white/45">
-              {games.length
-                ? "Tente buscar pelo nome do jogo ou pelo título da análise."
-                : "Quando uma análise for liberada no Admin, ela aparecerá automaticamente nesta página."}
-            </p>
-          </div>
-        )}
-      </section>
+      </div>
     </main>
   );
+}
 }
