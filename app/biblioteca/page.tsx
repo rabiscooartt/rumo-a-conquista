@@ -2506,7 +2506,7 @@ export default function BibliotecaPage() {
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => setFilterMenu(filterMenu === "status" ? null : "status")
+                      onClick={() => setFilterMenu(filterMenu === "status" ? null : "status")}
                       className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${activeFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
                     >
                       <IconTarget className="h-3.5 w-3.5" />
