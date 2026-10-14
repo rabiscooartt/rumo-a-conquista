@@ -161,6 +161,9 @@ type R = {
 
 type DraftListConflict = {
   draftCount: number;
+  publishedCount: number;
+  publishedOnlyCount: number;
+  metadataToImportCount: number;
   publishedAchievements: A[];
   publishedGame: Record<string, unknown>;
 };
@@ -229,6 +232,92 @@ function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function normalizeAchievementDateInput(value?: string) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) return raw;
+  const dmy = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+}
+
+function mapPublishedAchievementsForPreparation(
+  rows: unknown[],
+  gameSlug: string,
+  firstJourneyValue: unknown
+): A[] {
+  const firstJourney =
+    firstJourneyValue && typeof firstJourneyValue === "object" && !Array.isArray(firstJourneyValue)
+      ? firstJourneyValue as Record<string, unknown>
+      : {};
+  const metaValue = firstJourney.achievementMeta;
+  const achievementMeta =
+    metaValue && typeof metaValue === "object" && !Array.isArray(metaValue)
+      ? metaValue as Record<string, unknown>
+      : {};
+  const journeyIds = new Set(
+    Array.isArray(firstJourney.achievementIds)
+      ? firstJourney.achievementIds.map((id) => String(id ?? "").trim()).filter(Boolean)
+      : []
+  );
+
+  return rows.filter((row) => row && typeof row === "object" && !Array.isArray(row))
+    .map((raw, index) => {
+      const item = raw as Record<string, unknown>;
+      const id = String(item.id ?? item.legacy_id ?? `published-${index + 1}`).trim();
+      const metaRaw = achievementMeta[id];
+      const meta =
+        metaRaw && typeof metaRaw === "object" && !Array.isArray(metaRaw)
+          ? metaRaw as Record<string, unknown>
+          : {};
+      const rawRank = String(item.rank ?? item.difficulty ?? item.trophy ?? item.icon ?? "").toLocaleLowerCase("pt-BR");
+      const rank: A["rank"] =
+        rawRank.includes("ouro") || rawRank.includes("gold") || rawRank.includes("🥇")
+          ? "Ouro"
+          : rawRank.includes("prata") || rawRank.includes("silver") || rawRank.includes("🥈")
+            ? "Prata"
+            : "Bronze";
+      const name = String(item.title ?? item.name ?? `Conquista ${index + 1}`).trim();
+      const description = String(item.description ?? "").trim();
+      const episode = String(meta.episode ?? item.episode ?? "").trim();
+      const dateRaw = String(meta.date ?? "").trim() || String(item.earnedDate ?? item.earned_at ?? "").trim();
+      const rawStatus = String(item.status ?? "locked").toLocaleLowerCase("pt-BR");
+      const status: A["status"] =
+        rawStatus === "completed" || rawStatus === "concluida" || rawStatus === "concluída"
+          ? "completed"
+          : rawStatus === "progress" || rawStatus === "em progresso"
+            ? "progress"
+            : "locked";
+
+      return {
+        id,
+        name,
+        description,
+        rank,
+        online: false,
+        momentary: false,
+        journeySuggestion: false,
+        journey: journeyIds.has(id),
+        notDoing: false,
+        episode,
+        earnedDate: normalizeAchievementDateInput(dateRaw),
+        isCustom: Boolean(item.isCustom ?? item.is_custom ?? false),
+        image: String(item.image ?? item.image_override ?? "").trim(),
+        status,
+      };
+    })
+    .filter((achievement) => Boolean(achievement.id && achievement.name));
+}
+
+function sameAchievementIdentity(left: Pick<A, "id" | "name">, right: Pick<A, "id" | "name">) {
+  const leftId = String(left.id ?? "").trim();
+  const rightId = String(right.id ?? "").trim();
+  if (leftId && rightId && leftId === rightId) return true;
+  return Boolean(slugify(left.name) && slugify(left.name) === slugify(right.name));
 }
 
 function normalizeEpisode(value?: string) {
@@ -319,6 +408,10 @@ function PrepararJogoPage() {
   const draftSnapshotUpgradeStarted = useRef(false);
   const preloadedDraftSlugRef = useRef<string | null>(null);
   const [draftListConflict, setDraftListConflict] = useState<DraftListConflict | null>(null);
+  const [registeredOutsideAchievements, setRegisteredOutsideAchievements] = useState<A[]>([]);
+  const [registeredRecordsDirty, setRegisteredRecordsDirty] = useState(false);
+  const [registeredRecordsSaving, setRegisteredRecordsSaving] = useState(false);
+  const [registeredRecordsMessage, setRegisteredRecordsMessage] = useState("");
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -505,6 +598,9 @@ function PrepararJogoPage() {
     options: { forceFresh?: boolean } = {}
   ) {
     setDraftListConflict(null);
+    setRegisteredOutsideAchievements([]);
+    setRegisteredRecordsDirty(false);
+    setRegisteredRecordsMessage("");
     setJourneyPreparedCount(null);
     setExpandedRecordIds(new Set());
     setRealizedDescription("");
@@ -590,71 +686,68 @@ function PrepararJogoPage() {
           const publishedRows = Array.isArray(liveGameRecord?.achievementsList)
             ? liveGameRecord.achievementsList as Record<string, unknown>[]
             : null;
-          const publishedJourneyIds = new Set(
-            Array.isArray(liveFirstJourney.achievementIds)
-              ? liveFirstJourney.achievementIds.map((id) => String(id ?? "").trim()).filter(Boolean)
-              : []
+          const publishedAchievements = mapPublishedAchievementsForPreparation(
+            publishedRows ?? [],
+            gameSlug,
+            liveFirstJourney
           );
-          const publishedAchievements: A[] = (publishedRows ?? []).map((item, index) => {
-            const id = String(item.id ?? item.legacy_id ?? `published-${index + 1}`).trim();
-            const metaRaw = liveAchievementMeta[id];
-            const meta =
-              metaRaw && typeof metaRaw === "object" && !Array.isArray(metaRaw)
-                ? metaRaw as Record<string, unknown>
-                : {};
-            const rawRank = String(item.rank ?? item.difficulty ?? item.trophy ?? item.icon ?? "").toLocaleLowerCase("pt-BR");
-            const rank: A["rank"] =
-              rawRank.includes("ouro") || rawRank.includes("gold") || rawRank.includes("🥇")
-                ? "Ouro"
-                : rawRank.includes("prata") || rawRank.includes("silver") || rawRank.includes("🥈")
-                  ? "Prata"
-                  : "Bronze";
-            const name = String(item.title ?? item.name ?? `Conquista ${index + 1}`).trim();
-            const description = String(item.description ?? "").trim();
-            const episode = String(meta.episode ?? "").trim();
-            const date = String(meta.date ?? item.earnedDate ?? item.earned_at ?? "").trim();
-            const rawStatus = String(item.status ?? "locked").toLocaleLowerCase("pt-BR");
-            const status: A["status"] =
-              rawStatus === "completed" || rawStatus === "concluida" || rawStatus === "concluída"
-                ? "completed"
-                : rawStatus === "progress" || rawStatus === "em progresso"
-                  ? "progress"
-                  : "locked";
-
+          const draftAchievements = savedAchievements as A[];
+          const savedRegisteredRecords = Array.isArray(draft?.registeredAchievementRecords)
+            ? draft.registeredAchievementRecords as A[]
+            : [];
+          const hasIdentity = (left: A, right: A) => sameAchievementIdentity(left, right);
+          const publishedOnlyAchievements = publishedAchievements.filter(
+            (published) => !draftAchievements.some((draftAchievement) => hasIdentity(draftAchievement, published))
+          );
+          const metadataToImportCount = publishedAchievements.filter((published) => {
+            const existing = draftAchievements.find((draftAchievement) => hasIdentity(draftAchievement, published));
+            if (!existing) return false;
+            return Boolean(
+              (!String(existing.episode ?? "").trim() && String(published.episode ?? "").trim()) ||
+              (!String(existing.earnedDate ?? "").trim() && String(published.earnedDate ?? "").trim())
+            );
+          }).length;
+          const reconciledDraftAchievements = draftAchievements.map((draftAchievement) => {
+            const published = publishedAchievements.find((item) => hasIdentity(draftAchievement, item));
+            if (!published) return draftAchievement;
             return {
-              id,
-              name,
-              description,
-              rank,
-              online: false,
-              momentary: false,
-              journeySuggestion: false,
-              journey: publishedJourneyIds.has(id),
-              notDoing: false,
-              episode,
-              earnedDate: date,
-              isCustom: Boolean(item.isCustom ?? item.is_custom ?? false),
-              image: String(item.image ?? item.image_override ?? "").trim(),
-              status,
+              ...draftAchievement,
+              episode: String(draftAchievement.episode ?? "").trim()
+                ? draftAchievement.episode
+                : published.episode ?? "",
+              earnedDate: String(draftAchievement.earnedDate ?? "").trim()
+                ? draftAchievement.earnedDate
+                : published.earnedDate ?? "",
+              image: String(draftAchievement.image ?? "").trim()
+                ? draftAchievement.image
+                : published.image ?? "",
+              status: draftAchievement.status ?? published.status,
             };
           });
-          const normalizeListValue = (value: unknown) =>
-            String(value ?? "")
-              .normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .toLocaleLowerCase("pt-BR")
-              .replace(/\s+/g, " ")
-              .trim();
-          const listSignature = (items: Array<{ name?: unknown; title?: unknown; description?: unknown }>) =>
-            items
-              .map((item) => `${normalizeListValue(item.name ?? item.title)}| ${normalizeListValue(item.description)}`)
-              .sort();
-          const draftSignatures = listSignature(savedAchievements as A[]);
-          const publishedSignatures = listSignature(publishedAchievements);
+          const registeredOutsideWithDraftValues = publishedOnlyAchievements.map((published) => {
+            const savedRecord = savedRegisteredRecords.find((record) => hasIdentity(record, published));
+            if (!savedRecord) return published;
+            return {
+              ...published,
+              ...savedRecord,
+              id: published.id,
+              name: published.name,
+              description: published.description,
+              image: published.image || savedRecord.image || "",
+              episode: typeof savedRecord.episode === "string" ? savedRecord.episode : published.episode ?? "",
+              earnedDate: typeof savedRecord.earnedDate === "string"
+                ? normalizeAchievementDateInput(savedRecord.earnedDate)
+                : published.earnedDate ?? "",
+            };
+          });
           const listsDiffer =
             publishedRows !== null &&
-            (draftSignatures.length !== publishedSignatures.length ||
-              draftSignatures.some((signature, index) => signature !== publishedSignatures[index]));
+            (publishedOnlyAchievements.length > 0 || metadataToImportCount > 0);
+
+          setRegisteredOutsideAchievements(registeredOutsideWithDraftValues);
+          setRegisteredRecordsDirty(false);
+          setRegisteredRecordsMessage("");
+
 
           preloadedDraftSlugRef.current = gameSlug;
           setResult({
@@ -674,7 +767,7 @@ function PrepararJogoPage() {
                   ? savedGameRecord.finalMasteryDate
                   : String(liveMasteryMeta.date ?? ""),
             },
-            achievements: savedAchievements as A[],
+            achievements: reconciledDraftAchievements,
             warnings: Array.isArray(draft?.preparedWarnings)
               ? draft.preparedWarnings as string[]
               : [],
@@ -685,12 +778,19 @@ function PrepararJogoPage() {
           setDraftUpdatedAt(
             typeof draft?.updatedAt === "string" ? draft.updatedAt : null
           );
-          setSaved(true);
+          setSaved(metadataToImportCount === 0);
           setPreparationMode("edit");
-          setPreparationModeNotice("Preparação existente carregada. A lista foi mantida sem refazer a análise.");
+          setPreparationModeNotice(
+            metadataToImportCount > 0
+              ? `${metadataToImportCount} conquista(s) receberam EP/data que já estavam cadastrados no site. Salve o rascunho quando terminar de revisar.`
+              : "Preparação existente carregada. A lista foi mantida sem refazer a análise."
+          );
           if (listsDiffer && liveGameRecord && publishedRows !== null) {
             setDraftListConflict({
-              draftCount: (savedAchievements as A[]).length,
+              draftCount: draftAchievements.length,
+              publishedCount: publishedAchievements.length,
+              publishedOnlyCount: publishedOnlyAchievements.length,
+              metadataToImportCount,
               publishedAchievements,
               publishedGame: liveGameRecord,
             });
@@ -2231,6 +2331,7 @@ function PrepararJogoPage() {
         preparation: {
           preparedGame: result.game,
           preparedAchievements: achievements,
+          registeredAchievementRecords: registeredOutsideAchievements,
           preparedWarnings: result.warnings ?? [],
           journeyIds: achievements
             .filter((a) => a.journey && !a.notDoing)
@@ -2273,6 +2374,68 @@ function PrepararJogoPage() {
     setSaved(true);
   }
 
+  function updateRegisteredAchievementRecord(
+    id: string,
+    field: "episode" | "earnedDate",
+    value: string
+  ) {
+    setRegisteredOutsideAchievements((current) =>
+      current.map((achievement) =>
+        achievement.id === id
+          ? { ...achievement, [field]: field === "earnedDate" ? normalizeAchievementDateInput(value) : value }
+          : achievement
+      )
+    );
+    setRegisteredRecordsDirty(true);
+    setRegisteredRecordsMessage("");
+  }
+
+  async function saveRegisteredAchievementRecordsToSite() {
+    if (!result?.game.slug || registeredRecordsSaving || registeredOutsideAchievements.length === 0) return;
+
+    setRegisteredRecordsSaving(true);
+    setRegisteredRecordsMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/achievement-records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: result.game.slug,
+          records: registeredOutsideAchievements.map((achievement) => ({
+            id: achievement.id,
+            name: achievement.name,
+            episode: achievement.episode ?? "",
+            earnedDate: normalizeAchievementDateInput(achievement.earnedDate),
+            status: achievement.status ?? "completed",
+          })),
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Não foi possível atualizar os registros publicados.");
+      }
+
+      setRegisteredRecordsDirty(false);
+      setRegisteredRecordsMessage(
+        "EPs e datas das conquistas já cadastradas foram atualizados no site sem substituir a lista pública."
+      );
+      try {
+        await persistPreparation(result.achievements);
+      } catch {
+        setRegisteredRecordsMessage(
+          "EPs e datas atualizados no site. Não consegui salvar uma cópia desses campos no rascunho; os dados públicos já foram atualizados."
+        );
+      }
+    } catch (error) {
+      setRegisteredRecordsMessage(
+        error instanceof Error ? error.message : "Não foi possível atualizar os registros publicados."
+      );
+    } finally {
+      setRegisteredRecordsSaving(false);
+    }
+  }
+
   async function savePreparation() {
     if (!result?.game.slug) return;
 
@@ -2291,6 +2454,13 @@ function PrepararJogoPage() {
 
   async function publishPreparation() {
     if (!result?.game.slug || publishing) return;
+
+    if (registeredOutsideAchievements.length > 0) {
+      const confirmed = window.confirm(
+        `Existem ${registeredOutsideAchievements.length} conquista(s) já publicadas fora da lista de preparação atual. Publicar a lista principal pode remover essas conquistas do site. Para corrigir apenas EP/data, use “Atualizar registros no site” na seção de conquistas já cadastradas. Deseja substituir a lista pública mesmo assim?`
+      );
+      if (!confirmed) return;
+    }
 
     const publishable = result.achievements.filter((a) => !a.notDoing);
     const selectedJourneyIds = publishable
@@ -4843,11 +5013,17 @@ function PrepararJogoPage() {
                   Verificação de preparação
                 </p>
                 <h2 id="draft-list-conflict-title" className="mt-1 text-xl font-black text-white">
-                  O rascunho é diferente da lista publicada
+                  Há conquistas cadastradas fora da preparação
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Encontramos duas versões de conquistas para <strong className="text-white">{result.game.name}</strong>.
-                  Escolha qual delas deseja editar. Nenhuma opção publica alterações automaticamente.
+                  O rascunho tem {draftListConflict.draftCount} conquistas e o site tem {draftListConflict.publishedCount} cadastradas.
+                  {draftListConflict.publishedOnlyCount > 0
+                    ? ` ${draftListConflict.publishedOnlyCount} conquista(s) publicada(s) ainda não aparecem na preparação.`
+                    : ""}
+                  {draftListConflict.metadataToImportCount > 0
+                    ? ` ${draftListConflict.metadataToImportCount} registro(s) de EP/data podem ser recuperados do site.`
+                    : ""}
+                  Escolha como deseja continuar. Nada será publicado automaticamente.
                 </p>
               </div>
             </div>
@@ -4857,7 +5033,7 @@ function PrepararJogoPage() {
                 <p className="text-[9px] font-black uppercase tracking-[.14em] text-sky-200/70">Rascunho salvo</p>
                 <p className="mt-2 text-2xl font-black tabular-nums text-white">{draftListConflict.draftCount}</p>
                 <p className="mt-1 text-xs leading-relaxed text-white/45">
-                  Conquistas da preparação que você já tinha guardado, incluindo possíveis alterações ainda não publicadas.
+                  Mantém o rascunho e deixa as conquistas já publicadas que faltavam disponíveis em uma seção separada para editar EP e data.
                 </p>
                 <button
                   type="button"
@@ -4867,7 +5043,7 @@ function PrepararJogoPage() {
                   }}
                   className="mt-4 w-full rounded-xl border border-sky-300/25 bg-sky-400/[.08] px-4 py-3 text-[10px] font-black uppercase text-sky-100 transition hover:bg-sky-400/[.14]"
                 >
-                  Continuar rascunho ({draftListConflict.draftCount})
+                  Continuar + mostrar cadastradas ({draftListConflict.publishedOnlyCount})
                 </button>
               </div>
 
@@ -4875,8 +5051,7 @@ function PrepararJogoPage() {
                 <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-200/70">Lista publicada no site</p>
                 <p className="mt-2 text-2xl font-black tabular-nums text-white">{draftListConflict.publishedAchievements.length}</p>
                 <p className="mt-1 text-xs leading-relaxed text-white/45">
-                  Conquistas comuns que estão publicadas agora.
-                  {(draftListConflict.publishedGame.finalBadge ?? draftListConflict.publishedGame.final_badge) ? " A Maestria Final continua sendo mantida separadamente." : ""}
+                  Abre a lista que está no site, substituindo apenas a lista ativa do editor. O rascunho antigo continua salvo até você escolher salvar outra lista.
                 </p>
                 <button
                   type="button"
@@ -4919,6 +5094,9 @@ function PrepararJogoPage() {
                       },
                       achievements: conflict.publishedAchievements,
                     }) : current);
+                    setRegisteredOutsideAchievements([]);
+                    setRegisteredRecordsDirty(false);
+                    setRegisteredRecordsMessage("");
                     setSaved(false);
                     setPublished(false);
                     setDraftUpdatedAt(null);
