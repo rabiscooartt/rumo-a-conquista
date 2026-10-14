@@ -2427,7 +2427,7 @@ export default function BibliotecaPage() {
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-              <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
+              <div className="relative min-h-[205px] px-7 py-5 md:px-7 md:py-5">
                 <div className="max-w-[470px]">
                   <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                     <span className="text-[10px] leading-none">✣</span>
@@ -2438,12 +2438,12 @@ export default function BibliotecaPage() {
                     JOGOS DA JORNADA
                   </h1>
 
-                  <p className="mt-3 max-w-[390px] text-[12px] font-medium leading-[1.35] text-white/70">
-                    Todos os jogos da sua jornada em um só lugar. Acompanhe seu progresso, conquistas e o caminho até a Maestria.
+                  <p className="mt-2 max-w-[430px] text-[11px] font-medium leading-[1.35] text-white/65">
+                    Acompanhe seu progresso, conquistas e o caminho até a Maestria.
                   </p>
                 </div>
 
-                <div className="absolute bottom-8 left-7 right-7 grid grid-cols-3">
+                <div className="absolute bottom-6 left-7 right-7 grid grid-cols-3">
                   <div className="flex min-w-0 items-center gap-2.5 pr-4">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
                       <IconGamepad className="h-[24px] w-[24px]" />
