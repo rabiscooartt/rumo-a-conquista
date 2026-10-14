@@ -2569,7 +2569,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-3 pt-[6px] pb-[6px] sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-3 pt-[8px] pb-[8px] sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
