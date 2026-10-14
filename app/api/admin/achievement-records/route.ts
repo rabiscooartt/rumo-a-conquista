@@ -109,12 +109,11 @@ export async function POST(request: Request) {
       return row ? { ...record, row } : null;
     });
 
-    const missing = resolvedRecords.find((record) => !record);
-    if (missing) {
-      const missingRecord = normalizedRecords.find((record) => record.id === (missing as null));
+    const missingIndex = resolvedRecords.findIndex((record) => !record);
+    if (missingIndex >= 0) {
       return NextResponse.json({
         error: "Uma das conquistas não foi encontrada entre os registros publicados deste jogo. Atualize a página antes de salvar.",
-        missingId: missingRecord?.id,
+        missingId: normalizedRecords[missingIndex]?.id,
       }, { status: 409 });
     }
 
