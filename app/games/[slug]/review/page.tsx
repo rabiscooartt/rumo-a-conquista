@@ -41,15 +41,6 @@ function normalizeKey(value: unknown) {
     .replace(/[^a-z0-9]/g, "");
 }
 
-function listItems(value: unknown) {
-  if (Array.isArray(value)) {
-    return value.map((item) => cleanText(item)).filter(Boolean);
-  }
-
-  const text = cleanText(value);
-  return text ? text.split(/[\n,;]/g).map((item) => item.trim()).filter(Boolean) : [];
-}
-
 function scoreLabel(score: number) {
   if (score >= 9) return "Excelente";
   if (score >= 8) return "Muito bom";
@@ -140,8 +131,6 @@ export default function CompleteGameReviewPage() {
   const scoreText = cleanText(review?.nota);
   const score = Number(scoreText.replace(",", "."));
   const scoreValid = scoreText.length > 0 && Number.isFinite(score) && score >= 0 && score <= 10;
-  const positives = listItems(review?.positivos ?? review?.pontosFortes);
-  const negatives = listItems(review?.negativos ?? review?.pontosFracos);
 
   const reviewAvailable = useMemo(() => {
     if (!game || !review) return false;
@@ -275,37 +264,6 @@ export default function CompleteGameReviewPage() {
                   {reviewText}
                 </div>
               </article>
-            ) : null}
-
-            {(positives.length > 0 || negatives.length > 0) ? (
-              <section className="mt-5 grid gap-4 md:grid-cols-2">
-                {positives.length > 0 ? (
-                  <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.04] p-5 sm:p-6">
-                    <SectionHeading>Pontos positivos</SectionHeading>
-                    <ul className="mt-4 space-y-3">
-                      {positives.map((item, index) => (
-                        <li key={`positive-${index}`} className="flex gap-3 text-sm leading-relaxed text-white/75">
-                          <span aria-hidden="true" className="text-emerald-300">✓</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-                {negatives.length > 0 ? (
-                  <div className="rounded-2xl border border-red-400/20 bg-red-500/[0.04] p-5 sm:p-6">
-                    <SectionHeading>Pontos negativos</SectionHeading>
-                    <ul className="mt-4 space-y-3">
-                      {negatives.map((item, index) => (
-                        <li key={`negative-${index}`} className="flex gap-3 text-sm leading-relaxed text-white/75">
-                          <span aria-hidden="true" className="text-red-300">–</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </section>
             ) : null}
 
             <div className="mt-6">
