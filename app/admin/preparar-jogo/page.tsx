@@ -421,7 +421,7 @@ function PrepararJogoPage() {
         const color = preparationFilter.replace("color-", "") as PreparationColor;
         return getPreparationColor(achievement, focusedAchievementId === achievement.id) === color;
       })
-      .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom));
+      .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom)));
   }, [result, preparationFilter, focusedAchievementId]);
 
   const publicationStatus = useMemo(() => {
@@ -3661,6 +3661,7 @@ function PrepararJogoPage() {
                     id={"achievement-" + a.id}
                     key={a.id}
                       className={PREPARATION_CARD_CLASSES[getPreparationColor(a, focusedAchievementId === a.id)]}
+                  >
                     <div className="flex flex-col gap-2">
                       {collapsedPrepItems["result-" + a.id] ? (
                         <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[.06] bg-black/20 p-3">
