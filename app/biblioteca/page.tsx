@@ -1106,7 +1106,7 @@ function GameGridCard({
     <Link
       href={`/games/${gameSlug}`}
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
-      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-1.5 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
+      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-2 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
       <div className="relative aspect-[5/6] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
@@ -1142,7 +1142,7 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="mt-1 flex items-center gap-2">
           <div
             className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]"
             role="progressbar"
@@ -1158,19 +1158,19 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-2 text-[10px] font-medium leading-none text-white/45">
+        <div className="mt-0.5 flex h-4 min-w-0 items-center justify-center gap-2 text-[10px] font-medium leading-none text-white/55">
           <span
             className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
           >
             <IconTrophy
-              className="h-3 w-3 shrink-0 text-white/40"
+              className="h-3.5 w-3.5 shrink-0 text-amber-500"
               filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
             />
             <span>{isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}</span>
           </span>
           <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap" title="Tempo de jogo">
-            <IconClock className="h-3 w-3 shrink-0 text-white/40" />
+            <IconClock className="h-3.5 w-3.5 shrink-0 text-sky-500" />
             <span className="truncate">{playedTime}</span>
           </span>
         </div>
