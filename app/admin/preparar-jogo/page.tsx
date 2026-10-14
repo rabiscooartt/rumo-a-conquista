@@ -2268,9 +2268,12 @@ function PrepararJogoPage() {
       // Resolve os episódios registrados nas conquistas contra a playlist do jogo.
       // Assim, o EP fica clicável na página pública e abre a live correspondente.
       const episodeVideoByNumber = new Map<string, string>();
-      const recordedEpisodes = publishable
-        .map((achievement) => normalizeEpisode(achievement.episode))
-        .filter(Boolean);
+      const masteryEpisodeRaw = String(result.game.finalMasteryEpisode ?? "").trim();
+      const masteryEpisode = normalizeEpisode(masteryEpisodeRaw);
+      const recordedEpisodes = Array.from(new Set([
+        ...publishable.map((achievement) => normalizeEpisode(achievement.episode)),
+        masteryEpisode,
+      ].filter(Boolean)));
 
       if (recordedEpisodes.length > 0 && currentGame.youtubePlaylistUrl) {
         const playlistId = extractYoutubePlaylistId(
@@ -2347,10 +2350,46 @@ function PrepararJogoPage() {
         typeof currentGame.firstJourney.achievementMeta === "object"
           ? currentGame.firstJourney.achievementMeta
           : {};
-      const achievementMeta = {
+      const achievementMeta: Record<string, { episode?: string; date?: string; liveUrl?: string }> = {
         ...previousJourneyMeta,
         ...refreshedAchievementMeta,
       };
+
+      // A Maestria Final tem registro próprio, separado das conquistas comuns.
+      // Sua chave corresponde ao ID sintético utilizado na página pública.
+      const finalMasteryKey = `${result.game.slug}-final-mastery`;
+      const masteryDate = String(result.game.finalMasteryDate ?? "").trim();
+      const previousMasteryMeta = achievementMeta[finalMasteryKey] ?? {};
+      const nextMasteryMeta: { episode?: string; date?: string; liveUrl?: string } = {
+        ...previousMasteryMeta,
+      };
+
+      if (masteryEpisodeRaw) {
+        nextMasteryMeta.episode = masteryEpisodeRaw;
+        const masteryLiveUrl =
+          episodeVideoByNumber.get(masteryEpisode) ||
+          (masteryEpisode && masteryEpisode === firstLiveEpisode ? firstLiveUrl : "");
+        if (masteryLiveUrl) {
+          nextMasteryMeta.liveUrl = masteryLiveUrl;
+        } else {
+          delete nextMasteryMeta.liveUrl;
+        }
+      } else {
+        delete nextMasteryMeta.episode;
+        delete nextMasteryMeta.liveUrl;
+      }
+
+      if (masteryDate) {
+        nextMasteryMeta.date = masteryDate;
+      } else {
+        delete nextMasteryMeta.date;
+      }
+
+      if (nextMasteryMeta.episode || nextMasteryMeta.date || nextMasteryMeta.liveUrl) {
+        achievementMeta[finalMasteryKey] = nextMasteryMeta;
+      } else {
+        delete achievementMeta[finalMasteryKey];
+      }
 
       const originalIndexById = new Map(
         result.achievements.map((achievement, index) => [
