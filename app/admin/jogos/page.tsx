@@ -82,6 +82,10 @@ export default function NewGamesAdminPage() {
   const [selectedSlug, setSelectedSlug] = useState("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [generatingReview, setGeneratingReview] = useState(false);
+  const [savingReviewDraft, setSavingReviewDraft] = useState(false);
+  const [reviewDraftStatus, setReviewDraftStatus] = useState("");
+  const [reviewGenerateError, setReviewGenerateError] = useState("");
   const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, Record<string, string>>>({});
@@ -169,16 +173,28 @@ export default function NewGamesAdminPage() {
           status: reviewStringField(savedReview.status, "bloqueada"),
           nota: reviewStringField(savedReview.nota),
           titulo: reviewStringField(savedReview.titulo, "Análise da Jornada"),
-          resumo: reviewStringField(savedReview.resumo ?? savedReview.texto).slice(0, 100),
           texto: reviewStringField(savedReview.texto),
+          resumo: reviewStringField(savedReview.resumo).slice(0, 100),
+          fraseCartao: reviewStringField(savedReview.fraseCartao).slice(0, 100),
+          fichaNomeJogo: selectedGame.title || "",
+          historia: "",
+          jogabilidade: "",
+          direcaoArtistica: "",
+          trilhaSonora: "",
+          progressaoConquistas: "",
           positivos: reviewListFieldText(savedReview.positivos ?? savedReview.pontosFortes),
           negativos: reviewListFieldText(savedReview.negativos ?? savedReview.pontosFracos),
+          experienciaPessoal: "",
+          recomendacao: "Depende",
+          recomendacaoExplicacao: "",
+          fraseExperiencia: "",
         }
     : null;
 
   function patchReviewDraft(patch: Record<string, string>) {
     if (!selectedGame || !reviewValues) return;
     const slug = selectedGame.slug;
+    setReviewDraftStatus("Alterações ainda não salvas como rascunho.");
     setReviewDrafts((current) => ({
       ...current,
       [slug]: {
@@ -188,6 +204,69 @@ export default function NewGamesAdminPage() {
       },
     }));
   }
+  useEffect(() => {
+    const slug = selectedGame?.slug ?? "";
+    if (!slug) return;
+
+    let cancelled = false;
+
+    async function loadReviewDraft() {
+      try {
+        const response = await fetch(
+          "/api/admin/game-review-draft?slug=" + encodeURIComponent(slug),
+          { cache: "no-store" }
+        );
+        const payload = (await response.json().catch(() => null)) as
+          | { found?: boolean; draft?: Record<string, unknown>; error?: string }
+          | null;
+
+        if (cancelled) return;
+
+        if (response.status === 401) {
+          setReviewDraftStatus("Entre no modo Admin para acessar os rascunhos salvos.");
+          return;
+        }
+
+        if (!response.ok) {
+          setReviewDraftStatus(payload?.error || "Não foi possível carregar o rascunho salvo.");
+          return;
+        }
+
+        if (!payload?.found || !payload.draft) {
+          setReviewDraftStatus("");
+          return;
+        }
+
+        const saved = payload.draft;
+        const recovered: Record<string, string> = { slug };
+        Object.entries(saved).forEach(([key, value]) => {
+          if (typeof value === "string" && key !== "gameSlug" && key !== "updatedAt") {
+            recovered[key] = value;
+          }
+        });
+
+        setReviewDrafts((current) => {
+          if (current[slug]) return current;
+          return { ...current, [slug]: recovered };
+        });
+
+        const updatedAt = typeof saved.updatedAt === "string" ? saved.updatedAt : "";
+        const displayDate = updatedAt ? new Date(updatedAt).toLocaleString("pt-BR") : "";
+        setReviewDraftStatus(
+          displayDate
+            ? "Rascunho recuperado — último salvamento: " + displayDate
+            : "Rascunho recuperado."
+        );
+      } catch {
+        if (!cancelled) setReviewDraftStatus("Não foi possível carregar o rascunho salvo.");
+      }
+    }
+
+    void loadReviewDraft();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedGame?.slug]);
 
   useEffect(() => {
     const slug = selectedGame?.slug ?? "";
@@ -411,6 +490,136 @@ export default function NewGamesAdminPage() {
     }
   }
 
+
+  async function saveReviewDraft() {
+    if (!selectedGame || !reviewValues) return;
+    if (reviewValues.slug !== selectedGame.slug) {
+      window.alert("O rascunho pertence a outro jogo. Selecione o jogo correto antes de salvar.");
+      return;
+    }
+
+    setSavingReviewDraft(true);
+    setReviewDraftStatus("");
+    try {
+      const response = await fetch("/api/admin/game-review-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ slug: selectedGame.slug, draft: reviewValues }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { saved?: boolean; updatedAt?: string; error?: string }
+        | null;
+      if (!response.ok || !payload?.saved) {
+        throw new Error(payload?.error || "Não foi possível salvar o rascunho.");
+      }
+      const displayDate = payload.updatedAt
+        ? new Date(payload.updatedAt).toLocaleString("pt-BR")
+        : new Date().toLocaleString("pt-BR");
+      setReviewDraftStatus("Rascunho salvo com segurança em " + displayDate + ".");
+    } catch (error) {
+      setReviewDraftStatus(
+        error instanceof Error ? error.message : "Não foi possível salvar o rascunho. Tente novamente."
+      );
+    } finally {
+      setSavingReviewDraft(false);
+    }
+  }
+
+  async function generateReviewSummary() {
+    if (!selectedGame || !reviewValues || generatingReview) return;
+
+    const answers = {
+      historia: reviewValues.historia,
+      jogabilidade: reviewValues.jogabilidade,
+      direcaoArtistica: reviewValues.direcaoArtistica,
+      trilhaSonora: reviewValues.trilhaSonora,
+      progressaoConquistas: reviewValues.progressaoConquistas,
+      pontosPositivos: reviewValues.positivos,
+      pontosNegativos: reviewValues.negativos,
+      experienciaPessoal: reviewValues.experienciaPessoal,
+      notaFinal: reviewValues.nota,
+      recomendacao: reviewValues.recomendacao,
+      recomendacaoExplicacao: reviewValues.recomendacaoExplicacao,
+      resumoDaExperiencia: reviewValues.fraseExperiencia,
+    };
+
+    const descriptiveAnswers = [
+      answers.historia,
+      answers.jogabilidade,
+      answers.direcaoArtistica,
+      answers.trilhaSonora,
+      answers.progressaoConquistas,
+      answers.pontosPositivos,
+      answers.pontosNegativos,
+      answers.experienciaPessoal,
+      answers.recomendacaoExplicacao,
+      answers.resumoDaExperiencia,
+    ];
+    if (!descriptiveAnswers.some((value) => String(value || "").trim())) {
+      setReviewGenerateError("Preencha pelo menos uma resposta da ficha antes de gerar o resumo.");
+      return;
+    }
+
+    setGeneratingReview(true);
+    setReviewGenerateError("");
+    setReviewDraftStatus("");
+
+    try {
+      const response = await fetch("/api/admin/generate-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ gameTitle: selectedGame.title, answers }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { titulo?: string; resumoPrincipal?: string; fraseCartao?: string; resumo?: string; error?: string }
+        | null;
+
+      if (!response.ok || !payload?.titulo || !payload.resumoPrincipal) {
+        throw new Error(payload?.error || "Não foi possível gerar o resumo.");
+      }
+
+      const nextValues: Record<string, string> = {
+        ...reviewValues,
+        titulo: payload.titulo,
+        texto: payload.resumoPrincipal,
+        fraseCartao: String(payload.fraseCartao || "").slice(0, 100),
+        resumo: String(payload.resumo || "").slice(0, 100),
+        slug: selectedGame.slug,
+      };
+      setReviewDrafts((current) => ({ ...current, [selectedGame.slug]: nextValues }));
+      setReviewDraftStatus("Resumo gerado. Salvando a ficha automaticamente como rascunho...");
+
+      try {
+        const draftResponse = await fetch("/api/admin/game-review-draft", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({ slug: selectedGame.slug, draft: nextValues }),
+        });
+        const draftPayload = (await draftResponse.json().catch(() => null)) as
+          | { saved?: boolean; updatedAt?: string; error?: string }
+          | null;
+        if (!draftResponse.ok || !draftPayload?.saved) {
+          throw new Error(draftPayload?.error || "O resumo foi gerado, mas não foi possível salvar o rascunho automaticamente.");
+        }
+        setReviewDraftStatus(
+          "Resumo gerado e rascunho salvo em " +
+            new Date(draftPayload.updatedAt || Date.now()).toLocaleString("pt-BR") + "."
+        );
+      } catch {
+        setReviewDraftStatus("Resumo gerado, mas ainda não foi salvo. Clique em “Salvar rascunho” para guardar.");
+      }
+    } catch (error) {
+      setReviewGenerateError(
+        error instanceof Error ? error.message : "Não foi possível gerar o resumo. Tente novamente."
+      );
+    } finally {
+      setGeneratingReview(false);
+    }
+  }
+
   async function saveReview() {
     if (!selectedGame || !reviewValues) return;
 
@@ -420,7 +629,10 @@ export default function NewGamesAdminPage() {
       nota: reviewValues.nota.trim(),
       titulo: reviewValues.titulo.trim() || "Análise da Jornada",
       resumo: reviewValues.resumo.trim().slice(0, 100),
+      fraseCartao: reviewValues.fraseCartao.trim().slice(0, 100),
       texto: reviewValues.texto.trim(),
+      recomendacao: reviewValues.recomendacao.trim(),
+      recomendacaoExplicacao: reviewValues.recomendacaoExplicacao.trim(),
     };
 
     setSaving(true);
@@ -971,7 +1183,7 @@ export default function NewGamesAdminPage() {
                         </label>
 
                         <label className="block">
-                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Nota (0 a 10)</span>
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">10. Nota final (0 a 10)</span>
                           <input
                             type="number"
                             min="0"
@@ -985,6 +1197,73 @@ export default function NewGamesAdminPage() {
                         </label>
                       </div>
 
+                      <section className="rounded-2xl border border-white/[0.08] bg-black/20 p-4 sm:p-5">
+                        <div className="mb-4">
+                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-red-300">Ficha de review</p>
+                          <h3 className="mt-1 text-lg font-black text-white">Rumo à Conquista</h3>
+                          <p className="mt-1 text-xs leading-relaxed text-white/45">
+                            Preencha no seu ritmo. Use “Salvar rascunho” para continuar outro dia; o rascunho é privado e não publica a review.
+                          </p>
+                        </div>
+
+                        <label className="block">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">1. Nome do jogo</span>
+                          <input
+                            value={reviewValues.fichaNomeJogo || selectedGame.title}
+                            readOnly
+                            className="mt-2 w-full cursor-not-allowed rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm font-bold text-white/65 outline-none"
+                          />
+                        </label>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">2. História e narrativa</span>
+                            <textarea value={reviewValues.historia} onChange={(event) => patchReviewDraft({ historia: event.target.value })} rows={4} placeholder="História, personagens e maneira de contar..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">3. Jogabilidade</span>
+                            <textarea value={reviewValues.jogabilidade} onChange={(event) => patchReviewDraft({ jogabilidade: event.target.value })} rows={4} placeholder="Controles, combate, exploração e mecânicas..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">4. Gráficos e direção artística</span>
+                            <textarea value={reviewValues.direcaoArtistica} onChange={(event) => patchReviewDraft({ direcaoArtistica: event.target.value })} rows={4} placeholder="Cenários, personagens, animações e estilo visual..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">5. Trilha sonora e áudio</span>
+                            <textarea value={reviewValues.trilhaSonora} onChange={(event) => patchReviewDraft({ trilhaSonora: event.target.value })} rows={4} placeholder="Músicas, efeitos sonoros e dublagem..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block md:col-span-2">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">6. Progressão e conquistas</span>
+                            <textarea value={reviewValues.progressaoConquistas} onChange={(event) => patchReviewDraft({ progressaoConquistas: event.target.value })} rows={3} placeholder="Evolução, busca pelas conquistas, repetição e desafios..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">7. Pontos positivos</span>
+                            <textarea value={reviewValues.positivos} onChange={(event) => patchReviewDraft({ positivos: event.target.value })} rows={3} placeholder="O que mais gostou..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">8. Pontos negativos</span>
+                            <textarea value={reviewValues.negativos} onChange={(event) => patchReviewDraft({ negativos: event.target.value })} rows={3} placeholder="O que incomodou ou poderia melhorar..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block md:col-span-2">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">9. Experiência pessoal</span>
+                            <textarea value={reviewValues.experienciaPessoal} onChange={(event) => patchReviewDraft({ experienciaPessoal: event.target.value })} rows={3} placeholder="Como se sentiu ao terminar? Surpreendeu, emocionou, cansou ou marcou você?" className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">11. Recomendaria o jogo?</span>
+                            <select value={reviewValues.recomendacao} onChange={(event) => patchReviewDraft({ recomendacao: event.target.value })} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40">
+                              <option value="Sim">Sim</option>
+                              <option value="Não">Não</option>
+                              <option value="Depende">Depende</option>
+                            </select>
+                            <textarea value={reviewValues.recomendacaoExplicacao} onChange={(event) => patchReviewDraft({ recomendacaoExplicacao: event.target.value })} rows={3} placeholder="Explique brevemente sua recomendação..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                          <label className="block">
+                            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">12. Resumo da experiência em uma frase</span>
+                            <textarea value={reviewValues.fraseExperiencia} onChange={(event) => patchReviewDraft({ fraseExperiencia: event.target.value })} rows={3} placeholder="Descreva o jogo ou sua experiência em poucas palavras..." className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40" />
+                          </label>
+                        </div>
+                      </section>
+
                       <label className="block">
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Título da review</span>
                         <input
@@ -993,6 +1272,14 @@ export default function NewGamesAdminPage() {
                           placeholder="Ex.: Divertido, mas repetitivo"
                           className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                         />
+                      </label>
+
+                      <label className="block">
+                        <span className="flex items-center justify-between gap-3 text-[9px] font-black uppercase tracking-[0.16em] text-white/40">
+                          <span>Frase curta do cartão</span>
+                          <span>{reviewValues.fraseCartao.length}/100</span>
+                        </span>
+                        <input value={reviewValues.fraseCartao} maxLength={100} onChange={(event) => patchReviewDraft({ fraseCartao: event.target.value.slice(0, 100) })} placeholder="Uma frase de impacto para o cartão da biblioteca." className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40" />
                       </label>
 
                       <label className="block">
@@ -1061,7 +1348,10 @@ export default function NewGamesAdminPage() {
                       </div>
 
                       <label className="block">
-                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Review completa</span>
+                        <span className="flex items-center justify-between gap-3 text-[9px] font-black uppercase tracking-[0.16em] text-white/40">
+                          <span>Resumo principal (aprox. 300 caracteres)</span>
+                          <span>{reviewValues.texto.length} caracteres</span>
+                        </span>
                         <textarea
                           value={reviewValues.texto}
                           onChange={(event) => patchReviewDraft({ texto: event.target.value })}
@@ -1071,15 +1361,27 @@ export default function NewGamesAdminPage() {
                         />
                       </label>
 
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          disabled={saving}
-                          onClick={saveReview}
-                          className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 hover:bg-red-500/20 disabled:opacity-50"
-                        >
-                          {saving ? "Salvando..." : "Salvar review"}
-                        </button>
+                      {reviewGenerateError && (
+                        <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 text-sm leading-relaxed text-red-200">
+                          {reviewGenerateError}
+                        </p>
+                      )}
+
+                      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-black/20 p-4">
+                        <p aria-live="polite" className="text-xs leading-relaxed text-white/50">
+                          {reviewDraftStatus || "O rascunho será privado. Gerar resumo não publica a review."}
+                        </p>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+                          <button type="button" disabled={generatingReview || savingReviewDraft || saving} onClick={generateReviewSummary} className="rounded-xl border border-red-500/35 bg-red-500/15 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/25 disabled:cursor-wait disabled:opacity-50">
+                            {generatingReview ? "Gerando resumo..." : "Gerar resumo"}
+                          </button>
+                          <button type="button" disabled={savingReviewDraft || generatingReview || saving} onClick={saveReviewDraft} className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-sky-100 transition hover:bg-sky-500/20 disabled:cursor-wait disabled:opacity-50">
+                            {savingReviewDraft ? "Salvando rascunho..." : "Salvar rascunho"}
+                          </button>
+                          <button type="button" disabled={saving || savingReviewDraft || generatingReview} onClick={saveReview} className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-50">
+                            {saving ? "Salvando..." : "Salvar / publicar review"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
