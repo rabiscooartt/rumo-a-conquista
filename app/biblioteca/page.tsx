@@ -1063,9 +1063,11 @@ function GameRow({
 function GameGridCard({
   game,
   activitySummary,
+  orderNumber,
 }: {
   game: BibliotecaGame;
   activitySummary?: ActivitySummary;
+  orderNumber: number;
 }) {
   const gameSlug = readText(game.slug, "");
   const gameTitle = readText(game.title, "Jogo");
@@ -1110,8 +1112,17 @@ function GameGridCard({
       <div className="relative aspect-[5/6] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
-        <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
-          <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
+        <div className="absolute left-2 top-2 z-10 flex items-center gap-1.5">
+          <span
+            aria-label={`Posição ${orderNumber}`}
+            title={`Posição ${orderNumber} na biblioteca`}
+            className="flex h-6 min-w-6 items-center justify-center rounded-full border border-red-300/35 bg-red-600 px-1 text-[9px] font-black leading-none tabular-nums text-white shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+          >
+            {String(orderNumber).padStart(2, "0")}
+          </span>
+          <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
+            <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
+          </span>
         </div>
 
         <span className={`absolute bottom-2 left-2 rounded-md border border-transparent px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-[0.03em] backdrop-blur-sm ${statusClass}`}>
@@ -2624,10 +2635,11 @@ export default function BibliotecaPage() {
                 ) : (
                   viewMode === "grid" ? (
                     <div className="grid grid-cols-2 gap-x-3 gap-y-3 pt-[8px] pb-[8px] sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                      {filteredGames.map((game) => (
+                      {filteredGames.map((game, index) => (
                         <GameGridCard
                           key={game.slug}
                           game={game}
+                          orderNumber={index + 1}
                           activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
                         />
                       ))}
