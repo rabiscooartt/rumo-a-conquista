@@ -1093,10 +1093,10 @@ function GameGridCard({
     : readText(game.hours, "0h");
 
   const statusClass = isCompleted
-    ? "border-emerald-300/35 bg-emerald-500/20 text-emerald-200"
+    ? "bg-emerald-500/65 text-white"
     : isBacklog
-    ? "border-cyan-300/35 bg-cyan-500/20 text-cyan-200"
-    : "border-red-400/35 bg-red-600/25 text-red-200";
+    ? "bg-cyan-500/65 text-white"
+    : "bg-red-500/65 text-white";
 
   const progressClass = isCompleted
     ? "bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
@@ -1108,14 +1108,14 @@ function GameGridCard({
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
       className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-1.5 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
+      <div className="relative aspect-[5/6] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
           <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
         </div>
 
-        <span className={`absolute bottom-2 left-2 rounded-full border px-2 py-1 text-[8.5px] font-black uppercase tracking-[0.04em] backdrop-blur-sm ${statusClass}`}>
+        <span className={`absolute bottom-2 left-2 rounded-md border border-transparent px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-[0.03em] backdrop-blur-sm ${statusClass}`}>
           {statusLabel}
         </span>
 
@@ -1158,19 +1158,19 @@ function GameGridCard({
           </span>
         </div>
 
-        <div className="mt-1.5 flex h-4 min-w-0 items-center justify-center gap-2.5 text-[11px] font-semibold leading-none text-white/80">
+        <div className="mt-1 flex h-4 min-w-0 items-center justify-center gap-2 text-[10px] font-medium leading-none text-white/45">
           <span
             className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
             title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
           >
             <IconTrophy
-              className="h-3.5 w-3.5 shrink-0 text-amber-500"
+              className="h-3 w-3 shrink-0 text-white/40"
               filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
             />
             <span>{isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}</span>
           </span>
           <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap" title="Tempo de jogo">
-            <IconClock className="h-3.5 w-3.5 shrink-0 text-sky-500" />
+            <IconClock className="h-3 w-3 shrink-0 text-white/40" />
             <span className="truncate">{playedTime}</span>
           </span>
         </div>
@@ -2569,7 +2569,7 @@ export default function BibliotecaPage() {
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
                   viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-4 py-1 sm:gap-x-3.5 sm:gap-y-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-3 py-0 sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
