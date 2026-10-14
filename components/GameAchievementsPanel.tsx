@@ -1354,7 +1354,7 @@ export default function GameAchievementsPanel(
               );
             const achievementJourneyMeta = achievementMeta[achievementKey];
             const episodeNumber = formatJourneyEpisode(achievementJourneyMeta?.episode);
-            const hasEpisodeMetadata = Boolean(episodeNumber);
+            const hasEpisodeMetadata = Boolean(episodeNumber || achievementJourneyMeta?.date);
             const isFirstEpisodeAchievement =
               !isFinalMastery && episodeNumber === "1";
             const showJourneyLabel =
