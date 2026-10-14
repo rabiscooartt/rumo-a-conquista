@@ -4283,7 +4283,7 @@ function PrepararJogoPage() {
                       disabled={registeredRecordsSaving || !registeredRecordsDirty}
                       className="shrink-0 rounded-xl border border-sky-300/25 bg-sky-400/[.08] px-4 py-3 text-[10px] font-black uppercase text-sky-100 transition hover:bg-sky-400/[.14] disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      {registeredRecordsSaving ? "Salvando registros..." : registeredRecordsDirty ? "Atualizar EP/data no site" : "Registros do site atualizados"}
+                      {registeredRecordsSaving ? "Salvando registros..." : registeredRecordsDirty ? "Atualizar EP/data no site" : "Sem alterações pendentes"}
                     </button>
                   </div>
                   {registeredRecordsMessage && (
