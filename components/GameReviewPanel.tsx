@@ -30,8 +30,6 @@ type ReviewForm = {
   nota: string;
   titulo: string;
   texto: string;
-  positivos: string;
-  negativos: string;
 };
 
 
@@ -56,20 +54,6 @@ function textToList(value: unknown) {
   }
 
   return [];
-}
-
-function listToText(value: unknown) {
-  if (!value) return "";
-
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item).trim()).filter(Boolean).join("\n");
-  }
-
-  if (typeof value === "string") {
-    return value;
-  }
-
-  return "";
 }
 
 function normalizeReview(review?: ReviewInput): Required<ReviewInput> {
@@ -161,8 +145,6 @@ function getInitialForm(review: Required<ReviewInput>): ReviewForm {
     nota: readText(review.nota, ""),
     titulo: readText(review.titulo, "Análise da Jornada"),
     texto: readText(review.texto ?? review.resumo, ""),
-    positivos: listToText(review.positivos ?? review.pontosFortes),
-    negativos: listToText(review.negativos ?? review.pontosFracos),
   };
 }
 
@@ -204,47 +186,6 @@ function ScoreDisplay({
   );
 }
 
-function ReviewList({
-  title,
-  items,
-  accent,
-}: {
-  title: string;
-  items: string[];
-  accent: "positive" | "negative";
-}) {
-  const colorClass =
-    accent === "positive"
-      ? "border-emerald-400/20 bg-emerald-500/5 text-emerald-200"
-      : "border-red-400/20 bg-red-500/5 text-red-200";
-
-  return (
-    <div className={`rounded-2xl border p-5 ${colorClass}`}>
-      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
-        {title}
-      </p>
-
-      {items.length > 0 ? (
-        <ul className="mt-4 space-y-3">
-          {items.map((item, index) => (
-            <li
-              key={`${item}-${index}`}
-              className="flex gap-3 text-sm font-bold leading-relaxed text-white/75"
-            >
-              <span>{accent === "positive" ? "✅" : "⚠️"}</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-4 text-sm text-white/40">
-          Nenhum item cadastrado ainda.
-        </p>
-      )}
-    </div>
-  );
-}
-
 export default function GameReviewPanel({
   review,
   isUnlocked,
@@ -268,14 +209,6 @@ export default function GameReviewPanel({
     achievementsTotal
   );
 
-  const positives = textToList(
-    mergedReview.positivos ?? mergedReview.pontosFortes
-  );
-
-  const negatives = textToList(
-    mergedReview.negativos ?? mergedReview.pontosFracos
-  );
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setIsEditing(params.get("editar") === "1");
@@ -292,10 +225,6 @@ export default function GameReviewPanel({
       titulo: form.titulo.trim() || "Análise da Jornada",
       texto: form.texto.trim(),
       resumo: form.texto.trim(),
-      positivos: textToList(form.positivos),
-      negativos: textToList(form.negativos),
-      pontosFortes: textToList(form.positivos),
-      pontosFracos: textToList(form.negativos),
     };
 
     void nextReview;
@@ -383,20 +312,6 @@ export default function GameReviewPanel({
               "A review foi liberada, mas ainda não há texto cadastrado."}
           </p>
         </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ReviewList
-          title="Pontos positivos"
-          items={positives}
-          accent="positive"
-        />
-
-        <ReviewList
-          title="Pontos negativos"
-          items={negatives}
-          accent="negative"
-        />
       </div>
 
       {isEditing && (
@@ -500,43 +415,7 @@ export default function GameReviewPanel({
               />
             </label>
 
-            <label className="md:col-span-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                Pontos positivos
-              </span>
 
-              <textarea
-                value={form.positivos}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    positivos: event.target.value,
-                  }))
-                }
-                rows={4}
-                placeholder="Um ponto positivo por linha"
-                className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold leading-relaxed text-white outline-none focus:border-purple-400/40"
-              />
-            </label>
-
-            <label className="md:col-span-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                Pontos negativos
-              </span>
-
-              <textarea
-                value={form.negativos}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    negativos: event.target.value,
-                  }))
-                }
-                rows={4}
-                placeholder="Um ponto negativo por linha"
-                className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm font-bold leading-relaxed text-white outline-none focus:border-purple-400/40"
-              />
-            </label>
           </div>
         </section>
       )}
