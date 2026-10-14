@@ -31,6 +31,74 @@ type A = {
   status?: "locked" | "progress" | "completed";
 };
 
+type PreparationColor = "violet" | "red" | "green" | "blue" | "gray" | "yellow";
+type PreparationFilter =
+  | "all"
+  | "missing-date"
+  | "journey"
+  | "manual"
+  | "color-violet"
+  | "color-red"
+  | "color-green"
+  | "color-blue"
+  | "color-gray"
+  | "color-yellow";
+
+function getPreparationColor(achievement: A, focused: boolean): PreparationColor {
+  if (focused) return "violet";
+  if (achievement.notDoing) return "red";
+  if (achievement.journey) return "green";
+
+  const hasEpisode = Boolean(achievement.episode?.trim());
+  const hasRecord = Boolean(achievement.earnedNote?.trim() || achievement.earnedDate?.trim());
+  if ((achievement.isCustom && hasEpisode) || (hasEpisode && hasRecord)) {
+    return "blue";
+  }
+
+  if (achievement.isCustom) return "gray";
+  return "yellow";
+}
+
+const PREPARATION_CARD_CLASSES: Record<PreparationColor, string> = {
+  violet: "w-full rounded-2xl border border-violet-300/70 bg-violet-500/[.12] p-3 shadow-[0_0_30px_rgba(167,139,250,.12)]",
+  red: "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3",
+  green: "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3",
+  blue: "w-full rounded-2xl border border-blue-400/40 bg-blue-500/[.09] p-3",
+  gray: "w-full rounded-2xl border border-zinc-400/25 bg-zinc-500/[.055] p-3",
+  yellow: "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3",
+};
+
+const PREPARATION_COLOR_FILTERS: {
+  colorKey: PreparationColor;
+  filter: PreparationFilter;
+  color: string;
+  name: string;
+  detail: string;
+}[] = [
+  { colorKey: "green", filter: "color-green", color: "bg-emerald-400", name: "Verde · Jornada", detail: "Selecionada para a Jornada de Estreia." },
+  { colorKey: "blue", filter: "color-blue", color: "bg-blue-400", name: "Azul · EP / registro", detail: "Conquista manual ou registro de obtenção vinculado a EP/data." },
+  { colorKey: "gray", filter: "color-gray", color: "bg-zinc-400", name: "Cinza · Manual", detail: "Conquista adicionada manualmente, ainda sem EP vinculado." },
+  { colorKey: "yellow", filter: "color-yellow", color: "bg-yellow-400", name: "Amarelo · Revisar", detail: "Conquista do Exophase fora da Jornada." },
+  { colorKey: "red", filter: "color-red", color: "bg-red-400", name: "Vermelho · Não fazer", detail: "Fora da publicação enquanto estiver marcada como Não vou fazer." },
+  { colorKey: "violet", filter: "color-violet", color: "bg-violet-400", name: "Roxo · Em foco", detail: "Conquista aberta para edição ou análise no momento." },
+];
+
+function getPreparationFilterLabel(filter: PreparationFilter) {
+  const labels: Record<PreparationFilter, string> = {
+    all: "Todas",
+    "missing-date": "Sem data",
+    journey: "Jornada de Estreia",
+    manual: "Conquistas manuais",
+    "color-violet": "Roxo · Em foco",
+    "color-red": "Vermelho · Não fazer",
+    "color-green": "Verde · Jornada",
+    "color-blue": "Azul · EP / registro",
+    "color-gray": "Cinza · Manual",
+    "color-yellow": "Amarelo · Revisar",
+  };
+  return labels[filter];
+}
+
 function AchievementThumb({ gameSlug, achievement }: { gameSlug?: string; achievement: A }) {
   // Guarda o endereço exato que falhou, não um booleano global.
   // Assim, se o upload vincular uma nova URL depois da primeira falha,
@@ -262,6 +330,7 @@ function PrepararJogoPage() {
   >([]);
   const [showRealizedMatches, setShowRealizedMatches] = useState(false);
   const [focusedAchievementId, setFocusedAchievementId] = useState<string | null>(null);
+  const [preparationFilter, setPreparationFilter] = useState<PreparationFilter>("all");
   const [collapsedPrepItems, setCollapsedPrepItems] = useState<Record<string, boolean>>({});
 
   function togglePrepItem(key: string) {
@@ -299,6 +368,61 @@ function PrepararJogoPage() {
 
     return counts;
   }, [result]);
+
+  const preparationCounts = useMemo(() => {
+    const colors: Record<PreparationColor, number> = {
+      violet: 0,
+      red: 0,
+      green: 0,
+      blue: 0,
+      gray: 0,
+      yellow: 0,
+    };
+    let missingDate = 0;
+    let journey = 0;
+    let manual = 0;
+    const achievements = result?.achievements ?? [];
+
+    for (const achievement of achievements) {
+      colors[getPreparationColor(achievement, focusedAchievementId === achievement.id)] += 1;
+
+      // As conquistas da Jornada não precisam de uma data individual; não entram em "Sem data".
+      if (
+        !achievement.notDoing &&
+        !achievement.journey &&
+        !String(achievement.earnedDate ?? "").trim()
+      ) {
+        missingDate += 1;
+      }
+      if (!achievement.notDoing && achievement.journey) journey += 1;
+      if (achievement.isCustom) manual += 1;
+    }
+
+    return { colors, missingDate, journey, manual, total: achievements.length };
+  }, [result, focusedAchievementId]);
+
+  const filteredPreparationAchievements = useMemo(() => {
+    const achievements = result?.achievements ?? [];
+    return achievements
+      .filter((achievement) => {
+        if (preparationFilter === "all") return true;
+        if (preparationFilter === "missing-date") {
+          return (
+            !achievement.notDoing &&
+            !achievement.journey &&
+            !String(achievement.earnedDate ?? "").trim()
+          );
+        }
+        if (preparationFilter === "journey") {
+          return !achievement.notDoing && Boolean(achievement.journey);
+        }
+        if (preparationFilter === "manual") return Boolean(achievement.isCustom);
+
+        const color = preparationFilter.replace("color-", "") as PreparationColor;
+        return getPreparationColor(achievement, focusedAchievementId === achievement.id) === color;
+      })
+      .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom));
+  }, [result, preparationFilter, focusedAchievementId]);
 
   const publicationStatus = useMemo(() => {
     if (!result) {
@@ -3510,28 +3634,33 @@ function PrepararJogoPage() {
                 </div>
               )}
 
+              {preparationFilter !== "all" && (
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
+                  <p className="text-[10px] font-bold text-white/60">
+                    Filtro ativo: <span className="font-black text-white">{getPreparationFilterLabel(preparationFilter)}</span>
+                    <span className="ml-2 text-white/35">
+                      · Exibindo {filteredPreparationAchievements.length} de {result.achievements.length}
+                    </span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setPreparationFilter("all")}
+                    className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[9px] font-black uppercase text-white/60 transition hover:border-white/25 hover:text-white"
+                  >
+                    Ver todas
+                  </button>
+                </div>
+              )}
               <div className="mt-4 space-y-0.5">
-                {[...result.achievements]
-                  .sort((a, b) => Number(Boolean(b.isCustom)) - Number(Boolean(a.isCustom)))
-                  .map((a, i) => (
+                {filteredPreparationAchievements.length === 0 ? (
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-6 text-center text-xs font-bold text-white/40">
+                    Nenhuma conquista corresponde a este filtro.
+                  </div>
+                ) : filteredPreparationAchievements.map((a, i) => (
                   <div
                     id={"achievement-" + a.id}
                     key={a.id}
-                      className={
-                      focusedAchievementId === a.id
-                        ? "w-full rounded-2xl border border-violet-300/70 bg-violet-500/[.12] p-3 shadow-[0_0_30px_rgba(167,139,250,.12)]"
-                        : a.notDoing
-                          ? "w-full rounded-2xl border border-red-500/40 bg-red-500/[.07] p-3"
-                          : a.journey
-                          ? "w-full rounded-2xl border border-emerald-400/30 bg-emerald-400/[.07] p-3"
-                          : ((a.isCustom && Boolean(a.episode?.trim())) ||
-                              (Boolean(a.episode?.trim()) && Boolean(a.earnedNote?.trim() || a.earnedDate?.trim())))
-                            ? "w-full rounded-2xl border border-blue-400/40 bg-blue-500/[.09] p-3"
-                            : a.isCustom
-                              ? "w-full rounded-2xl border border-zinc-400/25 bg-zinc-500/[.055] p-3"
-                              : "w-full rounded-2xl border border-yellow-400/25 bg-yellow-400/[.045] p-3"
-                    }
-                  >
+                      className={PREPARATION_CARD_CLASSES[getPreparationColor(a, focusedAchievementId === a.id)]}
                     <div className="flex flex-col gap-2">
                       {collapsedPrepItems["result-" + a.id] ? (
                         <div className="flex items-center justify-between gap-3 rounded-xl border border-white/[.06] bg-black/20 p-3">
@@ -4246,7 +4375,7 @@ function PrepararJogoPage() {
               </div>
               <aside
                 aria-label="Legenda fixa das cores das conquistas"
-                className="hidden xl:block xl:sticky xl:top-24 xl:self-start"
+                className="order-first block xl:order-none xl:sticky xl:top-24 xl:self-start"
               >
                 <section className="rounded-2xl border border-white/10 bg-[#0a0a0b] p-4 shadow-[0_10px_35px_rgba(0,0,0,0.28)]">
                   <p className="text-[9px] font-black uppercase tracking-[.18em] text-red-400">
@@ -4256,50 +4385,60 @@ function PrepararJogoPage() {
                     Cores das conquistas
                   </h2>
                   <p className="mt-1 text-[10px] leading-relaxed text-white/35">
-                    A cor indica a categoria ou decisão; a publicação é controlada separadamente.
+                    Clique em um filtro ou em uma cor para mostrar as conquistas correspondentes. Clique novamente para limpar.
                   </p>
 
-                  <div className="mt-4 space-y-3">
-                    {[
-                      {
-                        color: "bg-emerald-400",
-                        name: "Verde · Jornada",
-                        detail: "Selecionada para a Jornada de Estreia.",
-                      },
-                      {
-                        color: "bg-blue-400",
-                        name: "Azul · EP / registro",
-                        detail: "Conquista manual ou registro de obtenção vinculado a EP/data.",
-                      },
-                      {
-                        color: "bg-zinc-400",
-                        name: "Cinza · Manual",
-                        detail: "Conquista adicionada manualmente, ainda sem EP vinculado.",
-                      },
-                      {
-                        color: "bg-yellow-400",
-                        name: "Amarelo · Revisar",
-                        detail: "Conquista do Exophase fora da Jornada.",
-                      },
-                      {
-                        color: "bg-red-400",
-                        name: "Vermelho · Não fazer",
-                        detail: "Fora da publicação enquanto estiver marcada como Não vou fazer.",
-                      },
-                      {
-                        color: "bg-violet-400",
-                        name: "Roxo · Em foco",
-                        detail: "Conquista aberta para edição ou análise no momento.",
-                      },
-                    ].map((item) => (
-                      <div key={item.name} className="flex items-start gap-2.5">
-                        <span className={`mt-1 h-3 w-3 shrink-0 rounded-sm ${item.color}`} />
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-black text-white/80">{item.name}</p>
-                          <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">{item.detail}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="mt-4 space-y-2">
+                    <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/45">Filtros rápidos</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { value: "all", label: "Todas", count: preparationCounts.total },
+                        { value: "missing-date", label: "Sem data", count: preparationCounts.missingDate },
+                        { value: "journey", label: "Jornada", count: preparationCounts.journey },
+                        { value: "manual", label: "Manuais", count: preparationCounts.manual },
+                      ] as { value: PreparationFilter; label: string; count: number }[]).map((item) => {
+                        const active = preparationFilter === item.value;
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => setPreparationFilter(item.value === "all" ? "all" : active ? "all" : item.value)}
+                            aria-pressed={active}
+                            className={`flex min-w-0 items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition ${active ? "border-red-400/30 bg-red-400/[.08] text-white" : "border-white/10 bg-white/[.02] text-white/60 hover:border-white/20"}`}
+                          >
+                            <span className="truncate text-[10px] font-black">{item.label}</span>
+                            <span className="rounded-full border border-white/10 bg-black/25 px-1.5 py-0.5 text-[10px] font-black tabular-nums">{item.count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    <p className="text-[9px] font-black uppercase tracking-[.14em] text-white/45">Filtrar por cor</p>
+                    {PREPARATION_COLOR_FILTERS.map((item) => {
+                      const active = preparationFilter === item.filter;
+                      return (
+                        <button
+                          key={item.name}
+                          type="button"
+                          onClick={() => setPreparationFilter(active ? "all" : item.filter)}
+                          aria-pressed={active}
+                          className={`flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition ${active ? "border-white/25 bg-white/[.06]" : "border-transparent hover:border-white/10 hover:bg-white/[.025]"}`}
+                        >
+                          <span className={`mt-1 h-3 w-3 shrink-0 rounded-sm ${item.color}`} />
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-start justify-between gap-2">
+                              <span className="text-[10px] font-black text-white/80">{item.name}</span>
+                              <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black tabular-nums ${active ? "bg-white/10 text-white" : "border border-white/10 bg-black/25 text-white/70"}`}>
+                                {preparationCounts.colors[item.colorKey]}
+                              </span>
+                            </span>
+                            <span className="mt-0.5 block text-[10px] leading-relaxed text-white/40">{item.detail}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <div className="mt-4 rounded-xl border border-red-400/15 bg-red-500/[.04] p-3">
