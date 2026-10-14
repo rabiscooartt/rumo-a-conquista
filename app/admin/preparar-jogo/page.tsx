@@ -2505,6 +2505,42 @@ function PrepararJogoPage() {
         );
       }
 
+      // Confirma que o backend persistiu o registro especial da Maestria Final.
+      // Sem esta checagem, a publicação pode concluir mesmo sem EP/data públicos.
+      const expectedMasteryEpisode = String(result.game.finalMasteryEpisode ?? "").trim();
+      const expectedMasteryDate = String(result.game.finalMasteryDate ?? "").trim();
+      if (expectedMasteryEpisode || expectedMasteryDate) {
+        const publishedJourney =
+          payload?.game?.firstJourney &&
+          typeof payload.game.firstJourney === "object"
+            ? payload.game.firstJourney as Record<string, unknown>
+            : {};
+        const publishedMetadata =
+          publishedJourney.achievementMeta &&
+          typeof publishedJourney.achievementMeta === "object"
+            ? publishedJourney.achievementMeta as Record<string, unknown>
+            : {};
+        const publishedMasteryRaw =
+          publishedMetadata[`${result.game.slug}-final-mastery`];
+        const publishedMastery =
+          publishedMasteryRaw && typeof publishedMasteryRaw === "object"
+            ? publishedMasteryRaw as Record<string, unknown>
+            : {};
+        const episodeWasSaved =
+          !expectedMasteryEpisode ||
+          normalizeEpisode(String(publishedMastery.episode ?? "")) ===
+            normalizeEpisode(expectedMasteryEpisode);
+        const dateWasSaved =
+          !expectedMasteryDate ||
+          String(publishedMastery.date ?? "").trim() === expectedMasteryDate;
+
+        if (!episodeWasSaved || !dateWasSaved) {
+          throw new Error(
+            "As conquistas foram enviadas, mas o EP/data da Maestria Final não foi confirmado no retorno do servidor. Os dados permanecem no rascunho; tente publicar novamente."
+          );
+        }
+      }
+
       const clearedAchievements = result.achievements.map((achievement) => ({
         ...achievement,
         journey: false,
