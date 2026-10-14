@@ -340,6 +340,17 @@ function PrepararJogoPage() {
   const [focusedAchievementId, setFocusedAchievementId] = useState<string | null>(null);
   const [preparationFilter, setPreparationFilter] = useState<PreparationFilter>("all");
   const [collapsedPrepItems, setCollapsedPrepItems] = useState<Record<string, boolean>>({});
+  const hasConfiguredFinalMastery = Boolean(
+    result?.game.finalBadge?.title?.trim() ||
+    result?.game.finalBadge?.image?.trim() ||
+    result?.game.finalBadge?.description?.trim()
+  );
+  const finalMasteryNeedsDate =
+    hasConfiguredFinalMastery && !String(result?.game.finalMasteryDate ?? "").trim();
+  const showFinalMasteryInPreparationList =
+    hasConfiguredFinalMastery &&
+    (preparationFilter === "all" ||
+      (preparationFilter === "missing-date" && finalMasteryNeedsDate));
 
   function togglePrepItem(key: string) {
     setCollapsedPrepItems((current) => ({
@@ -410,8 +421,16 @@ function PrepararJogoPage() {
       (achievement) => !achievement.notDoing && !achievement.journey
     ).length;
 
-    return { colors, missingDate, journey, manual, outsideJourney, total: achievements.length };
-  }, [result, focusedAchievementId]);
+    if (finalMasteryNeedsDate) missingDate += 1;
+    return {
+      colors,
+      missingDate,
+      journey,
+      manual,
+      outsideJourney,
+      total: achievements.length + (hasConfiguredFinalMastery ? 1 : 0),
+    };
+  }, [result, focusedAchievementId, finalMasteryNeedsDate, hasConfiguredFinalMastery]);
 
   const filteredPreparationAchievements = useMemo(() => {
     const achievements = result?.achievements ?? [];
@@ -3774,7 +3793,7 @@ function PrepararJogoPage() {
                   <p className="text-[10px] font-bold text-white/60">
                     Filtro ativo: <span className="font-black text-white">{getPreparationFilterLabel(preparationFilter)}</span>
                     <span className="ml-2 text-white/35">
-                      · Exibindo {filteredPreparationAchievements.length} de {result.achievements.length}
+                      · Exibindo {filteredPreparationAchievements.length + (showFinalMasteryInPreparationList ? 1 : 0)} de {preparationCounts.total}
                     </span>
                   </p>
                   <button
@@ -3786,67 +3805,91 @@ function PrepararJogoPage() {
                   </button>
                 </div>
               )}
-              <section className="mb-4 rounded-2xl border border-red-400/20 bg-red-500/[.035] p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                  {result.game.finalBadge?.image ? (
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-red-400/20 bg-black/30">
-                      <img
-                        src={result.game.finalBadge.image}
-                        alt=""
-                        className="h-full w-full object-contain"
-                        loading="lazy"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-red-400/20 bg-black/30 text-2xl">
-                      {result.game.finalBadge?.icon || "🏆"}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-black uppercase tracking-[.16em] text-red-300/75">
-                      Registro da Maestria Final
-                    </p>
-                    <h3 className="mt-1 text-base font-black text-white">
-                      {result.game.finalBadge?.title?.trim() || "Maestria Final"}
-                    </h3>
-                    {result.game.finalBadge?.description?.trim() ? (
-                      <p className="mt-1 text-xs leading-relaxed text-white/40">
-                        {result.game.finalBadge.description}
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs leading-relaxed text-white/35">
-                        Registre aqui o episódio e a data em que você conquistou a Maestria Final.
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/40">
-                    🎬 EP da live
-                    <input
-                      type="text"
-                      value={result.game.finalMasteryEpisode ?? ""}
-                      onChange={(event) => updateFinalMasteryRecord("finalMasteryEpisode", event.target.value)}
-                      placeholder="Ex.: EP 10"
-                      className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20 focus:border-red-400/40"
-                    />
-                  </label>
-                  <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/40">
-                    📅 Data em que conseguiu
-                    <input
-                      type="date"
-                      value={result.game.finalMasteryDate ?? ""}
-                      onChange={(event) => updateFinalMasteryRecord("finalMasteryDate", event.target.value)}
-                      className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-xs font-bold normal-case tracking-normal text-white outline-none focus:border-red-400/40"
-                    />
-                  </label>
-                </div>
-                <p className="mt-2 text-[10px] leading-relaxed text-white/30">
-                  Esses dados serão publicados junto da Maestria Final. Salve o rascunho para continuar depois ou publique as conquistas para exibi-los no site.
-                </p>
-              </section>
-
               <div className="mt-4 space-y-0.5">
+                {showFinalMasteryInPreparationList && (
+                  <div className="w-full rounded-2xl border border-red-500/35 bg-red-500/[.055] p-3">
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                          {result.game.finalBadge?.image ? (
+                            <div className="h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl border border-red-400/25 bg-black/30">
+                              <img src={result.game.finalBadge.image} alt="" className="h-full w-full object-contain" loading="lazy" />
+                            </div>
+                          ) : (
+                            <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-xl border border-red-400/25 bg-black/30 text-2xl">
+                              {result.game.finalBadge?.icon || "🏆"}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[9px] font-black uppercase tracking-[.14em] text-red-300/75">Maestria Final · recompensa máxima</p>
+                            <h3 className="mt-1 text-sm font-black text-white">{result.game.finalBadge?.title?.trim() || "Maestria Final"}</h3>
+                            <p className="mt-0.5 text-sm leading-relaxed text-white/50">{result.game.finalBadge?.description?.trim() || "Registro da Maestria Final do jogo."}</p>
+                          </div>
+                        </div>
+                        <span className="self-start rounded-full border border-red-400/25 bg-red-400/[.07] px-3.5 py-2 text-[10px] font-black text-red-100">🏆 MAESTRIA FINAL</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleRecordPanel("final-mastery")}
+                        aria-expanded={expandedRecordIds.has("final-mastery")}
+                        className="mt-1 flex w-full items-center justify-between gap-3 rounded-xl border border-red-400/[.16] bg-black/20 px-3 py-2 text-left transition hover:border-red-400/30 hover:bg-white/[.025]"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-black uppercase tracking-[.12em] text-white/35">Registro da Maestria Final</p>
+                          {(result.game.finalMasteryEpisode?.trim() || result.game.finalMasteryDate?.trim()) ? (
+                            <p className="mt-0.5 truncate text-[10px] font-black text-white/50">
+                              {result.game.finalMasteryEpisode?.trim() || "EP pendente"} · {result.game.finalMasteryDate?.trim() || "Data pendente"}
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-[10px] font-bold text-white/30">EP + data ainda não registrados</p>
+                          )}
+                        </div>
+                        <span className="shrink-0 rounded-lg border border-white/10 bg-white/[.03] px-2.5 py-1.5 text-[10px] font-black text-white/45">
+                          {expandedRecordIds.has("final-mastery") ? "▲ Recolher" : "▼ Abrir"}
+                        </span>
+                      </button>
+                      {expandedRecordIds.has("final-mastery") && (
+                        <div className="grid w-full gap-2 rounded-xl border border-red-400/[.14] bg-black/25 p-2 lg:grid-cols-[1fr_1fr_auto]">
+                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/40">
+                            🎬 EP da live
+                            <input
+                              type="text"
+                              value={result.game.finalMasteryEpisode ?? ""}
+                              onChange={(event) => updateFinalMasteryRecord("finalMasteryEpisode", event.target.value)}
+                              placeholder="Ex.: EP 10"
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none placeholder:text-white/20 focus:border-red-400/40"
+                            />
+                          </label>
+                          <label className="min-w-0 text-[9px] font-black uppercase tracking-[.12em] text-white/40">
+                            📅 Data em que conseguiu
+                            <input
+                              type="date"
+                              value={result.game.finalMasteryDate ?? ""}
+                              onChange={(event) => updateFinalMasteryRecord("finalMasteryDate", event.target.value)}
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold normal-case tracking-normal text-white outline-none focus:border-red-400/40"
+                            />
+                          </label>
+                          <div className="flex items-end gap-2">
+                            {normalizeEpisode(result.game.finalMasteryEpisode) ? (
+                              <Link
+                                href={"/conteudo?game=" + encodeURIComponent(result.game.slug ?? "") + "&ep=" + encodeURIComponent(normalizeEpisode(result.game.finalMasteryEpisode))}
+                                className="rounded-lg border border-red-400/20 bg-red-400/[.06] px-3 py-2 text-[9px] font-black uppercase text-red-100 transition hover:border-red-400/40 hover:bg-red-400/10"
+                              >
+                                🔗 Abrir EP {normalizeEpisode(result.game.finalMasteryEpisode)}
+                              </Link>
+                            ) : (
+                              <span className="rounded-lg border border-white/10 bg-white/[.02] px-3 py-2 text-[9px] font-black uppercase text-white/25">Informe o EP para criar o link</span>
+                            )}
+                            <span className="rounded-lg border border-red-400/15 bg-red-400/[.05] px-3 py-2 text-[9px] font-black uppercase text-red-200/70">
+                              {result.game.finalMasteryEpisode?.trim() && result.game.finalMasteryDate?.trim() ? "✓ Registro completo" : "Registro da Maestria"}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 {filteredPreparationAchievements.length === 0 ? (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-6 text-center text-xs font-bold text-white/40">
                     Nenhuma conquista corresponde a este filtro.
