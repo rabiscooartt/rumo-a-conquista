@@ -78,7 +78,7 @@ const PREPARATION_COLOR_FILTERS: {
   { colorKey: "green", filter: "color-green", color: "bg-emerald-400", name: "Verde · Jornada", detail: "Selecionada para a Jornada de Estreia." },
   { colorKey: "blue", filter: "color-blue", color: "bg-blue-400", name: "Azul · EP / registro", detail: "Conquista manual ou registro de obtenção vinculado a EP/data." },
   { colorKey: "gray", filter: "color-gray", color: "bg-zinc-400", name: "Cinza · Manual", detail: "Conquista adicionada manualmente, ainda sem EP vinculado." },
-  { colorKey: "yellow", filter: "color-yellow", color: "bg-yellow-400", name: "Amarelo · Revisar", detail: "Conquista do Exophase fora da Jornada." },
+  { colorKey: "yellow", filter: "color-yellow", color: "bg-yellow-400", name: "Amarelo · Fora da Jornada", detail: "Filtra todas as conquistas fora da Jornada de Estreia, mantendo as cores azul e cinza dos cartões." },
   { colorKey: "red", filter: "color-red", color: "bg-red-400", name: "Vermelho · Não fazer", detail: "Fora da publicação enquanto estiver marcada como Não vou fazer." },
   { colorKey: "violet", filter: "color-violet", color: "bg-violet-400", name: "Roxo · Em foco", detail: "Conquista aberta para edição ou análise no momento." },
 ];
@@ -94,7 +94,7 @@ function getPreparationFilterLabel(filter: PreparationFilter) {
     "color-green": "Verde · Jornada",
     "color-blue": "Azul · EP / registro",
     "color-gray": "Cinza · Manual",
-    "color-yellow": "Amarelo · Revisar",
+    "color-yellow": "Amarelo · Fora da Jornada",
   };
   return labels[filter];
 }
@@ -398,7 +398,11 @@ function PrepararJogoPage() {
       if (achievement.isCustom) manual += 1;
     }
 
-    return { colors, missingDate, journey, manual, total: achievements.length };
+    const outsideJourney = achievements.filter(
+      (achievement) => !achievement.notDoing && !achievement.journey
+    ).length;
+
+    return { colors, missingDate, journey, manual, outsideJourney, total: achievements.length };
   }, [result, focusedAchievementId]);
 
   const filteredPreparationAchievements = useMemo(() => {
@@ -417,6 +421,9 @@ function PrepararJogoPage() {
           return !achievement.notDoing && Boolean(achievement.journey);
         }
         if (preparationFilter === "manual") return Boolean(achievement.isCustom);
+        if (preparationFilter === "color-yellow") {
+          return !achievement.notDoing && !achievement.journey;
+        }
 
         const color = preparationFilter.replace("color-", "") as PreparationColor;
         return getPreparationColor(achievement, focusedAchievementId === achievement.id) === color;
@@ -4432,7 +4439,7 @@ function PrepararJogoPage() {
                             <span className="flex items-start justify-between gap-2">
                               <span className="text-[10px] font-black text-white/80">{item.name}</span>
                               <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black tabular-nums ${active ? "bg-white/10 text-white" : "border border-white/10 bg-black/25 text-white/70"}`}>
-                                {preparationCounts.colors[item.colorKey]}
+                                {item.colorKey === "yellow" ? preparationCounts.outsideJourney : preparationCounts.colors[item.colorKey]}
                               </span>
                             </span>
                             <span className="mt-0.5 block text-[10px] leading-relaxed text-white/40">{item.detail}</span>
