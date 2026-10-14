@@ -159,6 +159,12 @@ type R = {
   warnings?: string[];
 };
 
+type DraftListConflict = {
+  draftCount: number;
+  publishedAchievements: A[];
+  publishedGame: Record<string, unknown>;
+};
+
 type Prepared = A & { filename: string; visualConcept: string };
 
 type YouTubePlaylistVideoOption = {
@@ -311,6 +317,8 @@ function PrepararJogoPage() {
   const [preparationModeNotice, setPreparationModeNotice] = useState("");
   const [needsDraftSnapshotUpgrade, setNeedsDraftSnapshotUpgrade] = useState(false);
   const draftSnapshotUpgradeStarted = useRef(false);
+  const preloadedDraftSlugRef = useRef<string | null>(null);
+  const [draftListConflict, setDraftListConflict] = useState<DraftListConflict | null>(null);
   const [similarCandidates, setSimilarCandidates] = useState<
     { achievement: A; score: number }[]
   >([]);
@@ -496,6 +504,7 @@ function PrepararJogoPage() {
     gameTitle = title,
     options: { forceFresh?: boolean } = {}
   ) {
+    setDraftListConflict(null);
     setJourneyPreparedCount(null);
     setExpandedRecordIds(new Set());
     setRealizedDescription("");
@@ -578,6 +587,76 @@ function PrepararJogoPage() {
           const liveFinalBadge =
             liveGameRecord?.finalBadge ?? liveGameRecord?.final_badge;
 
+          const publishedRows = Array.isArray(liveGameRecord?.achievementsList)
+            ? liveGameRecord.achievementsList as Record<string, unknown>[]
+            : null;
+          const publishedJourneyIds = new Set(
+            Array.isArray(liveFirstJourney.achievementIds)
+              ? liveFirstJourney.achievementIds.map((id) => String(id ?? "").trim()).filter(Boolean)
+              : []
+          );
+          const publishedAchievements: A[] = (publishedRows ?? []).map((item, index) => {
+            const id = String(item.id ?? item.legacy_id ?? `published-${index + 1}`).trim();
+            const metaRaw = liveAchievementMeta[id];
+            const meta =
+              metaRaw && typeof metaRaw === "object" && !Array.isArray(metaRaw)
+                ? metaRaw as Record<string, unknown>
+                : {};
+            const rawRank = String(item.rank ?? item.difficulty ?? item.trophy ?? item.icon ?? "").toLocaleLowerCase("pt-BR");
+            const rank: A["rank"] =
+              rawRank.includes("ouro") || rawRank.includes("gold") || rawRank.includes("🥇")
+                ? "Ouro"
+                : rawRank.includes("prata") || rawRank.includes("silver") || rawRank.includes("🥈")
+                  ? "Prata"
+                  : "Bronze";
+            const name = String(item.title ?? item.name ?? `Conquista ${index + 1}`).trim();
+            const description = String(item.description ?? "").trim();
+            const episode = String(meta.episode ?? "").trim();
+            const date = String(meta.date ?? item.earnedDate ?? item.earned_at ?? "").trim();
+            const rawStatus = String(item.status ?? "locked").toLocaleLowerCase("pt-BR");
+            const status: A["status"] =
+              rawStatus === "completed" || rawStatus === "concluida" || rawStatus === "concluída"
+                ? "completed"
+                : rawStatus === "progress" || rawStatus === "em progresso"
+                  ? "progress"
+                  : "locked";
+
+            return {
+              id,
+              name,
+              description,
+              rank,
+              online: false,
+              momentary: false,
+              journeySuggestion: false,
+              journey: publishedJourneyIds.has(id),
+              notDoing: false,
+              episode,
+              earnedDate: date,
+              isCustom: Boolean(item.isCustom ?? item.is_custom ?? false),
+              image: String(item.image ?? item.image_override ?? "").trim(),
+              status,
+            };
+          });
+          const normalizeListValue = (value: unknown) =>
+            String(value ?? "")
+              .normalize("NFD")
+              .replace(/[\\u0300-\\u036f]/g, "")
+              .toLocaleLowerCase("pt-BR")
+              .replace(/\\s+/g, " ")
+              .trim();
+          const listSignature = (items: Array<{ name?: unknown; title?: unknown; description?: unknown }>) =>
+            items
+              .map((item) => `${normalizeListValue(item.name ?? item.title)}| ${normalizeListValue(item.description)}`)
+              .sort();
+          const draftSignatures = listSignature(savedAchievements as A[]);
+          const publishedSignatures = listSignature(publishedAchievements);
+          const listsDiffer =
+            publishedRows !== null &&
+            (draftSignatures.length !== publishedSignatures.length ||
+              draftSignatures.some((signature, index) => signature !== publishedSignatures[index]));
+
+          preloadedDraftSlugRef.current = gameSlug;
           setResult({
             game: {
               ...savedGameRecord,
@@ -609,6 +688,15 @@ function PrepararJogoPage() {
           setSaved(true);
           setPreparationMode("edit");
           setPreparationModeNotice("Preparação existente carregada. A lista foi mantida sem refazer a análise.");
+          if (listsDiffer && liveGameRecord && publishedRows !== null) {
+            setDraftListConflict({
+              draftCount: (savedAchievements as A[]).length,
+              publishedAchievements,
+              publishedGame: liveGameRecord,
+            });
+          } else {
+            setDraftListConflict(null);
+          }
           return;
         }
       }
@@ -763,6 +851,10 @@ function PrepararJogoPage() {
   useEffect(() => {
     const slug = result?.game.slug ?? "";
     if (!slug) return;
+    if (preloadedDraftSlugRef.current === slug) {
+      preloadedDraftSlugRef.current = null;
+      return;
+    }
 
     let cancelled = false;
 
@@ -4730,6 +4822,125 @@ function PrepararJogoPage() {
           </>
         )}
       </div>
+      {draftListConflict && result && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm"
+          role="presentation"
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="draft-list-conflict-title"
+            className="my-auto w-full max-w-3xl rounded-2xl border border-amber-400/25 bg-[#0b0b0d] p-5 shadow-[0_25px_100px_rgba(0,0,0,.65)] sm:p-6"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/[.08]">
+                <icon className="hidden" />
+                <span className="text-xl" aria-hidden="true">⚠️</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] font-black uppercase tracking-[.18em] text-amber-300/75">
+                  Verificação de preparação
+                </p>
+                <h2 id="draft-list-conflict-title" className="mt-1 text-xl font-black text-white">
+                  O rascunho é diferente da lista publicada
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/55">
+                  Encontramos duas versões de conquistas para <strong className="text-white">{result.game.name}</strong>.
+                  Escolha qual delas deseja editar. Nenhuma opção publica alterações automaticamente.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-sky-400/20 bg-sky-400/[.045] p-4">
+                <p className="text-[9px] font-black uppercase tracking-[.14em] text-sky-200/70">Rascunho salvo</p>
+                <p className="mt-2 text-2xl font-black tabular-nums text-white">{draftListConflict.draftCount}</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/45">
+                  Conquistas da preparação que você já tinha guardado, incluindo possíveis alterações ainda não publicadas.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftListConflict(null);
+                    setPreparationModeNotice("Você continuou com o rascunho salvo. A lista publicada permaneceu intacta.");
+                  }}
+                  className="mt-4 w-full rounded-xl border border-sky-300/25 bg-sky-400/[.08] px-4 py-3 text-[10px] font-black uppercase text-sky-100 transition hover:bg-sky-400/[.14]"
+                >
+                  Continuar rascunho ({draftListConflict.draftCount})
+                </button>
+              </div>
+
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[.035] p-4">
+                <p className="text-[9px] font-black uppercase tracking-[.14em] text-emerald-200/70">Lista publicada no site</p>
+                <p className="mt-2 text-2xl font-black tabular-nums text-white">{draftListConflict.publishedAchievements.length}</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/45">
+                  Conquistas comuns que estão publicadas agora.
+                  {(draftListConflict.publishedGame.finalBadge ?? draftListConflict.publishedGame.final_badge) ? " A Maestria Final continua sendo mantida separadamente." : ""}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const conflict = draftListConflict;
+                    const publishedGame = conflict.publishedGame;
+                    const liveJourneyRaw = publishedGame.firstJourney;
+                    const liveJourney =
+                      liveJourneyRaw && typeof liveJourneyRaw === "object" && !Array.isArray(liveJourneyRaw)
+                        ? liveJourneyRaw as Record<string, unknown>
+                        : {};
+                    const liveMetaRaw = liveJourney.achievementMeta;
+                    const liveMeta =
+                      liveMetaRaw && typeof liveMetaRaw === "object" && !Array.isArray(liveMetaRaw)
+                        ? liveMetaRaw as Record<string, unknown>
+                        : {};
+                    const masteryMetaRaw = liveMeta[String(publishedGame.slug ?? result.game.slug) + "-final-mastery"];
+                    const masteryMeta =
+                      masteryMetaRaw && typeof masteryMetaRaw === "object" && !Array.isArray(masteryMetaRaw)
+                        ? masteryMetaRaw as Record<string, unknown>
+                        : {};
+                    const finalBadgeRaw = publishedGame.finalBadge ?? publishedGame.final_badge;
+                    const finalBadge =
+                      finalBadgeRaw && typeof finalBadgeRaw === "object" && !Array.isArray(finalBadgeRaw)
+                        ? finalBadgeRaw as NonNullable<R["game"]["finalBadge"]>
+                        : result.game.finalBadge ?? null;
+
+                    setResult((current) => current ? ({
+                      ...current,
+                      game: {
+                        ...current.game,
+                        name: String(publishedGame.title ?? current.game.name),
+                        slug: String(publishedGame.slug ?? current.game.slug ?? ""),
+                        finalBadge,
+                        finalMasteryEpisode: String(masteryMeta.episode ?? current.game.finalMasteryEpisode ?? ""),
+                        finalMasteryDate: String(masteryMeta.date ?? current.game.finalMasteryDate ?? ""),
+                        youtubePlaylistUrl: String(publishedGame.youtubePlaylistUrl ?? current.game.youtubePlaylistUrl ?? ""),
+                        youtubeFirstLiveUrl: String(publishedGame.youtubeFirstLiveUrl ?? current.game.youtubeFirstLiveUrl ?? ""),
+                        youtubeFirstLiveEpisode: String(publishedGame.youtubeFirstLiveEpisode ?? current.game.youtubeFirstLiveEpisode ?? ""),
+                      },
+                      achievements: conflict.publishedAchievements,
+                    }) : current);
+                    setSaved(false);
+                    setPublished(false);
+                    setDraftUpdatedAt(null);
+                    setNeedsDraftSnapshotUpgrade(false);
+                    draftSnapshotUpgradeStarted.current = false;
+                    setPreparationMode("edit");
+                    setPreparationModeNotice("Lista publicada carregada para edição. O rascunho antigo não foi apagado nem substituído; clique em Salvar rascunho somente quando quiser guardar esta lista como a nova preparação.");
+                    setDraftListConflict(null);
+                  }}
+                  className="mt-4 w-full rounded-xl border border-emerald-300/25 bg-emerald-400/[.08] px-4 py-3 text-[10px] font-black uppercase text-emerald-100 transition hover:bg-emerald-400/[.14]"
+                >
+                  Carregar lista publicada ({draftListConflict.publishedAchievements.length})
+                </button>
+              </div>
+            </div>
+
+            <p className="mt-4 rounded-xl border border-white/10 bg-white/[.025] p-3 text-[10px] leading-relaxed text-white/45">
+              Importante: esta escolha altera apenas a lista aberta no Preparador. Não apaga o rascunho antigo nem muda o site. O rascunho só será substituído se você clicar em “Salvar rascunho”; a publicação só muda se clicar em “Publicar conquistas”.
+            </p>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
