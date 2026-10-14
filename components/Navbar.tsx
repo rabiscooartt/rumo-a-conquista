@@ -165,6 +165,25 @@ function ShieldIcon({ className = "" }: IconProps) {
   );
 }
 
+function ReviewIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 3h7l5 5v13H4V3h4Z" />
+      <path d="M14 3v6h6" />
+      <path d="m8 15 2.2 2.2L16 11.5" />
+    </svg>
+  );
+}
+
 function YouTubeIcon({ className = "" }: IconProps) {
   return (
     <svg
@@ -233,6 +252,11 @@ const navLinks = [
     label: "Emblemas",
     href: "/sagas",
     icon: ShieldIcon,
+  },
+  {
+    label: "Review",
+    href: "/reviews",
+    icon: ReviewIcon,
   },
 ];
 
@@ -358,6 +382,16 @@ export default function Navbar() {
             className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-black text-red-300"
           >
             Emblemas
+          </Link>
+          <Link
+            href="/reviews"
+            className={`rounded-xl border px-3 py-2 text-xs font-black transition ${
+              isActiveLink("/reviews")
+                ? "border-red-500/30 bg-red-500/10 text-red-300"
+                : "border-white/10 bg-white/[0.03] text-white/70"
+            }`}
+          >
+            Review
           </Link>
         </div>
       </nav>
