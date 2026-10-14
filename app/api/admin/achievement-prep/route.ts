@@ -896,7 +896,7 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
 
     const { data, error } = await client
       .from("games")
-      .select("slug, title, review")
+      .select("slug, title, review, final_badge")
       .eq("slug", slugParam)
       .eq("is_deleted", false)
       .maybeSingle();
@@ -904,33 +904,37 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
     if (error) throw error;
     if (!data) throw new Error("Jogo cadastrado não encontrado.");
 
+    const review =
+      data.review && typeof data.review === "object" && !Array.isArray(data.review)
+        ? data.review as Record<string, unknown>
+        : {};
+    const firstJourney =
+      review.__firstJourney && typeof review.__firstJourney === "object" && !Array.isArray(review.__firstJourney)
+        ? review.__firstJourney as Record<string, unknown>
+        : {};
+    const achievementMeta =
+      firstJourney.achievementMeta && typeof firstJourney.achievementMeta === "object" && !Array.isArray(firstJourney.achievementMeta)
+        ? firstJourney.achievementMeta as Record<string, unknown>
+        : {};
+    const finalMasteryMetaRaw = achievementMeta[String(data.slug) + "-final-mastery"];
+    const finalMasteryMeta =
+      finalMasteryMetaRaw && typeof finalMasteryMetaRaw === "object" && !Array.isArray(finalMasteryMetaRaw)
+        ? finalMasteryMetaRaw as Record<string, unknown>
+        : {};
+    const finalBadge =
+      data.final_badge && typeof data.final_badge === "object" && !Array.isArray(data.final_badge)
+        ? data.final_badge as Record<string, unknown>
+        : null;
+
     return {
       slug: String(data.slug),
       title: String(data.title),
-      youtubePlaylistUrl:
-        data.review &&
-        typeof data.review === "object" &&
-        !Array.isArray(data.review)
-          ? String(
-              (data.review as Record<string, unknown>).__youtubePlaylistUrl ?? ""
-            ).trim()
-          : "",
-      youtubeFirstLiveUrl:
-        data.review &&
-        typeof data.review === "object" &&
-        !Array.isArray(data.review)
-          ? String(
-              (data.review as Record<string, unknown>).__youtubeFirstLiveUrl ?? ""
-            ).trim()
-          : "",
-      youtubeFirstLiveEpisode:
-        data.review &&
-        typeof data.review === "object" &&
-        !Array.isArray(data.review)
-          ? String(
-              (data.review as Record<string, unknown>).__youtubeFirstLiveEpisode ?? ""
-            ).trim()
-          : "",
+      finalBadge,
+      finalMasteryEpisode: String(finalMasteryMeta.episode ?? "").trim(),
+      finalMasteryDate: String(finalMasteryMeta.date ?? "").trim(),
+      youtubePlaylistUrl: String(review.__youtubePlaylistUrl ?? "").trim(),
+      youtubeFirstLiveUrl: String(review.__youtubeFirstLiveUrl ?? "").trim(),
+      youtubeFirstLiveEpisode: String(review.__youtubeFirstLiveEpisode ?? "").trim(),
     };
   }
 
@@ -939,6 +943,9 @@ async function resolveGameTitle(slugParam: string | null, titleParam: string) {
   return {
     slug: slug(titleParam),
     title: titleParam,
+    finalBadge: null,
+    finalMasteryEpisode: "",
+    finalMasteryDate: "",
     youtubePlaylistUrl: "",
     youtubeFirstLiveUrl: "",
     youtubeFirstLiveEpisode: "",
@@ -1030,6 +1037,9 @@ async function buildAchievementPreparation(
       youtubePlaylistUrl: registeredGame.youtubePlaylistUrl,
       youtubeFirstLiveUrl: registeredGame.youtubeFirstLiveUrl,
       youtubeFirstLiveEpisode: registeredGame.youtubeFirstLiveEpisode,
+      finalBadge: registeredGame.finalBadge,
+      finalMasteryEpisode: registeredGame.finalMasteryEpisode,
+      finalMasteryDate: registeredGame.finalMasteryDate,
       exophase: {
         found: true,
         url: exophaseData.url,
