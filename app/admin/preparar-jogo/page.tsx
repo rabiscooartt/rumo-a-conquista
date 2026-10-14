@@ -237,8 +237,8 @@ function slugify(value: string) {
 function normalizeAchievementDateInput(value?: string) {
   const raw = String(value ?? "").trim();
   if (!raw) return "";
-  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) return raw;
-  const dmy = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
   if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
   const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return "";
@@ -268,7 +268,7 @@ function mapPublishedAchievementsForPreparation(
   return rows.filter((row) => row && typeof row === "object" && !Array.isArray(row))
     .map((raw, index) => {
       const item = raw as Record<string, unknown>;
-      const id = String(item.id ?? item.legacy_id ?? `published-${index + 1}`).trim();
+      const id = String(item.id ?? item.legacy_id ?? `${gameSlug}-published-${index + 1}`).trim();
       const metaRaw = achievementMeta[id];
       const meta =
         metaRaw && typeof metaRaw === "object" && !Array.isArray(metaRaw)
@@ -1139,7 +1139,7 @@ function PrepararJogoPage() {
     async function loadPublishedAchievementsOutsidePreparation() {
       try {
         const [gamesResponse, draftResponse] = await Promise.all([
-          fetch("/api/admin/games?includeHiddenAchievements=1", { cache: "no-store" }),
+          fetch("/api/admin/games", { cache: "no-store" }),
           fetch("/api/admin/achievement-prep-draft?slug=" + encodeURIComponent(gameSlug), { cache: "no-store" }),
         ]);
         const gamesPayload = await gamesResponse.json().catch(() => null);
@@ -4280,7 +4280,7 @@ function PrepararJogoPage() {
                     <button
                       type="button"
                       onClick={() => void saveRegisteredAchievementRecordsToSite()}
-                      disabled={registeredRecordsSaving || (!registeredRecordsDirty && !registeredRecordsMessage)}
+                      disabled={registeredRecordsSaving || !registeredRecordsDirty}
                       className="shrink-0 rounded-xl border border-sky-300/25 bg-sky-400/[.08] px-4 py-3 text-[10px] font-black uppercase text-sky-100 transition hover:bg-sky-400/[.14] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {registeredRecordsSaving ? "Salvando registros..." : registeredRecordsDirty ? "Atualizar EP/data no site" : "Registros do site atualizados"}
