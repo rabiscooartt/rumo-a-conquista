@@ -414,10 +414,6 @@ export default function NewGamesAdminPage() {
   async function saveReview() {
     if (!selectedGame || !reviewValues) return;
 
-    const splitLines = (value: string) =>
-      value.split("\n").map((item) => item.trim()).filter(Boolean);
-    const positivos = splitLines(reviewValues.positivos);
-    const negativos = splitLines(reviewValues.negativos);
     const review = {
       ...savedReview,
       status: reviewValues.status,
@@ -425,10 +421,6 @@ export default function NewGamesAdminPage() {
       titulo: reviewValues.titulo.trim() || "Análise da Jornada",
       resumo: reviewValues.resumo.trim().slice(0, 100),
       texto: reviewValues.texto.trim(),
-      positivos,
-      negativos,
-      pontosFortes: positivos,
-      pontosFracos: negativos,
     };
 
     setSaving(true);
@@ -961,7 +953,7 @@ export default function NewGamesAdminPage() {
                   {!collapsedSections["06"] && reviewValues && (
                     <div className="mt-5 space-y-4">
                       <p className="text-xs leading-relaxed text-white/45">
-                        A nota e a frase curta alimentam o cartão de avaliação na página do jogo. Ao clicar em “Ler review completo”, o visitante abre a página exclusiva com o texto integral e os pontos positivos e negativos. A frase curta aceita até 100 caracteres.
+                        A nota e a frase curta alimentam o cartão de avaliação na página do jogo. Ao clicar em “Ler review completo”, o visitante abre a página exclusiva com o texto integral da análise. A frase curta aceita até 100 caracteres.
                       </p>
 
                       <div className="grid gap-4 md:grid-cols-2">
@@ -1078,29 +1070,6 @@ export default function NewGamesAdminPage() {
                           className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
                         />
                       </label>
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <label className="block">
-                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Pontos positivos (um por linha)</span>
-                          <textarea
-                            value={reviewValues.positivos}
-                            onChange={(event) => patchReviewDraft({ positivos: event.target.value })}
-                            rows={4}
-                            placeholder={"História envolvente\nBoa ambientação"}
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
-                          />
-                        </label>
-                        <label className="block">
-                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Pontos negativos (um por linha)</span>
-                          <textarea
-                            value={reviewValues.negativos}
-                            onChange={(event) => patchReviewDraft({ negativos: event.target.value })}
-                            rows={4}
-                            placeholder={"Atividades repetitivas\nPouca variedade"}
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm leading-relaxed text-white outline-none focus:border-red-500/40"
-                          />
-                        </label>
-                      </div>
 
                       <div className="flex justify-end">
                         <button
