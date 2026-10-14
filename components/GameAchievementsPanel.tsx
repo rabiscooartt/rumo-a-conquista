@@ -1353,12 +1353,14 @@ export default function GameAchievementsPanel(
                 })
               );
             const achievementJourneyMeta = achievementMeta[achievementKey];
+            const episodeNumber = formatJourneyEpisode(achievementJourneyMeta?.episode);
+            const hasEpisodeMetadata = Boolean(episodeNumber);
             const isFirstEpisodeAchievement =
-              !isFinalMastery &&
-              formatJourneyEpisode(achievementJourneyMeta?.episode) === "1";
+              !isFinalMastery && episodeNumber === "1";
             const showJourneyLabel =
               !isFinalMastery &&
-              ((isJourneyAchievement && journeyLockActive) || isFirstEpisodeAchievement);
+              (isFirstEpisodeAchievement ||
+                (isJourneyAchievement && journeyLockActive && !hasEpisodeMetadata));
             // Fora da Jornada continuam bloqueadas somente as conquistas
             // ainda não obtidas. Um registro manual publicado como completed
             // deve aparecer desbloqueado mesmo quando o bloqueio da Jornada está ativo.
@@ -1493,38 +1495,39 @@ export default function GameAchievementsPanel(
                               const date = formatJourneyDate(dateValue);
                               const liveUrl = String(meta?.liveUrl ?? "").trim();
                               const hasRecord = Boolean(episode || date || liveUrl);
+                              const episodeLabel = episode ? `EP ${episode}` : "LIVE";
 
                               if (!hasRecord) return null;
 
                               return (
-                                <div className="flex min-w-0 flex-col items-end gap-1 text-right text-[9px] font-semibold leading-tight text-white/55">
-                                  {episode ? (
-                                    liveUrl ? (
-                                      <a
-                                        href={liveUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        aria-label={`Abrir live ${episode} de ${gameTitle}`}
-                                        className="inline-flex items-center gap-1 text-white/70 transition hover:text-white hover:underline"
-                                      >
-                                        <span aria-hidden="true" className="text-[#ff4545]">▶</span>
-                                        EP {episode}
-                                      </a>
-                                    ) : (
-                                      <span>EP {episode}</span>
-                                    )
-                                  ) : liveUrl ? (
+                                <div className="flex min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5">
+                                  {liveUrl ? (
                                     <a
                                       href={liveUrl}
                                       target="_blank"
                                       rel="noreferrer"
-                                      aria-label={`Abrir live da conquista ${achievement.title}`}
-                                      className="inline-flex items-center gap-1 text-white/70 transition hover:text-white hover:underline"
+                                      aria-label={episode ? `Abrir live EP ${episode} de ${gameTitle}` : `Abrir live da conquista ${achievement.title}`}
+                                      title="Abrir live"
+                                      className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2 py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.01em] text-sky-200 transition hover:border-sky-300/45 hover:bg-sky-400/[.12] hover:text-sky-100"
                                     >
-                                      <span aria-hidden="true" className="text-[#ff4545]">▶</span>
-                                      LIVE
+                                      <span aria-hidden="true" className="text-sky-300">▶</span>
+                                      <span className="whitespace-nowrap leading-tight">{episodeLabel}</span>
                                     </a>
+                                  ) : episode ? (
+                                    <span className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2 py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.01em] text-sky-200">
+                                      <span aria-hidden="true" className="text-sky-300">▶</span>
+                                      <span className="whitespace-nowrap leading-tight">{episodeLabel}</span>
+                                    </span>
                                   ) : null}
+                                  {date ? (
+                                    <time dateTime={dateValue} className="whitespace-nowrap text-center text-[10px] font-semibold tabular-nums leading-tight text-white/65">
+                                      {date}
+                                    </time>
+                                  ) : null}
+                                </div>
+                              );
+                            })()
+                          ) : null}
                                   {date ? (
                                     <time dateTime={dateValue} className="whitespace-nowrap">
                                       {date}
