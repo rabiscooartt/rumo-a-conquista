@@ -1495,7 +1495,7 @@ export default function GameAchievementsPanel(
                               const date = formatJourneyDate(dateValue);
                               const liveUrl = String(meta?.liveUrl ?? "").trim();
                               const hasRecord = Boolean(episode || date || liveUrl);
-                              const episodeLabel = episode ? `EP ${episode}` : "LIVE";
+                              const episodeLabel = episode ? `EPISÓDIO ${episode}` : "LIVE";
 
                               if (!hasRecord) return null;
 
@@ -1506,7 +1506,7 @@ export default function GameAchievementsPanel(
                                       href={liveUrl}
                                       target="_blank"
                                       rel="noreferrer"
-                                      aria-label={episode ? `Abrir live EP ${episode} de ${gameTitle}` : `Abrir live da conquista ${achievement.title}`}
+                                      aria-label={episode ? `Abrir live do episódio ${episode} de ${gameTitle}` : `Abrir live da conquista ${achievement.title}`}
                                       title="Abrir live"
                                       className="inline-flex max-w-full items-center justify-center gap-1 rounded-md border border-sky-400/25 bg-sky-400/[.07] px-2 py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.01em] text-sky-200 transition hover:border-sky-300/45 hover:bg-sky-400/[.12] hover:text-sky-100"
                                     >
