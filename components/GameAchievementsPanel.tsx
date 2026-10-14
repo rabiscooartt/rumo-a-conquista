@@ -384,10 +384,10 @@ function getSortableDate(value?: string): number | null {
   if (!raw) return null;
 
   let normalized = "";
-  if (/^\\d{4}-\\d{2}-\\d{2}/.test(raw)) {
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
     normalized = raw.slice(0, 10);
   } else {
-    const dmy = raw.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+    const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
     if (dmy) {
       normalized = `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
     }
@@ -435,7 +435,7 @@ function sortAchievements(
 
   const episodeNumberFor = (achievement: AchievementInput) => {
     const episode = formatJourneyEpisode(metadataFor(achievement).episode);
-    if (!episode || !/^\\d+$/.test(episode)) return null;
+    if (!episode || !/^\d+$/.test(episode)) return null;
     const value = Number(episode);
     return Number.isFinite(value) ? value : null;
   };
