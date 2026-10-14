@@ -711,15 +711,7 @@ function getProgressPercent(game: BibliotecaGame, stats: AchievementStats) {
   return 0;
 }
 
-function GameCoverImage({
-  src,
-  title,
-  fit = "cover",
-}: {
-  src?: string;
-  title: string;
-  fit?: "cover" | "contain";
-}) {
+function GameCoverImage({ src, title }: { src?: string; title: string }) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -734,29 +726,6 @@ function GameCoverImage({
     );
   }
 
-  if (fit === "contain") {
-    return (
-      <div className="absolute inset-0 overflow-hidden bg-[#050608]">
-        <img
-          key={`background-${src}`}
-          src={src}
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover object-center opacity-35 blur-xl"
-          onError={() => setHasError(true)}
-        />
-        <div className="absolute inset-0 bg-black/25" />
-        <img
-          key={src}
-          src={src}
-          alt={title}
-          className="relative z-10 h-full w-full object-contain object-center brightness-95 contrast-105 transition duration-300 group-hover/card:brightness-100"
-          onError={() => setHasError(true)}
-        />
-      </div>
-    );
-  }
-
   return (
     <img
       key={src}
@@ -767,7 +736,6 @@ function GameCoverImage({
     />
   );
 }
-
 function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
   const [hasError, setHasError] = useState(false);
 
@@ -1140,7 +1108,7 @@ function GameGridCard({
       className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-2 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
       <div className="relative aspect-[5/6] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
-        <GameCoverImage src={cardImage} title={gameTitle} fit="contain" />
+        <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
           <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
