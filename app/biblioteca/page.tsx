@@ -1682,6 +1682,44 @@ function getRecentTimestamp(
   return fallback;
 }
 
+function getCompletionTimestamp(
+  game: BibliotecaGame,
+  activitySummary?: ActivitySummary
+) {
+  // Prefer dates saved explicitly for game completion, when available.
+  const explicitDates = [
+    game.completionDate,
+    game.completedAt,
+    game.completedDate,
+    game.finishedAt,
+    game.concludedAt,
+  ];
+
+  for (const value of explicitDates) {
+    const timestamp = parseDateTimestamp(value);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  // Some game records expose a displayed interval (start → completion).
+  // In that case, use its end date for ordering.
+  const displayedDate = formatGameDate(game);
+  if (displayedDate.includes("→")) {
+    const completionDate = displayedDate.split("→").pop()?.trim();
+    const timestamp = parseDateTimestamp(completionDate);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  // For other records, the latest dated achievement/activity is the best
+  // available proxy for completion; fall back to the game's saved timestamps.
+  const latestAchievement = getLatestAchievementDate(game);
+  if (!Number.isNaN(latestAchievement)) return latestAchievement;
+
+  const lastActivity = parseDateTimestamp(activitySummary?.lastDate);
+  if (!Number.isNaN(lastActivity)) return lastActivity;
+
+  return parseDateTimestamp(game.updatedAt ?? game.createdAt);
+}
+
 export default function BibliotecaPage() {
   const { gamesList, isLoaded } = useSiteGames();
   const { entries: journeyEntries } = useJourneyEntries();
@@ -1926,15 +1964,20 @@ export default function BibliotecaPage() {
       if (sortMode === "rating") return getGameRating(b) - getGameRating(a);
       if (sortMode === "progress") return getProgressPercent(b, getAchievementStats(b)) - getProgressPercent(a, getAchievementStats(a));
       if (sortMode === "startDate") return compareDateValues(aActivity?.firstDate ?? a.createdAt, bActivity?.firstDate ?? b.createdAt, true);
-      if (sortMode === "completionDate") return compareDateValues(a.updatedAt ?? a.createdAt, b.updatedAt ?? b.createdAt, true);
+      if (sortMode === "completionDate") {
+        return compareDateValues(
+          getCompletionTimestamp(b, bActivity),
+          getCompletionTimestamp(a, aActivity)
+        );
+      }
 
-      // Na abertura padrão da Biblioteca, os jogos ficam organizados por estado:
-      // Em progresso → Na fila → Finalizados. Dentro de cada grupo, mantemos
-      // uma ordem útil e automática para evitar uma lista visualmente misturada.
+      // Na ordenação padrão, os grupos aparecem em ordem fixa:
+      // Em progresso → Na fila → Finalizados → outros status.
+      // A conclusão sempre prevalece sobre qualquer marcação antiga de fila.
       const getStatusOrder = (game: BibliotecaGame) => {
         if (isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))) return 0;
-        if (isBacklogGame(game)) return 1;
         if (isCompletedGame(game)) return 2;
+        if (isBacklogGame(game)) return 1;
         return 3;
       };
 
@@ -1952,6 +1995,14 @@ export default function BibliotecaPage() {
         if (aQueueOrder !== -1 && bQueueOrder !== -1) return aQueueOrder - bQueueOrder;
         if (aQueueOrder !== -1) return -1;
         if (bQueueOrder !== -1) return 1;
+      }
+
+      if (aStatusOrder === 2) {
+        return compareDateValues(
+          getCompletionTimestamp(a, aActivity),
+          getCompletionTimestamp(b, bActivity),
+          true
+        );
       }
 
       const aRecent = getRecentTimestamp(a, aActivity);
