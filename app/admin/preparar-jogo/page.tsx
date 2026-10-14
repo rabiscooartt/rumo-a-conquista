@@ -641,9 +641,9 @@ function PrepararJogoPage() {
           const normalizeListValue = (value: unknown) =>
             String(value ?? "")
               .normalize("NFD")
-              .replace(/[\\u0300-\\u036f]/g, "")
+              .replace(/[\u0300-\u036f]/g, "")
               .toLocaleLowerCase("pt-BR")
-              .replace(/\\s+/g, " ")
+              .replace(/\s+/g, " ")
               .trim();
           const listSignature = (items: Array<{ name?: unknown; title?: unknown; description?: unknown }>) =>
             items
@@ -4835,7 +4835,7 @@ function PrepararJogoPage() {
           >
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-400/20 bg-amber-400/[.08]">
-                <icon className="hidden" />
+                
                 <span className="text-xl" aria-hidden="true">⚠️</span>
               </div>
               <div className="min-w-0 flex-1">
