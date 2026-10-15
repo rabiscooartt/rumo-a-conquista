@@ -172,56 +172,27 @@ export default function NewGamesAdminPage() {
       ? (selectedGame.review as Record<string, unknown>)
       : {};
 
-  const savedReviewDraft = selectedGame ? reviewDrafts[selectedGame.slug] : undefined;
-
-  // The private draft contains the detailed answers; the published review in
-  // the games record contains the final editorial fields. Merge both so an
-  // older draft cannot hide a title or summary that was already published.
-  function savedReviewResult(key: string, fallback = "") {
-    const value = reviewStringField(savedReview[key]);
-    return value.trim()
-      ? value
-      : reviewStringField(savedReviewDraft?.[key], fallback);
-  }
-
-  function savedAnswer(key: string, fallbackValue?: unknown) {
-    const draftValue = reviewStringField(savedReviewDraft?.[key]);
-    return draftValue.trim()
-      ? draftValue
-      : reviewStringField(fallbackValue);
-  }
-
   const reviewValues = selectedGame
-    ? {
-        ...(savedReviewDraft ?? {}),
+    ? reviewDrafts[selectedGame.slug] ?? {
         slug: selectedGame.slug,
-        status: savedReviewResult("status", "bloqueada"),
-        nota: savedReviewResult("nota"),
-        titulo: savedReviewResult("titulo", "Análise da Jornada"),
-        texto: savedReviewResult("texto"),
-        resumo: savedReviewResult("resumo").slice(0, 100),
-        fraseCartao: savedReviewResult("fraseCartao").slice(0, 100),
+        status: reviewStringField(savedReview.status, "bloqueada"),
+        nota: reviewStringField(savedReview.nota),
+        titulo: reviewStringField(savedReview.titulo, "Análise da Jornada"),
+        texto: reviewStringField(savedReview.texto),
+        resumo: reviewStringField(savedReview.resumo).slice(0, 100),
+        fraseCartao: reviewStringField(savedReview.fraseCartao).slice(0, 100),
         fichaNomeJogo: selectedGame.title || "",
-        historia: savedAnswer("historia", savedReview.historia),
-        jogabilidade: savedAnswer("jogabilidade", savedReview.jogabilidade),
-        direcaoArtistica: savedAnswer("direcaoArtistica", savedReview.direcaoArtistica),
-        trilhaSonora: savedAnswer("trilhaSonora", savedReview.trilhaSonora),
-        progressaoConquistas: savedAnswer("progressaoConquistas", savedReview.progressaoConquistas),
-        positivos: savedAnswer(
-          "positivos",
-          savedReview.positivos ?? savedReview.pontosFortes
-        ),
-        negativos: savedAnswer(
-          "negativos",
-          savedReview.negativos ?? savedReview.pontosFracos
-        ),
-        experienciaPessoal: savedAnswer("experienciaPessoal", savedReview.experienciaPessoal),
-        recomendacao: savedReviewResult("recomendacao", "Depende"),
-        recomendacaoExplicacao: savedAnswer(
-          "recomendacaoExplicacao",
-          savedReview.recomendacaoExplicacao
-        ),
-        fraseExperiencia: savedAnswer("fraseExperiencia", savedReview.fraseExperiencia),
+        historia: reviewStringField(savedReview.historia),
+        jogabilidade: reviewStringField(savedReview.jogabilidade),
+        direcaoArtistica: reviewStringField(savedReview.direcaoArtistica),
+        trilhaSonora: reviewStringField(savedReview.trilhaSonora),
+        progressaoConquistas: reviewStringField(savedReview.progressaoConquistas),
+        positivos: reviewListFieldText(savedReview.positivos ?? savedReview.pontosFortes),
+        negativos: reviewListFieldText(savedReview.negativos ?? savedReview.pontosFracos),
+        experienciaPessoal: reviewStringField(savedReview.experienciaPessoal),
+        recomendacao: reviewStringField(savedReview.recomendacao, "Depende"),
+        recomendacaoExplicacao: reviewStringField(savedReview.recomendacaoExplicacao),
+        fraseExperiencia: reviewStringField(savedReview.fraseExperiencia),
       }
     : null;
 
@@ -279,13 +250,77 @@ export default function NewGamesAdminPage() {
           }
         });
 
+        const currentSavedReview =
+          selectedGame?.review &&
+          typeof selectedGame.review === "object" &&
+          !Array.isArray(selectedGame.review)
+            ? (selectedGame.review as Record<string, unknown>)
+            : {};
+        const draftUpdatedAt = typeof saved.updatedAt === "string" ? Date.parse(saved.updatedAt) : NaN;
+        const gameUpdatedAt = typeof selectedGame?.updatedAt === "string" ? Date.parse(selectedGame.updatedAt) : NaN;
+        const draftIsNewer =
+          Number.isFinite(draftUpdatedAt) &&
+          (!Number.isFinite(gameUpdatedAt) || draftUpdatedAt >= gameUpdatedAt);
+
+        const recoveredResult = (key: string, fallback = "") => {
+          const draftValue = reviewStringField(recovered[key]);
+          const publishedValue = reviewStringField(currentSavedReview[key]);
+          if (draftIsNewer && Object.prototype.hasOwnProperty.call(recovered, key)) {
+            return draftValue;
+          }
+          if (publishedValue.trim()) return publishedValue;
+          return draftValue.trim() ? draftValue : fallback;
+        };
+
+        const recoveredAnswer = (key: string, fallbackValue?: unknown) => {
+          const draftValue = reviewStringField(recovered[key]);
+          if (draftValue.trim()) return draftValue;
+          return Array.isArray(fallbackValue)
+            ? reviewListFieldText(fallbackValue)
+            : reviewStringField(fallbackValue);
+        };
+
+        // Hydrate once: merge the latest saved source into the draft before the
+        // inputs become editable. This prevents a stale private draft from hiding
+        // published text without overriding the user's later keystrokes.
+        const hydrated: Record<string, string> = {
+          ...recovered,
+          slug,
+          status: recoveredResult("status", "bloqueada"),
+          nota: recoveredResult("nota"),
+          titulo: recoveredResult("titulo", "Análise da Jornada"),
+          texto: recoveredResult("texto"),
+          resumo: recoveredResult("resumo").slice(0, 100),
+          fraseCartao: recoveredResult("fraseCartao").slice(0, 100),
+          fichaNomeJogo: selectedGame?.title || recovered.fichaNomeJogo || "",
+          historia: recoveredAnswer("historia", currentSavedReview.historia),
+          jogabilidade: recoveredAnswer("jogabilidade", currentSavedReview.jogabilidade),
+          direcaoArtistica: recoveredAnswer("direcaoArtistica", currentSavedReview.direcaoArtistica),
+          trilhaSonora: recoveredAnswer("trilhaSonora", currentSavedReview.trilhaSonora),
+          progressaoConquistas: recoveredAnswer("progressaoConquistas", currentSavedReview.progressaoConquistas),
+          positivos: recoveredAnswer(
+            "positivos",
+            currentSavedReview.positivos ?? currentSavedReview.pontosFortes
+          ),
+          negativos: recoveredAnswer(
+            "negativos",
+            currentSavedReview.negativos ?? currentSavedReview.pontosFracos
+          ),
+          experienciaPessoal: recoveredAnswer("experienciaPessoal", currentSavedReview.experienciaPessoal),
+          recomendacao: recoveredResult("recomendacao", "Depende"),
+          recomendacaoExplicacao: recoveredAnswer(
+            "recomendacaoExplicacao",
+            currentSavedReview.recomendacaoExplicacao
+          ),
+          fraseExperiencia: recoveredAnswer("fraseExperiencia", currentSavedReview.fraseExperiencia),
+        };
+
         setReviewDrafts((current) => {
           if (current[slug]) return current;
-          return { ...current, [slug]: recovered };
+          return { ...current, [slug]: hydrated };
         });
 
         const updatedAt = typeof saved.updatedAt === "string" ? saved.updatedAt : "";
-        const displayDate = updatedAt ? new Date(updatedAt).toLocaleString("pt-BR") : "";
         setReviewDraftStatus(
           displayDate
             ? "Rascunho recuperado — último salvamento: " + displayDate
@@ -300,7 +335,7 @@ export default function NewGamesAdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedGame?.slug]);
+  }, [selectedGame?.slug, selectedGame?.updatedAt, selectedGame?.title, selectedGame?.review]);
 
   useEffect(() => {
     const slug = selectedGame?.slug ?? "";
