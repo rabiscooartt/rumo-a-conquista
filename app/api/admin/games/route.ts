@@ -948,6 +948,61 @@ export async function GET(request: NextRequest) {
     const gameRows = games ?? [];
     const reviewRepairOverrides = new Map<string, Record<string, unknown>>();
 
+    // Reconcile older records that already have a published review but were
+    // left in progress by an earlier version of the automatic-finalization flow.
+    // Run only for the Admin's full editor load, and persist the canonical status.
+    const reviewPublicationFinalizations = new Set<string>();
+    if (includeHiddenAchievements) {
+      const slugsToFinalize = gameRows
+        .filter((game) => {
+          const review =
+            game.review &&
+            typeof game.review === "object" &&
+            !Array.isArray(game.review)
+              ? (game.review as Record<string, unknown>)
+              : {};
+          const reviewStatus = normalizeText(review.status);
+          const isPublishedReview = [
+            "liberada",
+            "publicada",
+            "liberada / publicada",
+          ].includes(reviewStatus);
+          return isPublishedReview && normalizeText(game.status) !== "completed";
+        })
+        .map((game) => game.slug)
+        .filter(Boolean);
+
+      if (slugsToFinalize.length > 0) {
+        const { data: finalizedRows, error: finalizationError } = await client
+          .from("games")
+          .update({
+            status: "completed",
+            updated_at: new Date().toISOString(),
+          })
+          .in("slug", slugsToFinalize)
+          .select("slug, status");
+
+        if (finalizationError) throw finalizationError;
+
+        for (const row of finalizedRows ?? []) {
+          if (normalizeText(row.status) === "completed") {
+            reviewPublicationFinalizations.add(row.slug);
+          }
+        }
+
+        if (reviewPublicationFinalizations.size !== slugsToFinalize.length) {
+          throw new Error(
+            "O Admin identificou reviews publicadas, mas o banco não confirmou a finalização de todos os jogos."
+          );
+        }
+
+        console.info(
+          "[Games API] Jogos finalizados por já possuírem review publicada:",
+          [...reviewPublicationFinalizations]
+        );
+      }
+    }
+
     // One-time data repair for a confirmed cross-game review overwrite.
     // Hogwarts has a valid original review in data/games.ts; if the database
     // contains Crisol's title/text under Hogwarts' slug, restore the original
@@ -1107,6 +1162,9 @@ export async function GET(request: NextRequest) {
       const review = repairedReview ?? game.review;
       return {
         ...game,
+        ...(reviewPublicationFinalizations.has(game.slug)
+          ? { status: "completed" }
+          : {}),
         review,
         firstJourney: extractFirstJourney(review),
         youtubePlaylistUrl: extractYoutubePlaylistUrl(review),
@@ -1345,6 +1403,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ok: true,
         slug,
+        status: savedGame.status,
         review: mergedReview,
       });
     }
