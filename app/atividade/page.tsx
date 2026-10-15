@@ -2097,8 +2097,10 @@ export default function AtividadePage() {
                           const rawDate =
                             journeyMeta.date || getAchievementDate(achievement);
                           const achievementDate = rawDate ? getDateKey(rawDate) : "";
-                          const episodeLabel = formatActivityEpisode(journeyMeta.episode);
                           const liveUrl = String(journeyMeta.liveUrl || "").trim();
+                          const episodeLabel =
+                            formatActivityEpisode(journeyMeta.episode) ||
+                            (liveUrl ? "LIVE" : "");
                           const achievementTarget =
                             achievement.id?.trim() || achievement.title || "Conquista";
                           const gameSlug = achievement.gameSlug || "mouse-p-i-for-hire";
