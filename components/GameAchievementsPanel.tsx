@@ -572,6 +572,7 @@ export default function GameAchievementsPanel(
 ) {
   const searchParams = useSearchParams();
   const isEditMode = searchParams.get("editar") === "1";
+  const requestedAchievementId = searchParams.get("achievement")?.trim() ?? "";
 
   const gameSlug =
     props.gameSlug ?? props.slug ?? props.game?.slug ?? "jogo-sem-slug";
@@ -631,6 +632,7 @@ export default function GameAchievementsPanel(
   const [sortMode, setSortMode] = useState<SortMode>("rarity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [savedAchievementTitle, setSavedAchievementTitle] = useState("");
+  const [highlightedAchievementId, setHighlightedAchievementId] = useState("");
   const [achievementSearch, setAchievementSearch] = useState(() =>
     achievementSearchCache.get(gameSlug) ?? ""
   );
@@ -1186,8 +1188,55 @@ export default function GameAchievementsPanel(
     sortMode,
   ]);
 
+  useEffect(() => {
+    if (!requestedAchievementId) {
+      setHighlightedAchievementId("");
+      return;
+    }
+
+    // A busca pode ter ficado preenchida de uma visita anterior; limpe-a
+    // para garantir que o destino solicitado esteja presente na lista.
+    if (achievementSearch) {
+      achievementSearchCache.set(gameSlug, "");
+      setAchievementSearch("");
+      return;
+    }
+
+    const destination = allAchievements.find((achievement) => {
+      const id = achievement.id?.trim() || getAchievementKey(achievement);
+      return id === requestedAchievementId || achievement.title === requestedAchievementId;
+    });
+    if (!destination) return;
+
+    const achievementKey = getAchievementKey(destination);
+    const targetId = `achievement-${achievementKey}`;
+    const scrollTimeout = window.setTimeout(() => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      setHighlightedAchievementId(achievementKey);
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.focus({ preventScroll: true });
+    }, 250);
+    const highlightTimeout = window.setTimeout(() => {
+      setHighlightedAchievementId((current) =>
+        current === achievementKey ? "" : current
+      );
+    }, 6500);
+
+    return () => {
+      window.clearTimeout(scrollTimeout);
+      window.clearTimeout(highlightTimeout);
+    };
+  }, [
+    achievementSearch,
+    allAchievements,
+    gameSlug,
+    requestedAchievementId,
+  ]);
+
   return (
-    <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
+    <section id="conquistas" className="scroll-mt-24 overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909]">
       <div className="border-b border-white/[0.08] px-4 pb-4 pt-2.5 sm:px-5 sm:pb-5 sm:pt-3">
         <div className="flex flex-col gap-4">
           <div className="flex items-end justify-between gap-4">
@@ -1475,8 +1524,14 @@ export default function GameAchievementsPanel(
 
             return (
               <article
+                id={`achievement-${achievementKey}`}
                 key={achievement.id ?? achievement.title}
-                className={`relative border-l-2 border-b border-white/[0.06] transition ${
+                tabIndex={-1}
+                className={`relative border-l-2 border-b border-white/[0.06] transition duration-500 outline-none ${
+                  highlightedAchievementId === achievementKey
+                    ? "ring-2 ring-inset ring-red-400 bg-red-500/15 shadow-[0_0_35px_rgba(239,68,68,0.32)]"
+                    : ""
+                } ${
                   visuallyLocked
                     ? "border-l-white/10 achievement-row-bg--locked"
                     : isFinalMastery
