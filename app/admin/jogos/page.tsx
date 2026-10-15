@@ -681,6 +681,10 @@ export default function NewGamesAdminPage() {
             ? "Review publicada com sucesso. O jogo foi marcado automaticamente como Finalizado."
             : "Review salva com sucesso."
         );
+        if (shouldFinalizeGame) {
+          // Reload the authoritative game status after publishing to avoid showing stale editor state.
+          window.location.reload();
+        }
       } else {
         window.alert("Não foi possível salvar a review. Verifique os dados e tente novamente.");
       }

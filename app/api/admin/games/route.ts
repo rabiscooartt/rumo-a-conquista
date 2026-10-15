@@ -1313,9 +1313,17 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       };
 
-      // Publishing a review can finalize the game in the same database update.
-      // The admin only sends status="completed" when the review is "liberada".
-      if (typeof body.status === "string" && body.status.trim()) {
+      // Make publication the source of truth: any saved "liberada" review
+      // automatically finalizes the game in the same database update.
+      const normalizedReviewStatus = normalizeText(mergedReview.status);
+      const isPublishedReview = [
+        "liberada",
+        "publicada",
+        "liberada / publicada",
+      ].includes(normalizedReviewStatus);
+      if (isPublishedReview) {
+        reviewGameUpdate.status = "completed";
+      } else if (typeof body.status === "string" && body.status.trim()) {
         reviewGameUpdate.status = normalizeText(body.status);
       }
 
