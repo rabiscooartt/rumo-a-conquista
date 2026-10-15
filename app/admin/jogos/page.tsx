@@ -321,6 +321,7 @@ export default function NewGamesAdminPage() {
         });
 
         const updatedAt = typeof saved.updatedAt === "string" ? saved.updatedAt : "";
+        const displayDate = updatedAt ? new Date(updatedAt).toLocaleString("pt-BR") : "";
         setReviewDraftStatus(
           displayDate
             ? "Rascunho recuperado — último salvamento: " + displayDate
