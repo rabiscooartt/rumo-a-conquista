@@ -263,12 +263,14 @@ function getActivityTrophyMeta(achievement: AchievementLike) {
   const rank = normalizeKey(achievement.difficulty || achievement.rank);
   const symbol = String(achievement.trophy || achievement.icon || "").trim();
 
+  // Reuse the trophy artwork from the game's achievement page, without
+  // repeating a medal emoji or rank badge in the activity row.
   if (
     achievement.isEmblem ||
     rank.includes("saga") ||
     rank.includes("emblema")
   ) {
-    return { label: "Emblema da Saga", symbol: symbol || "🏆" };
+    return { label: "Emblema da Saga", image: "/images/trophies/maestria.png" };
   }
 
   if (
@@ -276,7 +278,7 @@ function getActivityTrophyMeta(achievement: AchievementLike) {
     rank.includes("extrema") ||
     symbol.includes("💎")
   ) {
-    return { label: "Maestria", symbol: symbol || "💎" };
+    return { label: "Maestria", image: "/images/trophies/maestria.png" };
   }
 
   if (
@@ -285,7 +287,7 @@ function getActivityTrophyMeta(achievement: AchievementLike) {
     symbol.includes("🥇") ||
     symbol.includes("🏆")
   ) {
-    return { label: "Ouro", symbol: symbol || "🥇" };
+    return { label: "Ouro", image: "/images/trophies/ouro.png" };
   }
 
   if (
@@ -293,10 +295,26 @@ function getActivityTrophyMeta(achievement: AchievementLike) {
     rank.includes("media") ||
     symbol.includes("🥈")
   ) {
-    return { label: "Prata", symbol: symbol || "🥈" };
+    return { label: "Prata", image: "/images/trophies/prata.png" };
   }
 
-  return { label: "Bronze", symbol: symbol || "🥉" };
+  return { label: "Bronze", image: "/images/trophies/bronze.png" };
+}
+
+function formatActivityDisplayDate(value?: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  const dateKey = getDateKey(raw);
+  const iso = String(dateKey || raw).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+
+  const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
+  if (dmy) {
+    return `${dmy[1].padStart(2, "0")}/${dmy[2].padStart(2, "0")}/${dmy[3]}`;
+  }
+
+  return String(dateKey || raw);
 }
 
 function formatActivityEpisode(value?: string) {
@@ -2096,7 +2114,7 @@ export default function AtividadePage() {
                           const trophyMeta = getActivityTrophyMeta(achievement);
                           const rawDate =
                             journeyMeta.date || getAchievementDate(achievement);
-                          const achievementDate = rawDate ? getDateKey(rawDate) : "";
+                          const achievementDate = formatActivityDisplayDate(rawDate);
                           const liveUrl = String(journeyMeta.liveUrl || "").trim();
                           const episodeLabel =
                             formatActivityEpisode(journeyMeta.episode) ||
@@ -2154,40 +2172,52 @@ export default function AtividadePage() {
                                       {achievement.description}
                                     </p>
                                   ) : null}
-                                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                                    <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.035] px-1.5 py-0.5 text-[9px] font-bold text-white/65">
-                                      <span>{trophyMeta.symbol}</span>
-                                      <span>{trophyMeta.label}</span>
-                                    </span>
-                                    <span className="truncate text-[9px] font-semibold text-red-300/75">
+                                  <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                                    <span className="h-1 w-1 shrink-0 rounded-full bg-red-400/70" aria-hidden="true" />
+                                    <span className="truncate text-[9px] font-semibold text-red-200/65">
                                       {achievement.gameTitle}
                                     </span>
                                   </div>
                                 </div>
                               </Link>
 
-                              <div className="flex shrink-0 flex-col items-end gap-1.5 pl-1">
-                                <span className="text-right text-[8px] font-bold tabular-nums text-white/35 sm:text-[9px]">
-                                  {achievementDate || "Data não informada"}
-                                </span>
-                                {episodeLabel ? (
-                                  liveUrl ? (
-                                    <a
-                                      href={liveUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      title={`Abrir conteúdo da conquista — ${episodeLabel}`}
-                                      className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[9px] font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20"
+                              <div className="flex shrink-0 items-center gap-1.5 pl-0.5 sm:gap-2.5 sm:pl-1">
+                                <img
+                                  src={trophyMeta.image}
+                                  alt=""
+                                  aria-label={trophyMeta.label}
+                                  title={trophyMeta.label}
+                                  className="h-7 w-7 shrink-0 object-contain drop-shadow-[0_0_7px_rgba(245,158,11,0.10)] sm:h-8 sm:w-8"
+                                  loading="lazy"
+                                />
+                                <div className="flex min-w-0 flex-col items-end gap-1.5">
+                                  {achievementDate ? (
+                                    <time
+                                      dateTime={getDateKey(rawDate)}
+                                      className="whitespace-nowrap text-right text-[8px] font-bold tabular-nums text-white/40 sm:text-[9px]"
                                     >
-                                      {episodeLabel}
-                                      <span aria-hidden="true">↗</span>
-                                    </a>
-                                  ) : (
-                                    <span className="rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[9px] font-black text-white/45">
-                                      {episodeLabel}
-                                    </span>
-                                  )
-                                ) : null}
+                                      {achievementDate}
+                                    </time>
+                                  ) : null}
+                                  {episodeLabel ? (
+                                    liveUrl ? (
+                                      <a
+                                        href={liveUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={`Abrir conteúdo da conquista — ${episodeLabel}`}
+                                        className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[9px] font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                                      >
+                                        {episodeLabel}
+                                        <span aria-hidden="true">↗</span>
+                                      </a>
+                                    ) : (
+                                      <span className="rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[9px] font-black text-white/45">
+                                        {episodeLabel}
+                                      </span>
+                                    )
+                                  ) : null}
+                                </div>
                               </div>
                             </article>
                           );
