@@ -1970,6 +1970,12 @@ export default function AtividadePage() {
                   <div className="p-3">
                     <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
                       {allCompletedAchievements
+                        // Por enquanto, a aba de conquistas mostra apenas Mouse.
+                        // As conquistas dos outros jogos permanecem salvas no sistema.
+                        .filter(
+                          (achievement) =>
+                            normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
+                        )
                         .filter((achievement) => {
                           const query =
                             normalizeKey(search);
