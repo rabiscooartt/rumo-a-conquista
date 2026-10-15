@@ -1483,8 +1483,8 @@ const hiddenGamesList = useMemo(() => {
 
     try {
       const isReviewOnlyUpdate =
-        Object.keys(update).length === 1 &&
-        Object.prototype.hasOwnProperty.call(update, "review");
+        Object.prototype.hasOwnProperty.call(update, "review") &&
+        Object.keys(update).every((key) => key === "review" || key === "status");
 
       if (isReviewOnlyUpdate) {
         const owningSlug = (reviewOwnerSlug || slug).trim();
@@ -1500,6 +1500,9 @@ const hiddenGamesList = useMemo(() => {
             slug,
             reviewOwnerSlug: owningSlug,
             review: nextGame.review ?? null,
+            ...(Object.prototype.hasOwnProperty.call(update, "status")
+              ? { status: String(nextGame.status || "").trim() }
+              : {}),
           }
         );
       } else {

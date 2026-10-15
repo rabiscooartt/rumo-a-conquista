@@ -660,7 +660,13 @@ export default function NewGamesAdminPage() {
         window.alert("O rascunho pertence a outro jogo. Selecione o jogo correto antes de salvar.");
         return;
       }
-      const ok = await updateGame(selectedGame.slug, { review }, reviewValues.slug);
+      const shouldFinalizeGame =
+        reviewValues.status.trim().toLowerCase() === "liberada";
+      const ok = await updateGame(
+        selectedGame.slug,
+        shouldFinalizeGame ? { review, status: "completed" } : { review },
+        reviewValues.slug
+      );
       if (ok) {
         setReviewDrafts((current) => ({
           ...current,
@@ -670,7 +676,11 @@ export default function NewGamesAdminPage() {
             resumo: review.resumo,
           },
         }));
-        window.alert("Review salva com sucesso.");
+        window.alert(
+          shouldFinalizeGame
+            ? "Review publicada com sucesso. O jogo foi marcado automaticamente como Finalizado."
+            : "Review salva com sucesso."
+        );
       } else {
         window.alert("Não foi possível salvar a review. Verifique os dados e tente novamente.");
       }

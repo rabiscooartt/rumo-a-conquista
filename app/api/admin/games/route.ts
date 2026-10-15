@@ -1308,14 +1308,22 @@ export async function POST(request: NextRequest) {
       const incomingReview = body.review as Record<string, unknown>;
       const mergedReview = { ...currentReview, ...incomingReview };
 
+      const reviewGameUpdate: Record<string, unknown> = {
+        review: mergedReview,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Publishing a review can finalize the game in the same database update.
+      // The admin only sends status="completed" when the review is "liberada".
+      if (typeof body.status === "string" && body.status.trim()) {
+        reviewGameUpdate.status = normalizeText(body.status);
+      }
+
       const { data: savedGame, error: saveReviewError } = await client
         .from("games")
-        .update({
-          review: mergedReview,
-          updated_at: new Date().toISOString(),
-        })
+        .update(reviewGameUpdate)
         .eq("slug", slug)
-        .select("slug")
+        .select("slug, status")
         .maybeSingle();
 
       if (saveReviewError) throw saveReviewError;
