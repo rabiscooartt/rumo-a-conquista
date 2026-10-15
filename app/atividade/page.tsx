@@ -303,7 +303,7 @@ function formatActivityEpisode(value?: string) {
   const raw = String(value || "").trim();
   if (!raw) return "";
 
-  const match = raw.match(/\\d+/);
+  const match = raw.match(/\d+/);
   if (!match) return raw;
 
   return `EP ${String(Number(match[0])).padStart(2, "0")}`;
@@ -2113,7 +2113,7 @@ export default function AtividadePage() {
                               <Link
                                 href={gameHref}
                                 aria-label={`Abrir ${achievement.title || "conquista"} na página de ${achievement.gameTitle}`}
-                                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-3.5"
+                                className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-3.5"
                               >
                                 <div className="h-[58px] w-[44px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black">
                                   {gameCover ? (
