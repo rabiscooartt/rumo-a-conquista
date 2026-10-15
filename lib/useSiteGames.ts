@@ -739,10 +739,10 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     hasConfiguredMastery
   );
 
-  // Uma Jornada de Estreia ativa implica que o jogo já está em progresso.
-  // Isso mantém Biblioteca, página do jogo e Admin coerentes.
+  // Uma Jornada de Estreia ativa mantém o jogo em progresso, a menos que
+  // ele já esteja explicitamente finalizado (por exemplo, ao publicar a review).
   const status =
-    firstJourney.status === "in_progress"
+    firstJourney.status === "in_progress" && rawStatus !== "completed"
       ? "progress"
       : rawStatus;
 
