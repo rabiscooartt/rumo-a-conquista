@@ -172,30 +172,57 @@ export default function NewGamesAdminPage() {
       ? (selectedGame.review as Record<string, unknown>)
       : {};
 
+  const savedReviewDraft = selectedGame ? reviewDrafts[selectedGame.slug] : undefined;
+
+  // The private draft contains the detailed answers; the published review in
+  // the games record contains the final editorial fields. Merge both so an
+  // older draft cannot hide a title or summary that was already published.
+  function savedReviewResult(key: string, fallback = "") {
+    const value = reviewStringField(savedReview[key]);
+    return value.trim()
+      ? value
+      : reviewStringField(savedReviewDraft?.[key], fallback);
+  }
+
+  function savedAnswer(key: string, fallbackValue?: unknown) {
+    const draftValue = reviewStringField(savedReviewDraft?.[key]);
+    return draftValue.trim()
+      ? draftValue
+      : reviewStringField(fallbackValue);
+  }
+
   const reviewValues = selectedGame
-    ? reviewDrafts[selectedGame.slug]
-      ? reviewDrafts[selectedGame.slug]
-      : {
-          slug: selectedGame.slug,
-          status: reviewStringField(savedReview.status, "bloqueada"),
-          nota: reviewStringField(savedReview.nota),
-          titulo: reviewStringField(savedReview.titulo, "Análise da Jornada"),
-          texto: reviewStringField(savedReview.texto),
-          resumo: reviewStringField(savedReview.resumo).slice(0, 100),
-          fraseCartao: reviewStringField(savedReview.fraseCartao).slice(0, 100),
-          fichaNomeJogo: selectedGame.title || "",
-          historia: "",
-          jogabilidade: "",
-          direcaoArtistica: "",
-          trilhaSonora: "",
-          progressaoConquistas: "",
-          positivos: reviewListFieldText(savedReview.positivos ?? savedReview.pontosFortes),
-          negativos: reviewListFieldText(savedReview.negativos ?? savedReview.pontosFracos),
-          experienciaPessoal: "",
-          recomendacao: "Depende",
-          recomendacaoExplicacao: "",
-          fraseExperiencia: "",
-        }
+    ? {
+        ...(savedReviewDraft ?? {}),
+        slug: selectedGame.slug,
+        status: savedReviewResult("status", "bloqueada"),
+        nota: savedReviewResult("nota"),
+        titulo: savedReviewResult("titulo", "Análise da Jornada"),
+        texto: savedReviewResult("texto"),
+        resumo: savedReviewResult("resumo").slice(0, 100),
+        fraseCartao: savedReviewResult("fraseCartao").slice(0, 100),
+        fichaNomeJogo: selectedGame.title || "",
+        historia: savedAnswer("historia", savedReview.historia),
+        jogabilidade: savedAnswer("jogabilidade", savedReview.jogabilidade),
+        direcaoArtistica: savedAnswer("direcaoArtistica", savedReview.direcaoArtistica),
+        trilhaSonora: savedAnswer("trilhaSonora", savedReview.trilhaSonora),
+        progressaoConquistas: savedAnswer("progressaoConquistas", savedReview.progressaoConquistas),
+        positivos: savedAnswer(
+          "positivos",
+          savedReview.positivos ?? savedReview.pontosFortes
+        ),
+        negativos: savedAnswer(
+          "negativos",
+          savedReview.negativos ?? savedReview.pontosFracos
+        ),
+        experienciaPessoal: savedAnswer("experienciaPessoal", savedReview.experienciaPessoal),
+        recomendacao: savedReviewResult("recomendacao", "Depende"),
+        recomendacaoExplicacao: savedAnswer(
+          "recomendacaoExplicacao",
+          savedReview.recomendacaoExplicacao
+        ),
+        fraseExperiencia: savedAnswer("fraseExperiencia", savedReview.fraseExperiencia),
+      }
     : null;
 
   function patchReviewDraft(patch: Record<string, string>) {
@@ -668,18 +695,66 @@ export default function NewGamesAdminPage() {
         reviewValues.slug
       );
       if (ok) {
+        const latestReviewDraft: Record<string, string> = {
+          ...reviewValues,
+          slug: selectedGame.slug,
+          status: review.status,
+          nota: review.nota,
+          titulo: review.titulo,
+          texto: review.texto,
+          resumo: review.resumo,
+          fraseCartao: review.fraseCartao,
+          recomendacao: review.recomendacao,
+          recomendacaoExplicacao: review.recomendacaoExplicacao,
+        };
+
         setReviewDrafts((current) => ({
           ...current,
-          [selectedGame.slug]: {
-            ...reviewValues,
-            slug: selectedGame.slug,
-            resumo: review.resumo,
-          },
+          [selectedGame.slug]: latestReviewDraft,
         }));
+
+        let privateDraftSynced = false;
+        try {
+          const draftResponse = await fetch("/api/admin/game-review-draft", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            cache: "no-store",
+            body: JSON.stringify({
+              slug: selectedGame.slug,
+              draft: latestReviewDraft,
+            }),
+          });
+          const draftPayload = (await draftResponse.json().catch(() => null)) as
+            | { saved?: boolean; updatedAt?: string; error?: string }
+            | null;
+          privateDraftSynced = draftResponse.ok && draftPayload?.saved === true;
+
+          if (privateDraftSynced) {
+            const displayDate = draftPayload?.updatedAt
+              ? new Date(draftPayload.updatedAt).toLocaleString("pt-BR")
+              : new Date().toLocaleString("pt-BR");
+            setReviewDraftStatus(
+              "Review salva e ficha completa atualizada em " + displayDate + "."
+            );
+          } else {
+            setReviewDraftStatus(
+              "Review salva, mas não foi possível atualizar o rascunho privado. Use “Salvar rascunho” para guardar as últimas alterações."
+            );
+          }
+        } catch {
+          setReviewDraftStatus(
+            "Review salva, mas não foi possível atualizar o rascunho privado. Use “Salvar rascunho” para guardar as últimas alterações."
+          );
+        }
+
         window.alert(
           shouldFinalizeGame
-            ? "Review publicada com sucesso. O jogo foi marcado automaticamente como Finalizado."
-            : "Review salva com sucesso."
+            ? privateDraftSynced
+              ? "Review publicada com sucesso. O jogo foi marcado como Finalizado e a ficha completa foi preservada para futuras edições."
+              : "Review publicada e jogo marcado como Finalizado. Atenção: não foi possível atualizar o rascunho privado; salve o rascunho para preservar alterações recentes."
+            : privateDraftSynced
+              ? "Review salva com sucesso. A ficha completa foi preservada para futuras edições."
+              : "Review salva, mas não foi possível atualizar o rascunho privado. Use “Salvar rascunho” para guardar as últimas alterações."
         );
         if (shouldFinalizeGame) {
           // Reload the authoritative game status after publishing to avoid showing stale editor state.
