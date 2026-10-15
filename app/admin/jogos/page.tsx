@@ -89,10 +89,10 @@ export default function NewGamesAdminPage() {
   const [selectedSlug, setSelectedSlug] = useState("");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [generatingReview, setGeneratingReview] = useState(false);
+  const [copyingReview, setCopyingReview] = useState(false);
   const [savingReviewDraft, setSavingReviewDraft] = useState(false);
   const [reviewDraftStatus, setReviewDraftStatus] = useState("");
-  const [reviewGenerateError, setReviewGenerateError] = useState("");
+  const [reviewCopyError, setReviewCopyError] = useState("");
   const [restoringMouse, setRestoringMouse] = useState(false);
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, Record<string, string>>>({});
@@ -533,97 +533,109 @@ export default function NewGamesAdminPage() {
     }
   }
 
-  async function generateReviewSummary() {
-    if (!selectedGame || !reviewValues || generatingReview) return;
-
-    const answers = {
-      historia: reviewValues.historia,
-      jogabilidade: reviewValues.jogabilidade,
-      direcaoArtistica: reviewValues.direcaoArtistica,
-      trilhaSonora: reviewValues.trilhaSonora,
-      progressaoConquistas: reviewValues.progressaoConquistas,
-      pontosPositivos: reviewValues.positivos,
-      pontosNegativos: reviewValues.negativos,
-      experienciaPessoal: reviewValues.experienciaPessoal,
-      notaFinal: reviewValues.nota,
-      recomendacao: reviewValues.recomendacao,
-      recomendacaoExplicacao: reviewValues.recomendacaoExplicacao,
-      resumoDaExperiencia: reviewValues.fraseExperiencia,
-    };
+  async function copyReviewForSummary() {
+    if (!selectedGame || !reviewValues || copyingReview) return;
 
     const descriptiveAnswers = [
-      answers.historia,
-      answers.jogabilidade,
-      answers.direcaoArtistica,
-      answers.trilhaSonora,
-      answers.progressaoConquistas,
-      answers.pontosPositivos,
-      answers.pontosNegativos,
-      answers.experienciaPessoal,
-      answers.recomendacaoExplicacao,
-      answers.resumoDaExperiencia,
+      reviewValues.historia,
+      reviewValues.jogabilidade,
+      reviewValues.direcaoArtistica,
+      reviewValues.trilhaSonora,
+      reviewValues.progressaoConquistas,
+      reviewValues.positivos,
+      reviewValues.negativos,
+      reviewValues.experienciaPessoal,
+      reviewValues.recomendacaoExplicacao,
+      reviewValues.fraseExperiencia,
     ];
     if (!descriptiveAnswers.some((value) => String(value || "").trim())) {
-      setReviewGenerateError("Preencha pelo menos uma resposta da ficha antes de gerar o resumo.");
+      setReviewCopyError("Preencha pelo menos uma resposta descritiva antes de copiar a ficha.");
       return;
     }
 
-    setGeneratingReview(true);
-    setReviewGenerateError("");
+    const showValue = (value: unknown) => {
+      const text = String(value ?? "").trim();
+      return text || "[Não preenchido]";
+    };
+
+    const content = [
+      "FICHA DE REVIEW — RUMO À CONQUISTA",
+      "",
+      "JOGO: " + selectedGame.title,
+      "",
+      "INSTRUÇÕES PARA O CHATGPT",
+      "Com base nas respostas abaixo, gere os quatro resultados da review. Escreva em português brasileiro, com texto natural, coeso, bem revisado e sem repetição desnecessária. Use somente os fatos e opiniões que forneci; não invente detalhes nem presuma informações ausentes. Conecte as respostas em uma análise que faça sentido e preserve minha opinião, minha experiência pessoal, os pontos positivos e negativos, minha recomendação e minha nota.",
+      "",
+      "Entregue exatamente estes quatro campos:",
+      "1. Título único da review.",
+      "2. Resumo principal em um parágrafo, com aproximadamente 300 caracteres.",
+      "3. Frase curta para o cartão da biblioteca, com no máximo 100 caracteres.",
+      "4. Frase curta para o cartão de avaliação na página do jogo, com no máximo 100 caracteres.",
+      "Os quatro textos devem se complementar, sem apenas repetir a mesma frase. Quando uma resposta estiver como [Não preenchido], não invente conteúdo para completá-la.",
+      "",
+      "RESPOSTAS DA FICHA",
+      "",
+      "1. Nome do jogo: " + selectedGame.title,
+      "2. História e narrativa: " + showValue(reviewValues.historia),
+      "3. Jogabilidade: " + showValue(reviewValues.jogabilidade),
+      "4. Gráficos e direção artística: " + showValue(reviewValues.direcaoArtistica),
+      "5. Trilha sonora e áudio: " + showValue(reviewValues.trilhaSonora),
+      "6. Progressão e conquistas: " + showValue(reviewValues.progressaoConquistas),
+      "7. Pontos positivos: " + showValue(reviewValues.positivos),
+      "8. Pontos negativos: " + showValue(reviewValues.negativos),
+      "9. Experiência pessoal: " + showValue(reviewValues.experienciaPessoal),
+      "10. Nota final (0 a 10): " + showValue(reviewValues.nota),
+      "11. Recomendaria o jogo?: " + showValue(reviewValues.recomendacao),
+      "Explicação da recomendação: " + showValue(reviewValues.recomendacaoExplicacao),
+      "12. Resumo da experiência em uma frase: " + showValue(reviewValues.fraseExperiencia),
+      "",
+      "RESULTADOS JÁ PRESENTES NO FORMULÁRIO (use como referência se estiverem preenchidos)",
+      "Título da review: " + showValue(reviewValues.titulo),
+      "Resumo principal: " + showValue(reviewValues.texto),
+      "Frase curta da biblioteca: " + showValue(reviewValues.fraseCartao),
+      "Frase curta do cartão na página do jogo: " + showValue(reviewValues.resumo),
+      "",
+      "Responda com os quatro campos identificados e prontos para eu copiar para o Admin do Rumo à Conquista."
+    ].join("\n");
+
+    setCopyingReview(true);
+    setReviewCopyError("");
     setReviewDraftStatus("");
-
     try {
-      const response = await fetch("/api/admin/generate-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        body: JSON.stringify({ gameTitle: selectedGame.title, answers }),
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | { titulo?: string; resumoPrincipal?: string; fraseCartao?: string; resumo?: string; error?: string }
-        | null;
-
-      if (!response.ok || !payload?.titulo || !payload.resumoPrincipal) {
-        throw new Error(payload?.error || "Não foi possível gerar o resumo.");
-      }
-
-      const nextValues: Record<string, string> = {
-        ...reviewValues,
-        titulo: payload.titulo,
-        texto: payload.resumoPrincipal,
-        fraseCartao: String(payload.fraseCartao || "").slice(0, 100),
-        resumo: String(payload.resumo || "").slice(0, 100),
-        slug: selectedGame.slug,
-      };
-      setReviewDrafts((current) => ({ ...current, [selectedGame.slug]: nextValues }));
-      setReviewDraftStatus("Resumo gerado. Salvando a ficha automaticamente como rascunho...");
-
-      try {
-        const draftResponse = await fetch("/api/admin/game-review-draft", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-          body: JSON.stringify({ slug: selectedGame.slug, draft: nextValues }),
-        });
-        const draftPayload = (await draftResponse.json().catch(() => null)) as
-          | { saved?: boolean; updatedAt?: string; error?: string }
-          | null;
-        if (!draftResponse.ok || !draftPayload?.saved) {
-          throw new Error(draftPayload?.error || "O resumo foi gerado, mas não foi possível salvar o rascunho automaticamente.");
+      let copied = false;
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        try {
+          await navigator.clipboard.writeText(content);
+          copied = true;
+        } catch {
+          copied = false;
         }
-        setReviewDraftStatus(
-          "Resumo gerado e rascunho salvo em " +
-            new Date(draftPayload.updatedAt || Date.now()).toLocaleString("pt-BR") + "."
-        );
-      } catch {
-        setReviewDraftStatus("Resumo gerado, mas ainda não foi salvo. Clique em “Salvar rascunho” para guardar.");
       }
+
+      if (!copied) {
+        const temporary = document.createElement("textarea");
+        temporary.value = content;
+        temporary.setAttribute("readonly", "");
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+        temporary.style.pointerEvents = "none";
+        document.body.appendChild(temporary);
+        temporary.select();
+        copied = document.execCommand("copy");
+        temporary.remove();
+      }
+
+      if (!copied) {
+        throw new Error("O navegador não permitiu copiar automaticamente. Tente novamente ou copie a ficha após selecionar o texto.");
+      }
+
+      setReviewDraftStatus("Ficha copiada! Abra a conversa de resumo do jogo e cole o conteúdo (Ctrl+V).");
     } catch (error) {
-      setReviewGenerateError(
-        error instanceof Error ? error.message : "Não foi possível gerar o resumo. Tente novamente."
+      setReviewCopyError(
+        error instanceof Error ? error.message : "Não foi possível copiar a ficha. Tente novamente."
       );
     } finally {
-      setGeneratingReview(false);
+      setCopyingReview(false);
     }
   }
 
@@ -1368,24 +1380,24 @@ export default function NewGamesAdminPage() {
                         />
                       </label>
 
-                      {reviewGenerateError && (
+                      {reviewCopyError && (
                         <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 text-sm leading-relaxed text-red-200">
-                          {reviewGenerateError}
+                          {reviewCopyError}
                         </p>
                       )}
 
                       <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-black/20 p-4">
                         <p aria-live="polite" className="text-xs leading-relaxed text-white/50">
-                          {reviewDraftStatus || "O rascunho será privado. Gerar resumo não publica a review."}
+                          {reviewDraftStatus || "O rascunho será privado. Copiar a ficha não publica a review."}
                         </p>
                         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-                          <button type="button" disabled={generatingReview || savingReviewDraft || saving} onClick={generateReviewSummary} className="rounded-xl border border-red-500/35 bg-red-500/15 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/25 disabled:cursor-wait disabled:opacity-50">
-                            {generatingReview ? "Gerando resumo..." : "Gerar resumo"}
+                          <button type="button" disabled={copyingReview || savingReviewDraft || saving} onClick={copyReviewForSummary} className="rounded-xl border border-red-500/35 bg-red-500/15 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/25 disabled:cursor-wait disabled:opacity-50">
+                            {copyingReview ? "Copiando ficha..." : "Copiar ficha para o resumo"}
                           </button>
-                          <button type="button" disabled={savingReviewDraft || generatingReview || saving} onClick={saveReviewDraft} className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-sky-100 transition hover:bg-sky-500/20 disabled:cursor-wait disabled:opacity-50">
+                          <button type="button" disabled={savingReviewDraft || copyingReview || saving} onClick={saveReviewDraft} className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-sky-100 transition hover:bg-sky-500/20 disabled:cursor-wait disabled:opacity-50">
                             {savingReviewDraft ? "Salvando rascunho..." : "Salvar rascunho"}
                           </button>
-                          <button type="button" disabled={saving || savingReviewDraft || generatingReview} onClick={saveReview} className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-50">
+                          <button type="button" disabled={saving || savingReviewDraft || copyingReview} onClick={saveReview} className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3 text-xs font-black uppercase tracking-[0.14em] text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-50">
                             {saving ? "Salvando..." : "Salvar / publicar review"}
                           </button>
                         </div>
