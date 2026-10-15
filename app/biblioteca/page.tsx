@@ -961,7 +961,7 @@ function GameRow({
   const isCompleted = isCompletedGame(game);
   const hasActivity = Boolean(activitySummary);
   const isProgress = isProgressGame(game, hasActivity);
-  const isBacklog = isBacklogGame(game) && !isProgress;
+  const isBacklog = !isCompleted && isBacklogGame(game) && !isProgress;
   const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Em progresso" : isBacklog ? "Na fila" : (game.status || "Não definido");
   const rating = getGameRating(game);
   const platform = getPlatformLabel(game);
@@ -1075,7 +1075,7 @@ function GameGridCard({
   const isCompleted = isCompletedGame(game);
   const hasActivity = Boolean(activitySummary);
   const isProgress = isProgressGame(game, hasActivity);
-  const isBacklog = isBacklogGame(game) && !isProgress;
+  const isBacklog = !isCompleted && isBacklogGame(game) && !isProgress;
   const statusLabel = isCompleted
     ? "Finalizado"
     : isProgress
@@ -1520,7 +1520,7 @@ function AnnualRecentGame({
   const progress = getProgressPercent(game, achievementStats);
   const isCompleted = isCompletedGame(game);
   const isProgress = isProgressGame(game, Boolean(activitySummary));
-  const isBacklog = isBacklogGame(game) && !isProgress;
+  const isBacklog = !isCompleted && isBacklogGame(game) && !isProgress;
   const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Jogando" : "Na fila";
   const statusClass = isCompleted
     ? "border-purple-500/20 bg-purple-500/10 text-purple-300"
