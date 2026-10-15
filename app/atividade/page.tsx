@@ -1977,67 +1977,96 @@ export default function AtividadePage() {
                             normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
                         )
                         .filter((achievement) => {
-                          const query =
-                            normalizeKey(search);
+                          const query = normalizeKey(search);
 
                           if (!query) return true;
 
                           return (
-                            normalizeKey(
-                              achievement.title
-                            ).includes(query) ||
-                            normalizeKey(
-                              achievement.gameTitle
-                            ).includes(query)
+                            normalizeKey(achievement.title).includes(query) ||
+                            normalizeKey(achievement.gameTitle).includes(query) ||
+                            normalizeKey(achievement.description).includes(query)
                           );
                         })
                         .slice(0, 40)
-                        .map((achievement, index) => (
-                          <article
-                            key={`${achievement.title}-${index}`}
-                            className="flex items-center gap-3 border-b border-white/[0.07] px-4 py-3 last:border-b-0"
-                          >
-                            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
-                              {getAchievementImage(
-                                achievement
-                              ) ? (
-                                <img
-                                  src={getAchievementImage(
-                                    achievement
-                                  )}
-                                  alt={
-                                    achievement.title ||
-                                    "Conquista"
-                                  }
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex h-full items-center justify-center text-white/40">
-                                  <IconTrophy className="h-4 w-4" />
-                                </div>
-                              )}
-                            </div>
+                        .map((achievement, index) => {
+                          const achievementGame = games.find(
+                            (game) =>
+                              normalizeKey(game.slug) ===
+                              normalizeKey(achievement.gameSlug)
+                          );
+                          const gameCover = getGameCover(
+                            achievementGame,
+                            achievement.gameSlug
+                          );
+                          const achievementImage = getAchievementImage(achievement);
+                          const achievementDate = getDateKey(
+                            getAchievementDate(achievement)
+                          );
 
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[13px] font-black text-white">
-                                {achievement.title ||
-                                  "Conquista"}
-                              </p>
+                          return (
+                            <article
+                              key={`${achievement.gameSlug}-${achievement.id || achievement.title}-${index}`}
+                              className="flex items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3.5 sm:px-4"
+                            >
+                              <div className="h-[58px] w-[44px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black">
+                                {gameCover ? (
+                                  <img
+                                    src={gameCover}
+                                    alt={`${achievement.gameTitle} — capa`}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="flex h-full items-center justify-center text-white/40">
+                                    <IconGamepad className="h-5 w-5" />
+                                  </div>
+                                )}
+                              </div>
 
-                              <p className="mt-1 truncate text-[10px] text-white/40">
-                                {achievement.gameTitle}
-                              </p>
-                            </div>
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-red-500/20 bg-black shadow-[inset_0_0_12px_rgba(239,68,68,0.06)] sm:h-12 sm:w-12">
+                                {achievementImage ? (
+                                  <img
+                                    src={achievementImage}
+                                    alt={achievement.title || "Conquista"}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <IconTrophy className="h-5 w-5 text-amber-400" />
+                                )}
+                              </div>
 
-                            <span className="text-[8px] font-bold text-white/25">
-                              {getDateKey(
-                                getAchievementDate(
-                                  achievement
-                                )
-                              )}
-                            </span>
-                          </article>
-                        ))}
+                              <div className="min-w-0 flex-1 py-0.5">
+                                <p className="text-[12px] font-black leading-snug text-white sm:text-[13px]">
+                                  {achievement.title || "Conquista"}
+                                </p>
+                                {achievement.description?.trim() ? (
+                                  <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-white/55 sm:text-[11px]">
+                                    {achievement.description}
+                                  </p>
+                                ) : null}
+                                <p className="mt-1 truncate text-[9px] font-semibold text-red-300/75">
+                                  {achievement.gameTitle}
+                                </p>
+                              </div>
+
+                              <span className="shrink-0 pl-1 text-right text-[8px] font-bold tabular-nums text-white/30 sm:text-[9px]">
+                                {achievementDate}
+                              </span>
+                            </article>
+                          );
+                        })}
+                      {allCompletedAchievements.filter(
+                        (achievement) =>
+                          normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
+                      ).length === 0 ? (
+                        <div className="px-6 py-12 text-center">
+                          <IconTrophy className="mx-auto h-7 w-7 text-white/20" />
+                          <p className="mt-3 text-[12px] font-bold text-white/55">
+                            Nenhuma conquista concluída de Mouse encontrada.
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
