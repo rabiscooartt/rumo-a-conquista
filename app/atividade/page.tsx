@@ -20,6 +20,12 @@ import {
 
 type ActivityTab = "jogos" | "conquistas" | "reviews";
 
+type AchievementJourneyMetaLike = {
+  episode?: string;
+  date?: string;
+  liveUrl?: string;
+};
+
 type GameLike = {
   slug?: string;
   title?: string;
@@ -32,6 +38,13 @@ type GameLike = {
   platforms?: string[];
   console?: string;
   achievementsList?: unknown[];
+  youtubeFirstLiveUrl?: string;
+  youtubeFirstLiveEpisode?: string;
+  firstJourney?: {
+    status?: string;
+    achievementIds?: string[];
+    achievementMeta?: Record<string, AchievementJourneyMetaLike>;
+  };
 };
 
 type AchievementLike = {
@@ -44,6 +57,11 @@ type AchievementLike = {
   earnedAt?: string;
   completedAt?: string;
   status?: string;
+  difficulty?: string;
+  rank?: string;
+  trophy?: string;
+  icon?: string;
+  isEmblem?: boolean;
 };
 
 function formatPlayedTime(minutes = 0) {
@@ -217,6 +235,78 @@ function getGameCover(game?: GameLike, slug?: string) {
     game?.image ||
     (slug ? `/images/games/${slug}/cover.jpg` : "")
   );
+}
+
+function getAchievementJourneyMeta(
+  game: GameLike | undefined,
+  achievement: AchievementLike
+): AchievementJourneyMetaLike {
+  const metadata = game?.firstJourney?.achievementMeta;
+  if (!metadata) return {};
+
+  const titleKey = `title:${normalizeKey(achievement.title)}`;
+  const candidates = [
+    achievement.id?.trim(),
+    titleKey,
+    achievement.title?.trim(),
+  ].filter((value): value is string => Boolean(value));
+
+  for (const key of candidates) {
+    const result = metadata[key];
+    if (result && typeof result === "object") return result;
+  }
+
+  return {};
+}
+
+function getActivityTrophyMeta(achievement: AchievementLike) {
+  const rank = normalizeKey(achievement.difficulty || achievement.rank);
+  const symbol = String(achievement.trophy || achievement.icon || "").trim();
+
+  if (
+    achievement.isEmblem ||
+    rank.includes("saga") ||
+    rank.includes("emblema")
+  ) {
+    return { label: "Emblema da Saga", symbol: symbol || "🏆" };
+  }
+
+  if (
+    rank.includes("diamante") ||
+    rank.includes("extrema") ||
+    symbol.includes("💎")
+  ) {
+    return { label: "Maestria", symbol: symbol || "💎" };
+  }
+
+  if (
+    rank.includes("ouro") ||
+    rank.includes("dificil") ||
+    symbol.includes("🥇") ||
+    symbol.includes("🏆")
+  ) {
+    return { label: "Ouro", symbol: symbol || "🥇" };
+  }
+
+  if (
+    rank.includes("prata") ||
+    rank.includes("media") ||
+    symbol.includes("🥈")
+  ) {
+    return { label: "Prata", symbol: symbol || "🥈" };
+  }
+
+  return { label: "Bronze", symbol: symbol || "🥉" };
+}
+
+function formatActivityEpisode(value?: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  const match = raw.match(/\\d+/);
+  if (!match) return raw;
+
+  return `EP ${String(Number(match[0])).padStart(2, "0")}`;
 }
 
 function getGamePlatform(game?: GameLike) {
@@ -1999,60 +2089,104 @@ export default function AtividadePage() {
                             achievement.gameSlug
                           );
                           const achievementImage = getAchievementImage(achievement);
-                          const achievementDate = getDateKey(
-                            getAchievementDate(achievement)
+                          const journeyMeta = getAchievementJourneyMeta(
+                            achievementGame,
+                            achievement
                           );
+                          const trophyMeta = getActivityTrophyMeta(achievement);
+                          const rawDate =
+                            journeyMeta.date || getAchievementDate(achievement);
+                          const achievementDate = rawDate ? getDateKey(rawDate) : "";
+                          const episodeLabel = formatActivityEpisode(journeyMeta.episode);
+                          const liveUrl = String(journeyMeta.liveUrl || "").trim();
+                          const achievementTarget =
+                            achievement.id?.trim() || achievement.title || "Conquista";
+                          const gameSlug = achievement.gameSlug || "mouse-p-i-for-hire";
+                          const gameHref =
+                            `/games/${gameSlug}?achievement=${encodeURIComponent(achievementTarget)}#conquistas`;
 
                           return (
                             <article
                               key={`${achievement.gameSlug}-${achievement.id || achievement.title}-${index}`}
                               className="flex items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3.5 sm:px-4"
                             >
-                              <div className="h-[58px] w-[44px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black">
-                                {gameCover ? (
-                                  <img
-                                    src={gameCover}
-                                    alt={`${achievement.gameTitle} — capa`}
-                                    className="h-full w-full object-cover"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div className="flex h-full items-center justify-center text-white/40">
-                                    <IconGamepad className="h-5 w-5" />
-                                  </div>
-                                )}
-                              </div>
+                              <Link
+                                href={gameHref}
+                                aria-label={`Abrir ${achievement.title || "conquista"} na página de ${achievement.gameTitle}`}
+                                className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-3.5"
+                              >
+                                <div className="h-[58px] w-[44px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black">
+                                  {gameCover ? (
+                                    <img
+                                      src={gameCover}
+                                      alt={`${achievement.gameTitle} — capa`}
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full items-center justify-center text-white/40">
+                                      <IconGamepad className="h-5 w-5" />
+                                    </div>
+                                  )}
+                                </div>
 
-                              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-red-500/20 bg-black shadow-[inset_0_0_12px_rgba(239,68,68,0.06)] sm:h-12 sm:w-12">
-                                {achievementImage ? (
-                                  <img
-                                    src={achievementImage}
-                                    alt={achievement.title || "Conquista"}
-                                    className="h-full w-full object-cover"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <IconTrophy className="h-5 w-5 text-amber-400" />
-                                )}
-                              </div>
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-red-500/20 bg-black shadow-[inset_0_0_12px_rgba(239,68,68,0.06)] sm:h-12 sm:w-12">
+                                  {achievementImage ? (
+                                    <img
+                                      src={achievementImage}
+                                      alt={achievement.title || "Conquista"}
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <IconTrophy className="h-5 w-5 text-amber-400" />
+                                  )}
+                                </div>
 
-                              <div className="min-w-0 flex-1 py-0.5">
-                                <p className="text-[12px] font-black leading-snug text-white sm:text-[13px]">
-                                  {achievement.title || "Conquista"}
-                                </p>
-                                {achievement.description?.trim() ? (
-                                  <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-white/55 sm:text-[11px]">
-                                    {achievement.description}
+                                <div className="min-w-0 flex-1 py-0.5">
+                                  <p className="text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[13px]">
+                                    {achievement.title || "Conquista"}
                                   </p>
-                                ) : null}
-                                <p className="mt-1 truncate text-[9px] font-semibold text-red-300/75">
-                                  {achievement.gameTitle}
-                                </p>
-                              </div>
+                                  {achievement.description?.trim() ? (
+                                    <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-white/55 sm:text-[11px]">
+                                      {achievement.description}
+                                    </p>
+                                  ) : null}
+                                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.035] px-1.5 py-0.5 text-[9px] font-bold text-white/65">
+                                      <span>{trophyMeta.symbol}</span>
+                                      <span>{trophyMeta.label}</span>
+                                    </span>
+                                    <span className="truncate text-[9px] font-semibold text-red-300/75">
+                                      {achievement.gameTitle}
+                                    </span>
+                                  </div>
+                                </div>
+                              </Link>
 
-                              <span className="shrink-0 pl-1 text-right text-[8px] font-bold tabular-nums text-white/30 sm:text-[9px]">
-                                {achievementDate}
-                              </span>
+                              <div className="flex shrink-0 flex-col items-end gap-1.5 pl-1">
+                                <span className="text-right text-[8px] font-bold tabular-nums text-white/35 sm:text-[9px]">
+                                  {achievementDate || "Data não informada"}
+                                </span>
+                                {episodeLabel ? (
+                                  liveUrl ? (
+                                    <a
+                                      href={liveUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title={`Abrir conteúdo da conquista — ${episodeLabel}`}
+                                      className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[9px] font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20"
+                                    >
+                                      {episodeLabel}
+                                      <span aria-hidden="true">↗</span>
+                                    </a>
+                                  ) : (
+                                    <span className="rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[9px] font-black text-white/45">
+                                      {episodeLabel}
+                                    </span>
+                                  )
+                                ) : null}
+                              </div>
                             </article>
                           );
                         })}
