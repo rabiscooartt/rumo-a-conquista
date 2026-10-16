@@ -317,6 +317,84 @@ function formatActivityDisplayDate(value?: string) {
   return dateKey;
 }
 
+type SteamAchievementRarity = {
+  percentage: number;
+  label: "Comum" | "Incomum" | "Rara" | "Muito rara";
+  colorClass: string;
+  barClass: string;
+};
+
+const STEAM_GLOBAL_UNLOCK_RATES: Record<string, number> = {
+  "mestre dos macetes": 22.2,
+  "armas, muitas armas": 22.3,
+  "taco tudo": 32.0,
+  "ta tudo nas cartas": 2.3,
+  "entao, quem foi?": 22.2,
+  "balada de betty borocoxo": 19.9,
+  "alivio comico": 52.4,
+  "detetive de romance de banca de jornal": 25.0,
+  "extra! extra!": 4.1,
+  "o martirio do magico misterioso": 12.7,
+  "verdadeiro detetive": 3.6,
+  "hora do b.a.n.g.": 5.7,
+  "o prologo": 4.7,
+  "misterios da mingua dos musaranhos": 19.3,
+  "essa e a minha espingarda": 41.0,
+  "de capa a capa": 42.2,
+  "romance muito grafico": 36.8,
+  "pessoal de papel": 56.3,
+  "as de bolso": 39.7,
+  "todo mundo ama pistolas de raio": 10.6,
+  "baralho de iniciante": 46.6,
+  "rato de baralho": 2.9,
+  "queijo e fumaca": 7.6,
+  "nossos irmaos menores": 11.2,
+  "tinsel boulevard": 15.2,
+  "felicidade do quint": 8.4,
+};
+
+function getSteamAchievementRarity(
+  achievement: AchievementLike
+): SteamAchievementRarity | null {
+  const key = normalizeKey(achievement.title);
+  const percentage = STEAM_GLOBAL_UNLOCK_RATES[key];
+  if (typeof percentage !== "number") return null;
+
+  if (percentage >= 50) {
+    return {
+      percentage,
+      label: "Comum",
+      colorClass: "text-emerald-300",
+      barClass: "bg-emerald-400",
+    };
+  }
+
+  if (percentage >= 25) {
+    return {
+      percentage,
+      label: "Incomum",
+      colorClass: "text-sky-300",
+      barClass: "bg-sky-400",
+    };
+  }
+
+  if (percentage >= 10) {
+    return {
+      percentage,
+      label: "Rara",
+      colorClass: "text-violet-300",
+      barClass: "bg-violet-400",
+    };
+  }
+
+  return {
+    percentage,
+    label: "Muito rara",
+    colorClass: "text-amber-300",
+    barClass: "bg-amber-400",
+  };
+}
+
 function isAchievementInFirstJourney(
   game: GameLike | undefined,
   achievement: AchievementLike
@@ -2162,6 +2240,13 @@ export default function AtividadePage() {
                       </div>
                     </div>
 
+                    <div className="mb-1 hidden grid-cols-[minmax(0,1fr)_116px_146px] items-center gap-3 px-3 pb-2 pt-1 text-[8px] font-black uppercase tracking-[0.16em] text-white/25 sm:grid sm:px-4">
+                      <span>Conquista</span>
+                      <span className="text-right" title="Percentual de jogadores Steam que desbloquearam a conquista. Consulta em 15/10/2026.">
+                        Raridade · Steam
+                      </span>
+                      <span className="text-right">Troféu · Data · Jornada</span>
+                    </div>
                     <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
                       {mouseAchievements
                         .filter((achievement) => {
@@ -2186,6 +2271,7 @@ export default function AtividadePage() {
                           const isFirstJourneyAchievement =
                             isAchievementInFirstJourney(achievementGame, achievement);
                           const trophyMeta = getActivityTrophyMeta(achievement);
+                          const steamRarity = getSteamAchievementRarity(achievement);
                           const rawDate =
                             journeyMeta.date || getAchievementDate(achievement);
                           const achievementDate = formatActivityDisplayDate(rawDate);
@@ -2240,7 +2326,42 @@ export default function AtividadePage() {
                                 </div>
                               </Link>
 
-                              <div className="flex shrink-0 items-center gap-1.5 pl-0.5 sm:gap-2.5 sm:pl-1">
+                              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                                <div
+                                  className="hidden w-[104px] shrink-0 flex-col items-end gap-1.5 sm:flex"
+                                  title={
+                                    steamRarity
+                                      ? `Desbloqueada por ${steamRarity.percentage.toFixed(1).replace(".", ",")}% dos jogadores Steam; consulta de 15/10/2026.`
+                                      : "Conquista personalizada do Rumo à Conquista; sem percentual global da Steam."
+                                  }
+                                >
+                                  {steamRarity ? (
+                                    <>
+                                      <span className={`text-[13px] font-black leading-none tabular-nums ${steamRarity.colorClass}`}>
+                                        {steamRarity.percentage.toFixed(1).replace(".", ",")}%
+                                      </span>
+                                      <span className={`text-[8px] font-black uppercase tracking-[0.12em] ${steamRarity.colorClass}`}>
+                                        {steamRarity.label}
+                                      </span>
+                                      <span className="h-[3px] w-[58px] overflow-hidden rounded-full bg-white/[0.07]">
+                                        <span
+                                          className={`block h-full rounded-full ${steamRarity.barClass}`}
+                                          style={{ width: `${Math.max(3, Math.min(100, steamRarity.percentage))}%` }}
+                                        />
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="text-[8px] font-black uppercase tracking-[0.12em] text-red-300/80">
+                                        Exclusiva RC
+                                      </span>
+                                      <span className="text-[8px] text-white/25">
+                                        Dado personalizado
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+
                                 <img
                                   src={trophyMeta.image}
                                   alt=""
@@ -2249,7 +2370,8 @@ export default function AtividadePage() {
                                   className="h-6 w-6 shrink-0 object-contain drop-shadow-[0_0_6px_rgba(245,158,11,0.12)] sm:h-7 sm:w-7"
                                   loading="lazy"
                                 />
-                                <div className="flex min-w-0 flex-col items-end gap-1.5">
+
+                                <div className="flex w-[112px] shrink-0 flex-col items-end gap-1.5 sm:w-[120px]">
                                   {achievementDate ? (
                                     <time
                                       dateTime={getDateKey(rawDate)}
@@ -2258,57 +2380,53 @@ export default function AtividadePage() {
                                       {achievementDate}
                                     </time>
                                   ) : null}
-                                  {episodeLabel ? (
+
+                                  {isFirstJourneyAchievement ? (
+                                    liveUrl && episodeLabel ? (
+                                      <a
+                                        href={liveUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={`Jornada de Estreia — abrir o episódio ${episodeLabel}`}
+                                        className="inline-flex items-center gap-1 rounded-md border border-emerald-400/35 bg-emerald-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.04em] text-emerald-200 transition hover:border-emerald-300/55 hover:bg-emerald-500/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:text-[9px]"
+                                      >
+                                        <span aria-hidden="true">✦</span>
+                                        Jornada · {episodeLabel}
+                                        <span aria-hidden="true">↗</span>
+                                      </a>
+                                    ) : (
+                                      <span
+                                        title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado."
+                                        className="inline-flex items-center gap-1 rounded-md border border-emerald-400/35 bg-emerald-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.04em] text-emerald-200 sm:text-[9px]"
+                                      >
+                                        <span aria-hidden="true">✦</span>
+                                        Jornada de Estreia
+                                      </span>
+                                    )
+                                  ) : ambiguousEpisodeLink ? (
+                                    <span
+                                      title="O vínculo individual deste episódio ainda precisa ser confirmado."
+                                      className="inline-flex items-center rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[8px] font-bold text-white/35 sm:text-[9px]"
+                                    >
+                                      EP a confirmar
+                                    </span>
+                                  ) : episodeLabel ? (
                                     liveUrl ? (
                                       <a
                                         href={liveUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        title={
-                                          isFirstJourneyAchievement
-                                            ? `Jornada de Estreia — abrir conteúdo da conquista: ${episodeLabel}`
-                                            : `Abrir conteúdo da conquista — ${episodeLabel}`
-                                        }
-                                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${
-                                          isFirstJourneyAchievement
-                                            ? "border-amber-400/35 bg-amber-400/[0.08] text-amber-100 hover:border-amber-300/50 hover:bg-amber-400/[0.14]"
-                                            : "border-red-500/30 bg-red-500/10 text-red-200 hover:border-red-400/50 hover:bg-red-500/20"
-                                        }`}
+                                        title={`Abrir conteúdo da conquista — ${episodeLabel}`}
+                                        className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[9px] font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                                       >
-                                        {isFirstJourneyAchievement ? <span aria-hidden="true">✦</span> : null}
                                         {episodeLabel}
                                         <span aria-hidden="true">↗</span>
                                       </a>
                                     ) : (
-                                      <span
-                                        title={
-                                          isFirstJourneyAchievement
-                                            ? "Jornada de Estreia"
-                                            : episodeLabel
-                                        }
-                                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-black ${
-                                          isFirstJourneyAchievement
-                                            ? "border-amber-400/25 bg-amber-400/[0.06] text-amber-100/80"
-                                            : "border-white/10 bg-white/[0.025] text-white/45"
-                                        }`}
-                                      >
-                                        {isFirstJourneyAchievement ? <span aria-hidden="true">✦</span> : null}
+                                      <span className="rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[9px] font-black text-white/45">
                                         {episodeLabel}
                                       </span>
                                     )
-                                  ) : isFirstJourneyAchievement ? (
-                                    <span
-                                      title="Conquista selecionada para a Jornada de Estreia; episódio individual ainda precisa ser confirmado."
-                                      className="inline-flex items-center gap-1 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2 py-1 text-[9px] font-black text-amber-100/80"
-                                    >
-                                      <span aria-hidden="true">✦</span>
-                                      ESTREIA
-                                    </span>
-                                  ) : null}
-                                  {ambiguousEpisodeLink ? (
-                                    <span className="max-w-[112px] text-right text-[7px] leading-tight text-white/25">
-                                      EP a confirmar
-                                    </span>
                                   ) : null}
                                 </div>
                               </div>
