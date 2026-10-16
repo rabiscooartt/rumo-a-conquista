@@ -356,7 +356,7 @@ function isSharedDefaultEpisodeAssociation(meta: AchievementJourneyMetaLike) {
   // confirmed individual episode link until it has been reviewed.
   return (
     /^ep\s*0?1$/i.test(episode) &&
-    liveUrl.includes("wabb-jgzmw") &&
+    liveUrl.includes("wabdb-jgzmw") &&
     !hasIndividualDate
   );
 }
