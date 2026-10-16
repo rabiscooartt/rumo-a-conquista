@@ -2217,20 +2217,20 @@ export default function AtividadePage() {
                                       </div>
 
                                       <div className="min-w-0 flex-1 py-0.5">
-                                        <p className="text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[14px]">{achievement.title || "Conquista"}</p>
-                                        {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[10px] leading-[1.45] text-white/65 sm:text-[11px]">{achievement.description}</p> : null}
-                                        <p className="mt-1 truncate text-[9px] font-medium text-slate-400 sm:text-[10px]">{achievement.gameTitle || "Jogo"}</p>
+                                        <p className="text-[13px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[15px]">{achievement.title || "Conquista"}</p>
+                                        {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[11px] leading-[1.5] text-white/70 sm:text-[12px]">{achievement.description}</p> : null}
+                                        <p className="mt-1 truncate text-[10px] font-medium text-slate-300/75 sm:text-[11px]">{achievement.gameTitle || "Jogo"}</p>
                                       </div>
                                     </Link>
 
-                                    <div className="flex max-w-[95px] shrink-0 flex-col items-end gap-1.5 sm:max-w-[132px] sm:flex-row sm:items-center sm:gap-2.5">
+                                    <div className="flex w-[86px] shrink-0 flex-col items-end gap-1.5 sm:w-[166px] sm:flex-row sm:items-center sm:gap-2.5">
                                       <img src={trophy.image} alt={trophy.label} title={trophy.label} className="h-5 w-5 shrink-0 object-contain sm:h-7 sm:w-7" loading="lazy" />
                                       <div className="flex min-w-0 flex-col items-end gap-1">
                                         {firstJourney ? (
                                           liveUrl && episode ? (
-                                            <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Jornada de Estreia — abrir o episódio " + episode} className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada · {episode}</span></a>
+                                            <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Jornada de Estreia — abrir o episódio " + episode} className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span>Jornada · {episode}</span></a>
                                           ) : (
-                                            <span title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado." className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada de Estreia</span></span>
+                                            <span title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado." className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="sm:hidden">Estreia</span><span className="hidden sm:inline">Jornada de Estreia</span></span>
                                           )
                                         ) : episode ? (
                                           liveUrl ? <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Abrir conteúdo da conquista — " + episode} className="inline-flex items-center gap-1 rounded-md border border-red-500/25 bg-red-500/[0.07] px-1.5 py-1 text-[7px] font-black text-red-200 sm:px-2 sm:text-[8px]">{episode}<span aria-hidden="true">↗</span></a> : <span className="rounded-md border border-white/10 bg-white/[0.025] px-1.5 py-1 text-[7px] font-black text-white/45 sm:px-2 sm:text-[8px]">{episode}</span>
