@@ -305,16 +305,35 @@ function formatActivityDisplayDate(value?: string) {
   const raw = String(value || "").trim();
   if (!raw) return "";
 
-  const dateKey = getDateKey(raw);
-  const iso = String(dateKey || raw).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  const dateKey = String(getDateKey(raw) || raw).trim();
+  const iso = dateKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
 
   const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
   if (dmy) {
-    return `${dmy[1].padStart(2, "0")}/${dmy[2].padStart(2, "0")}/${dmy[3]}`;
+    return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
   }
 
-  return String(dateKey || raw);
+  return dateKey;
+}
+
+function isAchievementInFirstJourney(
+  game: GameLike | undefined,
+  achievement: AchievementLike
+) {
+  const selectedIds = game?.firstJourney?.achievementIds ?? [];
+  const id = String(achievement.id || "").trim();
+  const normalizedTitle = normalizeKey(achievement.title);
+  const titleKey = `title:${normalizedTitle}`;
+
+  return selectedIds.some((selectedId) => {
+    const candidate = String(selectedId || "").trim();
+    return (
+      candidate === id ||
+      candidate === titleKey ||
+      normalizeKey(candidate) === normalizedTitle
+    );
+  });
 }
 
 function formatActivityEpisode(value?: string) {
@@ -2111,6 +2130,8 @@ export default function AtividadePage() {
                             achievementGame,
                             achievement
                           );
+                          const isFirstJourneyAchievement =
+                            isAchievementInFirstJourney(achievementGame, achievement);
                           const trophyMeta = getActivityTrophyMeta(achievement);
                           const rawDate =
                             journeyMeta.date || getAchievementDate(achievement);
@@ -2187,7 +2208,7 @@ export default function AtividadePage() {
                                   alt=""
                                   aria-label={trophyMeta.label}
                                   title={trophyMeta.label}
-                                  className="h-7 w-7 shrink-0 object-contain drop-shadow-[0_0_7px_rgba(245,158,11,0.10)] sm:h-8 sm:w-8"
+                                  className="h-6 w-6 shrink-0 object-contain drop-shadow-[0_0_6px_rgba(245,158,11,0.12)] sm:h-7 sm:w-7"
                                   loading="lazy"
                                 />
                                 <div className="flex min-w-0 flex-col items-end gap-1.5">
@@ -2205,14 +2226,35 @@ export default function AtividadePage() {
                                         href={liveUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        title={`Abrir conteúdo da conquista — ${episodeLabel}`}
-                                        className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[9px] font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                                        title={
+                                          isFirstJourneyAchievement
+                                            ? `Jornada de Estreia — abrir conteúdo da conquista: ${episodeLabel}`
+                                            : `Abrir conteúdo da conquista — ${episodeLabel}`
+                                        }
+                                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${
+                                          isFirstJourneyAchievement
+                                            ? "border-amber-400/35 bg-amber-400/[0.08] text-amber-100 hover:border-amber-300/50 hover:bg-amber-400/[0.14]"
+                                            : "border-red-500/30 bg-red-500/10 text-red-200 hover:border-red-400/50 hover:bg-red-500/20"
+                                        }`}
                                       >
+                                        {isFirstJourneyAchievement ? <span aria-hidden="true">✦</span> : null}
                                         {episodeLabel}
                                         <span aria-hidden="true">↗</span>
                                       </a>
                                     ) : (
-                                      <span className="rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[9px] font-black text-white/45">
+                                      <span
+                                        title={
+                                          isFirstJourneyAchievement
+                                            ? "Jornada de Estreia"
+                                            : episodeLabel
+                                        }
+                                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-black ${
+                                          isFirstJourneyAchievement
+                                            ? "border-amber-400/25 bg-amber-400/[0.06] text-amber-100/80"
+                                            : "border-white/10 bg-white/[0.025] text-white/45"
+                                        }`}
+                                      >
+                                        {isFirstJourneyAchievement ? <span aria-hidden="true">✦</span> : null}
                                         {episodeLabel}
                                       </span>
                                     )
