@@ -2173,12 +2173,12 @@ export default function AtividadePage() {
                     {groupedAchievementDiary.length ? (
                       <div className="space-y-1">
                         {groupedAchievementDiary.map((group) => (
-                          <section key={group.dateKey} className="grid grid-cols-[35px_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[42px_minmax(0,1fr)] sm:gap-3">
+                          <section key={group.dateKey} className="grid grid-cols-[38px_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[46px_minmax(0,1fr)] sm:gap-3">
                             <div className="flex flex-col items-center pt-5 text-center sm:pt-6">
-                              <span className="text-[20px] font-bold leading-none tabular-nums text-slate-300 sm:text-[23px]">
+                              <span className="text-[22px] font-bold leading-none tabular-nums text-slate-200 sm:text-[24px]">
                                 {group.dateKey === "sem-data" ? "—" : String(Number(group.dateKey.slice(8, 10)))}
                               </span>
-                              <span className="mt-1 text-[8px] font-black uppercase tracking-[0.06em] text-red-500 sm:text-[9px]">
+                              <span className="mt-1 text-[9px] font-black uppercase tracking-[0.08em] text-red-500 sm:text-[10px]">
                                 {group.dateKey === "sem-data" ? "S/D" : getMonthShort(group.dateKey)}
                               </span>
                             </div>
@@ -2200,7 +2200,7 @@ export default function AtividadePage() {
                                 return (
                                   <article key={[achievement.gameSlug,achievement.id || achievement.title,index].join("-")} className="flex items-center gap-2 border-b border-white/[0.07] px-2 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3 sm:py-3.5">
                                     <Link href={gameHref} aria-label={"Abrir " + (achievement.title || "conquista") + " na página de " + achievement.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-                                      <div className="flex h-[54px] w-[39px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[62px] sm:w-[45px]">
+                                      <div className="flex h-[62px] w-[45px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[64px] sm:w-[48px]">
                                         {cover ? (
                                           <img src={cover} alt={"Capa de " + (achievement.gameTitle || "jogo")} className="h-full w-full object-cover" loading="lazy" />
                                         ) : (
@@ -2208,7 +2208,7 @@ export default function AtividadePage() {
                                         )}
                                       </div>
 
-                                      <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[46px] sm:w-[46px]">
+                                      <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[48px] sm:w-[48px]">
                                         {getAchievementImage(achievement) ? (
                                           <img src={getAchievementImage(achievement)} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" />
                                         ) : (
@@ -2217,9 +2217,9 @@ export default function AtividadePage() {
                                       </div>
 
                                       <div className="min-w-0 flex-1 py-0.5">
-                                        <p className="text-[10px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[12px]">{achievement.title || "Conquista"}</p>
-                                        {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[9px] leading-snug text-white/55 sm:text-[10px]">{achievement.description}</p> : null}
-                                        <p className="mt-1 truncate text-[8px] font-medium text-white/35 sm:text-[9px]">{achievement.gameTitle || "Jogo"}</p>
+                                        <p className="text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[14px]">{achievement.title || "Conquista"}</p>
+                                        {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[10px] leading-[1.45] text-white/65 sm:text-[11px]">{achievement.description}</p> : null}
+                                        <p className="mt-1 truncate text-[9px] font-medium text-slate-400 sm:text-[10px]">{achievement.gameTitle || "Jogo"}</p>
                                       </div>
                                     </Link>
 
