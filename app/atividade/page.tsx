@@ -2155,7 +2155,9 @@ export default function AtividadePage() {
                 {activeTab === "conquistas" && (
                   <div className="p-3">
                     <header className="mb-4 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-gradient-to-r from-[#12090b] via-[#0b0b0d] to-[#090909] p-3.5 sm:p-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.08] text-red-300"><IconCalendar className="h-6 w-6" /></div>
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.08] text-red-300">
+                        <IconCalendar className="h-6 w-6" />
+                      </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-red-400 sm:text-[9px]">Seu progresso ao longo do tempo</p>
                         <h2 className="mt-1 text-[15px] font-black text-white sm:text-[17px]">Diário de conquistas</h2>
@@ -2167,58 +2169,78 @@ export default function AtividadePage() {
                         <span className="mt-1 text-[7px] font-bold text-white/30">{new Set(achievementDiary.map((item) => item.gameSlug || item.gameTitle)).size} jogos</span>
                       </div>
                     </header>
+
                     {groupedAchievementDiary.length ? (
-                      <div className="space-y-4">
+                      <div className="space-y-1">
                         {groupedAchievementDiary.map((group) => (
-                          <section key={group.dateKey} className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
-                            <div className="flex items-center justify-between gap-3 border-b border-white/[0.07] bg-white/[0.025] px-3 py-2.5 sm:px-4">
-                              <div className="flex min-w-0 items-center gap-2.5">
-                                <span className="h-5 w-1 shrink-0 rounded-full bg-red-500" />
-                                <IconCalendar className="h-3.5 w-3.5 shrink-0 text-red-300/75" />
-                                <h3 className="truncate text-[9px] font-black tracking-[0.08em] text-white/75 sm:text-[10px]">{group.dateKey === "sem-data" ? "DATA NÃO REGISTRADA" : formatActivityDiaryDate(group.dateKey)}</h3>
-                              </div>
-                              <span className="shrink-0 rounded-md border border-white/[0.08] px-2 py-1 text-[8px] font-bold text-white/35">{group.achievements.length} {group.achievements.length === 1 ? "conquista" : "conquistas"}</span>
+                          <section key={group.dateKey} className="grid grid-cols-[35px_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[42px_minmax(0,1fr)] sm:gap-3">
+                            <div className="flex flex-col items-center pt-5 text-center sm:pt-6">
+                              <span className="text-[20px] font-bold leading-none tabular-nums text-slate-300 sm:text-[23px]">
+                                {group.dateKey === "sem-data" ? "—" : String(Number(group.dateKey.slice(8, 10)))}
+                              </span>
+                              <span className="mt-1 text-[8px] font-black uppercase tracking-[0.06em] text-red-500 sm:text-[9px]">
+                                {group.dateKey === "sem-data" ? "S/D" : getMonthShort(group.dateKey)}
+                              </span>
                             </div>
-                            {group.achievements.map((achievement,index) => {
-                              const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
-                              const meta = getAchievementJourneyMeta(game,achievement);
-                              const firstJourney = isAchievementInFirstJourney(game,achievement);
-                              const trophy = getActivityTrophyMeta(achievement);
-                              const ambiguous = isSharedDefaultEpisodeAssociation(meta);
-                              const liveUrl = ambiguous ? "" : String(meta.liveUrl || "").trim();
-                              const episode = ambiguous ? "" : formatActivityEpisode(meta.episode) || (liveUrl ? "LIVE" : "");
-                              const target = achievement.id?.trim() || achievement.title || "Conquista";
-                              const slug = achievement.gameSlug || game?.slug || "";
-                              const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
-                              return (
-                                <article key={[achievement.gameSlug,achievement.id || achievement.title,index].join("-")} className="flex items-center gap-2.5 border-b border-white/[0.06] px-3 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3.5 sm:px-4 sm:py-3.5">
-                                  <Link href={gameHref} aria-label={"Abrir " + (achievement.title || "conquista") + " na página de " + achievement.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-3.5">
-                                    <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#080808] sm:h-[50px] sm:w-[50px]">
-                                      {getAchievementImage(achievement) ? <img src={getAchievementImage(achievement)} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" /> : <IconTrophy className="h-5 w-5 text-amber-400" />}
-                                    </div>
-                                    <div className="min-w-0 flex-1 py-0.5">
-                                      <p className="truncate text-[8px] font-black uppercase tracking-[0.11em] text-red-300/75">{achievement.gameTitle || "Jogo"}</p>
-                                      <p className="mt-0.5 text-[11px] font-black leading-snug text-white group-hover:text-red-100 sm:text-[12px]">{achievement.title || "Conquista"}</p>
-                                      {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[9px] leading-snug text-white/45 sm:text-[10px]">{achievement.description}</p> : null}
-                                    </div>
-                                  </Link>
-                                  <div className="flex max-w-[126px] shrink-0 flex-col items-end gap-1.5 sm:max-w-[150px] sm:flex-row sm:items-center sm:gap-2.5">
-                                    <img src={trophy.image} alt={trophy.label} title={trophy.label} className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7" loading="lazy" />
-                                    <div className="flex min-w-0 flex-col items-end gap-1">
-                                      {firstJourney ? (
-                                        liveUrl && episode ? (
-                                          <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Jornada de Estreia — abrir o episódio " + episode} className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada · {episode}</span></a>
+
+                            <div className="min-w-0 overflow-hidden border-y border-white/[0.08] bg-black/20">
+                              {group.achievements.map((achievement, index) => {
+                                const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
+                                const slug = achievement.gameSlug || game?.slug || "";
+                                const cover = getGameCover(game, slug);
+                                const meta = getAchievementJourneyMeta(game, achievement);
+                                const firstJourney = isAchievementInFirstJourney(game, achievement);
+                                const trophy = getActivityTrophyMeta(achievement);
+                                const ambiguous = isSharedDefaultEpisodeAssociation(meta);
+                                const liveUrl = ambiguous ? "" : String(meta.liveUrl || "").trim();
+                                const episode = ambiguous ? "" : formatActivityEpisode(meta.episode) || (liveUrl ? "LIVE" : "");
+                                const target = achievement.id?.trim() || achievement.title || "Conquista";
+                                const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
+
+                                return (
+                                  <article key={[achievement.gameSlug,achievement.id || achievement.title,index].join("-")} className="flex items-center gap-2 border-b border-white/[0.07] px-2 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3 sm:py-3.5">
+                                    <Link href={gameHref} aria-label={"Abrir " + (achievement.title || "conquista") + " na página de " + achievement.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                                      <div className="flex h-[54px] w-[39px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[62px] sm:w-[45px]">
+                                        {cover ? (
+                                          <img src={cover} alt={"Capa de " + (achievement.gameTitle || "jogo")} className="h-full w-full object-cover" loading="lazy" />
                                         ) : (
-                                          <span title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado." className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada de Estreia</span></span>
-                                        )
-                                      ) : episode ? (
-                                        liveUrl ? <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Abrir conteúdo da conquista — " + episode} className="inline-flex items-center gap-1 rounded-md border border-red-500/25 bg-red-500/[0.07] px-1.5 py-1 text-[8px] font-black text-red-200 sm:px-2">{episode}<span aria-hidden="true">↗</span></a> : <span className="rounded-md border border-white/10 bg-white/[0.025] px-1.5 py-1 text-[8px] font-black text-white/45 sm:px-2">{episode}</span>
-                                      ) : null}
+                                          <div className="flex h-full w-full items-center justify-center text-white/30"><IconGamepad className="h-4 w-4" /></div>
+                                        )}
+                                      </div>
+
+                                      <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[46px] sm:w-[46px]">
+                                        {getAchievementImage(achievement) ? (
+                                          <img src={getAchievementImage(achievement)} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" />
+                                        ) : (
+                                          <IconTrophy className="h-5 w-5 text-amber-400" />
+                                        )}
+                                      </div>
+
+                                      <div className="min-w-0 flex-1 py-0.5">
+                                        <p className="text-[10px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[12px]">{achievement.title || "Conquista"}</p>
+                                        {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[9px] leading-snug text-white/55 sm:text-[10px]">{achievement.description}</p> : null}
+                                        <p className="mt-1 truncate text-[8px] font-medium text-white/35 sm:text-[9px]">{achievement.gameTitle || "Jogo"}</p>
+                                      </div>
+                                    </Link>
+
+                                    <div className="flex max-w-[95px] shrink-0 flex-col items-end gap-1.5 sm:max-w-[132px] sm:flex-row sm:items-center sm:gap-2.5">
+                                      <img src={trophy.image} alt={trophy.label} title={trophy.label} className="h-5 w-5 shrink-0 object-contain sm:h-7 sm:w-7" loading="lazy" />
+                                      <div className="flex min-w-0 flex-col items-end gap-1">
+                                        {firstJourney ? (
+                                          liveUrl && episode ? (
+                                            <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Jornada de Estreia — abrir o episódio " + episode} className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada · {episode}</span></a>
+                                          ) : (
+                                            <span title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado." className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada de Estreia</span></span>
+                                          )
+                                        ) : episode ? (
+                                          liveUrl ? <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Abrir conteúdo da conquista — " + episode} className="inline-flex items-center gap-1 rounded-md border border-red-500/25 bg-red-500/[0.07] px-1.5 py-1 text-[7px] font-black text-red-200 sm:px-2 sm:text-[8px]">{episode}<span aria-hidden="true">↗</span></a> : <span className="rounded-md border border-white/10 bg-white/[0.025] px-1.5 py-1 text-[7px] font-black text-white/45 sm:px-2 sm:text-[8px]">{episode}</span>
+                                        ) : null}
+                                      </div>
                                     </div>
-                                  </div>
-                                </article>
-                              );
-                            })}
+                                  </article>
+                                );
+                              })}
+                            </div>
                           </section>
                         ))}
                       </div>
