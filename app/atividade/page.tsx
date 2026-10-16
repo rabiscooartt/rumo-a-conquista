@@ -2236,12 +2236,7 @@ export default function AtividadePage() {
                                       {achievement.description}
                                     </p>
                                   ) : null}
-                                  <div className="mt-2 flex items-center gap-1.5">
-                                    <span className="h-1 w-1 shrink-0 rounded-full bg-red-400/70" aria-hidden="true" />
-                                    <span className="text-[8px] font-semibold uppercase tracking-[0.08em] text-white/30">
-                                      Abrir conquista
-                                    </span>
-                                  </div>
+
                                 </div>
                               </Link>
 
