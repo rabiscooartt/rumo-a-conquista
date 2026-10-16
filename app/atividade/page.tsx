@@ -2063,7 +2063,7 @@ export default function AtividadePage() {
                       onChange={(event) =>
                         setSearch(event.target.value)
                       }
-                      placeholder="Buscar por nome do jogo..."
+                      placeholder="Buscar jogo, conquista ou descrição..."
                       className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
