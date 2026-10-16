@@ -346,6 +346,21 @@ function formatActivityEpisode(value?: string) {
   return `EP ${String(Number(match[0])).padStart(2, "0")}`;
 }
 
+function isSharedDefaultEpisodeAssociation(meta: AchievementJourneyMetaLike) {
+  const episode = String(meta.episode || "").trim();
+  const liveUrl = String(meta.liveUrl || "").trim().toLowerCase();
+  const hasIndividualDate = Boolean(String(meta.date || "").trim());
+
+  // Several achievements currently share the same EP 01 URL without an
+  // individual date. Keep that mapping saved, but don't present it as a
+  // confirmed individual episode link until it has been reviewed.
+  return (
+    /^ep\s*0?1$/i.test(episode) &&
+    liveUrl.includes("wabb-jgzmw") &&
+    !hasIndividualDate
+  );
+}
+
 function getGamePlatform(game?: GameLike) {
   if (!game) return "";
   if (game.platform) return game.platform;
@@ -1442,6 +1457,20 @@ export default function AtividadePage() {
     );
   }, [games]);
 
+  const mouseAchievements = useMemo(
+    () =>
+      allCompletedAchievements.filter(
+        (achievement) =>
+          normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
+      ),
+    [allCompletedAchievements]
+  );
+
+  const mouseGame = useMemo(
+    () => games.find((game) => normalizeKey(game.slug) === "mouse-p-i-for-hire"),
+    [games]
+  );
+
   const summaryAchievementsLast60 = useMemo(() => {
     let count = 0;
 
@@ -2095,14 +2124,46 @@ export default function AtividadePage() {
 
                 {activeTab === "conquistas" && (
                   <div className="p-3">
+                    <div className="mb-3 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-gradient-to-r from-[#12090b] via-[#0b0b0d] to-[#090909] p-3.5 sm:gap-4 sm:p-4">
+                      <div className="h-[68px] w-[48px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black shadow-[0_0_18px_rgba(239,36,50,0.08)] sm:h-[76px] sm:w-[54px]">
+                        {getGameCover(mouseGame, "mouse-p-i-for-hire") ? (
+                          <img
+                            src={getGameCover(mouseGame, "mouse-p-i-for-hire")}
+                            alt="Capa de Mouse - P.I For Hire"
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-white/40">
+                            <IconGamepad className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-red-400 sm:text-[9px]">
+                          Histórico de conquistas
+                        </p>
+                        <h2 className="mt-1 text-[14px] font-black leading-tight text-white sm:text-[16px]">
+                          {mouseGame?.title || "Mouse - P.I For Hire"}
+                        </h2>
+                        <p className="mt-1 text-[9px] leading-relaxed text-white/45 sm:text-[10px]">
+                          Clique em uma conquista para abrir o jogo e destacar o item correspondente.
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 flex-col items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-2.5 py-2 sm:px-3">
+                        <span className="text-[17px] font-black leading-none tabular-nums text-white sm:text-[19px]">
+                          {mouseAchievements.length}
+                        </span>
+                        <span className="mt-1 text-[7px] font-black uppercase tracking-[0.12em] text-red-200/65 sm:text-[8px]">
+                          desbloqueadas
+                        </span>
+                      </div>
+                    </div>
+
                     <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
-                      {allCompletedAchievements
-                        // Por enquanto, a aba de conquistas mostra apenas Mouse.
-                        // As conquistas dos outros jogos permanecem salvas no sistema.
-                        .filter(
-                          (achievement) =>
-                            normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
-                        )
+                      {mouseAchievements
                         .filter((achievement) => {
                           const query = normalizeKey(search);
 
@@ -2116,15 +2177,7 @@ export default function AtividadePage() {
                         })
                         .slice(0, 40)
                         .map((achievement, index) => {
-                          const achievementGame = games.find(
-                            (game) =>
-                              normalizeKey(game.slug) ===
-                              normalizeKey(achievement.gameSlug)
-                          );
-                          const gameCover = getGameCover(
-                            achievementGame,
-                            achievement.gameSlug
-                          );
+                          const achievementGame = mouseGame;
                           const achievementImage = getAchievementImage(achievement);
                           const journeyMeta = getAchievementJourneyMeta(
                             achievementGame,
@@ -2136,10 +2189,15 @@ export default function AtividadePage() {
                           const rawDate =
                             journeyMeta.date || getAchievementDate(achievement);
                           const achievementDate = formatActivityDisplayDate(rawDate);
-                          const liveUrl = String(journeyMeta.liveUrl || "").trim();
-                          const episodeLabel =
-                            formatActivityEpisode(journeyMeta.episode) ||
-                            (liveUrl ? "LIVE" : "");
+                          const ambiguousEpisodeLink =
+                            isSharedDefaultEpisodeAssociation(journeyMeta);
+                          const liveUrl = ambiguousEpisodeLink
+                            ? ""
+                            : String(journeyMeta.liveUrl || "").trim();
+                          const episodeLabel = ambiguousEpisodeLink
+                            ? ""
+                            : formatActivityEpisode(journeyMeta.episode) ||
+                              (liveUrl ? "LIVE" : "");
                           const achievementTarget =
                             achievement.id?.trim() || achievement.title || "Conquista";
                           const gameSlug = achievement.gameSlug || "mouse-p-i-for-hire";
@@ -2149,38 +2207,23 @@ export default function AtividadePage() {
                           return (
                             <article
                               key={`${achievement.gameSlug}-${achievement.id || achievement.title}-${index}`}
-                              className="flex items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3.5 sm:px-4"
+                              className="flex items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-4 sm:px-4 sm:py-4"
                             >
                               <Link
                                 href={gameHref}
                                 aria-label={`Abrir ${achievement.title || "conquista"} na página de ${achievement.gameTitle}`}
-                                className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-3.5"
+                                className="group flex min-w-0 flex-1 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-4"
                               >
-                                <div className="h-[58px] w-[44px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black">
-                                  {gameCover ? (
-                                    <img
-                                      src={gameCover}
-                                      alt={`${achievement.gameTitle} — capa`}
-                                      className="h-full w-full object-cover"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <div className="flex h-full items-center justify-center text-white/40">
-                                      <IconGamepad className="h-5 w-5" />
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-red-500/20 bg-black shadow-[inset_0_0_12px_rgba(239,68,68,0.06)] sm:h-12 sm:w-12">
+                                <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#080808] shadow-[inset_0_0_14px_rgba(239,68,50,0.05)] sm:h-[60px] sm:w-[60px]">
                                   {achievementImage ? (
                                     <img
                                       src={achievementImage}
                                       alt={achievement.title || "Conquista"}
-                                      className="h-full w-full object-cover"
+                                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                                       loading="lazy"
                                     />
                                   ) : (
-                                    <IconTrophy className="h-5 w-5 text-amber-400" />
+                                    <IconTrophy className="h-6 w-6 text-amber-400" />
                                   )}
                                 </div>
 
@@ -2193,10 +2236,10 @@ export default function AtividadePage() {
                                       {achievement.description}
                                     </p>
                                   ) : null}
-                                  <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                                  <div className="mt-2 flex items-center gap-1.5">
                                     <span className="h-1 w-1 shrink-0 rounded-full bg-red-400/70" aria-hidden="true" />
-                                    <span className="truncate text-[9px] font-semibold text-red-200/65">
-                                      {achievement.gameTitle}
+                                    <span className="text-[8px] font-semibold uppercase tracking-[0.08em] text-white/30">
+                                      Abrir conquista
                                     </span>
                                   </div>
                                 </div>
@@ -2258,16 +2301,26 @@ export default function AtividadePage() {
                                         {episodeLabel}
                                       </span>
                                     )
+                                  ) : isFirstJourneyAchievement ? (
+                                    <span
+                                      title="Conquista selecionada para a Jornada de Estreia; episódio individual ainda precisa ser confirmado."
+                                      className="inline-flex items-center gap-1 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2 py-1 text-[9px] font-black text-amber-100/80"
+                                    >
+                                      <span aria-hidden="true">✦</span>
+                                      ESTREIA
+                                    </span>
+                                  ) : null}
+                                  {ambiguousEpisodeLink ? (
+                                    <span className="max-w-[112px] text-right text-[7px] leading-tight text-white/25">
+                                      EP a confirmar
+                                    </span>
                                   ) : null}
                                 </div>
                               </div>
                             </article>
                           );
                         })}
-                      {allCompletedAchievements.filter(
-                        (achievement) =>
-                          normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
-                      ).length === 0 ? (
+                      {mouseAchievements.length === 0 ? (
                         <div className="px-6 py-12 text-center">
                           <IconTrophy className="mx-auto h-7 w-7 text-white/20" />
                           <p className="mt-3 text-[12px] font-bold text-white/55">
@@ -2275,11 +2328,16 @@ export default function AtividadePage() {
                           </p>
                         </div>
                       ) : null}
+                      {mouseAchievements.length > 40 ? (
+                        <div className="border-t border-white/[0.06] px-4 py-3 text-center text-[9px] font-semibold text-white/30">
+                          Exibindo as 40 conquistas mais recentes de {mouseAchievements.length}.
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
 
-                {activeTab === "reviews" && (
+{activeTab === "reviews" && (
                   <div className="p-3">
                     <div className="rounded-xl border border-white/[0.08] p-10 text-center">
                       <IconFile className="mx-auto h-6 w-6 text-white/25" />
