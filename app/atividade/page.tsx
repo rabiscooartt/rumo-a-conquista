@@ -63,6 +63,9 @@ type AchievementLike = {
   icon?: string;
   isEmblem?: boolean;
 };
+type DiaryAchievement = AchievementLike & {
+  gameTitle: string; gameSlug?: string; activityDate: string; activityDateKey: string;
+};
 
 function formatPlayedTime(minutes = 0) {
   const safe = Math.max(0, Math.round(Number(minutes) || 0));
@@ -301,99 +304,23 @@ function getActivityTrophyMeta(achievement: AchievementLike) {
   return { label: "Bronze", image: "/images/trophies/bronze.png" };
 }
 
-function formatActivityDisplayDate(value?: string) {
+function getActivityDateKey(value?: string) {
   const raw = String(value || "").trim();
   if (!raw) return "";
-
-  const dateKey = String(getDateKey(raw) || raw).trim();
-  const iso = dateKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
-
   const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
-  if (dmy) {
-    return `${dmy[3]}-${dmy[2].padStart(2, "0")}-${dmy[1].padStart(2, "0")}`;
-  }
-
-  return dateKey;
+  if (dmy) return dmy[3] + "-" + dmy[2].padStart(2, "0") + "-" + dmy[1].padStart(2, "0");
+  return getDateKey(raw);
 }
 
-type SteamAchievementRarity = {
-  percentage: number;
-  label: "Comum" | "Incomum" | "Rara" | "Muito rara";
-  colorClass: string;
-  barClass: string;
-};
-
-const STEAM_GLOBAL_UNLOCK_RATES: Record<string, number> = {
-  "mestre dos macetes": 22.2,
-  "armas, muitas armas": 22.3,
-  "taco tudo": 32.0,
-  "ta tudo nas cartas": 2.3,
-  "entao, quem foi?": 22.2,
-  "balada de betty borocoxo": 19.9,
-  "alivio comico": 52.4,
-  "detetive de romance de banca de jornal": 25.0,
-  "extra! extra!": 4.1,
-  "o martirio do magico misterioso": 12.7,
-  "verdadeiro detetive": 3.6,
-  "hora do b.a.n.g.": 5.7,
-  "o prologo": 4.7,
-  "misterios da mingua dos musaranhos": 19.3,
-  "essa e a minha espingarda": 41.0,
-  "de capa a capa": 42.2,
-  "romance muito grafico": 36.8,
-  "pessoal de papel": 56.3,
-  "as de bolso": 39.7,
-  "todo mundo ama pistolas de raio": 10.6,
-  "baralho de iniciante": 46.6,
-  "rato de baralho": 2.9,
-  "queijo e fumaca": 7.6,
-  "nossos irmaos menores": 11.2,
-  "tinsel boulevard": 15.2,
-  "felicidade do quint": 8.4,
-};
-
-function getSteamAchievementRarity(
-  achievement: AchievementLike
-): SteamAchievementRarity | null {
-  const key = normalizeKey(achievement.title);
-  const percentage = STEAM_GLOBAL_UNLOCK_RATES[key];
-  if (typeof percentage !== "number") return null;
-
-  if (percentage >= 50) {
-    return {
-      percentage,
-      label: "Comum",
-      colorClass: "text-emerald-300",
-      barClass: "bg-emerald-400",
-    };
-  }
-
-  if (percentage >= 25) {
-    return {
-      percentage,
-      label: "Incomum",
-      colorClass: "text-sky-300",
-      barClass: "bg-sky-400",
-    };
-  }
-
-  if (percentage >= 10) {
-    return {
-      percentage,
-      label: "Rara",
-      colorClass: "text-violet-300",
-      barClass: "bg-violet-400",
-    };
-  }
-
-  return {
-    percentage,
-    label: "Muito rara",
-    colorClass: "text-amber-300",
-    barClass: "bg-amber-400",
-  };
+function formatActivityDiaryDate(dateKey?: string) {
+  if (!dateKey) return "Data não registrada";
+  const parsed = new Date(dateKey + "T12:00:00");
+  if (Number.isNaN(parsed.getTime())) return "Data não registrada";
+  return parsed.toLocaleDateString("pt-BR", {
+    weekday: "long", day: "2-digit", month: "long", year: "numeric",
+  }).toLocaleUpperCase("pt-BR");
 }
+
 
 function isAchievementInFirstJourney(
   game: GameLike | undefined,
@@ -1535,19 +1462,44 @@ export default function AtividadePage() {
     );
   }, [games]);
 
-  const mouseAchievements = useMemo(
-    () =>
-      allCompletedAchievements.filter(
-        (achievement) =>
-          normalizeKey(achievement.gameSlug) === "mouse-p-i-for-hire"
-      ),
-    [allCompletedAchievements]
-  );
+  const achievementDiary = useMemo<DiaryAchievement[]>(() => {
+    const result = allCompletedAchievements.map((achievement) => {
+      const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
+      const meta = getAchievementJourneyMeta(game, achievement);
+      const activityDate = String(meta.date || getAchievementDate(achievement) || "").trim();
+      return { ...achievement, activityDate, activityDateKey: getActivityDateKey(activityDate) };
+    });
+    return result.sort((a,b) => {
+      if (!a.activityDateKey) return b.activityDateKey ? 1 : 0;
+      if (!b.activityDateKey) return -1;
+      return b.activityDateKey.localeCompare(a.activityDateKey);
+    });
+  }, [allCompletedAchievements, games]);
 
-  const mouseGame = useMemo(
-    () => games.find((game) => normalizeKey(game.slug) === "mouse-p-i-for-hire"),
-    [games]
-  );
+  const filteredAchievementDiary = useMemo(() => {
+    const query = normalizeKey(search);
+    if (!query) return achievementDiary;
+    return achievementDiary.filter((item) =>
+      normalizeKey(item.title).includes(query) ||
+      normalizeKey(item.gameTitle).includes(query) ||
+      normalizeKey(item.description).includes(query)
+    );
+  }, [achievementDiary, search]);
+
+  const groupedAchievementDiary = useMemo(() => {
+    const groups = new Map<string, DiaryAchievement[]>();
+    for (const item of filteredAchievementDiary) {
+      const key = item.activityDateKey || "sem-data";
+      groups.set(key, [...(groups.get(key) || []), item]);
+    }
+    return Array.from(groups.entries())
+      .map(([dateKey, achievements]) => ({ dateKey, achievements }))
+      .sort((a,b) => {
+        if (a.dateKey === "sem-data") return b.dateKey === "sem-data" ? 0 : 1;
+        if (b.dateKey === "sem-data") return -1;
+        return b.dateKey.localeCompare(a.dateKey);
+      });
+  }, [filteredAchievementDiary]);
 
   const summaryAchievementsLast60 = useMemo(() => {
     let count = 0;
@@ -2202,251 +2154,80 @@ export default function AtividadePage() {
 
                 {activeTab === "conquistas" && (
                   <div className="p-3">
-                    <div className="mb-3 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-gradient-to-r from-[#12090b] via-[#0b0b0d] to-[#090909] p-3.5 sm:gap-4 sm:p-4">
-                      <div className="h-[68px] w-[48px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black shadow-[0_0_18px_rgba(239,36,50,0.08)] sm:h-[76px] sm:w-[54px]">
-                        {getGameCover(mouseGame, "mouse-p-i-for-hire") ? (
-                          <img
-                            src={getGameCover(mouseGame, "mouse-p-i-for-hire")}
-                            alt="Capa de Mouse - P.I For Hire"
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-white/40">
-                            <IconGamepad className="h-5 w-5" />
-                          </div>
-                        )}
-                      </div>
-
+                    <header className="mb-4 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-gradient-to-r from-[#12090b] via-[#0b0b0d] to-[#090909] p-3.5 sm:p-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.08] text-red-300"><IconCalendar className="h-6 w-6" /></div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-red-400 sm:text-[9px]">
-                          Histórico de conquistas
-                        </p>
-                        <h2 className="mt-1 text-[14px] font-black leading-tight text-white sm:text-[16px]">
-                          {mouseGame?.title || "Mouse - P.I For Hire"}
-                        </h2>
-                        <p className="mt-1 text-[9px] leading-relaxed text-white/45 sm:text-[10px]">
-                          Clique em uma conquista para abrir o jogo e destacar o item correspondente.
-                        </p>
+                        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-red-400 sm:text-[9px]">Seu progresso ao longo do tempo</p>
+                        <h2 className="mt-1 text-[15px] font-black text-white sm:text-[17px]">Diário de conquistas</h2>
+                        <p className="mt-1 text-[9px] leading-relaxed text-white/45 sm:text-[10px]">Conquistas de todos os jogos, organizadas da mais recente à mais antiga.</p>
                       </div>
-
-                      <div className="flex shrink-0 flex-col items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-2.5 py-2 sm:px-3">
-                        <span className="text-[17px] font-black leading-none tabular-nums text-white sm:text-[19px]">
-                          {mouseAchievements.length}
-                        </span>
-                        <span className="mt-1 text-[7px] font-black uppercase tracking-[0.12em] text-red-200/65 sm:text-[8px]">
-                          desbloqueadas
-                        </span>
+                      <div className="flex shrink-0 flex-col items-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-2.5 py-2">
+                        <span className="text-[17px] font-black tabular-nums text-white">{achievementDiary.length}</span>
+                        <span className="text-[7px] font-black uppercase tracking-[0.12em] text-red-200/65">registros</span>
+                        <span className="mt-1 text-[7px] font-bold text-white/30">{new Set(achievementDiary.map((item) => item.gameSlug || item.gameTitle)).size} jogos</span>
                       </div>
-                    </div>
-
-                    <div className="mb-1 hidden grid-cols-[minmax(0,1fr)_116px_146px] items-center gap-3 px-3 pb-2 pt-1 text-[8px] font-black uppercase tracking-[0.16em] text-white/25 sm:grid sm:px-4">
-                      <span>Conquista</span>
-                      <span className="text-right" title="Percentual de jogadores Steam que desbloquearam a conquista. Consulta em 15/10/2026.">
-                        Raridade · Steam
-                      </span>
-                      <span className="text-right">Troféu · Data · Jornada</span>
-                    </div>
-                    <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
-                      {mouseAchievements
-                        .filter((achievement) => {
-                          const query = normalizeKey(search);
-
-                          if (!query) return true;
-
-                          return (
-                            normalizeKey(achievement.title).includes(query) ||
-                            normalizeKey(achievement.gameTitle).includes(query) ||
-                            normalizeKey(achievement.description).includes(query)
-                          );
-                        })
-                        .slice(0, 40)
-                        .map((achievement, index) => {
-                          const achievementGame = mouseGame;
-                          const achievementImage = getAchievementImage(achievement);
-                          const journeyMeta = getAchievementJourneyMeta(
-                            achievementGame,
-                            achievement
-                          );
-                          const isFirstJourneyAchievement =
-                            isAchievementInFirstJourney(achievementGame, achievement);
-                          const trophyMeta = getActivityTrophyMeta(achievement);
-                          const steamRarity = getSteamAchievementRarity(achievement);
-                          const rawDate =
-                            journeyMeta.date || getAchievementDate(achievement);
-                          const achievementDate = formatActivityDisplayDate(rawDate);
-                          const ambiguousEpisodeLink =
-                            isSharedDefaultEpisodeAssociation(journeyMeta);
-                          const liveUrl = ambiguousEpisodeLink
-                            ? ""
-                            : String(journeyMeta.liveUrl || "").trim();
-                          const episodeLabel = ambiguousEpisodeLink
-                            ? ""
-                            : formatActivityEpisode(journeyMeta.episode) ||
-                              (liveUrl ? "LIVE" : "");
-                          const achievementTarget =
-                            achievement.id?.trim() || achievement.title || "Conquista";
-                          const gameSlug = achievement.gameSlug || "mouse-p-i-for-hire";
-                          const gameHref =
-                            `/games/${gameSlug}?achievement=${encodeURIComponent(achievementTarget)}#conquistas`;
-
-                          return (
-                            <article
-                              key={`${achievement.gameSlug}-${achievement.id || achievement.title}-${index}`}
-                              className="flex items-center gap-3 border-b border-white/[0.07] px-3 py-3.5 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-4 sm:px-4 sm:py-4"
-                            >
-                              <Link
-                                href={gameHref}
-                                aria-label={`Abrir ${achievement.title || "conquista"} na página de ${achievement.gameTitle}`}
-                                className="group flex min-w-0 flex-1 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-4"
-                              >
-                                <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#080808] shadow-[inset_0_0_14px_rgba(239,68,50,0.05)] sm:h-[60px] sm:w-[60px]">
-                                  {achievementImage ? (
-                                    <img
-                                      src={achievementImage}
-                                      alt={achievement.title || "Conquista"}
-                                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <IconTrophy className="h-6 w-6 text-amber-400" />
-                                  )}
-                                </div>
-
-                                <div className="min-w-0 flex-1 py-0.5">
-                                  <p className="text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[13px]">
-                                    {achievement.title || "Conquista"}
-                                  </p>
-                                  {achievement.description?.trim() ? (
-                                    <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-white/55 sm:text-[11px]">
-                                      {achievement.description}
-                                    </p>
-                                  ) : null}
-
-                                </div>
-                              </Link>
-
-                              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                                <div
-                                  className="hidden w-[104px] shrink-0 flex-col items-end gap-1.5 sm:flex"
-                                  title={
-                                    steamRarity
-                                      ? `Desbloqueada por ${steamRarity.percentage.toFixed(1).replace(".", ",")}% dos jogadores Steam; consulta de 15/10/2026.`
-                                      : "Conquista personalizada do Rumo à Conquista; sem percentual global da Steam."
-                                  }
-                                >
-                                  {steamRarity ? (
-                                    <>
-                                      <span className={`text-[13px] font-black leading-none tabular-nums ${steamRarity.colorClass}`}>
-                                        {steamRarity.percentage.toFixed(1).replace(".", ",")}%
-                                      </span>
-                                      <span className={`text-[8px] font-black uppercase tracking-[0.12em] ${steamRarity.colorClass}`}>
-                                        {steamRarity.label}
-                                      </span>
-                                      <span className="h-[3px] w-[58px] overflow-hidden rounded-full bg-white/[0.07]">
-                                        <span
-                                          className={`block h-full rounded-full ${steamRarity.barClass}`}
-                                          style={{ width: `${Math.max(3, Math.min(100, steamRarity.percentage))}%` }}
-                                        />
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span className="text-[8px] font-black uppercase tracking-[0.12em] text-red-300/80">
-                                        Exclusiva RC
-                                      </span>
-                                      <span className="text-[8px] text-white/25">
-                                        Dado personalizado
-                                      </span>
-                                    </>
-                                  )}
-                                </div>
-
-                                <img
-                                  src={trophyMeta.image}
-                                  alt=""
-                                  aria-label={trophyMeta.label}
-                                  title={trophyMeta.label}
-                                  className="h-6 w-6 shrink-0 object-contain drop-shadow-[0_0_6px_rgba(245,158,11,0.12)] sm:h-7 sm:w-7"
-                                  loading="lazy"
-                                />
-
-                                <div className="flex w-[112px] shrink-0 flex-col items-end gap-1.5 sm:w-[120px]">
-                                  {achievementDate ? (
-                                    <time
-                                      dateTime={getDateKey(rawDate)}
-                                      className="whitespace-nowrap text-right text-[8px] font-bold tabular-nums text-white/40 sm:text-[9px]"
-                                    >
-                                      {achievementDate}
-                                    </time>
-                                  ) : null}
-
-                                  {isFirstJourneyAchievement ? (
-                                    liveUrl && episodeLabel ? (
-                                      <a
-                                        href={liveUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        title={`Jornada de Estreia — abrir o episódio ${episodeLabel}`}
-                                        className="inline-flex items-center gap-1 rounded-md border border-emerald-400/35 bg-emerald-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.04em] text-emerald-200 transition hover:border-emerald-300/55 hover:bg-emerald-500/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:text-[9px]"
-                                      >
-                                        <span aria-hidden="true">✦</span>
-                                        Jornada · {episodeLabel}
-                                        <span aria-hidden="true">↗</span>
-                                      </a>
-                                    ) : (
-                                      <span
-                                        title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado."
-                                        className="inline-flex items-center gap-1 rounded-md border border-emerald-400/35 bg-emerald-500/[0.10] px-2 py-1 text-[8px] font-black uppercase tracking-[0.04em] text-emerald-200 sm:text-[9px]"
-                                      >
-                                        <span aria-hidden="true">✦</span>
-                                        Jornada de Estreia
-                                      </span>
-                                    )
-                                  ) : ambiguousEpisodeLink ? (
-                                    <span
-                                      title="O vínculo individual deste episódio ainda precisa ser confirmado."
-                                      className="inline-flex items-center rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[8px] font-bold text-white/35 sm:text-[9px]"
-                                    >
-                                      EP a confirmar
-                                    </span>
-                                  ) : episodeLabel ? (
-                                    liveUrl ? (
-                                      <a
-                                        href={liveUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        title={`Abrir conteúdo da conquista — ${episodeLabel}`}
-                                        className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[9px] font-black text-red-200 transition hover:border-red-400/50 hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                                      >
-                                        {episodeLabel}
-                                        <span aria-hidden="true">↗</span>
-                                      </a>
-                                    ) : (
-                                      <span className="rounded-md border border-white/10 bg-white/[0.025] px-2 py-1 text-[9px] font-black text-white/45">
-                                        {episodeLabel}
-                                      </span>
-                                    )
-                                  ) : null}
-                                </div>
+                    </header>
+                    {groupedAchievementDiary.length ? (
+                      <div className="space-y-4">
+                        {groupedAchievementDiary.map((group) => (
+                          <section key={group.dateKey} className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
+                            <div className="flex items-center justify-between gap-3 border-b border-white/[0.07] bg-white/[0.025] px-3 py-2.5 sm:px-4">
+                              <div className="flex min-w-0 items-center gap-2.5">
+                                <span className="h-5 w-1 shrink-0 rounded-full bg-red-500" />
+                                <IconCalendar className="h-3.5 w-3.5 shrink-0 text-red-300/75" />
+                                <h3 className="truncate text-[9px] font-black tracking-[0.08em] text-white/75 sm:text-[10px]">{group.dateKey === "sem-data" ? "DATA NÃO REGISTRADA" : formatActivityDiaryDate(group.dateKey)}</h3>
                               </div>
-                            </article>
-                          );
-                        })}
-                      {mouseAchievements.length === 0 ? (
-                        <div className="px-6 py-12 text-center">
-                          <IconTrophy className="mx-auto h-7 w-7 text-white/20" />
-                          <p className="mt-3 text-[12px] font-bold text-white/55">
-                            Nenhuma conquista concluída de Mouse encontrada.
-                          </p>
-                        </div>
-                      ) : null}
-                      {mouseAchievements.length > 40 ? (
-                        <div className="border-t border-white/[0.06] px-4 py-3 text-center text-[9px] font-semibold text-white/30">
-                          Exibindo as 40 conquistas mais recentes de {mouseAchievements.length}.
-                        </div>
-                      ) : null}
-                    </div>
+                              <span className="shrink-0 rounded-md border border-white/[0.08] px-2 py-1 text-[8px] font-bold text-white/35">{group.achievements.length} {group.achievements.length === 1 ? "conquista" : "conquistas"}</span>
+                            </div>
+                            {group.achievements.map((achievement,index) => {
+                              const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
+                              const meta = getAchievementJourneyMeta(game,achievement);
+                              const firstJourney = isAchievementInFirstJourney(game,achievement);
+                              const trophy = getActivityTrophyMeta(achievement);
+                              const ambiguous = isSharedDefaultEpisodeAssociation(meta);
+                              const liveUrl = ambiguous ? "" : String(meta.liveUrl || "").trim();
+                              const episode = ambiguous ? "" : formatActivityEpisode(meta.episode) || (liveUrl ? "LIVE" : "");
+                              const target = achievement.id?.trim() || achievement.title || "Conquista";
+                              const slug = achievement.gameSlug || game?.slug || "";
+                              const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
+                              return (
+                                <article key={[achievement.gameSlug,achievement.id || achievement.title,index].join("-")} className="flex items-center gap-2.5 border-b border-white/[0.06] px-3 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3.5 sm:px-4 sm:py-3.5">
+                                  <Link href={gameHref} aria-label={"Abrir " + (achievement.title || "conquista") + " na página de " + achievement.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:gap-3.5">
+                                    <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-[#080808] sm:h-[50px] sm:w-[50px]">
+                                      {getAchievementImage(achievement) ? <img src={getAchievementImage(achievement)} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" /> : <IconTrophy className="h-5 w-5 text-amber-400" />}
+                                    </div>
+                                    <div className="min-w-0 flex-1 py-0.5">
+                                      <p className="truncate text-[8px] font-black uppercase tracking-[0.11em] text-red-300/75">{achievement.gameTitle || "Jogo"}</p>
+                                      <p className="mt-0.5 text-[11px] font-black leading-snug text-white group-hover:text-red-100 sm:text-[12px]">{achievement.title || "Conquista"}</p>
+                                      {achievement.description?.trim() ? <p className="mt-1 line-clamp-2 text-[9px] leading-snug text-white/45 sm:text-[10px]">{achievement.description}</p> : null}
+                                    </div>
+                                  </Link>
+                                  <div className="flex max-w-[126px] shrink-0 flex-col items-end gap-1.5 sm:max-w-[150px] sm:flex-row sm:items-center sm:gap-2.5">
+                                    <img src={trophy.image} alt={trophy.label} title={trophy.label} className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7" loading="lazy" />
+                                    <div className="flex min-w-0 flex-col items-end gap-1">
+                                      {firstJourney ? (
+                                        liveUrl && episode ? (
+                                          <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Jornada de Estreia — abrir o episódio " + episode} className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada · {episode}</span></a>
+                                        ) : (
+                                          <span title="Selecionada para a Jornada de Estreia. O episódio individual ainda não foi confirmado." className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/[0.08] px-1.5 py-1 text-[7px] font-black text-emerald-200 sm:px-2 sm:text-[8px]"><span aria-hidden="true">✦</span><span className="truncate">Jornada de Estreia</span></span>
+                                        )
+                                      ) : episode ? (
+                                        liveUrl ? <a href={liveUrl} target="_blank" rel="noopener noreferrer" title={"Abrir conteúdo da conquista — " + episode} className="inline-flex items-center gap-1 rounded-md border border-red-500/25 bg-red-500/[0.07] px-1.5 py-1 text-[8px] font-black text-red-200 sm:px-2">{episode}<span aria-hidden="true">↗</span></a> : <span className="rounded-md border border-white/10 bg-white/[0.025] px-1.5 py-1 text-[8px] font-black text-white/45 sm:px-2">{episode}</span>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                </article>
+                              );
+                            })}
+                          </section>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-white/[0.08] px-6 py-12 text-center">
+                        <IconTrophy className="mx-auto h-7 w-7 text-white/20" />
+                        <p className="mt-3 text-[12px] font-bold text-white/55">{achievementDiary.length === 0 ? "Nenhuma conquista desbloqueada foi encontrada nos jogos cadastrados." : "Nenhuma conquista corresponde à sua busca."}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
