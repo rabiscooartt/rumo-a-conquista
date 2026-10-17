@@ -690,10 +690,19 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     baseGames as unknown as Record<string, Partial<SiteGame>>
   )[finalSlug];
 
+  const reviewRecord =
+    game.review && typeof game.review === "object" && !Array.isArray(game.review)
+      ? (game.review as Record<string, unknown>)
+      : {};
+  const achievementsExplicitlyCleared =
+    reviewRecord.__achievementsListExplicitlyCleared === true;
+
   const achievementsSource =
     suppliedAchievements.length > 0
       ? suppliedAchievements
-      : rawStatus === "completed" && Array.isArray(legacyGame?.achievementsList)
+      : !achievementsExplicitlyCleared &&
+          rawStatus === "completed" &&
+          Array.isArray(legacyGame?.achievementsList)
         ? legacyGame.achievementsList
         : [];
 
