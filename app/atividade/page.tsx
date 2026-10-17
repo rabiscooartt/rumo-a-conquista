@@ -2577,21 +2577,6 @@ export default function AtividadePage() {
 
 {activeTab === "reviews" && (
                   <div className="p-3">
-                    <header className="mb-4 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-gradient-to-r from-[#12090b] via-[#0b0b0d] to-[#090909] p-3.5 sm:p-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.08] text-red-300">
-                        <IconFile className="h-6 w-6" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-red-400 sm:text-[9px]">Suas avaliações ao longo do tempo</p>
-                        <h2 className="mt-1 text-[15px] font-black text-white sm:text-[17px]">Histórico de Reviews</h2>
-                        <p className="mt-1 text-[9px] leading-relaxed text-white/45 sm:text-[10px]">Reviews publicadas, organizadas da mais recente à mais antiga.</p>
-                      </div>
-                      <div className="flex min-w-[70px] shrink-0 flex-col items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-3 py-2">
-                        <span className="text-[18px] font-black leading-none tabular-nums text-white">{filteredReviewDiary.length}</span>
-                        <span className="mt-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-red-200/65">reviews</span>
-                      </div>
-                    </header>
-
                     {groupedReviewDiary.length ? (
                       <div className="space-y-5">
                         {groupedReviewDiary.map((group) => (
