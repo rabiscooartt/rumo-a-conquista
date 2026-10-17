@@ -1395,14 +1395,26 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       };
 
-      // Make publication the source of truth: any saved "liberada" review
-      // automatically finalizes the game in the same database update.
+      // Persist the date of first publication so the Activity > Reviews
+      // history doesn't mistake later game edits for the review's publish date.
       const normalizedReviewStatus = normalizeText(mergedReview.status);
       const isPublishedReview = [
         "liberada",
         "publicada",
         "liberada / publicada",
       ].includes(normalizedReviewStatus);
+      const previousReviewStatus = normalizeText(currentReview.status);
+      const wasPublishedReview = [
+        "liberada",
+        "publicada",
+        "liberada / publicada",
+      ].includes(previousReviewStatus);
+      const hasStoredPublicationDate =
+        typeof mergedReview.__reviewPublishedAt === "string" &&
+        mergedReview.__reviewPublishedAt.trim().length > 0;
+      if (isPublishedReview && !wasPublishedReview && !hasStoredPublicationDate) {
+        mergedReview.__reviewPublishedAt = new Date().toISOString();
+      }
       if (isPublishedReview) {
         reviewGameUpdate.status = "completed";
       } else if (typeof body.status === "string" && body.status.trim()) {
