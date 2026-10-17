@@ -391,8 +391,12 @@ function isPublishedReviewStatus(value: unknown) {
   ].includes(status);
 }
 
-function getReviewPublicationDate(review: Record<string, unknown>): string {
-  const candidates = [
+function getReviewPublicationDate(
+  review: Record<string, unknown>,
+  game: GameLike
+): string {
+  // Preferir sempre uma data específica de publicação salva na review.
+  const reviewCandidates = [
     review.__reviewPublishedAt,
     review.publishedAt,
     review.published_at,
@@ -403,10 +407,18 @@ function getReviewPublicationDate(review: Record<string, unknown>): string {
     review.reviewDate,
     review.review_date,
   ];
-  const publicationDate = candidates.find(
+  const reviewDate = reviewCandidates.find(
     (value): value is string => typeof value === "string" && value.trim().length > 0
   );
-  return publicationDate?.trim() ?? "";
+
+  if (reviewDate) return reviewDate.trim();
+
+  // Compatibilidade com reviews antigas que ainda não têm data própria.
+  // Nesses casos, manter a data já exibida anteriormente usando os metadados do jogo.
+  const legacyFallback = [game.updatedAt, game.createdAt].find(
+    (value): value is string => typeof value === "string" && value.trim().length > 0
+  );
+  return legacyFallback?.trim() ?? "";
 }
 
 function readReviewText(review: Record<string, unknown>, keys: string[]): string {
@@ -1698,7 +1710,7 @@ export default function AtividadePage() {
       const review = readActivityReview(game.review);
       if (!isPublishedReviewStatus(review.status)) continue;
 
-      const dateSource = getReviewPublicationDate(review);
+      const dateSource = getReviewPublicationDate(review, game);
       const dateKey = getActivityDateKey(dateSource);
       // Match the individual game page: review.rating is taken from review.nota.
       const scoreText = readReviewText(review, ["nota"]).replace(",", ".");
