@@ -2582,7 +2582,7 @@ export default function AtividadePage() {
                       <div className="space-y-4">
                         {groupedReviewDiary.map((group) => (
                           <section key={group.monthKey}>
-                            <h3 className="mb-3 border-b border-white/[0.08] pb-2.5 text-[13px] font-black capitalize text-white/95">
+                            <h3 className="mb-3 border-b border-white/[0.08] pb-2.5 text-[12px] font-black uppercase tracking-[0.12em] text-white/90">
                               {group.label}
                             </h3>
                             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
