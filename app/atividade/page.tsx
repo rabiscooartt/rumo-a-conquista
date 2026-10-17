@@ -2099,7 +2099,7 @@ export default function AtividadePage() {
 
     for (const entry of filteredEntries) {
       const dateKey = getActivityDateKey(entry.date);
-      const month = dateKey ? getMonthLabel(dateKey + "-01") : "Data não registrada";
+      const month = dateKey ? getMonthLabel(dateKey.slice(0, 7) + "-01") : "Data não registrada";
       if (!month) continue;
 
       if (!groups[month]) groups[month] = [];
