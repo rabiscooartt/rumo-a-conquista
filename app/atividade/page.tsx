@@ -1457,7 +1457,7 @@ export default function AtividadePage() {
   const [activeTab, setActiveTab] =
     useState<ActivityTab>("jogos");
   const [search, setSearch] = useState("");
-  const [reviewMonthFilter, setReviewMonthFilter] = useState("all");
+  const [reviewMonthFilter, setReviewMonthFilter] = useState("recent-two");
   const [reviewPlatformFilter, setReviewPlatformFilter] = useState("all");
   const [openReviewFilter, setOpenReviewFilter] = useState<"month" | "platform" | null>(null);
   const reviewFiltersRef = useRef<HTMLDivElement | null>(null);
@@ -1785,6 +1785,11 @@ export default function AtividadePage() {
     [reviewDiary]
   );
 
+  const recentReviewMonthKeys = useMemo(
+    () => reviewMonthOptions.filter((monthKey) => monthKey !== "sem-data").slice(0, 2),
+    [reviewMonthOptions]
+  );
+
   const reviewPlatformOptions = useMemo(
     () => [...new Set(reviewDiary.map((item) => item.platform).filter(Boolean))]
       .sort((a, b) => a.localeCompare(b, "pt-BR")),
@@ -1800,12 +1805,16 @@ export default function AtividadePage() {
         normalizeKey(item.reviewTitle).includes(query) ||
         normalizeKey(item.summary).includes(query) ||
         normalizeKey(item.platform).includes(query);
-      const matchesMonth = reviewMonthFilter === "all" || item.monthKey === reviewMonthFilter;
+      const matchesMonth =
+        reviewMonthFilter === "all" ||
+        (reviewMonthFilter === "recent-two"
+          ? recentReviewMonthKeys.length === 0 || recentReviewMonthKeys.includes(item.monthKey)
+          : item.monthKey === reviewMonthFilter);
       const matchesPlatform =
         reviewPlatformFilter === "all" || normalizeKey(item.platform) === normalizeKey(reviewPlatformFilter);
       return matchesSearch && matchesMonth && matchesPlatform;
     });
-  }, [reviewDiary, search, reviewMonthFilter, reviewPlatformFilter]);
+  }, [reviewDiary, search, reviewMonthFilter, reviewPlatformFilter, recentReviewMonthKeys]);
 
   const groupedReviewDiary = useMemo(() => {
     const groups = new Map<string, DiaryReview[]>();
@@ -2426,6 +2435,16 @@ export default function AtividadePage() {
                             >
                               <span>Todos os Meses</span>
                               <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${reviewMonthFilter === "all" ? "opacity-100" : "opacity-0"}`}>✓</span>
+                            </button>
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={reviewMonthFilter === "recent-two"}
+                              onClick={() => { setReviewMonthFilter("recent-two"); setOpenReviewFilter(null); }}
+                              className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${reviewMonthFilter === "recent-two" ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                            >
+                              <span>Últimos 2 Meses</span>
+                              <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${reviewMonthFilter === "recent-two" ? "opacity-100" : "opacity-0"}`}>✓</span>
                             </button>
                             {reviewMonthOptions.map((monthKey) => {
                               const label = monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01");
