@@ -2621,28 +2621,28 @@ export default function AtividadePage() {
                                         )}
                                       </div>
                                       <div className="min-w-0 flex-1 py-0.5">
-                                        <p className="truncate text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[13px]">{item.gameTitle}</p>
-                                        <p className="mt-1 truncate text-[10px] font-bold text-red-300 sm:text-[11px]">{item.reviewTitle}</p>
+                                        <p className="truncate text-[13px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[14px]">{item.gameTitle}</p>
+                                        <p className="mt-1.5 truncate text-[11px] font-bold text-red-300 sm:text-[12px]">{item.reviewTitle}</p>
                                         {item.summary ? (
-                                          <p className="mt-1 line-clamp-1 text-[10px] leading-relaxed text-white/45 sm:text-[11px]">{item.summary}</p>
+                                          <p className="mt-1.5 line-clamp-2 text-[10px] leading-[1.45] text-white/60 sm:text-[11px]">{item.summary}</p>
                                         ) : null}
-                                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                                           {item.score !== null ? (
                                             <span className="inline-flex items-center gap-1.5" aria-label={"Nota " + item.score + " de 10"}>
-                                              <span className="text-[11px] leading-none tracking-[0.06em]">
+                                              <span className="text-[12px] leading-none tracking-[0.06em]">
                                                 {Array.from({ length: 5 }, (_, index) => (
                                                   <span key={index} className={index < stars ? "text-red-400" : "text-white/15"}>★</span>
                                                 ))}
                                               </span>
-                                              <span className="text-[9px] font-black tabular-nums text-white/65">{String(item.score).replace(".", ",")}/10</span>
+                                              <span className="text-[10px] font-black tabular-nums text-white/75">{String(item.score).replace(".", ",")}/10</span>
                                             </span>
                                           ) : null}
-                                          {item.platform ? <span className="text-[9px] font-medium text-white/35">{item.platform}</span> : null}
+                                          {item.platform ? <span className="text-[10px] font-medium text-white/50">{item.platform}</span> : null}
                                         </div>
                                       </div>
                                     </Link>
-                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-2 py-2 text-[8px] font-black uppercase tracking-[0.05em] text-red-300 transition hover:border-red-400/40 hover:bg-red-500/[0.12] sm:px-3 sm:text-[9px]">
-                                      <IconFile className="h-3 w-3" />
+                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-red-500/35 bg-red-500/[0.08] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.04em] text-red-200 transition hover:border-red-400/60 hover:bg-red-500/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 sm:px-3 sm:text-[10px]">
+                                      <IconFile className="h-3.5 w-3.5" />
                                       <span className="hidden sm:inline">Ver review</span>
                                       <span aria-hidden="true">→</span>
                                     </Link>
