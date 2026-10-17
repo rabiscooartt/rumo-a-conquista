@@ -306,7 +306,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-5 lg:flex">
+        <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
           {navLinks.map((link) => {
             const targetHref =
               isAdminMode && link.adminHref ? link.adminHref : link.href;
@@ -317,21 +317,21 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={targetHref}
-                className={`group relative flex items-center gap-2 py-5 text-sm font-black transition ${
+                className={`group relative flex items-center gap-1.5 whitespace-nowrap py-5 text-[11px] font-black leading-none transition xl:gap-2 xl:text-xs 2xl:text-sm ${
                   isActive
                     ? "text-red-400"
                     : "text-white/70 hover:text-white"
                 }`}
               >
                 <Icon
-                  className={`h-[19px] w-[19px] transition ${
+                  className={`h-4 w-4 shrink-0 transition xl:h-[18px] xl:w-[18px] ${
                     isActive
                       ? "text-red-400"
                       : "text-white/55 group-hover:text-white/90"
                   }`}
                 />
 
-                <span>{link.label}</span>
+                <span className="whitespace-nowrap">{link.label}</span>
 
                 <span
                   className={`absolute bottom-0 left-0 h-[3px] rounded-full bg-red-500 transition-all ${
@@ -343,7 +343,7 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="hidden items-center gap-5 lg:flex">
+        <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
           <AdminAvatarLogin showLabel />
 
           <a

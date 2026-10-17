@@ -391,7 +391,7 @@ function isPublishedReviewStatus(value: unknown) {
   ].includes(status);
 }
 
-function getReviewPublicationDate(review: Record<string, unknown>, game: GameLike): string {
+function getReviewPublicationDate(review: Record<string, unknown>): string {
   const candidates = [
     review.__reviewPublishedAt,
     review.publishedAt,
@@ -402,10 +402,11 @@ function getReviewPublicationDate(review: Record<string, unknown>, game: GameLik
     review.data_publicacao,
     review.reviewDate,
     review.review_date,
-    game.updatedAt,
-    game.createdAt,
   ];
-  return (candidates.find((value) => typeof value === "string" && value.trim()) as string) || "";
+  const publicationDate = candidates.find(
+    (value): value is string => typeof value === "string" && value.trim().length > 0
+  );
+  return publicationDate?.trim() ?? "";
 }
 
 function readReviewText(review: Record<string, unknown>, keys: string[]): string {
@@ -511,26 +512,27 @@ function calculateStreak(
   );
 
   const todayKey = getDateKey(referenceDate.toISOString());
+  if (!todayKey) return 0;
 
-  if (!todayKey || !playedDates.has(todayKey)) {
-    return 0;
+  // A sequência de ontem continua válida durante o dia de hoje.
+  // Ela zera quando não houve atividade nem hoje nem ontem.
+  let anchorKey = todayKey;
+  if (!playedDates.has(anchorKey)) {
+    const yesterday = new Date(`${todayKey}T12:00:00`);
+    yesterday.setDate(yesterday.getDate() - 1);
+    anchorKey = getDateKey(yesterday.toISOString());
   }
+
+  if (!anchorKey || !playedDates.has(anchorKey)) return 0;
 
   let streak = 1;
-  const cursor = new Date(`${todayKey}T12:00:00`);
-
+  const cursor = new Date(`${anchorKey}T12:00:00`);
   while (true) {
     cursor.setDate(cursor.getDate() - 1);
-
     const previousKey = getDateKey(cursor.toISOString());
-
-    if (!previousKey || !playedDates.has(previousKey)) {
-      break;
-    }
-
+    if (!previousKey || !playedDates.has(previousKey)) break;
     streak += 1;
   }
-
   return streak;
 }
 
@@ -920,7 +922,7 @@ function IconFile(props: { className?: string }) {
 
 /* ---------- MAPA ---------- */
 
-function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
+function ActivityMap({ entries, referenceDate }: { entries: JourneyEntry[]; referenceDate: Date }) {
   const activityByDay = useMemo(() => {
     const map = new Map<string, number>();
 
@@ -945,7 +947,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
    * O calendário muda sozinho conforme o número real de dias do mês.
    */
   const months = useMemo(() => {
-    const today = new Date();
+    const today = new Date(referenceDate);
 
     const buildMonth = (
       year: number,
@@ -1069,7 +1071,7 @@ function ActivityMap({ entries }: { entries: JourneyEntry[] }) {
         secondMonth.getMonth()
       ),
     ];
-  }, []);
+  }, [referenceDate]);
 
   const weekdays = [
     "Seg",
@@ -1696,7 +1698,7 @@ export default function AtividadePage() {
       const review = readActivityReview(game.review);
       if (!isPublishedReviewStatus(review.status)) continue;
 
-      const dateSource = getReviewPublicationDate(review, game);
+      const dateSource = getReviewPublicationDate(review);
       const dateKey = getActivityDateKey(dateSource);
       // Match the individual game page: review.rating is taken from review.nota.
       const scoreText = readReviewText(review, ["nota"]).replace(",", ".");
@@ -2121,18 +2123,18 @@ export default function AtividadePage() {
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="relative min-h-[235px] px-7 py-7 md:px-7 md:py-7">
+            <div className="relative min-h-[280px] px-5 py-6 sm:min-h-[245px] sm:px-7 sm:py-6 lg:min-h-[220px]">
               <div className="max-w-[400px]">
                 <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                   <span className="text-[10px] leading-none">✣</span>
                   Sua jornada em números
                 </p>
 
-                <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                <h1 className="mt-2 text-[34px] font-black leading-none tracking-tight text-white sm:text-[38px] md:text-[40px]">
                   ATIVIDADE
                 </h1>
 
-                <p className="mt-3 max-w-[340px] text-[12px] font-medium leading-[1.35] text-white/70">
+                <p className="mt-3 max-w-[340px] text-[13px] font-medium leading-[1.5] text-white/75">
                   Acompanhe seus dias de jogo, horas investidas e
                   conquistas ao longo do tempo.
                 </p>
@@ -2149,7 +2151,7 @@ export default function AtividadePage() {
                 </button>
               )}
 
-              <div className="absolute bottom-8 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
+              <div className="absolute bottom-6 left-5 right-5 grid grid-cols-2 gap-x-2 gap-y-3 sm:bottom-7 sm:left-7 sm:right-7 sm:grid-cols-3 sm:gap-y-0">
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
@@ -2310,7 +2312,7 @@ export default function AtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
+                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-3 py-3 text-[12px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70 sm:px-4 sm:text-[13px] ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"
@@ -2329,7 +2331,7 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2.5 p-3 md:flex-row">
+                <div className="flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap xl:flex-nowrap">
                   <div className="relative min-w-0 flex-1">
                     <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
 
@@ -2345,19 +2347,19 @@ export default function AtividadePage() {
                             ? "Buscar jogo, conquista ou descrição..."
                             : "Buscar jogo ou atividade..."
                       }
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[12px] font-semibold text-white outline-none placeholder:text-white/40 transition focus:border-red-500/50 focus-visible:ring-2 focus-visible:ring-red-500/20"
                     />
                   </div>
 
                   {activeTab === "reviews" ? (
                     <>
-                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5 text-[11px] font-black text-white/55">
+                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-3 text-[12px] font-black text-white/65 transition hover:border-white/20 focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
                         <IconCalendar className="h-3.5 w-3.5 shrink-0" />
                         <select
                           value={reviewMonthFilter}
                           onChange={(event) => setReviewMonthFilter(event.target.value)}
                           aria-label="Filtrar reviews por mês"
-                          className="max-w-[135px] bg-transparent text-[11px] font-black text-white/70 outline-none"
+                          className="max-w-[135px] bg-transparent text-[12px] font-black text-white/85 outline-none"
                         >
                           <option className="bg-[#090b0f]" value="all">Todos os Meses</option>
                           {reviewMonthOptions.map((monthKey) => (
@@ -2367,13 +2369,13 @@ export default function AtividadePage() {
                           ))}
                         </select>
                       </label>
-                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5 text-[11px] font-black text-white/55">
+                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-3 text-[12px] font-black text-white/65 transition hover:border-white/20 focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
                         <IconGamepad className="h-3.5 w-3.5 shrink-0" />
                         <select
                           value={reviewPlatformFilter}
                           onChange={(event) => setReviewPlatformFilter(event.target.value)}
                           aria-label="Filtrar reviews por plataforma"
-                          className="max-w-[155px] bg-transparent text-[11px] font-black text-white/70 outline-none"
+                          className="max-w-[155px] bg-transparent text-[12px] font-black text-white/85 outline-none"
                         >
                           <option className="bg-[#090b0f]" value="all">Todas as Plataformas</option>
                           {reviewPlatformOptions.map((platform) => (
@@ -2563,12 +2565,12 @@ export default function AtividadePage() {
                 )}
 
 {activeTab === "reviews" && (
-                  <div className="p-3">
+                  <div className="p-3 sm:p-4">
                     {groupedReviewDiary.length ? (
-                      <div className="space-y-5">
+                      <div className="space-y-4">
                         {groupedReviewDiary.map((group) => (
                           <section key={group.monthKey}>
-                            <h3 className="mb-2 border-b border-white/[0.08] pb-2 text-[12px] font-black capitalize text-white/90">
+                            <h3 className="mb-3 border-b border-white/[0.08] pb-2.5 text-[13px] font-black capitalize text-white/95">
                               {group.label}
                             </h3>
                             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
@@ -2578,13 +2580,13 @@ export default function AtividadePage() {
                                 const day = dateParts?.day ?? "—";
 
                                 return (
-                                  <article key={item.gameSlug} className="flex items-center gap-2 border-b border-white/[0.07] px-2.5 py-3 last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5 lg:gap-4 lg:px-4">
-                                    <div className="flex w-[34px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]" title={dateParts ? "Publicada em " + day + " " + dateParts.month : "Data de publicação não registrada"}>
-                                      <span className={`text-[18px] font-black leading-none tabular-nums sm:text-[20px] ${dateParts ? "text-white" : "text-white/30"}`}>{day}</span>
-                                      {dateParts ? <span className="mt-1 text-[9px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[10px]">{dateParts.month}</span> : null}
+                                  <article key={item.gameSlug} className="flex items-center gap-2.5 border-b border-white/[0.07] px-3 py-4 transition-colors last:border-b-0 hover:bg-white/[0.035] sm:gap-4 sm:px-4 sm:py-4">
+                                    <div className="flex w-[38px] shrink-0 flex-col items-center justify-center text-center sm:w-[42px]" title={dateParts ? "Publicada em " + day + " " + dateParts.month : "Data de publicação não registrada"}>
+                                      <span className={`text-[20px] font-black leading-none tabular-nums sm:text-[22px] ${dateParts ? "text-white" : "text-white/30"}`}>{day}</span>
+                                      {dateParts ? <span className="mt-1.5 text-[10px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[11px]">{dateParts.month}</span> : null}
                                     </div>
-                                    <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-                                      <div className="h-[62px] w-[44px] shrink-0 overflow-hidden border border-white/10 bg-[#080808] sm:h-[70px] sm:w-[50px]">
+                                    <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70 sm:gap-3.5">
+                                      <div className="h-[68px] w-[48px] shrink-0 overflow-hidden rounded-[4px] border border-white/10 bg-[#080808] sm:h-[76px] sm:w-[54px]">
                                         {item.cover ? (
                                           <img src={item.cover} alt={"Capa de " + item.gameTitle} className="h-full w-full object-cover" loading="lazy" />
                                         ) : (
@@ -2592,18 +2594,18 @@ export default function AtividadePage() {
                                         )}
                                       </div>
                                       <div className="min-w-0 flex-1 py-0.5">
-                                        <p className="truncate text-[14px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[15px]">{item.gameTitle}</p>
-                                        <p className="mt-1.5 truncate text-[12px] font-bold text-red-300 sm:text-[13px]">{item.reviewTitle}</p>
+                                        <p className="truncate text-[15px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[16px]">{item.gameTitle}</p>
+                                        <p className="mt-1 truncate text-[13px] font-bold leading-snug text-red-300 sm:text-[14px]">{item.reviewTitle}</p>
                                         {item.summary ? (
-                                          <p className="mt-1.5 line-clamp-2 text-[11px] leading-[1.5] text-white/70 sm:text-[12px]">{item.summary}</p>
+                                          <p className="mt-1.5 line-clamp-2 text-[12px] leading-[1.55] text-white/75 sm:text-[13px]">{item.summary}</p>
                                         ) : null}
-                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                                           {item.score !== null ? (
                                             <span className="inline-flex items-center gap-1.5">
                                               <StarRating
                                                 rating={item.score / 2}
                                                 size="small"
-                                                className="h-[14px] !text-[12px] !tracking-[-0.04em]"
+                                                className="h-[16px] !text-[14px] !tracking-[-0.04em]"
                                                 ariaLabel={
                                                   "Nota " +
                                                   item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
@@ -2618,14 +2620,14 @@ export default function AtividadePage() {
                                                   "/5 estrelas"
                                                 }
                                               />
-                                              <span className="text-[11px] font-black tabular-nums text-white/85">{item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10</span>
+                                              <span className="text-[12px] font-black tabular-nums text-white/90">{item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10</span>
                                             </span>
                                           ) : null}
-                                          {item.platform ? <span className="text-[11px] font-medium text-white/60">{item.platform}</span> : null}
+                                          {item.platform ? <span className="rounded-md border border-white/[0.08] bg-white/[0.035] px-2 py-0.5 text-[11px] font-semibold text-white/70">{item.platform}</span> : null}
                                         </div>
                                       </div>
                                     </Link>
-                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-red-500/45 bg-red-500/[0.10] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.04em] text-red-100 transition hover:border-red-400/70 hover:bg-red-500/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 sm:px-3 sm:text-[10px]">
+                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-red-500/45 bg-red-500/[0.10] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.04em] text-red-100 transition hover:border-red-400/70 hover:bg-red-500/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 sm:px-3.5 sm:text-[11px]">
                                       <IconFile className="h-3.5 w-3.5" />
                                       <span className="hidden sm:inline">Ver review</span>
                                       <span aria-hidden="true">→</span>
@@ -2669,7 +2671,7 @@ export default function AtividadePage() {
             {/* SIDEBAR DIREITA */}
 {/* RIGHT */}
             <aside className="space-y-3 xl:sticky xl:top-20">
-              <ActivityMap entries={sourceEntries} />
+              <ActivityMap entries={sourceEntries} referenceDate={today} />
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <div className="flex items-center justify-between">
                   <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
@@ -2778,7 +2780,7 @@ export default function AtividadePage() {
                       <span className="text-[23px] font-black">
                         {Math.floor(totalMinutes / 60)}h
                       </span>
-                      <span className="text-[7px] font-black uppercase tracking-[0.16em] text-white/25">
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">
                         total
                       </span>
                     </div>
@@ -2803,12 +2805,12 @@ export default function AtividadePage() {
                               }`}
                             />
 
-                            <p className="truncate text-[11px] font-bold text-white/65">
+                            <p className="truncate text-[12px] font-bold text-white/75">
                               {item.title}
                             </p>
                           </div>
 
-                          <p className="ml-4 mt-0.5 text-[8px] text-white/35">
+                          <p className="ml-4 mt-0.5 text-[10px] text-white/45">
                             {formatPlayedTime(item.minutes)} (
                             {Math.round(item.percent)}
                             %)
@@ -2820,7 +2822,7 @@ export default function AtividadePage() {
 
                 <div className="mt-4 flex items-start gap-2 border-t border-white/[0.07] pt-3">
                   <IconTarget className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-                  <p className="text-[8px] leading-relaxed text-white/30">
+                  <p className="text-[10px] leading-[1.5] text-white/45">
                     Os dados são atualizados automaticamente conforme você registra suas sessões de jogo.
                   </p>
                 </div>
