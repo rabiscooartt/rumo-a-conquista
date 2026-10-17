@@ -2318,26 +2318,68 @@ export default function AtividadePage() {
                       onChange={(event) =>
                         setSearch(event.target.value)
                       }
-                      placeholder="Buscar jogo, conquista ou descrição..."
+                      placeholder={
+                        activeTab === "reviews"
+                          ? "Buscar jogo, título da review ou resumo..."
+                          : activeTab === "conquistas"
+                            ? "Buscar jogo, conquista ou descrição..."
+                            : "Buscar jogo ou atividade..."
+                      }
                       className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </div>
 
-                  <button
-                    type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
-                  >
-                    <IconCalendar className="h-3.5 w-3.5" />
-                    Todos os Meses ▾
-                  </button>
-
-                  <button
-                    type="button"
-                    className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
-                  >
-                    <IconGamepad className="h-3.5 w-3.5" />
-                    Todas as Plataformas ▾
-                  </button>
+                  {activeTab === "reviews" ? (
+                    <>
+                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5 text-[11px] font-black text-white/55">
+                        <IconCalendar className="h-3.5 w-3.5 shrink-0" />
+                        <select
+                          value={reviewMonthFilter}
+                          onChange={(event) => setReviewMonthFilter(event.target.value)}
+                          aria-label="Filtrar reviews por mês"
+                          className="max-w-[135px] bg-transparent text-[11px] font-black text-white/70 outline-none"
+                        >
+                          <option className="bg-[#090b0f]" value="all">Todos os Meses</option>
+                          {reviewMonthOptions.map((monthKey) => (
+                            <option className="bg-[#090b0f]" key={monthKey} value={monthKey}>
+                              {monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01")}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5 text-[11px] font-black text-white/55">
+                        <IconGamepad className="h-3.5 w-3.5 shrink-0" />
+                        <select
+                          value={reviewPlatformFilter}
+                          onChange={(event) => setReviewPlatformFilter(event.target.value)}
+                          aria-label="Filtrar reviews por plataforma"
+                          className="max-w-[155px] bg-transparent text-[11px] font-black text-white/70 outline-none"
+                        >
+                          <option className="bg-[#090b0f]" value="all">Todas as Plataformas</option>
+                          {reviewPlatformOptions.map((platform) => (
+                            <option className="bg-[#090b0f]" key={platform} value={platform}>{platform}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
+                      >
+                        <IconCalendar className="h-3.5 w-3.5" />
+                        Todos os Meses ▾
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
+                      >
+                        <IconGamepad className="h-3.5 w-3.5" />
+                        Todas as Plataformas ▾
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 {activeTab === "jogos" && (
@@ -2512,15 +2554,103 @@ export default function AtividadePage() {
 
 {activeTab === "reviews" && (
                   <div className="p-3">
-                    <div className="rounded-xl border border-white/[0.08] p-10 text-center">
-                      <IconFile className="mx-auto h-6 w-6 text-white/25" />
-                      <p className="mt-3 text-[11px] font-black text-white/50">
-                        Reviews
-                      </p>
-                      <p className="mt-1 text-[9px] text-white/25">
-                        Área preparada para os dados de reviews.
-                      </p>
-                    </div>
+                    <header className="mb-4 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-gradient-to-r from-[#12090b] via-[#0b0b0d] to-[#090909] p-3.5 sm:p-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/[0.08] text-red-300">
+                        <IconFile className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[8px] font-black uppercase tracking-[0.2em] text-red-400 sm:text-[9px]">Suas avaliações ao longo do tempo</p>
+                        <h2 className="mt-1 text-[15px] font-black text-white sm:text-[17px]">Histórico de Reviews</h2>
+                        <p className="mt-1 text-[9px] leading-relaxed text-white/45 sm:text-[10px]">Reviews publicadas, organizadas da mais recente à mais antiga.</p>
+                      </div>
+                      <div className="flex min-w-[70px] shrink-0 flex-col items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-3 py-2">
+                        <span className="text-[18px] font-black leading-none tabular-nums text-white">{filteredReviewDiary.length}</span>
+                        <span className="mt-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-red-200/65">reviews</span>
+                      </div>
+                    </header>
+
+                    {groupedReviewDiary.length ? (
+                      <div className="space-y-5">
+                        {groupedReviewDiary.map((group) => (
+                          <section key={group.monthKey}>
+                            <h3 className="mb-2 border-b border-white/[0.08] pb-2 text-[12px] font-black capitalize text-white/90">
+                              {group.label}
+                            </h3>
+                            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
+                              {group.items.map((item) => {
+                                const href = "/games/" + item.gameSlug + "/review";
+                                const stars = item.score === null ? 0 : Math.max(0, Math.min(5, Math.round(item.score / 2)));
+                                const day = item.dateKey ? item.dateKey.slice(8, 10) : "—";
+
+                                return (
+                                  <article key={item.gameSlug} className="flex items-center gap-2 border-b border-white/[0.07] px-2.5 py-3 last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5 lg:gap-4 lg:px-4">
+                                    <div className="flex w-[30px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]">
+                                      <span className="text-[18px] font-black leading-none tabular-nums text-white sm:text-[20px]">{day}</span>
+                                    </div>
+                                    <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                                      <div className="h-[62px] w-[44px] shrink-0 overflow-hidden border border-white/10 bg-[#080808] sm:h-[70px] sm:w-[50px]">
+                                        {item.cover ? (
+                                          <img src={item.cover} alt={"Capa de " + item.gameTitle} className="h-full w-full object-cover" loading="lazy" />
+                                        ) : (
+                                          <div className="flex h-full w-full items-center justify-center text-white/25"><IconGamepad className="h-4 w-4" /></div>
+                                        )}
+                                      </div>
+                                      <div className="min-w-0 flex-1 py-0.5">
+                                        <p className="truncate text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[13px]">{item.gameTitle}</p>
+                                        <p className="mt-1 truncate text-[10px] font-bold text-red-300 sm:text-[11px]">{item.reviewTitle}</p>
+                                        {item.summary ? (
+                                          <p className="mt-1 line-clamp-1 text-[10px] leading-relaxed text-white/45 sm:text-[11px]">{item.summary}</p>
+                                        ) : null}
+                                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                          {item.score !== null ? (
+                                            <span className="inline-flex items-center gap-1.5" aria-label={"Nota " + item.score + " de 10"}>
+                                              <span className="text-[11px] leading-none tracking-[0.06em]">
+                                                {Array.from({ length: 5 }, (_, index) => (
+                                                  <span key={index} className={index < stars ? "text-red-400" : "text-white/15"}>★</span>
+                                                ))}
+                                              </span>
+                                              <span className="text-[9px] font-black tabular-nums text-white/65">{String(item.score).replace(".", ",")}/10</span>
+                                            </span>
+                                          ) : null}
+                                          {item.platform ? <span className="text-[9px] font-medium text-white/35">{item.platform}</span> : null}
+                                        </div>
+                                      </div>
+                                    </Link>
+                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-2 py-2 text-[8px] font-black uppercase tracking-[0.05em] text-red-300 transition hover:border-red-400/40 hover:bg-red-500/[0.12] sm:px-3 sm:text-[9px]">
+                                      <IconFile className="h-3 w-3" />
+                                      <span className="hidden sm:inline">Ver review</span>
+                                      <span aria-hidden="true">→</span>
+                                    </Link>
+                                  </article>
+                                );
+                              })}
+                            </div>
+                          </section>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-white/[0.08] px-6 py-12 text-center">
+                        <IconFile className="mx-auto h-7 w-7 text-white/20" />
+                        <p className="mt-3 text-[12px] font-bold text-white/55">
+                          {reviewDiary.length === 0
+                            ? "Nenhuma review publicada foi encontrada."
+                            : "Nenhuma review corresponde à sua busca ou aos filtros selecionados."}
+                        </p>
+                        {reviewMonthFilter !== "all" || reviewPlatformFilter !== "all" || search.trim() ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReviewMonthFilter("all");
+                              setReviewPlatformFilter("all");
+                              setSearch("");
+                            }}
+                            className="mt-4 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black text-white/60 transition hover:text-white"
+                          >
+                            Limpar filtros
+                          </button>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 )}
               </section>
