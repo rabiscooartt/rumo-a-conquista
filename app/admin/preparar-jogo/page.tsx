@@ -831,9 +831,9 @@ function PrepararJogoPage() {
           {
             cache: "no-store",
             headers: {
-              Accept: "text/plain",
+              Accept: "text/html",
               "X-Engine": "browser",
-              "X-Respond-With": "text",
+              "X-Respond-With": "html",
               "X-No-Cache": "true",
               "X-Wait-For-Selector": ".award-title",
             },
@@ -846,71 +846,13 @@ function PrepararJogoPage() {
           );
         }
 
-        const raw = await readerResponse.text();
-        const lines = raw
-          .replace(/\r/g, "")
-          .replace(/<[^>]+>/g, "\n")
-          .replace(/!\[[^\]]*\]\([^)]*\)/g, "Image")
-          .replace(/\[([^\]]+)\]\((?:https?:\/\/[^)]+)\)/g, "$1")
-          .split("\n")
-          .map((line) => line.replace(/^\s*[-*+]\s+/, "").trim())
-          .filter(Boolean);
-
-        const cleanLine = (value: string) =>
-          value
-            .replace(/^#+\s+/, "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-        const preparedLines = lines.map(cleanLine);
-        const percentRegex = /\b\d+(?:[.,]\d+)?%/;
-        const ignored = new Set([
-          "Image",
-          "Imagem",
-          "My Stats",
-          "Game Info",
-          "List Options",
-        ]);
-        const parsed = [];
-        const seen = new Set<string>();
-
-        for (let i = 0; i < preparedLines.length; i += 1) {
-          const percentLine = preparedLines[i];
-          if (!percentRegex.test(percentLine)) continue;
-
-          const candidates: string[] = [];
-          for (let cursor = i - 1; cursor >= 0 && candidates.length < 8; cursor -= 1) {
-            const value = preparedLines[cursor];
-            if (!value || ignored.has(value)) continue;
-            if (percentRegex.test(value)) break;
-            if (/^https?:\/\//i.test(value)) continue;
-            candidates.unshift(value);
-          }
-
-          if (candidates.length < 2) continue;
-
-          const name = candidates[candidates.length - 2];
-          const description = candidates[candidates.length - 1];
-          const key = name.toLocaleLowerCase("pt-BR").trim();
-          if (!name || !description || seen.has(key)) continue;
-
-          const pct = percentLine.match(/(\d+(?:[.,]\d+)?)%/);
-          parsed.push({
-            name,
-            description,
-            percent: pct ? Number(pct[1].replace(",", ".")) : undefined,
-            visualReferenceUrl: null,
-            detailUrl: null,
-          });
-          seen.add(key);
+        const sourceHtml = await readerResponse.text();
+        if (!sourceHtml.trim()) {
+          throw new Error("O Exophase devolveu uma página vazia na tentativa pelo navegador.");
         }
 
-        if (parsed.length === 0) {
-          throw new Error(
-            "Recebi a página do Exophase, mas não consegui identificar as conquistas nela."
-          );
-        }
-
+        // O mesmo parser do servidor analisa o HTML/texto da página. Isso evita
+        // que uma heurística local perca conquistas quando o formato do Exophase muda.
         const browserResponse = await fetch("/api/admin/achievement-prep", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -919,7 +861,7 @@ function PrepararJogoPage() {
             slug: gameSlug,
             title: gameTitle,
             exophaseUrl,
-            achievements: parsed,
+            sourceHtml,
           }),
         });
 
