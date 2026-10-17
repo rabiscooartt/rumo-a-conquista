@@ -19,6 +19,8 @@ type ReviewGame = {
   image?: string;
   cardImage?: string;
   platform?: string;
+  hours?: unknown;
+  manualTotalPlayedMinutes?: unknown;
   achievementsList?: Array<{ status?: unknown }>;
   review?: ReviewRecord;
 };
@@ -99,71 +101,160 @@ function scoreLabel(score: number) {
   return "Abaixo do esperado";
 }
 
+function getReviewPlaytime(game: ReviewGame) {
+  const manualMinutes = Number(game.manualTotalPlayedMinutes || 0);
+  if (Number.isFinite(manualMinutes) && manualMinutes > 0) {
+    const safe = Math.round(manualMinutes);
+    const hours = Math.floor(safe / 60);
+    const minutes = safe % 60;
+    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${minutes}m`;
+  }
+
+  const saved = cleanText(game.hours);
+  if (!saved || /^(?:0h|0m|0h\s*[- ]\s*0m|0)$/i.test(saved)) return "";
+  return saved.replace(/\s*[-–]\s*/g, " ").replace(/\bminutos?\b/gi, "m").replace(/\bmins?\b/gi, "m");
+}
+
 function ReviewCard({ game }: { game: ReviewGame }) {
   const review = game.review ?? {};
-  const title = cleanText(review.titulo) || `Review de ${game.title}`;
+  const reviewTitle = cleanText(review.titulo) || `Review de ${game.title}`;
   const summary = cleanText(review.resumo);
   const fullText = cleanText(review.texto);
-  const excerpt = summary || fullText;
+  const hasSeparateText = Boolean(summary && fullText && normalizeKey(summary) !== normalizeKey(fullText));
+  const mainExcerpt = summary || fullText;
   const score = parseScore(review.nota);
   const image = cleanText(game.cardImage) || cleanText(game.image);
-  const filledStars = score === null ? 0 : Math.round(score / 2);
+  const playtime = getReviewPlaytime(game);
+  const filledStars = score === null ? 0 : score / 2;
+  const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="flex flex-col gap-3 border-b border-white/[0.07] px-3 py-4 last:border-b-0 sm:flex-row sm:items-center sm:gap-4 sm:px-4">
+    <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-3 border-b border-white/[0.08] px-3 py-4 last:border-b-0 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
       <Link
         href={`/games/${encodeURIComponent(game.slug)}`}
         aria-label={`Abrir página de ${game.title}`}
-        className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg"
+        className="group block aspect-[3/4] w-full overflow-hidden border border-white/10 bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
       >
         {image ? (
-          <img src={image} alt={game.title} loading="lazy" className="h-full w-full object-cover" />
+          <img
+            src={image}
+            alt={`Capa de ${game.title}`}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
+          />
         ) : (
           <div className="flex h-full items-center justify-center px-1 text-center text-[8px] font-black text-white/25">RC</div>
         )}
       </Link>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-[15px] font-black text-white sm:text-[17px]">{title}</h3>
-          <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[.05] px-2 py-0.5 text-[8px] font-black uppercase tracking-[.1em] text-emerald-200/80">
+      <div className="flex min-w-0 flex-col py-0.5">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Link
+              href={`/games/${encodeURIComponent(game.slug)}`}
+              aria-label={`Abrir página de ${game.title}`}
+              className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
+            >
+              <h3 className="break-words text-[15px] font-black leading-snug text-white transition-colors hover:text-red-100 sm:text-[17px]">
+                {game.title}
+              </h3>
+            </Link>
+          </div>
+          <span className="hidden shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/[.05] px-2 py-1 text-[8px] font-black uppercase tracking-[.1em] text-emerald-200/80 sm:inline-flex">
             Publicada
           </span>
         </div>
-        <p className="mt-1 text-[11px] font-semibold text-white/45">{game.title}{cleanText(game.platform) ? ` · ${cleanText(game.platform)}` : ""}</p>
-        {excerpt ? (
-          <p className="mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-white/65">{excerpt}</p>
-        ) : null}
-      </div>
 
-      <div className="flex shrink-0 items-center justify-between gap-4 sm:w-[112px] sm:flex-col sm:items-end sm:justify-center sm:gap-1">
-        <div>
-          <p className="text-[8px] font-black uppercase tracking-[.14em] text-white/30 sm:text-right">Nota final</p>
-          <p className="mt-0.5 text-[20px] font-black leading-none text-white sm:text-right">
-            {score === null ? "—" : score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
-            <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
-          </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          {score !== null ? (
+            <span className="inline-flex items-center gap-1.5" title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}>
+              <span className="inline-flex items-center gap-px text-[17px] leading-none" aria-label={`${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}>
+                {Array.from({ length: 5 }, (_, index) => {
+                  const fill = Math.max(0, Math.min(1, filledStars - index));
+                  return (
+                    <span
+                      key={index}
+                      aria-hidden="true"
+                      className="leading-none"
+                      style={{
+                        backgroundImage: `linear-gradient(90deg, #f5f5f5 ${fill * 100}%, rgba(255,255,255,0.18) ${fill * 100}%)`,
+                        WebkitBackgroundClip: "text",
+                        backgroundClip: "text",
+                        color: "transparent",
+                      }}
+                    >
+                      ★
+                    </span>
+                  );
+                })}
+              </span>
+              <span className="text-[10px] font-semibold tabular-nums text-white/45">
+                {score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
+              </span>
+            </span>
+          ) : null}
+
+          {playtime ? (
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/45">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 7.5V12l3 1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {playtime}
+            </span>
+          ) : null}
+
+          {cleanText(game.platform) ? (
+            <span className="border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-[10px] font-semibold text-white/55">
+              {cleanText(game.platform)}
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-400 sm:hidden">
+            Publicada
+          </span>
         </div>
-        {score !== null ? (
-          <p className="whitespace-nowrap text-[12px] leading-none text-red-400 sm:text-right" aria-label={`${filledStars} de 5 estrelas`}>
-            {"★".repeat(filledStars)}<span className="text-white/15">{"★".repeat(5 - filledStars)}</span>
+
+        {isCustomTitle ? (
+          <p className="mt-2 text-[12px] font-bold leading-snug text-red-200/90 sm:text-[13px]">
+            {reviewTitle}
           </p>
         ) : null}
-      </div>
 
-      <div className="flex shrink-0 flex-wrap gap-2 sm:w-[160px] sm:flex-col sm:items-stretch">
+        {mainExcerpt ? (
+          <p className="mt-2 line-clamp-3 text-[12px] leading-[1.6] text-white/70 sm:line-clamp-4 sm:text-[13px]">
+            {mainExcerpt}
+          </p>
+        ) : null}
+
+        {hasSeparateText ? (
+          <p className="mt-2 line-clamp-2 text-[12px] leading-[1.6] text-white/55 sm:text-[13px]">
+            {fullText}
+          </p>
+        ) : null}
+
         <Link
           href={`/games/${encodeURIComponent(game.slug)}/review`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/[.08] px-3 py-2.5 text-[9px] font-black uppercase tracking-[.06em] text-red-200 transition hover:border-red-400/50 hover:bg-red-500/[.14]"
+          className="mt-1.5 inline-flex w-fit items-center gap-1 text-[12px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
         >
-          Ler review <span aria-hidden="true">→</span>
+          Ler mais <span aria-hidden="true">→</span>
         </Link>
-        <Link
-          href={`/games/${encodeURIComponent(game.slug)}`}
-          className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[.02] px-3 py-2.5 text-[9px] font-black uppercase tracking-[.06em] text-white/45 transition hover:border-white/20 hover:text-white/80"
-        >
-          Ver jogo
-        </Link>
+
+        <div className="mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3">
+          <Link
+            href={`/games/${encodeURIComponent(game.slug)}`}
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/45 transition hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+          >
+            Ver jogo
+          </Link>
+          <Link
+            href={`/games/${encodeURIComponent(game.slug)}/review`}
+            className="inline-flex items-center gap-1.5 text-[12px] font-bold text-white/85 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+          >
+            Abrir review <span aria-hidden="true">→</span>
+          </Link>
+        </div>
       </div>
     </article>
   );
@@ -391,7 +482,7 @@ export default function ReviewsPage() {
                       </button>
                     </div>
                   ) : visibleGames.length > 0 ? (
-                    <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
+                    <div className="divide-y divide-white/[0.08]">
                       {visibleGames.map((game) => <ReviewCard key={game.slug} game={game} />)}
                     </div>
                   ) : (
