@@ -2232,7 +2232,7 @@ export default function AtividadePage() {
                           const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
 
                           return (
-                            <article key={[achievement.gameSlug, achievement.id || achievement.title, index].join("-")} className="flex items-center gap-2.5 border-b border-white/[0.07] px-2.5 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5">
+                            <article key={[achievement.gameSlug, achievement.id || achievement.title, index].join("-")} className="flex items-center gap-2 border-b border-white/[0.07] px-2.5 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5 lg:gap-4 lg:px-4">
                               <div className="flex w-[48px] shrink-0 flex-col items-center justify-center text-center sm:w-[56px]">
                                 <span className="whitespace-nowrap text-[12px] font-black leading-tight tabular-nums text-slate-200 sm:text-[14px]">#{achievement.activityNumber.toLocaleString("pt-BR")}</span>
                                 
@@ -2262,7 +2262,7 @@ export default function AtividadePage() {
                                 </div>
                               </Link>
 
-                              <div className="flex w-[112px] shrink-0 items-center justify-end gap-3 sm:w-[156px] sm:gap-4">
+                              <div className="flex w-auto shrink-0 items-center justify-end gap-2.5 sm:gap-3 lg:gap-3.5">
                                 <img
                                   src={trophy.image}
                                   alt={trophy.label}
@@ -2272,7 +2272,7 @@ export default function AtividadePage() {
                                 />
                                 <time
                                   dateTime={achievement.activityDateKey || undefined}
-                                  className="whitespace-nowrap text-[9px] font-bold tabular-nums text-white/70 sm:text-[11px]"
+                                  className="whitespace-nowrap text-[10px] font-bold tabular-nums text-white/85 sm:text-[12px]"
                                 >
                                   {formatActivityRowDate(achievement.activityDateKey)}
                                 </time>
