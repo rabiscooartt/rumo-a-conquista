@@ -351,6 +351,25 @@ function formatActivityRowDate(dateKey?: string) {
   return parts[2] + "/" + parts[1] + "/" + parts[0];
 }
 
+function getActivityDateParts(dateKey?: string) {
+  if (!dateKey) return null;
+  const parts = dateKey.split("-");
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return null;
+
+  const months = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+  const monthNumber = Number(parts[1]);
+  const day = parts[2];
+
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) return null;
+  if (!/^\\d{1,2}$/.test(day) || !/^\\d{4}$/.test(parts[0])) return null;
+
+  return {
+    day: day.padStart(2, "0"),
+    month: months[monthNumber - 1],
+    year: parts[0],
+  };
+}
+
 function readActivityReview(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -2475,6 +2494,7 @@ export default function AtividadePage() {
                           const achievementImage = getAchievementImage(achievement);
                           const platformBadge = getActivityPlatformBadge(game);
                           const trophy = getActivityTrophyMeta(achievement);
+                          const dateParts = getActivityDateParts(achievement.activityDateKey);
                           const target = achievement.id?.trim() || achievement.title || "Conquista";
                           const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
 
@@ -2534,9 +2554,14 @@ export default function AtividadePage() {
                                 />
                                 <time
                                   dateTime={achievement.activityDateKey || undefined}
-                                  className="whitespace-nowrap text-[10px] font-bold tabular-nums text-white/85 sm:text-[12px]"
+                                  title={formatActivityRowDate(achievement.activityDateKey)}
+                                  className="flex min-w-[34px] shrink-0 flex-col items-center justify-center text-center"
                                 >
-                                  {formatActivityRowDate(achievement.activityDateKey)}
+                                  <span className={`text-[16px] font-black leading-none tabular-nums sm:text-[18px] ${dateParts ? "text-white" : "text-white/30"}`}>
+                                    {dateParts?.day ?? "—"}
+                                  </span>
+                                  {dateParts ? <span className="mt-1 text-[9px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[10px]">{dateParts.month}</span> : null}
+                                  {dateParts ? <span className="mt-1 text-[8px] font-semibold leading-none tabular-nums text-white/30">{dateParts.year}</span> : null}
                                 </time>
                               </div>
                             </article>
@@ -2580,12 +2605,15 @@ export default function AtividadePage() {
                               {group.items.map((item) => {
                                 const href = "/games/" + item.gameSlug + "/review";
                                 const stars = item.score === null ? 0 : Math.max(0, Math.min(5, Math.round(item.score / 2)));
-                                const day = item.dateKey ? item.dateKey.slice(8, 10) : "—";
+                                const dateParts = getActivityDateParts(item.dateKey);
+                                const day = dateParts?.day ?? "—";
 
                                 return (
                                   <article key={item.gameSlug} className="flex items-center gap-2 border-b border-white/[0.07] px-2.5 py-3 last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5 lg:gap-4 lg:px-4">
-                                    <div className="flex w-[30px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]">
-                                      <span className="text-[18px] font-black leading-none tabular-nums text-white sm:text-[20px]">{day}</span>
+                                    <div className="flex w-[34px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]" title={dateParts ? "Publicada em " + day + "/" + item.dateKey.slice(5, 7) + "/" + dateParts.year : "Data de publicação não registrada"}>
+                                      <span className={`text-[18px] font-black leading-none tabular-nums sm:text-[20px] ${dateParts ? "text-white" : "text-white/30"}`}>{day}</span>
+                                      {dateParts ? <span className="mt-1 text-[9px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[10px]">{dateParts.month}</span> : null}
+                                      {dateParts ? <span className="mt-1 text-[8px] font-semibold leading-none tabular-nums text-white/30">{dateParts.year}</span> : null}
                                     </div>
                                     <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                                       <div className="h-[62px] w-[44px] shrink-0 overflow-hidden border border-white/10 bg-[#080808] sm:h-[70px] sm:w-[50px]">
