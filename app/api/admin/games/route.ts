@@ -1280,7 +1280,7 @@ export async function GET(request: NextRequest) {
     };
     const pendingEntries: PendingActivityNumber[] = [];
     const pendingSeen = new Set<string>();
-    const legacyCatalog = legacyGames as unknown as Record<string, {
+    const activityLegacyCatalog = legacyGames as unknown as Record<string, {
       achievementsList?: unknown[];
       finalBadge?: unknown;
     }>;
@@ -1289,7 +1289,7 @@ export async function GET(request: NextRequest) {
       const slug = String(game.slug || "").trim();
       if (!slug) continue;
       const storedReview = readObjectRecord(game.review);
-      const legacyGame = legacyCatalog[slug];
+      const legacyGame = activityLegacyCatalog[slug];
       const databaseAchievements = Array.isArray(game.achievementsList)
         ? (game.achievementsList as Record<string, unknown>[])
         : [];
