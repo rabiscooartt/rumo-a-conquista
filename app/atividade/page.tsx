@@ -34,6 +34,8 @@ type GameLike = {
   cardImage?: string;
   manualTotalPlayedMinutes?: number | null;
   status?: string;
+  createdAt?: string;
+  updatedAt?: string;
   platform?: string;
   platforms?: string[];
   console?: string;
@@ -82,6 +84,17 @@ type DiaryAchievement = AchievementLike & {
   activityDateKey: string;
   activityNumber: number;
   activityKind?: "achievement" | "mastery";
+};
+type DiaryReview = {
+  gameSlug: string;
+  gameTitle: string;
+  cover: string;
+  platform: string;
+  reviewTitle: string;
+  summary: string;
+  score: number | null;
+  dateKey: string;
+  monthKey: string;
 };
 
 function formatPlayedTime(minutes = 0) {
@@ -336,6 +349,60 @@ function formatActivityRowDate(dateKey?: string) {
   const parts = dateKey.split("-");
   if (parts.length !== 3) return "Data não registrada";
   return parts[2] + "/" + parts[1] + "/" + parts[0];
+}
+
+function readActivityReview(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function isPublishedReviewStatus(value: unknown) {
+  const status = normalizeKey(String(value ?? "")).replace(/[^a-z0-9]/g, "");
+  return [
+    "liberada",
+    "reviewliberada",
+    "liberadapublicada",
+    "publicada",
+    "publicado",
+    "reviewpublicada",
+    "reviewpublicado",
+    "released",
+    "published",
+  ].includes(status);
+}
+
+function getReviewPublicationDate(review: Record<string, unknown>, game: GameLike): string {
+  const candidates = [
+    review.__reviewPublishedAt,
+    review.publishedAt,
+    review.published_at,
+    review.publishedDate,
+    review.published_date,
+    review.dataPublicacao,
+    review.data_publicacao,
+    review.reviewDate,
+    review.review_date,
+    game.updatedAt,
+    game.createdAt,
+  ];
+  return (candidates.find((value) => typeof value === "string" && value.trim()) as string) || "";
+}
+
+function readReviewText(review: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = review[key];
+    if (typeof value === "string" || typeof value === "number") {
+      const clean = String(value).trim();
+      if (clean) return clean;
+    }
+  }
+  return "";
+}
+
+function summarizeReviewText(value: string, maxLength = 150) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  return clean.length <= maxLength ? clean : clean.slice(0, maxLength - 1).trimEnd() + "…";
 }
 
 
@@ -1356,6 +1423,8 @@ export default function AtividadePage() {
   const [activeTab, setActiveTab] =
     useState<ActivityTab>("jogos");
   const [search, setSearch] = useState("");
+  const [reviewMonthFilter, setReviewMonthFilter] = useState("all");
+  const [reviewPlatformFilter, setReviewPlatformFilter] = useState("all");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
@@ -1597,6 +1666,95 @@ export default function AtividadePage() {
     );
   }, [achievementDiary, search]);
 
+
+  const reviewDiary = useMemo<DiaryReview[]>(() => {
+    const result: DiaryReview[] = [];
+
+    for (const game of games) {
+      const slug = String(game.slug || "").trim();
+      if (!slug) continue;
+
+      const review = readActivityReview(game.review);
+      if (!isPublishedReviewStatus(review.status)) continue;
+
+      const dateSource = getReviewPublicationDate(review, game);
+      const dateKey = getActivityDateKey(dateSource);
+      const scoreText = readReviewText(review, ["nota", "score", "rating"]).replace(",", ".");
+      const parsedScore = scoreText ? Number(scoreText) : NaN;
+      const score =
+        Number.isFinite(parsedScore) && parsedScore >= 0 && parsedScore <= 10
+          ? parsedScore
+          : null;
+      const fullText = readReviewText(review, ["texto", "text", "review", "analysis", "summary"]);
+      const reviewSummary = readReviewText(review, ["resumo", "summary", "fraseCartao", "cardSummary"]);
+      const reviewTitle = readReviewText(review, ["titulo", "reviewTitle", "title"]) ||
+        ("Review de " + normalizeGameTitle(game.title));
+
+      result.push({
+        gameSlug: slug,
+        gameTitle: normalizeGameTitle(game.title),
+        cover: getGameCover(game, slug),
+        platform: String(game.platform || game.console || (game.platforms || []).join(" • ") || "").trim(),
+        reviewTitle,
+        summary: summarizeReviewText(reviewSummary || fullText),
+        score,
+        dateKey,
+        monthKey: dateKey ? dateKey.slice(0, 7) : "sem-data",
+      });
+    }
+
+    return result.sort((a, b) => {
+      if (!a.dateKey) return b.dateKey ? 1 : 0;
+      if (!b.dateKey) return -1;
+      return b.dateKey.localeCompare(a.dateKey) || a.gameTitle.localeCompare(b.gameTitle, "pt-BR");
+    });
+  }, [games]);
+
+  const reviewMonthOptions = useMemo(
+    () => [...new Set(reviewDiary.map((item) => item.monthKey))]
+      .sort((a, b) => {
+        if (a === "sem-data") return 1;
+        if (b === "sem-data") return -1;
+        return b.localeCompare(a);
+      }),
+    [reviewDiary]
+  );
+
+  const reviewPlatformOptions = useMemo(
+    () => [...new Set(reviewDiary.map((item) => item.platform).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [reviewDiary]
+  );
+
+  const filteredReviewDiary = useMemo(() => {
+    const query = normalizeKey(search);
+    return reviewDiary.filter((item) => {
+      const matchesSearch =
+        !query ||
+        normalizeKey(item.gameTitle).includes(query) ||
+        normalizeKey(item.reviewTitle).includes(query) ||
+        normalizeKey(item.summary).includes(query) ||
+        normalizeKey(item.platform).includes(query);
+      const matchesMonth = reviewMonthFilter === "all" || item.monthKey === reviewMonthFilter;
+      const matchesPlatform =
+        reviewPlatformFilter === "all" || normalizeKey(item.platform) === normalizeKey(reviewPlatformFilter);
+      return matchesSearch && matchesMonth && matchesPlatform;
+    });
+  }, [reviewDiary, search, reviewMonthFilter, reviewPlatformFilter]);
+
+  const groupedReviewDiary = useMemo(() => {
+    const groups = new Map<string, DiaryReview[]>();
+    for (const item of filteredReviewDiary) {
+      const group = groups.get(item.monthKey) ?? [];
+      group.push(item);
+      groups.set(item.monthKey, group);
+    }
+    return [...groups.entries()].map(([monthKey, items]) => ({
+      monthKey,
+      label: monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01"),
+      items,
+    }));
+  }, [filteredReviewDiary]);
 
   const summaryAchievementsLast60 = useMemo(() => {
     let count = 0;
