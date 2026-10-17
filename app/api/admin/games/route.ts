@@ -1272,6 +1272,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Soft-deleted games are no longer displayed, but their issued numbers
+    // remain reserved so later diary entries never reuse an old number.
+    const { data: deletedGamesForNumbering, error: deletedNumberingError } = await client
+      .from("games")
+      .select("review")
+      .eq("is_deleted", true);
+    if (deletedNumberingError) throw deletedNumberingError;
+    for (const deletedGame of deletedGamesForNumbering ?? []) {
+      for (const number of Object.values(readActivityNumberMap(deletedGame.review))) {
+        highestActivityNumber = Math.max(highestActivityNumber, number);
+      }
+    }
+
     type PendingActivityNumber = {
       slug: string;
       localKey: string;
