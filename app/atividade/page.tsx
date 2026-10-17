@@ -372,7 +372,10 @@ function isPublishedReviewStatus(value: unknown) {
   ].includes(status);
 }
 
-function getReviewPublicationDate(review: Record<string, unknown>, game: GameLike): string {
+function getReviewPublicationDate(review: Record<string, unknown>): string {
+  // Use only fields that represent the review's own publication/creation date.
+  // A game's updatedAt changes for unrelated edits and must never become a
+  // false publication date for an older review.
   const candidates = [
     review.__reviewPublishedAt,
     review.publishedAt,
@@ -381,10 +384,16 @@ function getReviewPublicationDate(review: Record<string, unknown>, game: GameLik
     review.published_date,
     review.dataPublicacao,
     review.data_publicacao,
+    review.dataPublicacaoReview,
+    review.reviewPublishedAt,
+    review.review_published_at,
     review.reviewDate,
     review.review_date,
-    game.updatedAt,
-    game.createdAt,
+    review.dataReview,
+    review.data_review,
+    review.createdAt,
+    review.created_at,
+    review.data,
   ];
   return (candidates.find((value) => typeof value === "string" && value.trim()) as string) || "";
 }
@@ -1677,7 +1686,7 @@ export default function AtividadePage() {
       const review = readActivityReview(game.review);
       if (!isPublishedReviewStatus(review.status)) continue;
 
-      const dateSource = getReviewPublicationDate(review, game);
+      const dateSource = getReviewPublicationDate(review);
       const dateKey = getActivityDateKey(dateSource);
       const scoreText = readReviewText(review, ["nota", "score", "rating"]).replace(",", ".");
       const parsedScore = scoreText ? Number(scoreText) : NaN;
@@ -1751,7 +1760,7 @@ export default function AtividadePage() {
     }
     return [...groups.entries()].map(([monthKey, items]) => ({
       monthKey,
-      label: monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01"),
+      label: monthKey === "sem-data" ? "Publicação sem data registrada" : getMonthLabel(monthKey + "-01"),
       items,
     }));
   }, [filteredReviewDiary]);
@@ -2342,7 +2351,7 @@ export default function AtividadePage() {
                           <option className="bg-[#090b0f]" value="all">Todos os Meses</option>
                           {reviewMonthOptions.map((monthKey) => (
                             <option className="bg-[#090b0f]" key={monthKey} value={monthKey}>
-                              {monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01")}
+                              {monthKey === "sem-data" ? "Sem data de publicação" : getMonthLabel(monthKey + "-01")}
                             </option>
                           ))}
                         </select>
@@ -2585,7 +2594,10 @@ export default function AtividadePage() {
                                 return (
                                   <article key={item.gameSlug} className="flex items-center gap-2 border-b border-white/[0.07] px-2.5 py-3 last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5 lg:gap-4 lg:px-4">
                                     <div className="flex w-[30px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]">
-                                      <span className="text-[18px] font-black leading-none tabular-nums text-white sm:text-[20px]">{day}</span>
+                                      <span
+                                        title={item.dateKey ? "Dia da publicação da review" : "Data de publicação não registrada"}
+                                        className={`text-[18px] font-black leading-none tabular-nums sm:text-[20px] ${item.dateKey ? "text-white" : "text-white/30"}`}
+                                      >{day}</span>
                                     </div>
                                     <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                                       <div className="h-[62px] w-[44px] shrink-0 overflow-hidden border border-white/10 bg-[#080808] sm:h-[70px] sm:w-[50px]">
@@ -2596,12 +2608,12 @@ export default function AtividadePage() {
                                         )}
                                       </div>
                                       <div className="min-w-0 flex-1 py-0.5">
-                                        <p className="truncate text-[12px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[13px]">{item.gameTitle}</p>
-                                        <p className="mt-1 truncate text-[10px] font-bold text-red-300 sm:text-[11px]">{item.reviewTitle}</p>
+                                        <p className="truncate text-[13px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[14px]">{item.gameTitle}</p>
+                                        <p className="mt-1.5 truncate text-[11px] font-bold text-red-300 sm:text-[12px]">{item.reviewTitle}</p>
                                         {item.summary ? (
-                                          <p className="mt-1 line-clamp-1 text-[10px] leading-relaxed text-white/45 sm:text-[11px]">{item.summary}</p>
+                                          <p className="mt-2 line-clamp-2 text-[11px] leading-[1.55] text-white/60 sm:text-[12px]">{item.summary}</p>
                                         ) : null}
-                                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                                           {item.score !== null ? (
                                             <span className="inline-flex items-center gap-1.5" aria-label={"Nota " + item.score + " de 10"}>
                                               <span className="text-[11px] leading-none tracking-[0.06em]">
@@ -2612,12 +2624,12 @@ export default function AtividadePage() {
                                               <span className="text-[9px] font-black tabular-nums text-white/65">{String(item.score).replace(".", ",")}/10</span>
                                             </span>
                                           ) : null}
-                                          {item.platform ? <span className="text-[9px] font-medium text-white/35">{item.platform}</span> : null}
+                                          {item.platform ? <span className="rounded-md border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-[10px] font-semibold text-white/50">{item.platform}</span> : null}
                                         </div>
                                       </div>
                                     </Link>
-                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-2 py-2 text-[8px] font-black uppercase tracking-[0.05em] text-red-300 transition hover:border-red-400/40 hover:bg-red-500/[0.12] sm:px-3 sm:text-[9px]">
-                                      <IconFile className="h-3 w-3" />
+                                    <Link href={href} aria-label={"Abrir a review completa de " + item.gameTitle} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/[0.10] px-2.5 py-2.5 text-[9px] font-black uppercase tracking-[0.04em] text-red-200 transition hover:border-red-400/70 hover:bg-red-500/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 sm:px-3.5 sm:text-[10px]">
+                                      <IconFile className="h-3.5 w-3.5" />
                                       <span className="hidden sm:inline">Ver review</span>
                                       <span aria-hidden="true">→</span>
                                     </Link>
