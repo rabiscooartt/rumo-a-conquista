@@ -2215,10 +2215,9 @@ export default function AtividadePage() {
                         <h2 className="mt-1 text-[15px] font-black text-white sm:text-[17px]">Diário de conquistas</h2>
                         <p className="mt-1 text-[9px] leading-relaxed text-white/45 sm:text-[10px]">Conquistas de todos os jogos, organizadas da mais recente à mais antiga.</p>
                       </div>
-                      <div className="flex shrink-0 flex-col items-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-2.5 py-2">
-                        <span className="text-[17px] font-black tabular-nums text-white">{achievementDiary.length}</span>
-                        <span className="text-[7px] font-black uppercase tracking-[0.12em] text-red-200/65">registros</span>
-                        <span className="mt-1 text-[7px] font-bold text-white/30">{new Set(achievementDiary.map((item) => item.gameSlug || item.gameTitle)).size} jogos</span>
+                      <div className="flex min-w-[58px] shrink-0 flex-col items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] px-3 py-2">
+                        <span className="text-[18px] font-black leading-none tabular-nums text-white">{new Set(achievementDiary.map((item) => item.gameSlug || item.gameTitle)).size}</span>
+                        <span className="mt-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-red-200/65">jogos</span>
                       </div>
                     </header>
 
@@ -2240,7 +2239,7 @@ export default function AtividadePage() {
                             <article key={[achievement.gameSlug, achievement.id || achievement.title, index].join("-")} className="flex items-center gap-2.5 border-b border-white/[0.07] px-2.5 py-3 transition-colors last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5">
                               <div className="flex w-[48px] shrink-0 flex-col items-center justify-center text-center sm:w-[56px]">
                                 <span className="whitespace-nowrap text-[12px] font-black leading-tight tabular-nums text-slate-200 sm:text-[14px]">#{achievement.activityNumber.toLocaleString("pt-BR")}</span>
-                                <span className="mt-1 text-[6px] font-black uppercase tracking-[0.08em] text-red-500 sm:text-[7px]">Conquista</span>
+                                
                               </div>
 
                               <Link href={gameHref} aria-label={"Abrir " + (achievement.title || "conquista") + " na página de " + achievement.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
