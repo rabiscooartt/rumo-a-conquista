@@ -1774,15 +1774,55 @@ export default function AtividadePage() {
     });
   }, [games]);
 
-  const reviewMonthOptions = useMemo(
-    () => [...new Set(reviewDiary.map((item) => item.monthKey))]
-      .sort((a, b) => {
-        if (a === "sem-data") return 1;
-        if (b === "sem-data") return -1;
-        return b.localeCompare(a);
-      }),
-    [reviewDiary]
-  );
+  const reviewMonthOptions = useMemo(() => {
+    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1, 12);
+    const currentKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}`;
+
+    const existingKeys = new Set(
+      reviewDiary
+        .map((item) => item.monthKey)
+        .filter((key) => /^\d{4}-(0[1-9]|1[0-2])$/.test(key))
+    );
+
+    // Keep every month that already has a review, including older archive entries.
+    const historicalKeys = [...existingKeys].filter((key) => key <= currentKey);
+    const earliestKey = historicalKeys.sort((a, b) => a.localeCompare(b))[0] ?? currentKey;
+    const [startYear, startMonth] = earliestKey.split("-").map(Number);
+    const historicalAndCurrent = new Set<string>();
+    const cursor = new Date(startYear, startMonth - 1, 1, 12);
+
+    // Generate all months from the earliest known review through the current month.
+    while (cursor <= currentMonth) {
+      historicalAndCurrent.add(
+        `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`
+      );
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    // Pre-create a rolling 10-year horizon. The list advances automatically
+    // when the page's date reference rolls over at midnight.
+    const futureKeys = new Set<string>(
+      [...existingKeys].filter((key) => key > currentKey)
+    );
+    const futureCursor = new Date(currentMonth);
+    for (let offset = 1; offset <= 120; offset += 1) {
+      futureCursor.setMonth(futureCursor.getMonth() + 1);
+      futureKeys.add(
+        `${futureCursor.getFullYear()}-${String(futureCursor.getMonth() + 1).padStart(2, "0")}`
+      );
+    }
+
+    const ordered = [
+      ...[...historicalAndCurrent].sort((a, b) => b.localeCompare(a)),
+      ...[...futureKeys].sort((a, b) => a.localeCompare(b)),
+    ];
+
+    if (reviewDiary.some((item) => item.monthKey === "sem-data")) {
+      ordered.push("sem-data");
+    }
+
+    return ordered;
+  }, [reviewDiary, today]);
 
   const reviewPlatformOptions = useMemo(
     () => [...new Set(reviewDiary.map((item) => item.platform).filter(Boolean))]
