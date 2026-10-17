@@ -40,10 +40,59 @@ function normalizeEpisode(value: unknown): string {
   return match ? String(Number(match[0])) : "";
 }
 
+function normalizeMetadataTitle(value: unknown): string {
+  return cleanText(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function isCompletedStatus(value: unknown): boolean {
+  return ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(
+    normalizeMetadataTitle(value)
+  );
+}
+
+function clearAchievementMetadataForRow(
+  metadata: Record<string, unknown>,
+  row: { id: string; legacy_id: string; title: string }
+) {
+  const titleKey = "title:" + normalizeMetadataTitle(row.title);
+  const candidates = new Set(
+    [row.id, row.legacy_id, row.title, titleKey]
+      .map((value) => cleanText(value))
+      .filter(Boolean)
+  );
+  let changed = false;
+
+  for (const [key, value] of Object.entries(metadata)) {
+    const normalizedKey = key.startsWith("title:")
+      ? "title:" + normalizeMetadataTitle(key.slice("title:".length))
+      : key;
+    if (!candidates.has(key) && !candidates.has(normalizedKey)) continue;
+
+    const previous = asRecord(value);
+    if (!Object.keys(previous).length) continue;
+    const next = { ...previous };
+    delete next.episode;
+    delete next.date;
+    delete next.liveUrl;
+
+    if (Object.keys(next).length) metadata[key] = next;
+    else delete metadata[key];
+    changed = true;
+  }
+
+  return changed;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const slug = cleanText(body.slug);
+    const action = cleanText(body.action);
     const records = Array.isArray(body.records)
       ? body.records as IncomingRecord[]
       : [];
@@ -61,6 +110,125 @@ export async function POST(request: Request) {
     if (!slug) {
       return NextResponse.json({ error: "Slug do jogo é obrigatório." }, { status: 400 });
     }
+
+    if (action === "clear-completed") {
+      const client = createAdminSupabaseClient();
+      const [
+        { data: game, error: gameError },
+        { data: achievementRows, error: achievementsError },
+      ] = await Promise.all([
+        client
+          .from("games")
+          .select("slug, review")
+          .eq("slug", slug)
+          .maybeSingle(),
+        client
+          .from("achievements")
+          .select("id, legacy_id, title")
+          .eq("game_slug", slug),
+      ]);
+
+      if (gameError) throw gameError;
+      if (achievementsError) throw achievementsError;
+      if (!game) {
+        return NextResponse.json({ error: "O jogo não foi encontrado no banco de dados." }, { status: 404 });
+      }
+
+      const rows = (achievementRows ?? []) as {
+        id: string;
+        legacy_id: string;
+        title: string;
+      }[];
+      const achievementIds = rows.map((row) => row.id).filter(Boolean);
+      let progressRows: { achievement_id: string; status: string; earned_at: string | null }[] = [];
+
+      if (achievementIds.length) {
+        const { data, error: progressError } = await client
+          .from("achievement_progress")
+          .select("achievement_id, status, earned_at")
+          .eq("owner_key", OWNER_KEY)
+          .in("achievement_id", achievementIds);
+
+        if (progressError) throw progressError;
+        progressRows = (data ?? []) as typeof progressRows;
+      }
+
+      const progressById = new Map(progressRows.map((row) => [row.achievement_id, row]));
+      const resetProgress = progressRows.filter(
+        (row) => isCompletedStatus(row.status) || Boolean(cleanText(row.earned_at))
+      );
+      const completedCount = progressRows.filter((row) => isCompletedStatus(row.status)).length;
+      const resetIds = [...new Set(resetProgress.map((row) => row.achievement_id))];
+
+      if (resetIds.length) {
+        const { error: resetError } = await client
+          .from("achievement_progress")
+          .update({ status: "locked", earned_at: null })
+          .eq("owner_key", OWNER_KEY)
+          .in("achievement_id", resetIds);
+
+        if (resetError) throw resetError;
+      }
+
+      const review = asRecord(game.review);
+      const firstJourney = asRecord(review.__firstJourney);
+      const originalMetadata = asRecord(firstJourney.achievementMeta);
+      const achievementMeta: Record<string, unknown> = { ...originalMetadata };
+      let metadataChanged = false;
+
+      for (const row of rows) {
+        const progress = progressById.get(row.id);
+        if (!progress || (!isCompletedStatus(progress.status) && !cleanText(progress.earned_at))) {
+          continue;
+        }
+        metadataChanged =
+          clearAchievementMetadataForRow(achievementMeta, row) || metadataChanged;
+      }
+
+      const masteryKey = slug + "-final-mastery";
+      const masteryMetadata = asRecord(achievementMeta[masteryKey]);
+      if (Object.keys(masteryMetadata).length) {
+        const nextMasteryMetadata = { ...masteryMetadata };
+        delete nextMasteryMetadata.episode;
+        delete nextMasteryMetadata.date;
+        delete nextMasteryMetadata.liveUrl;
+        if (Object.keys(nextMasteryMetadata).length) achievementMeta[masteryKey] = nextMasteryMetadata;
+        else delete achievementMeta[masteryKey];
+        metadataChanged = true;
+      }
+
+      const journeyWasCompleted = normalizeMetadataTitle(firstJourney.status) === "completed";
+      const hasJourney = Object.keys(firstJourney).length > 0;
+      if (hasJourney && (metadataChanged || journeyWasCompleted)) {
+        const nextJourney: Record<string, unknown> = {
+          ...firstJourney,
+          ...(Object.keys(achievementMeta).length ? { achievementMeta } : {}),
+        };
+        if (Object.keys(achievementMeta).length === 0) delete nextJourney.achievementMeta;
+        if (journeyWasCompleted) {
+          nextJourney.status = "in_progress";
+          delete nextJourney.completedAt;
+        }
+
+        const nextReview = { ...review, __firstJourney: nextJourney };
+        const { error: reviewUpdateError } = await client
+          .from("games")
+          .update({ review: nextReview, updated_at: new Date().toISOString() })
+          .eq("slug", slug);
+
+        if (reviewUpdateError) throw reviewUpdateError;
+      }
+
+      return NextResponse.json({
+        ok: true,
+        slug,
+        clearedCount: completedCount,
+        resetCount: resetIds.length,
+        notesCleared: metadataChanged,
+        firstJourneyReset: journeyWasCompleted,
+      });
+    }
+
     if ((!records.length && !finalMastery) || records.length > 200) {
       return NextResponse.json({ error: "Informe registros existentes ou os dados da Maestria Final para atualizar." }, { status: 400 });
     }
