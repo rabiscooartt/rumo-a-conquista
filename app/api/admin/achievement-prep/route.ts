@@ -1247,10 +1247,14 @@ function createAutomaticRecoveryResponse(req: NextRequest) {
           const registeredGame = await resolveGameTitle(slugParam || null, titleParam);
           const primary = await findExophaseSteamGame(registeredGame.title);
           const staticCandidates = buildStaticRecoveryCandidates(registeredGame.title, slugParam);
-          const candidates: ExophaseRecoveryCandidate[] = [
+          const allCandidates: ExophaseRecoveryCandidate[] = [
             { url: primary.url, label: "Endereço principal", source: "title" },
             ...staticCandidates,
-          ].filter((candidate, index, all) => all.findIndex((item) => item.url === candidate.url) === index);
+          ];
+          const candidates: ExophaseRecoveryCandidate[] = allCandidates.filter(
+            (candidate, index, all) =>
+              all.findIndex((item) => item.url === candidate.url) === index
+          );
 
           const attemptedUrls = new Set<string>();
           const firstAttempts = candidates.slice(0, 5);
