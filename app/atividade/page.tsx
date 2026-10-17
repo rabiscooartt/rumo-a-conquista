@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
   type ReactNode,
   type FormEvent,
 } from "react";
@@ -1458,6 +1459,8 @@ export default function AtividadePage() {
   const [search, setSearch] = useState("");
   const [reviewMonthFilter, setReviewMonthFilter] = useState("all");
   const [reviewPlatformFilter, setReviewPlatformFilter] = useState("all");
+  const [openReviewFilter, setOpenReviewFilter] = useState<"month" | "platform" | null>(null);
+  const reviewFiltersRef = useRef<HTMLDivElement | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
@@ -1469,6 +1472,33 @@ export default function AtividadePage() {
   const [activityMinutes, setActivityMinutes] = useState("0");
   const [activityTitle, setActivityTitle] = useState("");
   const [activityNotes, setActivityNotes] = useState("");
+
+  useEffect(() => {
+    if (!openReviewFilter) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !reviewFiltersRef.current?.contains(target)) {
+        setOpenReviewFilter(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenReviewFilter(null);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openReviewFilter]);
+
+  useEffect(() => {
+    if (activeTab !== "reviews") setOpenReviewFilter(null);
+  }, [activeTab]);
 
   const games = useMemo(
     () => gamesList as GameLike[],
@@ -2364,43 +2394,109 @@ export default function AtividadePage() {
                   </div>
 
                   {activeTab === "reviews" ? (
-                    <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 md:w-[400px] md:shrink-0">
-                      <label className="flex h-12 min-w-0 w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/75 transition hover:border-white/20 hover:bg-white/[0.04] focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
-                        <IconCalendar className="h-4 w-4 shrink-0 text-white/65" />
-                        <select
-                          value={reviewMonthFilter}
-                          onChange={(event) => setReviewMonthFilter(event.target.value)}
+                    <div ref={reviewFiltersRef} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row md:shrink-0">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenReviewFilter((current) => current === "month" ? null : "month")}
                           aria-label="Filtrar reviews por mês"
-                          className="min-w-0 flex-1 cursor-pointer appearance-none bg-transparent text-[12px] font-bold text-white/90 outline-none"
+                          aria-haspopup="listbox"
+                          aria-expanded={openReviewFilter === "month"}
+                          className="flex h-12 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
                         >
-                          <option className="bg-[#090b0f]" value="all">Todos os Meses</option>
-                          {reviewMonthOptions.map((monthKey) => (
-                            <option className="bg-[#090b0f]" key={monthKey} value={monthKey}>
-                              {monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01")}
-                            </option>
-                          ))}
-                        </select>
-                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/45">
-                          <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </label>
-                      <label className="flex h-12 min-w-0 w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/75 transition hover:border-white/20 hover:bg-white/[0.04] focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
-                        <IconGamepad className="h-4 w-4 shrink-0 text-white/65" />
-                        <select
-                          value={reviewPlatformFilter}
-                          onChange={(event) => setReviewPlatformFilter(event.target.value)}
+                          <span className="flex items-center gap-2.5">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
+                              <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                            </svg>
+                            Mês
+                          </span>
+                          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/45">
+                            <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                        {openReviewFilter === "month" && (
+                          <div role="listbox" aria-label="Filtrar reviews por mês" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={reviewMonthFilter === "all"}
+                              onClick={() => { setReviewMonthFilter("all"); setOpenReviewFilter(null); }}
+                              className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${reviewMonthFilter === "all" ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                            >
+                              <span>Todos os Meses</span>
+                              <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${reviewMonthFilter === "all" ? "opacity-100" : "opacity-0"}`}>✓</span>
+                            </button>
+                            {reviewMonthOptions.map((monthKey) => {
+                              const label = monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01");
+                              const selected = reviewMonthFilter === monthKey;
+                              return (
+                                <button
+                                  key={monthKey}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={selected}
+                                  onClick={() => { setReviewMonthFilter(monthKey); setOpenReviewFilter(null); }}
+                                  className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                                >
+                                  <span>{label.charAt(0).toLocaleUpperCase("pt-BR") + label.slice(1)}</span>
+                                  <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenReviewFilter((current) => current === "platform" ? null : "platform")}
                           aria-label="Filtrar reviews por plataforma"
-                          className="min-w-0 flex-1 cursor-pointer appearance-none bg-transparent text-[12px] font-bold text-white/90 outline-none"
+                          aria-haspopup="listbox"
+                          aria-expanded={openReviewFilter === "platform"}
+                          className="flex h-12 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
                         >
-                          <option className="bg-[#090b0f]" value="all">Todas as Plataformas</option>
-                          {reviewPlatformOptions.map((platform) => (
-                            <option className="bg-[#090b0f]" key={platform} value={platform}>{platform}</option>
-                          ))}
-                        </select>
-                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/45">
-                          <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </label>
+                          <span className="flex items-center gap-2.5">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
+                              <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                            </svg>
+                            Plataforma
+                          </span>
+                          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/45">
+                            <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                        {openReviewFilter === "platform" && (
+                          <div role="listbox" aria-label="Filtrar reviews por plataforma" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={reviewPlatformFilter === "all"}
+                              onClick={() => { setReviewPlatformFilter("all"); setOpenReviewFilter(null); }}
+                              className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${reviewPlatformFilter === "all" ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                            >
+                              <span>Todas as Plataformas</span>
+                              <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${reviewPlatformFilter === "all" ? "opacity-100" : "opacity-0"}`}>✓</span>
+                            </button>
+                            {reviewPlatformOptions.map((platform) => {
+                              const selected = reviewPlatformFilter === platform;
+                              return (
+                                <button
+                                  key={platform}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={selected}
+                                  onClick={() => { setReviewPlatformFilter(platform); setOpenReviewFilter(null); }}
+                                  className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                                >
+                                  <span>{platform}</span>
+                                  <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <>
