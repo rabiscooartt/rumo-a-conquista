@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 export const maxDuration = 110;
-import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 type ExophaseAchievement = {
   name?: string;
