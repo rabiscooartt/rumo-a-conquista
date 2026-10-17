@@ -389,6 +389,9 @@ function PrepararJogoPage() {
   const [published, setPublished] = useState(false);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [clearingCompleted, setClearingCompleted] = useState(false);
+  const [clearCompletedMessage, setClearCompletedMessage] = useState("");
+  const [clearCompletedFailed, setClearCompletedFailed] = useState(false);
   const [batchSize, setBatchSize] = useState(10);
   const [copiedBatch, setCopiedBatch] = useState<number | null>(null);
   const [copiedNewConversationPrompt, setCopiedNewConversationPrompt] = useState(false);
@@ -2367,20 +2370,27 @@ function PrepararJogoPage() {
   }
   async function persistPreparation(
     achievements: A[],
-    options: { journeyFinalized?: boolean } = {}
+    options: {
+      journeyFinalized?: boolean;
+      resultOverride?: R;
+      registeredRecordsOverride?: A[];
+    } = {}
   ) {
-    if (!result?.game.slug) return;
+    const sourceResult = options.resultOverride ?? result;
+    const sourceRegisteredRecords =
+      options.registeredRecordsOverride ?? registeredOutsideAchievements;
+    if (!sourceResult?.game.slug) return;
 
     const response = await fetch("/api/admin/achievement-prep-draft", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        slug: result.game.slug,
+        slug: sourceResult.game.slug,
         preparation: {
-          preparedGame: result.game,
+          preparedGame: sourceResult.game,
           preparedAchievements: achievements,
-          registeredAchievementRecords: registeredOutsideAchievements,
-          preparedWarnings: result.warnings ?? [],
+          registeredAchievementRecords: sourceRegisteredRecords,
+          preparedWarnings: sourceResult.warnings ?? [],
           journeyIds: achievements
             .filter((a) => a.journey && !a.notDoing)
             .map((a) => a.id),
@@ -2436,6 +2446,109 @@ function PrepararJogoPage() {
     );
     setRegisteredRecordsDirty(true);
     setRegisteredRecordsMessage("");
+  }
+
+  async function clearCompletedAchievements() {
+    if (!registeredSlug || clearingCompleted) return;
+
+    const gameName = result?.game.name || title || "este jogo";
+    const confirmed = window.confirm(
+      `Limpar as conquistas feitas de "${gameName}"? Isso vai desmarcar as conquistas concluídas e apagar as datas/EPs associados a elas no histórico. As definições e imagens das conquistas serão preservadas.`
+    );
+    if (!confirmed) return;
+
+    setClearingCompleted(true);
+    setClearCompletedMessage("");
+    setClearCompletedFailed(false);
+
+    try {
+      const response = await fetch("/api/admin/achievement-records", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          action: "clear-completed",
+          slug: registeredSlug,
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Não foi possível limpar as conquistas feitas.");
+      }
+
+      const shouldResetRecord = (achievement: A) =>
+        achievement.status === "completed" ||
+        Boolean(achievement.earnedDate?.trim() || achievement.earnedNote?.trim());
+
+      const resetRecord = (achievement: A): A =>
+        shouldResetRecord(achievement)
+          ? {
+              ...achievement,
+              status: "locked",
+              earnedDate: "",
+              earnedNote: "",
+              episode: "",
+            }
+          : achievement;
+
+      const nextRegisteredRecords = registeredOutsideAchievements.map(resetRecord);
+      const currentResult = result;
+      const nextResult: R | null = currentResult
+        ? {
+            ...currentResult,
+            game: {
+              ...currentResult.game,
+              finalMasteryEpisode: "",
+              finalMasteryDate: "",
+            },
+            achievements: currentResult.achievements.map(resetRecord),
+          }
+        : null;
+
+      setRegisteredOutsideAchievements(nextRegisteredRecords);
+      setRegisteredRecordsDirty(false);
+      setRegisteredRecordsMessage("");
+      setFinalMasteryRecordMessage("");
+
+      if (nextResult) {
+        setResult(nextResult);
+        try {
+          await persistPreparation(nextResult.achievements, {
+            resultOverride: nextResult,
+            registeredRecordsOverride: nextRegisteredRecords,
+            journeyFinalized: false,
+          });
+          localStorage.removeItem(`rumo-preparador:${registeredSlug}`);
+        } catch {
+          setSaved(false);
+          setClearCompletedFailed(true);
+          setClearCompletedMessage(
+            "As conquistas publicadas foram limpas, mas não consegui atualizar o rascunho do preparador. Salve o rascunho antes de sair desta página."
+          );
+          return;
+        }
+      }
+
+      const count = Number(payload?.clearedCount ?? 0);
+      const resetCount = Number(payload?.resetCount ?? 0);
+      setClearCompletedMessage(
+        count > 0
+          ? `${count} conquistas concluídas foram limpas; ${resetCount} registro(s) de progresso tiveram data e estado reiniciados. As definições e imagens foram preservadas.`
+          : resetCount > 0
+            ? `${resetCount} registro(s) de progresso foram reiniciados. As definições e imagens foram preservadas.`
+            : "Não encontrei conquistas marcadas como feitas para limpar. Nenhuma definição ou imagem foi removida."
+      );
+      setClearCompletedFailed(false);
+    } catch (error) {
+      setClearCompletedFailed(true);
+      setClearCompletedMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível limpar as conquistas feitas."
+      );
+    } finally {
+      setClearingCompleted(false);
+    }
   }
 
   async function saveRegisteredAchievementRecordsToSite() {
@@ -3389,6 +3502,17 @@ function PrepararJogoPage() {
           )}
 
           <div className="flex flex-wrap gap-2">
+            {registeredSlug && (
+              <button
+                type="button"
+                onClick={() => void clearCompletedAchievements()}
+                disabled={clearingCompleted}
+                className="rounded-xl border border-red-500/35 bg-red-500/[.10] px-4 py-3 text-xs font-black uppercase text-red-100 transition-colors hover:bg-red-500/[.18] disabled:cursor-wait disabled:opacity-50"
+                title="Desmarcar as conquistas concluídas deste jogo sem excluir suas definições ou imagens"
+              >
+                {clearingCompleted ? "Limpando conquistas..." : "Limpar conquistas feitas"}
+              </button>
+            )}
             <Link
               href="/admin/jogos"
               className="rounded-xl border border-white/10 bg-white/[.03] px-4 py-3 text-xs font-black uppercase text-white/55"
@@ -3397,6 +3521,19 @@ function PrepararJogoPage() {
             </Link>
           </div>
         </div>
+
+        {registeredSlug && clearCompletedMessage && (
+          <p
+            role="status"
+            className={`mt-4 rounded-xl border p-3 text-xs font-bold ${
+              clearCompletedFailed
+                ? "border-red-500/25 bg-red-500/[.07] text-red-200"
+                : "border-emerald-500/25 bg-emerald-500/[.07] text-emerald-200"
+            }`}
+          >
+            {clearCompletedMessage}
+          </p>
+        )}
 
         {!registeredSlug && (
           <section className="mt-7 rounded-[20px] border border-white/[.08] bg-[#090909] p-5">
