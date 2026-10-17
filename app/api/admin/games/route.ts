@@ -1653,28 +1653,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // A Jornada de Estreia fica armazenada dentro de review para preservar o
-    // schema atual. Quando outro módulo salva o jogo sem enviar firstJourney,
-    // nunca devemos apagar esse estado por acidente.
-    let existingReview: unknown = undefined;
+    // Review contém metadados privados, inclusive a numeração permanente do
+    // diário. Sempre buscamos a versão do banco e fazemos merge para que uma
+    // aba administrativa antiga não apague números já atribuídos.
+    const { data: existingGame, error: existingGameError } = await client
+      .from("games")
+      .select("review")
+      .eq("slug", slug)
+      .maybeSingle();
 
-    if (body.firstJourney === undefined || body.review === undefined) {
-      const { data: existingGame, error: existingGameError } = await client
-        .from("games")
-        .select("review")
-        .eq("slug", slug)
-        .maybeSingle();
-
-      if (existingGameError) throw existingGameError;
-      existingReview = existingGame?.review;
-    }
+    if (existingGameError) throw existingGameError;
+    const existingReview: unknown = existingGame?.review;
+    const incomingReview = body.review !== undefined ? body.review : existingReview;
+    const incomingNumbers = readActivityNumberMap(incomingReview);
+    const persistedNumbers = readActivityNumberMap(existingReview);
+    const mergedActivityNumbers = { ...incomingNumbers, ...persistedNumbers };
+    const reviewForSave = Object.keys(mergedActivityNumbers).length > 0
+      ? getReviewWithActivityNumbers(incomingReview, mergedActivityNumbers)
+      : incomingReview;
 
     const game = buildGameData({
       ...body,
-      review:
-        body.review !== undefined
-          ? body.review
-          : existingReview,
+      review: reviewForSave,
     });
 
     const { error: gameError } = await client
