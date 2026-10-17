@@ -9,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import Navbar from "@/components/Navbar";
+import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
 import { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT } from "@/components/AdminAvatarLogin";
 import { formatAchievementDescription, formatAchievementTitle, useSiteGames } from "@/lib/useSiteGames";
@@ -1697,7 +1698,8 @@ export default function AtividadePage() {
 
       const dateSource = getReviewPublicationDate(review, game);
       const dateKey = getActivityDateKey(dateSource);
-      const scoreText = readReviewText(review, ["nota", "score", "rating"]).replace(",", ".");
+      // Match the individual game page: review.rating is taken from review.nota.
+      const scoreText = readReviewText(review, ["nota"]).replace(",", ".");
       const parsedScore = scoreText ? Number(scoreText) : NaN;
       const score =
         Number.isFinite(parsedScore) && parsedScore >= 0 && parsedScore <= 10
@@ -2572,7 +2574,6 @@ export default function AtividadePage() {
                             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
                               {group.items.map((item) => {
                                 const href = "/games/" + item.gameSlug + "/review";
-                                const stars = item.score === null ? 0 : Math.max(0, Math.min(5, Math.round(item.score / 2)));
                                 const dateParts = getActivityDateParts(item.dateKey);
                                 const day = dateParts?.day ?? "—";
 
@@ -2598,13 +2599,26 @@ export default function AtividadePage() {
                                         ) : null}
                                         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                                           {item.score !== null ? (
-                                            <span className="inline-flex items-center gap-1.5" aria-label={"Nota " + item.score + " de 10"}>
-                                              <span className="text-[12px] leading-none tracking-[0.06em]">
-                                                {Array.from({ length: 5 }, (_, index) => (
-                                                  <span key={index} className={index < stars ? "text-red-400" : "text-white/15"}>★</span>
-                                                ))}
-                                              </span>
-                                              <span className="text-[10px] font-black tabular-nums text-white/75">{String(item.score).replace(".", ",")}/10</span>
+                                            <span className="inline-flex items-center gap-1.5">
+                                              <StarRating
+                                                rating={item.score / 2}
+                                                size="small"
+                                                className="h-[14px] !text-[12px] !tracking-[-0.04em]"
+                                                ariaLabel={
+                                                  "Nota " +
+                                                  item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  " de 10, equivalente a " +
+                                                  (item.score / 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  " estrelas de 5"
+                                                }
+                                                title={
+                                                  item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  "/10 · " +
+                                                  (item.score / 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  "/5 estrelas"
+                                                }
+                                              />
+                                              <span className="text-[10px] font-black tabular-nums text-white/75">{item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10</span>
                                             </span>
                                           ) : null}
                                           {item.platform ? <span className="text-[10px] font-medium text-white/50">{item.platform}</span> : null}
