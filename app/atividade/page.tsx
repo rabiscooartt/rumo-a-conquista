@@ -35,7 +35,6 @@ type GameLike = {
   image?: string;
   cardImage?: string;
   manualTotalPlayedMinutes?: number | null;
-  hours?: string;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -98,18 +97,7 @@ type DiaryReview = {
   score: number | null;
   dateKey: string;
   monthKey: string;
-  playedMinutes: number;
-  completionPercent: number | null;
 };
-
-type ReviewSort = "recent" | "oldest" | "highest-rated" | "lowest-rated";
-
-const REVIEW_SORT_OPTIONS: { value: ReviewSort; label: string }[] = [
-  { value: "recent", label: "Recentes" },
-  { value: "oldest", label: "Mais antigas" },
-  { value: "highest-rated", label: "Melhor avaliadas" },
-  { value: "lowest-rated", label: "Pior avaliadas" },
-];
 
 function formatPlayedTime(minutes = 0) {
   const safe = Math.max(0, Math.round(Number(minutes) || 0));
@@ -481,37 +469,6 @@ function getGamePlatform(game?: GameLike) {
   }
 
   return "";
-}
-
-function getGamePlayedMinutes(game: GameLike): number {
-  const manualMinutes = Number(game.manualTotalPlayedMinutes || 0);
-  if (Number.isFinite(manualMinutes) && manualMinutes > 0) {
-    return Math.round(manualMinutes);
-  }
-
-  const savedHours = String(game.hours || "").trim();
-  const hoursMatch = savedHours.match(/(\d+)\s*h(?:oras?)?(?:\s*[- ]\s*(\d+)\s*(?:minutos?|mins?|m)\b)?/i);
-  if (hoursMatch) {
-    return Number(hoursMatch[1]) * 60 + Number(hoursMatch[2] || 0);
-  }
-
-  const minutesMatch = savedHours.match(/(\d+)\s*(?:minutos?|mins?|m)\b/i);
-  return minutesMatch ? Number(minutesMatch[1]) : 0;
-}
-
-function getGameCompletionPercent(game: GameLike): number | null {
-  const list = Array.isArray(game.achievementsList)
-    ? (game.achievementsList as AchievementLike[])
-    : [];
-  const total = Math.max(0, Number(game.achievementsTotal) || list.length);
-  if (total <= 0) return null;
-
-  const unlocked =
-    typeof game.achievementsUnlocked === "number"
-      ? game.achievementsUnlocked
-      : list.filter(isCompletedAchievement).length;
-
-  return Math.max(0, Math.min(100, Math.round((unlocked / total) * 100)));
 }
 
 type ActivityPlatformBadge = {
@@ -1511,12 +1468,11 @@ export default function AtividadePage() {
   const [search, setSearch] = useState("");
   const [reviewMonthFilter, setReviewMonthFilter] = useState("recent-two");
   const [reviewPlatformFilter, setReviewPlatformFilter] = useState("all");
-  const [reviewSort, setReviewSort] = useState<ReviewSort>("recent");
   const [achievementMonthFilter, setAchievementMonthFilter] = useState("all");
   const [achievementPlatformFilter, setAchievementPlatformFilter] = useState("all");
   const [gameMonthFilter, setGameMonthFilter] = useState("all");
   const [gamePlatformFilter, setGamePlatformFilter] = useState("all");
-  const [openActivityFilter, setOpenActivityFilter] = useState<"month" | "platform" | "review-sort" | "achievement-month" | "achievement-platform" | "game-month" | "game-platform" | null>(null);
+  const [openActivityFilter, setOpenActivityFilter] = useState<"month" | "platform" | "achievement-month" | "achievement-platform" | "game-month" | "game-platform" | null>(null);
   const activityFiltersRef = useRef<HTMLDivElement | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1859,12 +1815,10 @@ export default function AtividadePage() {
         cover: getGameCover(game, slug),
         platform: String(game.platform || game.console || (game.platforms || []).join(" • ") || "").trim(),
         reviewTitle,
-        summary: summarizeReviewText(reviewSummary || fullText, 420),
+        summary: summarizeReviewText(reviewSummary || fullText),
         score,
         dateKey,
         monthKey: dateKey ? dateKey.slice(0, 7) : "sem-data",
-        playedMinutes: getGamePlayedMinutes(game),
-        completionPercent: getGameCompletionPercent(game),
       });
     }
 
@@ -1899,7 +1853,7 @@ export default function AtividadePage() {
 
   const filteredReviewDiary = useMemo(() => {
     const query = normalizeKey(search);
-    const filtered = reviewDiary.filter((item) => {
+    return reviewDiary.filter((item) => {
       const matchesSearch =
         !query ||
         normalizeKey(item.gameTitle).includes(query) ||
@@ -1915,33 +1869,21 @@ export default function AtividadePage() {
         reviewPlatformFilter === "all" || normalizeKey(item.platform) === normalizeKey(reviewPlatformFilter);
       return matchesSearch && matchesMonth && matchesPlatform;
     });
+  }, [reviewDiary, search, reviewMonthFilter, reviewPlatformFilter, recentReviewMonthKeys]);
 
-    const compareRecent = (a: DiaryReview, b: DiaryReview) => {
-      if (!a.dateKey) return b.dateKey ? 1 : 0;
-      if (!b.dateKey) return -1;
-      return b.dateKey.localeCompare(a.dateKey) || a.gameTitle.localeCompare(b.gameTitle, "pt-BR");
-    };
-
-    return filtered.sort((a, b) => {
-      if (reviewSort === "oldest") {
-        if (!a.dateKey) return b.dateKey ? 1 : 0;
-        if (!b.dateKey) return -1;
-        return a.dateKey.localeCompare(b.dateKey) || a.gameTitle.localeCompare(b.gameTitle, "pt-BR");
-      }
-
-      if (reviewSort === "highest-rated" || reviewSort === "lowest-rated") {
-        if (a.score === null) return b.score === null ? compareRecent(a, b) : 1;
-        if (b.score === null) return -1;
-        const ratingDifference =
-          reviewSort === "highest-rated" ? b.score - a.score : a.score - b.score;
-        return ratingDifference || compareRecent(a, b);
-      }
-
-      return compareRecent(a, b);
-    });
-  }, [reviewDiary, search, reviewMonthFilter, reviewPlatformFilter, recentReviewMonthKeys, reviewSort]);
-
-
+  const groupedReviewDiary = useMemo(() => {
+    const groups = new Map<string, DiaryReview[]>();
+    for (const item of filteredReviewDiary) {
+      const group = groups.get(item.monthKey) ?? [];
+      group.push(item);
+      groups.set(item.monthKey, group);
+    }
+    return [...groups.entries()].map(([monthKey, items]) => ({
+      monthKey,
+      label: monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01"),
+      items,
+    }));
+  }, [filteredReviewDiary]);
 
   const summaryAchievementsLast60 = useMemo(() => {
     let count = 0;
@@ -2535,8 +2477,8 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-                <div className={activeTab === "reviews" ? "flex flex-col gap-3 p-3 sm:p-4" : "flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap 2xl:flex-nowrap"}>
-                  <div className={activeTab === "reviews" ? "relative min-w-0 w-full" : "relative min-w-0 flex-1 basis-[320px]"}>
+                <div className="flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap 2xl:flex-nowrap">
+                  <div className="relative min-w-0 flex-1 basis-[320px]">
                     <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
 
                     <input
@@ -2546,7 +2488,7 @@ export default function AtividadePage() {
                       }
                       placeholder={
                         activeTab === "reviews"
-                          ? "Buscar por nome do jogo..."
+                          ? "Buscar jogo, título da review ou resumo..."
                           : activeTab === "conquistas"
                             ? "Buscar jogo, conquista ou descrição..."
                             : "Buscar jogo ou atividade..."
@@ -2556,8 +2498,7 @@ export default function AtividadePage() {
                   </div>
 
                   {activeTab === "reviews" ? (
-                    <div ref={activityFiltersRef} className="flex w-full flex-wrap items-center justify-between gap-2.5">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <div ref={activityFiltersRef} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row md:shrink-0">
                       <div className="relative">
                         <button
                           type="button"
@@ -2565,7 +2506,7 @@ export default function AtividadePage() {
                           aria-label="Filtrar reviews por mês"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "month"}
-                          className="flex h-10 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
+                          className="flex h-12 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
@@ -2617,13 +2558,13 @@ export default function AtividadePage() {
                           aria-label="Filtrar reviews por plataforma"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "platform"}
-                          className="flex h-10 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
+                          className="flex h-12 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
                               <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
                             </svg>
-                            Plataformas
+                            Plataforma
                           </span>
                           <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/45">
                             <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -2653,47 +2594,6 @@ export default function AtividadePage() {
                                   className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
                                 >
                                   <span>{platform}</span>
-                                  <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                      </div>
-                      <div className="relative ml-auto shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setOpenActivityFilter((current) => current === "review-sort" ? null : "review-sort")}
-                          aria-label="Ordenar reviews"
-                          aria-haspopup="listbox"
-                          aria-expanded={openActivityFilter === "review-sort"}
-                          className="flex h-10 min-w-[130px] items-center justify-between gap-3 border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/75 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25"
-                        >
-                          <span className="flex items-center gap-2.5">
-                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
-                              <path d="M10 3.5v12M5.5 11l4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            {REVIEW_SORT_OPTIONS.find((option) => option.value === reviewSort)?.label || "Recentes"}
-                          </span>
-                          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/45">
-                            <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                        {openActivityFilter === "review-sort" && (
-                          <div role="listbox" aria-label="Ordenar reviews" className="absolute right-0 top-full z-50 mt-2 w-[190px] overflow-hidden border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
-                            {REVIEW_SORT_OPTIONS.map((option) => {
-                              const selected = reviewSort === option.value;
-                              return (
-                                <button
-                                  key={option.value}
-                                  type="button"
-                                  role="option"
-                                  aria-selected={selected}
-                                  onClick={() => { setReviewSort(option.value); setOpenActivityFilter(null); }}
-                                  className={`flex min-h-9 w-full items-center justify-between gap-3 px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
-                                >
-                                  <span>{option.label}</span>
                                   <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
                                 </button>
                               );
@@ -3076,153 +2976,82 @@ export default function AtividadePage() {
                 )}
 
 {activeTab === "reviews" && (
-                  <div className="px-3 sm:px-4">
-                    {filteredReviewDiary.length ? (
-                      <div className="divide-y divide-white/[0.10]">
-                        {filteredReviewDiary.map((item) => {
-                          const href = "/games/" + item.gameSlug + "/review";
-                          const reviewDate = item.dateKey
-                            ? new Date(item.dateKey + "T12:00:00").toLocaleDateString("pt-BR", {
-                                day: "numeric",
-                                month: "short",
-                              })
-                            : "Data não registrada";
-                          const hasCustomReviewTitle =
-                            Boolean(item.reviewTitle) &&
-                            normalizeKey(item.reviewTitle) !== normalizeKey("Review de " + item.gameTitle);
+                  <div className="p-3 sm:p-4">
+                    {groupedReviewDiary.length ? (
+                      <div className="space-y-4">
+                        {groupedReviewDiary.map((group) => (
+                          <section key={group.monthKey}>
+                            <h3 className="mb-3 border-b border-white/[0.08] pb-2.5 text-[12px] font-black uppercase tracking-[0.12em] text-white/90">
+                              {group.label}
+                            </h3>
+                            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/20">
+                              {group.items.map((item) => {
+                                const href = "/games/" + item.gameSlug + "/review";
+                                const dateParts = getActivityDateParts(item.dateKey);
+                                const day = dateParts?.day ?? "—";
 
-                          return (
-                            <article
-                              key={item.gameSlug}
-                              className="grid grid-cols-[minmax(92px,120px)_minmax(0,1fr)] items-stretch gap-3 py-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4"
-                            >
-                              <Link
-                                href={href}
-                                aria-label={"Abrir review de " + item.gameTitle}
-                                className="group block aspect-[3/4] w-full overflow-hidden border border-white/10 bg-[#080808] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
-                              >
-                                {item.cover ? (
-                                  <img
-                                    src={item.cover}
-                                    alt={"Capa de " + item.gameTitle}
-                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-white/25">
-                                    <IconGamepad className="h-8 w-8" />
-                                  </div>
-                                )}
-                              </Link>
-
-                              <div className="flex min-w-0 flex-col py-0.5">
-                                <div className="flex min-w-0 items-start justify-between gap-3">
-                                  <Link
-                                    href={href}
-                                    aria-label={"Abrir review de " + item.gameTitle}
-                                    className="min-w-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
-                                  >
-                                    <h3 className="break-words text-[14px] font-black leading-snug text-white transition-colors hover:text-red-100 sm:text-[16px] lg:text-[18px]">
-                                      {item.gameTitle}
-                                    </h3>
-                                  </Link>
-                                  <time
-                                    dateTime={item.dateKey || undefined}
-                                    title={item.dateKey ? "Data de publicação" : "Data não registrada"}
-                                    className="hidden shrink-0 pt-0.5 text-right text-[11px] font-medium text-white/45 sm:block lg:text-[12px]"
-                                  >
-                                    {reviewDate}
-                                  </time>
-                                </div>
-
-                                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                                  {item.score !== null ? (
-                                    <span className="inline-flex items-center gap-1.5">
-                                      <StarRating
-                                        rating={item.score / 2}
-                                        size="small"
-                                        className="h-[16px] !text-[14px] !tracking-[-0.04em]"
-                                        ariaLabel={
-                                          "Nota " +
-                                          item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
-                                          " de 10, equivalente a " +
-                                          (item.score / 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
-                                          " estrelas de 5"
-                                        }
-                                        title={
-                                          item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
-                                          "/10 · " +
-                                          (item.score / 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
-                                          "/5 estrelas"
-                                        }
-                                      />
-                                      <span className="text-[11px] font-bold tabular-nums text-white/80">
-                                        {item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
-                                      </span>
-                                    </span>
-                                  ) : null}
-                                  {item.playedMinutes > 0 ? (
-                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/45">
-                                      <IconClock className="h-3 w-3" />
-                                      {formatPlayedTime(item.playedMinutes)}
-                                    </span>
-                                  ) : null}
-                                  {item.completionPercent !== null ? (
-                                    <span
-                                      className={`inline-flex items-center gap-1 text-[11px] font-bold ${item.completionPercent >= 100 ? "text-emerald-400" : "text-white/50"}`}
-                                      title="Progresso das conquistas cadastradas"
-                                    >
-                                      <IconTrophy className="h-3 w-3" />
-                                      {item.completionPercent}%
-                                    </span>
-                                  ) : null}
-                                  {item.platform ? (
-                                    <span className="border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-[10px] font-semibold text-white/55">
-                                      {item.platform}
-                                    </span>
-                                  ) : null}
-                                </div>
-
-                                {hasCustomReviewTitle ? (
-                                  <p className="mt-2 text-[12px] font-bold leading-snug text-red-200/90 sm:text-[13px]">
-                                    {item.reviewTitle}
-                                  </p>
-                                ) : null}
-
-                                {item.summary ? (
-                                  <p className="mt-2 line-clamp-3 text-[12px] leading-[1.6] text-white/70 sm:line-clamp-4 sm:text-[13px]">
-                                    {item.summary}
-                                  </p>
-                                ) : null}
-
-                                <Link
-                                  href={href}
-                                  className="mt-1.5 inline-flex w-fit items-center gap-1 text-[12px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
-                                >
-                                  Ler mais <span aria-hidden="true">→</span>
-                                </Link>
-
-                                <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/[0.08] pt-3 sm:mt-auto">
-                                  <time
-                                    dateTime={item.dateKey || undefined}
-                                    className="text-[10px] font-medium text-white/40 sm:hidden"
-                                  >
-                                    {reviewDate}
-                                  </time>
-                                  <Link
-                                    href={href}
-                                    className="ml-auto inline-flex items-center gap-1.5 text-[12px] font-bold text-white/80 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
-                                  >
-                                    Abrir review <span aria-hidden="true">→</span>
-                                  </Link>
-                                </div>
-                              </div>
-                            </article>
-                          );
-                        })}
+                                return (
+                                  <article key={item.gameSlug} className="flex items-center gap-2.5 border-b border-white/[0.07] px-3 py-4 transition-colors last:border-b-0 hover:bg-white/[0.035] sm:gap-4 sm:px-4 sm:py-4">
+                                    <div className="flex w-[38px] shrink-0 flex-col items-center justify-center text-center sm:w-[42px]" title={dateParts ? "Publicada em " + day + " " + dateParts.month : "Data de publicação não registrada"}>
+                                      <span className={`text-[20px] font-black leading-none tabular-nums sm:text-[22px] ${dateParts ? "text-white" : "text-white/30"}`}>{day}</span>
+                                      {dateParts ? <span className="mt-1.5 text-[10px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[11px]">{dateParts.month}</span> : null}
+                                    </div>
+                                    <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70 sm:gap-3.5">
+                                      <div className="h-[68px] w-[48px] shrink-0 overflow-hidden rounded-[4px] border border-white/10 bg-[#080808] sm:h-[76px] sm:w-[54px]">
+                                        {item.cover ? (
+                                          <img src={item.cover} alt={"Capa de " + item.gameTitle} className="h-full w-full object-cover" loading="lazy" />
+                                        ) : (
+                                          <div className="flex h-full w-full items-center justify-center text-white/25"><IconGamepad className="h-4 w-4" /></div>
+                                        )}
+                                      </div>
+                                      <div className="min-w-0 flex-1 py-0.5">
+                                        <p className="truncate text-[15px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[16px]">{item.gameTitle}</p>
+                                        <p className="mt-1 truncate text-[13px] font-bold leading-snug text-red-300 sm:text-[14px]">{item.reviewTitle}</p>
+                                        {item.summary ? (
+                                          <p className="mt-1.5 line-clamp-2 text-[12px] leading-[1.55] text-white/75 sm:text-[13px]">{item.summary}</p>
+                                        ) : null}
+                                        <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                                          {item.score !== null ? (
+                                            <span className="inline-flex items-center gap-1.5">
+                                              <StarRating
+                                                rating={item.score / 2}
+                                                size="small"
+                                                className="h-[16px] !text-[14px] !tracking-[-0.04em]"
+                                                ariaLabel={
+                                                  "Nota " +
+                                                  item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  " de 10, equivalente a " +
+                                                  (item.score / 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  " estrelas de 5"
+                                                }
+                                                title={
+                                                  item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  "/10 · " +
+                                                  (item.score / 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) +
+                                                  "/5 estrelas"
+                                                }
+                                              />
+                                              <span className="text-[12px] font-black tabular-nums text-white/90">{item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10</span>
+                                            </span>
+                                          ) : null}
+                                          {item.platform ? <span className="rounded-md border border-white/[0.08] bg-white/[0.035] px-2 py-0.5 text-[11px] font-semibold text-white/70">{item.platform}</span> : null}
+                                        </div>
+                                      </div>
+                                    </Link>
+                                    <Link href={href} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-red-500/45 bg-red-500/[0.10] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.04em] text-red-100 transition hover:border-red-400/70 hover:bg-red-500/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 sm:px-3.5 sm:text-[11px]">
+                                      <IconFile className="h-3.5 w-3.5" />
+                                      <span className="hidden sm:inline">Ver review</span>
+                                      <span aria-hidden="true">→</span>
+                                    </Link>
+                                  </article>
+                                );
+                              })}
+                            </div>
+                          </section>
+                        ))}
                       </div>
                     ) : (
-                      <div className="border border-white/[0.08] px-6 py-12 text-center">
+                      <div className="rounded-xl border border-white/[0.08] px-6 py-12 text-center">
                         <IconFile className="mx-auto h-7 w-7 text-white/20" />
                         <p className="mt-3 text-[12px] font-bold text-white/55">
                           {reviewDiary.length === 0
@@ -3235,10 +3064,9 @@ export default function AtividadePage() {
                             onClick={() => {
                               setReviewMonthFilter("all");
                               setReviewPlatformFilter("all");
-                              setReviewSort("recent");
                               setSearch("");
                             }}
-                            className="mt-4 border border-white/10 px-3 py-2 text-[10px] font-black text-white/60 transition hover:text-white"
+                            className="mt-4 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-black text-white/60 transition hover:text-white"
                           >
                             Limpar filtros
                           </button>
