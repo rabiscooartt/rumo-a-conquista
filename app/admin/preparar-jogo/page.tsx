@@ -3749,14 +3749,21 @@ function PrepararJogoPage() {
               </p>
             )}
             {recoveryStatus.state === "failed" && (
-              <p className="mt-3 text-xs leading-relaxed text-amber-100/75">
-                O progresso ficou em 95% porque não seria correto marcar 100% sem recuperar a lista. Nenhuma conquista publicada foi apagada ou substituída.
-              </p>
+              <>
+                {error && (
+                  <p className="mt-3 text-xs leading-relaxed text-amber-100/80">
+                    Detalhe: {error}
+                  </p>
+                )}
+                <p className="mt-3 text-xs leading-relaxed text-amber-100/75">
+                  O progresso ficou em 95% porque não seria correto marcar 100% sem recuperar a lista. Nenhuma conquista publicada foi apagada ou substituída.
+                </p>
+              </>
             )}
           </section>
         )}
 
-        {loading && !result && (
+        {loading && !result && recoveryStatus.state !== "running" && (
           <section className="mt-7 rounded-[20px] border border-white/[.08] bg-[#090909] p-6 text-sm text-white/35">
             Buscando as conquistas de {registeredSlug ? "este jogo cadastrado" : "este jogo"}...
           </section>
