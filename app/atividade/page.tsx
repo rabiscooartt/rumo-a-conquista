@@ -1349,13 +1349,17 @@ function ActivityRow({
       </div>
 
       <div className="text-right">
-        <p className="text-[18px] font-black leading-none text-white md:text-[19px]">
-          {formatPlayedTime(entry.playedMinutes)}
-        </p>
+        {Number(entry.playedMinutes || 0) > 0 && (
+          <>
+            <p className="text-[18px] font-black leading-none text-white md:text-[19px]">
+              {formatPlayedTime(entry.playedMinutes)}
+            </p>
 
-        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
-          Tempo jogado
-        </p>
+            <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
+              Tempo jogado
+            </p>
+          </>
+        )}
       </div>
 
       {isAdmin && (
