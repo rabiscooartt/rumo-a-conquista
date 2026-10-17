@@ -72,91 +72,6 @@ function normalizeTitle(value?: string) {
     .trim();
 }
 
-const ACTIVITY_NUMBERS_REVIEW_KEY = "__achievementActivityNumbers";
-
-type ActivityNumberMap = Record<string, number>;
-
-function readObjectRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
-
-function readActivityNumberMap(review: unknown): ActivityNumberMap {
-  const raw = readObjectRecord(readObjectRecord(review)[ACTIVITY_NUMBERS_REVIEW_KEY]);
-  const result: ActivityNumberMap = {};
-  for (const [key, value] of Object.entries(raw)) {
-    const number = Number(value);
-    if (key.trim() && Number.isSafeInteger(number) && number > 0) {
-      result[key] = number;
-    }
-  }
-  return result;
-}
-
-function isCompletedActivityStatus(value: unknown) {
-  return ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(
-    normalizeText(value)
-  );
-}
-
-function activitySlugify(value: string) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function activityStableAchievementId(
-  slug: string,
-  achievement: Record<string, unknown>,
-  index: number
-) {
-  const id = normalizeDisplayText(achievement.id ?? achievement.legacy_id);
-  if (id) return id;
-  const title = normalizeDisplayText(achievement.title, "Conquista " + (index + 1));
-  return slug + "-achievement-" + (index + 1) + "-" + activitySlugify(title);
-}
-
-function normalizeActivityDateKey(value: unknown) {
-  const raw = normalizeDisplayText(value);
-  if (!raw) return "";
-  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return iso[1] + "-" + iso[2] + "-" + iso[3];
-  const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
-  if (dmy) return dmy[3] + "-" + dmy[2].padStart(2, "0") + "-" + dmy[1].padStart(2, "0");
-  const parsed = new Date(raw);
-  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
-}
-
-function firstJourneyMetaForActivity(
-  review: unknown,
-  id: string,
-  title: string
-): Record<string, unknown> {
-  const reviewRecord = readObjectRecord(review);
-  const journey = readObjectRecord(reviewRecord.__firstJourney);
-  const meta = readObjectRecord(journey.achievementMeta);
-  const titleKey = "title:" + normalizeText(title);
-  for (const candidate of [id, titleKey, title]) {
-    if (candidate && meta[candidate] && typeof meta[candidate] === "object") {
-      return readObjectRecord(meta[candidate]);
-    }
-  }
-  return {};
-}
-
-function getReviewWithActivityNumbers(review: unknown, numbers: ActivityNumberMap) {
-  const base = review && typeof review === "object" && !Array.isArray(review)
-    ? (review as Record<string, unknown>)
-    : review === null || review === undefined
-      ? {}
-      : { value: review };
-  return { ...base, [ACTIVITY_NUMBERS_REVIEW_KEY]: numbers };
-}
-
 function normalizeAchievementFilename(value: string) {
   return String(value || "")
     .normalize("NFD")
@@ -1260,179 +1175,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Persistent numbering is stored in private review metadata, preserving
-    // the existing schema. Each item's number is allocated only once.
-    const activityNumberMaps = new Map<string, ActivityNumberMap>();
-    let highestActivityNumber = 0;
-    for (const game of enrichedGames) {
-      const map = readActivityNumberMap(game.review);
-      activityNumberMaps.set(game.slug, map);
-      for (const number of Object.values(map)) {
-        highestActivityNumber = Math.max(highestActivityNumber, number);
-      }
-    }
-
-    // Soft-deleted games are no longer displayed, but their issued numbers
-    // remain reserved so later diary entries never reuse an old number.
-    const { data: deletedGamesForNumbering, error: deletedNumberingError } = await client
-      .from("games")
-      .select("review")
-      .eq("is_deleted", true);
-    if (deletedNumberingError) throw deletedNumberingError;
-    for (const deletedGame of deletedGamesForNumbering ?? []) {
-      for (const number of Object.values(readActivityNumberMap(deletedGame.review))) {
-        highestActivityNumber = Math.max(highestActivityNumber, number);
-      }
-    }
-
-    type PendingActivityNumber = {
-      slug: string;
-      localKey: string;
-      dateKey: string;
-      tieBreaker: string;
-    };
-    const pendingEntries: PendingActivityNumber[] = [];
-    const pendingSeen = new Set<string>();
-    const activityLegacyCatalog = legacyGames as unknown as Record<string, {
-      achievementsList?: unknown[];
-      finalBadge?: unknown;
-    }>;
-
-    for (const game of enrichedGames) {
-      const slug = String(game.slug || "").trim();
-      if (!slug) continue;
-      const storedReview = readObjectRecord(game.review);
-      const legacyGame = activityLegacyCatalog[slug];
-      const databaseAchievements = Array.isArray(game.achievementsList)
-        ? (game.achievementsList as Record<string, unknown>[])
-        : [];
-      const legacyAchievements =
-        databaseAchievements.length === 0 && normalizeText(game.status) === "completed"
-          ? (legacyGame?.achievementsList ?? []).map((item) => readObjectRecord(item))
-          : [];
-      const achievements = databaseAchievements.length > 0
-        ? databaseAchievements
-        : legacyAchievements;
-
-      const activeAchievements = achievements.filter((item) =>
-        normalizeDisplayText(item.title).length > 0
-      );
-      const allNormalAchievementsCompleted =
-        activeAchievements.length > 0 &&
-        activeAchievements.every((item) => isCompletedActivityStatus(item.status));
-
-      for (let index = 0; index < achievements.length; index += 1) {
-        const achievement = achievements[index];
-        if (!isCompletedActivityStatus(achievement.status)) continue;
-
-        const title = normalizeDisplayText(achievement.title, "Conquista " + (index + 1));
-        const id = activityStableAchievementId(slug, achievement, index);
-        const localKey = "achievement:" + id;
-        const map = activityNumberMaps.get(slug) ?? {};
-        activityNumberMaps.set(slug, map);
-        if (Number.isSafeInteger(map[localKey]) && map[localKey] > 0) continue;
-
-        const identity = slug + "::" + localKey;
-        if (pendingSeen.has(identity)) continue;
-        pendingSeen.add(identity);
-        const journeyMeta = firstJourneyMetaForActivity(game.review, id, title);
-        const dateKey = normalizeActivityDateKey(
-          journeyMeta.date ?? achievement.earnedDate ?? achievement.earned_at
-        );
-        pendingEntries.push({ slug, localKey, dateKey, tieBreaker: title.toLowerCase() + "::" + id });
-      }
-
-      const badge = readObjectRecord(game.final_badge ?? (game as Record<string, unknown>).finalBadge ?? legacyGame?.finalBadge);
-      const finalMasteryTitle = normalizeDisplayText(badge.title);
-      const hasConfiguredFinalMastery = Boolean(
-        finalMasteryTitle || normalizeDisplayText(badge.image) || normalizeDisplayText(badge.description)
-      );
-      const finalMasteryAlreadyListed = activeAchievements.some(
-        (item) => normalizeText(item.title) === normalizeText(finalMasteryTitle)
-      );
-      if (
-        allNormalAchievementsCompleted &&
-        hasConfiguredFinalMastery &&
-        !finalMasteryAlreadyListed
-      ) {
-        const localKey = "mastery:final";
-        const map = activityNumberMaps.get(slug) ?? {};
-        activityNumberMaps.set(slug, map);
-        if (!(Number.isSafeInteger(map[localKey]) && map[localKey] > 0)) {
-          const masteryId = slug + "-final-mastery";
-          const journeyMeta = firstJourneyMetaForActivity(game.review, masteryId, finalMasteryTitle);
-          const lastAchievementDate = achievements
-            .filter((item) => isCompletedActivityStatus(item.status))
-            .map((item) => normalizeActivityDateKey(item.earnedDate ?? item.earned_at))
-            .filter(Boolean)
-            .sort()
-            .at(-1) ?? "";
-          const dateKey = normalizeActivityDateKey(
-            journeyMeta.date ??
-            badge.unlockedAt ??
-            readObjectRecord(storedReview.__firstJourney).completedAt ??
-            lastAchievementDate
-          );
-          const identity = slug + "::" + localKey;
-          if (!pendingSeen.has(identity)) {
-            pendingSeen.add(identity);
-            pendingEntries.push({
-              slug,
-              localKey,
-              dateKey,
-              tieBreaker: "zzzz-masteria::" + slug,
-            });
-          }
-        }
-      }
-    }
-
-    pendingEntries.sort((a, b) => {
-      if (!a.dateKey && b.dateKey) return 1;
-      if (a.dateKey && !b.dateKey) return -1;
-      return a.dateKey.localeCompare(b.dateKey) || a.tieBreaker.localeCompare(b.tieBreaker);
-    });
-
-    for (const entry of pendingEntries) {
-      const map = activityNumberMaps.get(entry.slug) ?? {};
-      if (Number.isSafeInteger(map[entry.localKey]) && map[entry.localKey] > 0) continue;
-      map[entry.localKey] = ++highestActivityNumber;
-      activityNumberMaps.set(entry.slug, map);
-    }
-
-    if (pendingEntries.length > 0) {
-      const updatedReviews = new Map<string, Record<string, unknown>>();
-      await Promise.all(
-        [...activityNumberMaps.entries()]
-          .filter(([slug, numbers]) => {
-            const original = enrichedGames.find((game) => game.slug === slug);
-            const originalMap = readActivityNumberMap(original?.review);
-            return Object.keys(numbers).some((key) => numbers[key] !== originalMap[key]);
-          })
-          .map(async ([slug, numbers]) => {
-            const original = enrichedGames.find((game) => game.slug === slug);
-            if (!original) return;
-            const updatedReview = getReviewWithActivityNumbers(original.review, numbers);
-            const { data: savedRow, error: saveError } = await client
-              .from("games")
-              .update({ review: updatedReview })
-              .eq("slug", slug)
-              .select("slug")
-              .maybeSingle();
-            if (saveError) throw saveError;
-            if (!savedRow) throw new Error("Não foi possível persistir a numeração do diário para " + slug + ".");
-            updatedReviews.set(slug, updatedReview);
-          })
-      );
-
-      for (const game of enrichedGames) {
-        const updatedReview = updatedReviews.get(game.slug);
-        if (!updatedReview) continue;
-        game.review = updatedReview;
-        game.firstJourney = extractFirstJourney(updatedReview);
-      }
-    }
-
     console.info(
       "[Games API] Jogos:",
       enrichedGames.length,
@@ -1666,28 +1408,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Review contém metadados privados, inclusive a numeração permanente do
-    // diário. Sempre buscamos a versão do banco e fazemos merge para que uma
-    // aba administrativa antiga não apague números já atribuídos.
-    const { data: existingGame, error: existingGameError } = await client
-      .from("games")
-      .select("review")
-      .eq("slug", slug)
-      .maybeSingle();
+    // A Jornada de Estreia fica armazenada dentro de review para preservar o
+    // schema atual. Quando outro módulo salva o jogo sem enviar firstJourney,
+    // nunca devemos apagar esse estado por acidente.
+    let existingReview: unknown = undefined;
 
-    if (existingGameError) throw existingGameError;
-    const existingReview: unknown = existingGame?.review;
-    const incomingReview = body.review !== undefined ? body.review : existingReview;
-    const incomingNumbers = readActivityNumberMap(incomingReview);
-    const persistedNumbers = readActivityNumberMap(existingReview);
-    const mergedActivityNumbers = { ...incomingNumbers, ...persistedNumbers };
-    const reviewForSave = Object.keys(mergedActivityNumbers).length > 0
-      ? getReviewWithActivityNumbers(incomingReview, mergedActivityNumbers)
-      : incomingReview;
+    if (body.firstJourney === undefined || body.review === undefined) {
+      const { data: existingGame, error: existingGameError } = await client
+        .from("games")
+        .select("review")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existingGameError) throw existingGameError;
+      existingReview = existingGame?.review;
+    }
 
     const game = buildGameData({
       ...body,
-      review: reviewForSave,
+      review:
+        body.review !== undefined
+          ? body.review
+          : existingReview,
     });
 
     const { error: gameError } = await client
