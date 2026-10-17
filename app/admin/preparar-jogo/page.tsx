@@ -2451,7 +2451,12 @@ function PrepararJogoPage() {
   async function clearCompletedAchievements() {
     if (!registeredSlug || clearingCompleted) return;
 
-    const gameName = result?.game.name || title || "este jogo";
+    const gameName =
+      result?.game.name ||
+      title ||
+      (registeredSlug === "monster-hunter-world-iceborne"
+        ? "Monster Hunter: World - Iceborne"
+        : registeredSlug.replace(/-/g, " "));
     const confirmed = window.confirm(
       `Limpar as conquistas feitas de "${gameName}"? Isso vai desmarcar as conquistas concluídas e apagar as datas/EPs associados a elas no histórico. As definições e imagens das conquistas serão preservadas.`
     );
@@ -2518,7 +2523,6 @@ function PrepararJogoPage() {
             registeredRecordsOverride: nextRegisteredRecords,
             journeyFinalized: false,
           });
-          localStorage.removeItem(`rumo-preparador:${registeredSlug}`);
         } catch {
           setSaved(false);
           setClearCompletedFailed(true);
@@ -2529,6 +2533,7 @@ function PrepararJogoPage() {
         }
       }
 
+      localStorage.removeItem(`rumo-preparador:${registeredSlug}`);
       const count = Number(payload?.clearedCount ?? 0);
       const resetCount = Number(payload?.resetCount ?? 0);
       setClearCompletedMessage(
