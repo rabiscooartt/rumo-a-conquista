@@ -324,6 +324,8 @@ function getActivityTrophyMeta(achievement: AchievementLike) {
 function getActivityDateKey(value?: string) {
   const raw = String(value || "").trim();
   if (!raw) return "";
+  const isoDate = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+  if (isoDate) return isoDate[1] + "-" + isoDate[2] + "-" + isoDate[3];
   const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
   if (dmy) return dmy[3] + "-" + dmy[2].padStart(2, "0") + "-" + dmy[1].padStart(2, "0");
   return getDateKey(raw);
@@ -383,7 +385,7 @@ function getActivityPlatformBadge(game?: GameLike): ActivityPlatformBadge | null
   if (normalized.includes("steam")) {
     return { label: platform, image: "/images/platforms/steam.png" };
   }
-  if (normalized.includes("playstation") || /\\bps[345]\\b/.test(normalized)) {
+  if (normalized.includes("playstation") || normalized.includes("ps5") || normalized.includes("ps4") || normalized === "ps3") {
     return { label: platform, text: "PS" };
   }
   if (normalized.includes("xbox")) {
@@ -1550,7 +1552,7 @@ export default function AtividadePage() {
         .sort()
         .at(-1) || "";
       const activityDate = String(
-        meta.date || getAchievementDate(mastery) || fallbackDate
+        getAchievementDate(mastery) || meta.date || fallbackDate
       ).trim();
       result.push({
         ...mastery,
