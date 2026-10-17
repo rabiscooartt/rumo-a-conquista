@@ -3691,7 +3691,7 @@ function PrepararJogoPage() {
           </p>
         )}
 
-        {registeredSlug && recoveryStatus.state !== "idle" && (
+        {recoveryStatus.state !== "idle" && (
           <section
             role="status"
             aria-live="polite"
