@@ -2286,10 +2286,10 @@ export default function AtividadePage() {
                                   )}
                                 </div>
 
-                                <div className="relative h-[44px] w-[44px] shrink-0 sm:h-[48px] sm:w-[48px]">
+                                <div className="relative h-[52px] w-[52px] shrink-0 transition-transform duration-200 ease-out group-hover:z-20 group-hover:scale-[1.08] group-focus-visible:scale-[1.08] sm:h-[56px] sm:w-[56px]">
                                   <div className="flex h-full w-full items-center justify-center overflow-hidden border border-white/10 bg-[#080808]">
                                     {achievementImage ? (
-                                      <img src={achievementImage} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" />
+                                      <img src={achievementImage} alt={achievement.title || "Conquista"} className="h-full w-full object-cover" loading="lazy" />
                                     ) : (
                                       <IconTrophy className="h-5 w-5 text-amber-400" />
                                     )}
