@@ -2343,8 +2343,8 @@ export default function AtividadePage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap xl:flex-nowrap">
-                  <div className="relative min-w-0 flex-1">
+                <div className="flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap 2xl:flex-nowrap">
+                  <div className="relative min-w-0 flex-1 basis-[320px]">
                     <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
 
                     <input
@@ -2364,14 +2364,14 @@ export default function AtividadePage() {
                   </div>
 
                   {activeTab === "reviews" ? (
-                    <>
-                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-3 text-[12px] font-black text-white/65 transition hover:border-white/20 focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
-                        <IconCalendar className="h-3.5 w-3.5 shrink-0" />
+                    <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 md:w-[400px] md:shrink-0">
+                      <label className="flex h-12 min-w-0 w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/75 transition hover:border-white/20 hover:bg-white/[0.04] focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
+                        <IconCalendar className="h-4 w-4 shrink-0 text-white/65" />
                         <select
                           value={reviewMonthFilter}
                           onChange={(event) => setReviewMonthFilter(event.target.value)}
                           aria-label="Filtrar reviews por mês"
-                          className="max-w-[135px] bg-transparent text-[12px] font-black text-white/85 outline-none"
+                          className="min-w-0 flex-1 cursor-pointer appearance-none bg-transparent text-[12px] font-bold text-white/90 outline-none"
                         >
                           <option className="bg-[#090b0f]" value="all">Todos os Meses</option>
                           {reviewMonthOptions.map((monthKey) => (
@@ -2380,22 +2380,28 @@ export default function AtividadePage() {
                             </option>
                           ))}
                         </select>
+                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/45">
+                          <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </label>
-                      <label className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-3 text-[12px] font-black text-white/65 transition hover:border-white/20 focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
-                        <IconGamepad className="h-3.5 w-3.5 shrink-0" />
+                      <label className="flex h-12 min-w-0 w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/75 transition hover:border-white/20 hover:bg-white/[0.04] focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/15">
+                        <IconGamepad className="h-4 w-4 shrink-0 text-white/65" />
                         <select
                           value={reviewPlatformFilter}
                           onChange={(event) => setReviewPlatformFilter(event.target.value)}
                           aria-label="Filtrar reviews por plataforma"
-                          className="max-w-[155px] bg-transparent text-[12px] font-black text-white/85 outline-none"
+                          className="min-w-0 flex-1 cursor-pointer appearance-none bg-transparent text-[12px] font-bold text-white/90 outline-none"
                         >
                           <option className="bg-[#090b0f]" value="all">Todas as Plataformas</option>
                           {reviewPlatformOptions.map((platform) => (
                             <option className="bg-[#090b0f]" key={platform} value={platform}>{platform}</option>
                           ))}
                         </select>
+                        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/45">
+                          <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </label>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <button
