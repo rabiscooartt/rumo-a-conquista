@@ -513,6 +513,19 @@ function getEntryPlatform(entry: JourneyEntry) {
   return tag ? tag.slice(ACTIVITY_PLATFORM_TAG_PREFIX.length).trim() : "";
 }
 
+function getActivityEntryPlatform(entry: JourneyEntry, game?: GameLike) {
+  const taggedPlatform = getEntryPlatform(entry);
+  if (taggedPlatform) return taggedPlatform;
+
+  const configuredPlatform = getGamePlatform(game);
+  if (configuredPlatform) return configuredPlatform;
+
+  const normalizedTitle = normalizeKey(entry.gameTitle);
+  return normalizedTitle.includes("mouse") && normalizedTitle.includes("p.i. for hire")
+    ? "Steam"
+    : "";
+}
+
 
 function calculateStreak(
   entries: JourneyEntry[],
@@ -1274,13 +1287,7 @@ function ActivityRow({
   const cover = getGameCover(game, entry.gameSlug);
   const normalizedTitle = normalizeKey(entry.gameTitle);
 
-  const platform =
-    getEntryPlatform(entry) ||
-    getGamePlatform(game) ||
-    (normalizedTitle.includes("mouse") &&
-    normalizedTitle.includes("p.i. for hire")
-      ? "Steam"
-      : "");
+  const platform = getActivityEntryPlatform(entry, game);
 
   return (
     <article className="border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:px-4">
@@ -1461,7 +1468,9 @@ export default function AtividadePage() {
   const [reviewPlatformFilter, setReviewPlatformFilter] = useState("all");
   const [achievementMonthFilter, setAchievementMonthFilter] = useState("all");
   const [achievementPlatformFilter, setAchievementPlatformFilter] = useState("all");
-  const [openActivityFilter, setOpenActivityFilter] = useState<"month" | "platform" | "achievement-month" | "achievement-platform" | null>(null);
+  const [gameMonthFilter, setGameMonthFilter] = useState("all");
+  const [gamePlatformFilter, setGamePlatformFilter] = useState("all");
+  const [openActivityFilter, setOpenActivityFilter] = useState<"month" | "platform" | "achievement-month" | "achievement-platform" | "game-month" | "game-platform" | null>(null);
   const activityFiltersRef = useRef<HTMLDivElement | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -2035,23 +2044,62 @@ export default function AtividadePage() {
     }
   }
 
+  const gameMonthOptions = useMemo(
+    () => [...new Set(sourceEntries.map((entry) => {
+      const dateKey = getActivityDateKey(entry.date);
+      return dateKey ? dateKey.slice(0, 7) : "sem-data";
+    }))].sort((a, b) => {
+      if (a === "sem-data") return 1;
+      if (b === "sem-data") return -1;
+      return b.localeCompare(a);
+    }),
+    [sourceEntries]
+  );
+
+  const gamePlatformOptions = useMemo(
+    () => [...new Set(sourceEntries.map((entry) => {
+      const game = games.find((item) =>
+        normalizeKey(item.slug) === normalizeKey(entry.gameSlug) ||
+        normalizeKey(normalizeGameTitle(item.title)) === normalizeKey(normalizeGameTitle(entry.gameTitle))
+      );
+      return getActivityEntryPlatform(entry, game).trim();
+    }).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [sourceEntries, games]
+  );
+
   const filteredEntries = useMemo(() => {
     const query = normalizeKey(search);
 
-    if (!query) return sourceEntries;
+    return sourceEntries.filter((entry) => {
+      const matchesSearch =
+        !query ||
+        normalizeKey(normalizeGameTitle(entry.gameTitle)).includes(query) ||
+        normalizeKey(entry.title || "").includes(query) ||
+        normalizeKey(entry.notes || "").includes(query);
 
-    return sourceEntries.filter((entry) =>
-      normalizeKey(
-        normalizeGameTitle(entry.gameTitle)
-      ).includes(query)
-    );
-  }, [search, sourceEntries]);
+      const dateKey = getActivityDateKey(entry.date);
+      const monthKey = dateKey ? dateKey.slice(0, 7) : "sem-data";
+      const matchesMonth = gameMonthFilter === "all" || monthKey === gameMonthFilter;
+
+      const game = games.find((item) =>
+        normalizeKey(item.slug) === normalizeKey(entry.gameSlug) ||
+        normalizeKey(normalizeGameTitle(item.title)) === normalizeKey(normalizeGameTitle(entry.gameTitle))
+      );
+      const platform = getActivityEntryPlatform(entry, game).trim();
+      const matchesPlatform =
+        gamePlatformFilter === "all" ||
+        normalizeKey(platform) === normalizeKey(gamePlatformFilter);
+
+      return matchesSearch && matchesMonth && matchesPlatform;
+    });
+  }, [search, sourceEntries, gameMonthFilter, gamePlatformFilter, games]);
 
   const groupedEntries = useMemo(() => {
     const groups: Record<string, JourneyEntry[]> = {};
 
     for (const entry of filteredEntries) {
-      const month = getMonthLabel(entry.date);
+      const dateKey = getActivityDateKey(entry.date);
+      const month = dateKey ? getMonthLabel(dateKey + "-01") : "Data não registrada";
       if (!month) continue;
 
       if (!groups[month]) groups[month] = [];
@@ -2647,22 +2695,110 @@ export default function AtividadePage() {
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <button
-                        type="button"
-                        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
-                      >
-                        <IconCalendar className="h-3.5 w-3.5" />
-                        Todos os Meses ▾
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50"
-                      >
-                        <IconGamepad className="h-3.5 w-3.5" />
-                        Todas as Plataformas ▾
-                      </button>
-                    </>
+                    <div ref={activityFiltersRef} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row md:shrink-0">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenActivityFilter((current) => current === "game-month" ? null : "game-month")}
+                          aria-label="Filtrar atividades por mês"
+                          aria-haspopup="listbox"
+                          aria-expanded={openActivityFilter === "game-month"}
+                          className="flex h-12 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
+                        >
+                          <span className="flex items-center gap-2.5">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
+                              <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                            </svg>
+                            Mês
+                          </span>
+                          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/45">
+                            <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                        {openActivityFilter === "game-month" && (
+                          <div role="listbox" aria-label="Filtrar atividades por mês" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={gameMonthFilter === "all"}
+                              onClick={() => { setGameMonthFilter("all"); setOpenActivityFilter(null); }}
+                              className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${gameMonthFilter === "all" ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                            >
+                              <span>Todos os Meses</span>
+                              <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${gameMonthFilter === "all" ? "opacity-100" : "opacity-0"}`}>✓</span>
+                            </button>
+                            {gameMonthOptions.map((monthKey) => {
+                              const label = monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01");
+                              const selected = gameMonthFilter === monthKey;
+                              return (
+                                <button
+                                  key={monthKey}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={selected}
+                                  onClick={() => { setGameMonthFilter(monthKey); setOpenActivityFilter(null); }}
+                                  className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                                >
+                                  <span>{label.charAt(0).toLocaleUpperCase("pt-BR") + label.slice(1)}</span>
+                                  <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenActivityFilter((current) => current === "game-platform" ? null : "game-platform")}
+                          aria-label="Filtrar atividades por plataforma"
+                          aria-haspopup="listbox"
+                          aria-expanded={openActivityFilter === "game-platform"}
+                          className="flex h-12 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
+                        >
+                          <span className="flex items-center gap-2.5">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
+                              <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                            </svg>
+                            Plataforma
+                          </span>
+                          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5 shrink-0 text-white/45">
+                            <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                        {openActivityFilter === "game-platform" && (
+                          <div role="listbox" aria-label="Filtrar atividades por plataforma" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                            <button
+                              type="button"
+                              role="option"
+                              aria-selected={gamePlatformFilter === "all"}
+                              onClick={() => { setGamePlatformFilter("all"); setOpenActivityFilter(null); }}
+                              className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${gamePlatformFilter === "all" ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                            >
+                              <span>Todas as Plataformas</span>
+                              <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${gamePlatformFilter === "all" ? "opacity-100" : "opacity-0"}`}>✓</span>
+                            </button>
+                            {gamePlatformOptions.map((platform) => {
+                              const selected = gamePlatformFilter === platform;
+                              return (
+                                <button
+                                  key={platform}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={selected}
+                                  onClick={() => { setGamePlatformFilter(platform); setOpenActivityFilter(null); }}
+                                  className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                                >
+                                  <span>{platform}</span>
+                                  <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
 
