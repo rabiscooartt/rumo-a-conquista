@@ -1325,6 +1325,7 @@ function createAutomaticRecoveryResponse(req: NextRequest) {
             .filter((candidate) => candidate.url !== primary.url)
             .slice(0, 2);
           for (const candidate of alternateCandidates) {
+            attemptedUrls.add(candidate.url);
             const attemptNumber = completedAttempts + 1;
             const baseProgress = 10 + Math.floor(
               (completedAttempts / Math.max(1, 1 + alternateCandidates.length)) * 36
@@ -1382,6 +1383,7 @@ function createAutomaticRecoveryResponse(req: NextRequest) {
           let catalogDone = 0;
 
           for (const candidate of catalogAttempts) {
+            attemptedUrls.add(candidate.url);
             const attemptNumber = completedAttempts + catalogDone + 1;
             const baseProgress = 70 + Math.floor(
               (catalogDone / Math.max(1, catalogAttempts.length)) * 20
