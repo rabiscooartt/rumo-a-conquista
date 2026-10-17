@@ -38,10 +38,22 @@ type GameLike = {
   platforms?: string[];
   console?: string;
   achievementsList?: unknown[];
+  achievementsUnlocked?: number;
+  achievementsTotal?: number;
+  finalBadgeConfigured?: boolean;
+  finalBadge?: {
+    title?: string;
+    icon?: string;
+    image?: string;
+    description?: string;
+    unlockedAt?: string;
+  };
+  review?: unknown;
   youtubeFirstLiveUrl?: string;
   youtubeFirstLiveEpisode?: string;
   firstJourney?: {
     status?: string;
+    completedAt?: string;
     achievementIds?: string[];
     achievementMeta?: Record<string, AchievementJourneyMetaLike>;
   };
@@ -68,7 +80,9 @@ type DiaryAchievement = AchievementLike & {
   gameSlug?: string;
   activityDate: string;
   activityDateKey: string;
+  activityNumberKey: string;
   activityNumber: number;
+  activityKind?: "achievement" | "mastery";
 };
 
 function formatPlayedTime(minutes = 0) {
@@ -242,6 +256,29 @@ function getGameCover(game?: GameLike, slug?: string) {
     game?.image ||
     (slug ? `/images/games/${slug}/cover.jpg` : "")
   );
+}
+
+function getStoredActivityNumber(
+  game: GameLike | undefined,
+  localKey: string
+): number | undefined {
+  const review =
+    game?.review && typeof game.review === "object" && !Array.isArray(game.review)
+      ? (game.review as Record<string, unknown>)
+      : {};
+  const activityNumbers =
+    review.__achievementActivityNumbers &&
+    typeof review.__achievementActivityNumbers === "object" &&
+    !Array.isArray(review.__achievementActivityNumbers)
+      ? (review.__achievementActivityNumbers as Record<string, unknown>)
+      : {};
+  const number = Number(activityNumbers[localKey]);
+  return Number.isSafeInteger(number) && number > 0 ? number : undefined;
+}
+
+function getAchievementActivityNumberKey(achievement: AchievementLike) {
+  const id = String(achievement.id || "").trim();
+  return "achievement:" + (id || "title:" + normalizeKey(achievement.title));
 }
 
 function getAchievementJourneyMeta(
@@ -1441,16 +1478,84 @@ export default function AtividadePage() {
   }, [games]);
 
   const achievementDiary = useMemo<DiaryAchievement[]>(() => {
-    const result = allCompletedAchievements.map((achievement) => {
+    const result: DiaryAchievement[] = [];
+
+    for (const achievement of allCompletedAchievements) {
       const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
       const meta = getAchievementJourneyMeta(game, achievement);
       const activityDate = String(meta.date || getAchievementDate(achievement) || "").trim();
-      return {
+      const activityNumberKey = getAchievementActivityNumberKey(achievement);
+      result.push({
         ...achievement,
         activityDate,
         activityDateKey: getActivityDateKey(activityDate),
+        activityNumberKey,
+        activityNumber: getStoredActivityNumber(game, activityNumberKey) ?? 0,
+        activityKind: "achievement",
+      });
+    }
+
+    // A Maestria Final é armazenada separadamente das conquistas normais.
+    // Quando todas as conquistas normais estão concluídas, ela aparece como
+    // um registro próprio do diário, com numeração permanente.
+    for (const game of games) {
+      const slug = String(game.slug || "").trim();
+      const badge = game.finalBadge;
+      const achievements = (game.achievementsList || []) as AchievementLike[];
+      const hasConfiguredMastery =
+        game.finalBadgeConfigured === true ||
+        (game.finalBadgeConfigured === undefined &&
+          Boolean(badge && (badge.title || badge.image || badge.description)));
+      const allNormalAchievementsCompleted =
+        achievements.length > 0 && achievements.every(isCompletedAchievement);
+      if (!slug || !badge || !hasConfiguredMastery || !allNormalAchievementsCompleted) {
+        continue;
+      }
+
+      const masteryTitle = String(badge.title || "Maestria Final").trim();
+      const alreadyListed = allCompletedAchievements.some((item) =>
+        normalizeKey(item.gameSlug) === normalizeKey(slug) &&
+        normalizeKey(item.title) === normalizeKey(masteryTitle)
+      );
+      if (alreadyListed) continue;
+
+      const masteryId = slug + "-final-mastery";
+      const mastery: AchievementLike = {
+        id: masteryId,
+        title: masteryTitle,
+        description: String(badge.description || "").trim(),
+        image: String(badge.image || "").trim(),
+        status: "completed",
+        difficulty: "Maestria",
+        rank: "Maestria",
+        trophy: "🏆",
+        icon: "🏆",
+        isEmblem: true,
+        earnedDate: String(badge.unlockedAt || game.firstJourney?.completedAt || "").trim(),
       };
-    });
+      const meta = getAchievementJourneyMeta(game, mastery);
+      const fallbackDate = achievements
+        .map((item) => getAchievementDate(item))
+        .filter(Boolean)
+        .map((value) => String(value))
+        .sort()
+        .at(-1) || "";
+      const activityDate = String(
+        meta.date || getAchievementDate(mastery) || fallbackDate
+      ).trim();
+      const activityNumberKey = "mastery:final";
+
+      result.push({
+        ...mastery,
+        gameTitle: normalizeGameTitle(game.title),
+        gameSlug: slug,
+        activityDate,
+        activityDateKey: getActivityDateKey(activityDate),
+        activityNumberKey,
+        activityNumber: getStoredActivityNumber(game, activityNumberKey) ?? 0,
+        activityKind: "mastery",
+      });
+    }
 
     const sorted = result.sort((a, b) => {
       if (!a.activityDateKey) return b.activityDateKey ? 1 : 0;
@@ -1458,11 +1563,11 @@ export default function AtividadePage() {
       return b.activityDateKey.localeCompare(a.activityDateKey);
     });
 
-    // The newest item receives the highest number; older numbers stay stable
-    // when a new achievement is added to the diary.
+    // A numeração persistida é a fonte de verdade. O fallback posicional
+    // só mantém o primeiro render legível caso a API ainda não tenha respondido.
     return sorted.map((item, index) => ({
       ...item,
-      activityNumber: sorted.length - index,
+      activityNumber: item.activityNumber > 0 ? item.activityNumber : sorted.length - index,
     }));
   }, [allCompletedAchievements, games]);
 
@@ -2153,7 +2258,9 @@ export default function AtividadePage() {
                           const slug = achievement.gameSlug || game?.slug || "";
                           const cover = getGameCover(game, slug);
                           const meta = getAchievementJourneyMeta(game, achievement);
-                          const firstJourney = isAchievementInFirstJourney(game, achievement);
+                          const firstJourney =
+                            isAchievementInFirstJourney(game, achievement) ||
+                            (achievement.activityKind === "mastery" && game?.firstJourney?.status === "completed");
                           const trophy = getActivityTrophyMeta(achievement);
                           const target = achievement.id?.trim() || achievement.title || "Conquista";
                           const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
@@ -2198,7 +2305,7 @@ export default function AtividadePage() {
                                   {firstJourney ? (
                                     <span title="Esta conquista faz parte da Jornada de Estreia." className="inline-flex max-w-full items-start justify-end gap-1 rounded-md border border-emerald-400/35 bg-emerald-500/[0.10] px-1.5 py-1 text-[7px] font-black leading-tight text-emerald-200 sm:px-2 sm:text-[9px]">
                                       <span aria-hidden="true" className="shrink-0">✦</span>
-                                      <span className="whitespace-normal text-right">Jornada de Estreia</span>
+                                      <span className="whitespace-normal text-right">{achievement.activityKind === "mastery" ? "Maestria · Jornada de Estreia" : "Jornada de Estreia"}</span>
                                     </span>
                                   ) : null}
                                 </div>
