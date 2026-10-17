@@ -2227,10 +2227,6 @@ export default function AtividadePage() {
                           const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
                           const slug = achievement.gameSlug || game?.slug || "";
                           const cover = getGameCover(game, slug);
-                          const meta = getAchievementJourneyMeta(game, achievement);
-                          const firstJourney =
-                            isAchievementInFirstJourney(game, achievement) ||
-                            (achievement.activityKind === "mastery" && game?.firstJourney?.status === "completed");
                           const trophy = getActivityTrophyMeta(achievement);
                           const target = achievement.id?.trim() || achievement.title || "Conquista";
                           const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
@@ -2266,19 +2262,20 @@ export default function AtividadePage() {
                                 </div>
                               </Link>
 
-                              <div className="flex w-[120px] shrink-0 items-center justify-end gap-2 sm:w-[174px] sm:gap-3">
-                                <img src={trophy.image} alt={trophy.label} title={trophy.label} className="h-5 w-5 shrink-0 object-contain sm:h-7 sm:w-7" loading="lazy" />
-                                <div className="flex min-w-0 flex-1 flex-col items-end gap-1">
-                                  <time dateTime={achievement.activityDateKey || undefined} className="whitespace-nowrap text-[8px] font-bold tabular-nums text-white/65 sm:text-[10px]">
-                                    {formatActivityRowDate(achievement.activityDateKey)}
-                                  </time>
-                                  {firstJourney ? (
-                                    <span title="Esta conquista faz parte da Jornada de Estreia." className="inline-flex max-w-full items-start justify-end gap-1 rounded-md border border-emerald-400/35 bg-emerald-500/[0.10] px-1.5 py-1 text-[7px] font-black leading-tight text-emerald-200 sm:px-2 sm:text-[9px]">
-                                      <span aria-hidden="true" className="shrink-0">✦</span>
-                                      <span className="whitespace-normal text-right">{achievement.activityKind === "mastery" ? "Maestria · Jornada de Estreia" : "Jornada de Estreia"}</span>
-                                    </span>
-                                  ) : null}
-                                </div>
+                              <div className="flex w-[112px] shrink-0 items-center justify-end gap-3 sm:w-[156px] sm:gap-4">
+                                <img
+                                  src={trophy.image}
+                                  alt={trophy.label}
+                                  title={trophy.label}
+                                  className="h-[30px] w-[30px] shrink-0 object-contain sm:h-9 sm:w-9"
+                                  loading="lazy"
+                                />
+                                <time
+                                  dateTime={achievement.activityDateKey || undefined}
+                                  className="whitespace-nowrap text-[9px] font-bold tabular-nums text-white/70 sm:text-[11px]"
+                                >
+                                  {formatActivityRowDate(achievement.activityDateKey)}
+                                </time>
                               </div>
                             </article>
                           );
