@@ -1334,7 +1334,14 @@ export async function GET(request: NextRequest) {
       const hasConfiguredFinalMastery = Boolean(
         finalMasteryTitle || normalizeDisplayText(badge.image) || normalizeDisplayText(badge.description)
       );
-      if (allNormalAchievementsCompleted && hasConfiguredFinalMastery) {
+      const finalMasteryAlreadyListed = activeAchievements.some(
+        (item) => normalizeText(item.title) === normalizeText(finalMasteryTitle)
+      );
+      if (
+        allNormalAchievementsCompleted &&
+        hasConfiguredFinalMastery &&
+        !finalMasteryAlreadyListed
+      ) {
         const localKey = "mastery:final";
         const map = activityNumberMaps.get(slug) ?? {};
         activityNumberMaps.set(slug, map);
