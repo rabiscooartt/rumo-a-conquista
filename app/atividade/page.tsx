@@ -2436,16 +2436,6 @@ export default function AtividadePage() {
                               <span>Todos os Meses</span>
                               <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${reviewMonthFilter === "all" ? "opacity-100" : "opacity-0"}`}>✓</span>
                             </button>
-                            <button
-                              type="button"
-                              role="option"
-                              aria-selected={reviewMonthFilter === "recent-two"}
-                              onClick={() => { setReviewMonthFilter("recent-two"); setOpenReviewFilter(null); }}
-                              className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[12px] transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${reviewMonthFilter === "recent-two" ? "bg-white/[0.045] text-white" : "text-white/70"}`}
-                            >
-                              <span>Últimos 2 Meses</span>
-                              <span aria-hidden="true" className={`text-[14px] font-black text-white/80 ${reviewMonthFilter === "recent-two" ? "opacity-100" : "opacity-0"}`}>✓</span>
-                            </button>
                             {reviewMonthOptions.map((monthKey) => {
                               const label = monthKey === "sem-data" ? "Data não registrada" : getMonthLabel(monthKey + "-01");
                               const selected = reviewMonthFilter === monthKey;
