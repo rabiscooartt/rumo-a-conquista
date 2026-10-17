@@ -11,7 +11,7 @@ import {
 import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
 import { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT } from "@/components/AdminAvatarLogin";
-import { useSiteGames } from "@/lib/useSiteGames";
+import { formatAchievementDescription, formatAchievementTitle, useSiteGames } from "@/lib/useSiteGames";
 import {
   type JourneyEntry,
   type JourneyEntryInput,
@@ -1475,6 +1475,10 @@ export default function AtividadePage() {
 
         result.push({
           ...achievement,
+          // Use exactly the same text-formatting helpers as the individual
+          // game's achievement panel. Keep the database values unchanged.
+          title: formatAchievementTitle(String(achievement.title || "")),
+          description: formatAchievementDescription(String(achievement.description || "")),
           gameTitle: normalizeGameTitle(game.title),
           gameSlug: game.slug,
         });
@@ -1556,6 +1560,10 @@ export default function AtividadePage() {
       ).trim();
       result.push({
         ...mastery,
+        // The standalone Maestria Final follows the same display rules as
+        // normal achievements shown on the game's own page.
+        title: formatAchievementTitle(String(mastery.title || "")),
+        description: formatAchievementDescription(String(mastery.description || "")),
         gameTitle: normalizeGameTitle(game.title),
         gameSlug: slug,
         activityDate,
