@@ -80,7 +80,6 @@ type DiaryAchievement = AchievementLike & {
   gameSlug?: string;
   activityDate: string;
   activityDateKey: string;
-  activityNumberKey: string;
   activityNumber: number;
   activityKind?: "achievement" | "mastery";
 };
@@ -256,29 +255,6 @@ function getGameCover(game?: GameLike, slug?: string) {
     game?.image ||
     (slug ? `/images/games/${slug}/cover.jpg` : "")
   );
-}
-
-function getStoredActivityNumber(
-  game: GameLike | undefined,
-  localKey: string
-): number | undefined {
-  const review =
-    game?.review && typeof game.review === "object" && !Array.isArray(game.review)
-      ? (game.review as Record<string, unknown>)
-      : {};
-  const activityNumbers =
-    review.__achievementActivityNumbers &&
-    typeof review.__achievementActivityNumbers === "object" &&
-    !Array.isArray(review.__achievementActivityNumbers)
-      ? (review.__achievementActivityNumbers as Record<string, unknown>)
-      : {};
-  const number = Number(activityNumbers[localKey]);
-  return Number.isSafeInteger(number) && number > 0 ? number : undefined;
-}
-
-function getAchievementActivityNumberKey(achievement: AchievementLike) {
-  const id = String(achievement.id || "").trim();
-  return "achievement:" + (id || "title:" + normalizeKey(achievement.title));
 }
 
 function getAchievementJourneyMeta(
@@ -1484,13 +1460,11 @@ export default function AtividadePage() {
       const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
       const meta = getAchievementJourneyMeta(game, achievement);
       const activityDate = String(meta.date || getAchievementDate(achievement) || "").trim();
-      const activityNumberKey = getAchievementActivityNumberKey(achievement);
       result.push({
         ...achievement,
         activityDate,
         activityDateKey: getActivityDateKey(activityDate),
-        activityNumberKey,
-        activityNumber: getStoredActivityNumber(game, activityNumberKey) ?? 0,
+        activityNumber: 0,
         activityKind: "achievement",
       });
     }
@@ -1543,16 +1517,13 @@ export default function AtividadePage() {
       const activityDate = String(
         meta.date || getAchievementDate(mastery) || fallbackDate
       ).trim();
-      const activityNumberKey = "mastery:final";
-
       result.push({
         ...mastery,
         gameTitle: normalizeGameTitle(game.title),
         gameSlug: slug,
         activityDate,
         activityDateKey: getActivityDateKey(activityDate),
-        activityNumberKey,
-        activityNumber: getStoredActivityNumber(game, activityNumberKey) ?? 0,
+        activityNumber: 0,
         activityKind: "mastery",
       });
     }
@@ -1563,11 +1534,11 @@ export default function AtividadePage() {
       return b.activityDateKey.localeCompare(a.activityDateKey);
     });
 
-    // A numeração persistida é a fonte de verdade. O fallback posicional
-    // só mantém o primeiro render legível caso a API ainda não tenha respondido.
+    // A numeração volta a acompanhar a ordem atual do diário:
+    // o registro mais recente recebe o maior número.
     return sorted.map((item, index) => ({
       ...item,
-      activityNumber: item.activityNumber > 0 ? item.activityNumber : sorted.length - index,
+      activityNumber: sorted.length - index,
     }));
   }, [allCompletedAchievements, games]);
 
