@@ -680,15 +680,18 @@ function parseExophaseHtml(html: string) {
 
 async function fetchJinaHtml(
   url: string,
-  _legacyWaitForSelector?: string
+  _legacyWaitForSelector?: string,
+  onStage?: (message: string) => void
 ) {
   const readerUrl = "https://r.jina.ai/" + url;
 
   // Primeiro tentamos o engine direct. Ele não depende do Chromium do Jina
   // e continua sendo uma leitura do próprio Exophase, sem trocar a fonte.
+  onStage?.("Tentando leitura direta pelo leitor alternativo.");
   try {
     const directResponse = await fetch(readerUrl, {
       cache: "no-store",
+      signal: AbortSignal.timeout(12_000),
       headers: {
         Accept: "text/html",
         "X-Engine": "direct",
@@ -710,9 +713,11 @@ async function fetchJinaHtml(
 
   // Segunda tentativa: Chromium renderizado, útil quando o Exophase monta
   // parte da lista por JavaScript.
+  onStage?.("Tentando abrir a página renderizada pelo navegador.");
   try {
     const browserResponse = await fetch(readerUrl, {
       cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
       headers: {
         Accept: "text/html",
         "X-Engine": "browser",
@@ -733,8 +738,10 @@ async function fetchJinaHtml(
   }
 
   // Última tentativa de compatibilidade com a rota simples do Reader.
+  onStage?.("Tentando a leitura simples como último recurso.");
   const plainResponse = await fetch(readerUrl, {
     cache: "no-store",
+    signal: AbortSignal.timeout(12_000),
     headers: {
       Accept: "text/html",
       "X-Respond-With": "html",
@@ -847,14 +854,19 @@ async function hydrateExophaseVisualReferences(
   return result;
 }
 
-async function fetchExophaseAchievements(url: string) {
-  // Somente a rota PT-BR. Se o Exophase redirecionar para inglês, tentamos
-  // o mesmo endereço pelo Reader, mas nunca aceitamos a página inglesa.
+async function fetchExophaseAchievements(
+  url: string,
+  onStage?: (message: string) => void
+) {
+  // Mantém a rota PT-BR como primeira opção, mas tenta todos os parsers
+  // disponíveis para tolerar mudanças de HTML e de tradução do Exophase.
   const targetUrl = url;
+  onStage?.("Consultando a página do Exophase diretamente.");
 
   try {
     const response = await fetch(targetUrl, {
       cache: "no-store",
+      signal: AbortSignal.timeout(12_000),
       headers: {
         "User-Agent":
           "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0; +https://www.exophase.com/)",
@@ -865,12 +877,13 @@ async function fetchExophaseAchievements(url: string) {
     if (response.ok) {
       const html = await response.text();
 
-      if (isPortugueseExophasePage(html)) {
-        const achievements = parseExophaseHtml(html) ?? parseExophaseAchievementLinks(html);
+      const achievements =
+        parseExophaseHtml(html) ??
+        parseExophaseAchievementLinks(html) ??
+        parseExophaseText(html);
 
-        if (achievements) {
-          return { url: targetUrl, achievements };
-        }
+      if (achievements) {
+        return { url: targetUrl, achievements };
       }
     }
   } catch (error) {
@@ -881,7 +894,8 @@ async function fetchExophaseAchievements(url: string) {
   try {
     // Fallback robusto: Chromium + HTML renderizado + espera do bloco
     // de conquistas. O Exophase pode montar parte do card/imagem via JS.
-    const html = await fetchJinaHtml(targetUrl, ".award-title");
+    onStage?.("A leitura direta não funcionou; alternando o método de leitura.");
+    const html = await fetchJinaHtml(targetUrl, ".award-title", onStage);
 
     const achievements =
       parseExophaseHtml(html) ??
@@ -1062,9 +1076,322 @@ async function buildAchievementPreparation(
   });
 }
 
+
+type ExophaseRecoveryCandidate = {
+  url: string;
+  label: string;
+  source: "title" | "catalog";
+};
+
+function localizedPageUrl(gameSlug: string, platformHint = "") {
+  const platform = (platformHint || gameSlug).toLowerCase();
+  const isPsn = /(?:^|[-_])(?:psn|ps[345])(?:$|[-_])/.test(platform) ||
+    /-psn$/.test(gameSlug);
+  const endpoint = isPsn ? "trophies" : "achievements";
+  return "https://www.exophase.com/game/" + gameSlug + "/" + endpoint + "/pt-BR/";
+}
+
+function buildStaticRecoveryCandidates(title: string, registeredSlug: string): ExophaseRecoveryCandidate[] {
+  const candidates: ExophaseRecoveryCandidate[] = [];
+  const seen = new Set<string>();
+  const add = (value: string, label: string) => {
+    const key = slug(value);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    const gameSlug = key;
+    const platform = /-(?:psn|ps[345]-psn)$/.test(gameSlug) ? "psn" : "steam";
+    candidates.push({
+      url: localizedPageUrl(gameSlug, platform),
+      label,
+      source: "title",
+    });
+  };
+
+  const normalizedTitle = norm(title);
+  if (normalizedTitle.includes("monster hunter") && normalizedTitle.includes("iceborne")) {
+    add("monster-hunter-world", "Monster Hunter: World (página que reúne Iceborne)");
+  }
+
+  // Título completo e slug cadastrado são tentativas independentes; alguns
+  // jogos usam um endereço no Exophase diferente do nome visível no projeto.
+  add(title, "Nome completo do jogo");
+  add(registeredSlug.replace(/-/g, " "), "Slug cadastrado");
+  add(title.replace(/\s*\([^)]*(?:edition|version|deluxe|soundtrack|bundle|dlc|expansion)[^)]*\)\s*$/i, ""), "Nome sem edição/versão entre parênteses");
+
+  // Só remove o subtítulo quando ele contém uma indicação clara de edição,
+  // DLC ou expansão. Evita transformar títulos como "Mouse - P.I. For Hire"
+  // em uma palavra genérica.
+  const baseTitle = title.replace(/\s*(?:[:–—-])\s*(?=.*\b(?:dlc|expansion|iceborne|definitive edition|complete edition|deluxe edition|game of the year|remastered|remake|chapter|episode|season pass)\b).*$/i, "");
+  if (baseTitle && norm(baseTitle) !== normalizedTitle) {
+    add(baseTitle, "Título-base sem DLC/edição");
+  }
+
+  return candidates.slice(0, 5);
+}
+
+function parseExophaseCatalogSearch(html: string, title: string): ExophaseRecoveryCandidate[] {
+  const targetWords = [...new Set(norm(title).split(" ").filter((word) => word.length > 2))];
+  const matches = Array.from(html.matchAll(
+    /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi
+  ));
+  const ranked: Array<ExophaseRecoveryCandidate & { score: number }> = [];
+  const seen = new Set<string>();
+
+  for (const match of matches) {
+    const rawHref = decodeHtml(match[1] || match[2] || match[3] || "");
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(rawHref, "https://www.exophase.com");
+    } catch {
+      continue;
+    }
+    if (!/(^|\.)exophase\.com$/i.test(parsedUrl.hostname)) continue;
+
+    const gameMatch = parsedUrl.pathname.match(/^\/game\/([^/]+)\/?$/i);
+    if (!gameMatch) continue;
+    const gameSlug = decodeURIComponent(gameMatch[1]).toLowerCase();
+    if (!/(?:-steam|-psn|-ps[345]-psn|-xbox(?:-one|-series-[xs])?|-gog|-epic|-nintendo-switch)$/.test(gameSlug)) continue;
+    if (seen.has(gameSlug)) continue;
+    seen.add(gameSlug);
+
+    const visibleName = stripHtml(decodeHtml(match[4] || "")).replace(/\s+/g, " ").trim();
+    const slugName = gameSlug
+      .replace(/-(?:steam|psn|ps[345]-psn|xbox(?:-one|-series-[xs])?|gog|epic|nintendo-switch)$/i, "")
+      .replace(/-/g, " ");
+    const candidateName = norm((visibleName || "") + " " + slugName);
+    const matched = targetWords.filter((word) => candidateName.includes(word)).length;
+    const score = targetWords.length ? matched / targetWords.length : 0;
+    if (score < 0.3) continue;
+
+    const isPsn = /-psn$/.test(gameSlug) || /-ps[345]-psn$/.test(gameSlug);
+    const endpoint = isPsn ? "trophies" : "achievements";
+    ranked.push({
+      url: "https://www.exophase.com/game/" + gameSlug + "/" + endpoint + "/pt-BR/",
+      label: visibleName || slugName,
+      source: "catalog",
+      score: score + (/-steam$/.test(gameSlug) ? 0.15 : 0),
+    });
+  }
+
+  return ranked
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map(({ score: _score, ...candidate }) => candidate);
+}
+
+async function discoverExophaseCatalogCandidates(title: string, onStage?: (message: string) => void) {
+  const searchUrl = "https://www.exophase.com/games/?q=" + encodeURIComponent(title);
+  onStage?.("Buscando o jogo no catálogo do Exophase para descobrir o endereço correto.");
+
+  const urls = [
+    searchUrl,
+    "https://r.jina.ai/" + searchUrl,
+  ];
+
+  for (let i = 0; i < urls.length; i += 1) {
+    try {
+      const response = await fetch(urls[i], {
+        cache: "no-store",
+        signal: AbortSignal.timeout(i === 0 ? 10_000 : 15_000),
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; Rumo-a-Conquista/1.0)",
+          "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+          "X-Engine": i === 0 ? "direct" : "browser",
+          "X-Respond-With": "html",
+          "X-No-Cache": "true",
+        },
+      });
+      if (!response.ok) continue;
+      const html = await response.text();
+      const found = parseExophaseCatalogSearch(html, title);
+      if (found.length) return found;
+    } catch (error) {
+      console.error("[Exophase Recovery Search]", error);
+    }
+  }
+
+  return [];
+}
+
+function createAutomaticRecoveryResponse(req: NextRequest) {
+  const encoder = new TextEncoder();
+  const slugParam = req.nextUrl.searchParams.get("slug")?.trim() ?? "";
+  const titleParam = req.nextUrl.searchParams.get("title")?.trim() ?? "";
+
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      const send = (event: Record<string, unknown>) => {
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+        } catch {
+          // A aba pode ter sido fechada; nesse caso não há mais cliente para informar.
+        }
+      };
+
+      void (async () => {
+        try {
+          send({
+            type: "progress",
+            progress: 0,
+            stage: "recovery",
+            message: "Falha detectada. Iniciando a correção automática do preparador.",
+          });
+
+          const registeredGame = await resolveGameTitle(slugParam || null, titleParam);
+          const primary = await findExophaseSteamGame(registeredGame.title);
+          const staticCandidates = buildStaticRecoveryCandidates(registeredGame.title, slugParam);
+          const candidates: ExophaseRecoveryCandidate[] = [
+            { url: primary.url, label: "Endereço principal", source: "title" },
+            ...staticCandidates,
+          ].filter((candidate, index, all) => all.findIndex((item) => item.url === candidate.url) === index);
+
+          const attemptedUrls = new Set<string>();
+          const firstAttempts = candidates.slice(0, 5);
+          const totalStatic = firstAttempts.length;
+          let completedAttempts = 0;
+
+          for (const candidate of firstAttempts) {
+            if (attemptedUrls.has(candidate.url)) continue;
+            attemptedUrls.add(candidate.url);
+            const attemptNumber = completedAttempts + 1;
+            const baseProgress = 8 + Math.floor((completedAttempts / Math.max(1, totalStatic)) * 52);
+            send({
+              type: "progress",
+              progress: baseProgress,
+              stage: "recovery",
+              message: "Tentativa " + attemptNumber + "/" + totalStatic + ": " + candidate.label + ".",
+            });
+
+            const result = await fetchExophaseAchievements(candidate.url, (message) => {
+              send({
+                type: "progress",
+                progress: baseProgress,
+                stage: "recovery",
+                message: "Tentativa " + attemptNumber + "/" + totalStatic + ": " + message,
+              });
+            });
+            completedAttempts += 1;
+
+            if (result && result.achievements.length > 0) {
+              send({
+                type: "progress",
+                progress: 84,
+                stage: "finalizing",
+                message: "Conquistas encontradas. Organizando nomes, descrições e classificações.",
+              });
+              const builtResponse = await buildAchievementPreparation(registeredGame, result);
+              const payload = await builtResponse.json();
+              send({
+                type: "success",
+                progress: 100,
+                stage: "complete",
+                message: "Erro corrigido automaticamente. As conquistas foram recuperadas com sucesso.",
+                result: payload,
+                attempts: completedAttempts,
+                sourceUrl: result.url,
+              });
+              return;
+            }
+          }
+
+          send({
+            type: "progress",
+            progress: 64,
+            stage: "recovery",
+            message: "Os endereços previsíveis não funcionaram. Procurando o título diretamente no catálogo do Exophase.",
+          });
+          const catalogCandidates = await discoverExophaseCatalogCandidates(registeredGame.title, (message) => {
+            send({ type: "progress", progress: 68, stage: "recovery", message });
+          });
+          const remainingCandidates = catalogCandidates.filter((candidate) => !attemptedUrls.has(candidate.url));
+          const catalogAttempts = remainingCandidates.slice(0, 4);
+          let catalogDone = 0;
+
+          for (const candidate of catalogAttempts) {
+            const attemptNumber = catalogDone + 1;
+            const baseProgress = 72 + Math.floor((catalogDone / Math.max(1, catalogAttempts.length)) * 19);
+            send({
+              type: "progress",
+              progress: baseProgress,
+              stage: "recovery",
+              message: "Tentando o resultado encontrado no catálogo (" + attemptNumber + "/" + catalogAttempts.length + "): " + candidate.label + ".",
+            });
+
+            const result = await fetchExophaseAchievements(candidate.url, (message) => {
+              send({
+                type: "progress",
+                progress: baseProgress,
+                stage: "recovery",
+                message: "Catálogo Exophase: " + message,
+              });
+            });
+            catalogDone += 1;
+
+            if (result && result.achievements.length > 0) {
+              send({
+                type: "progress",
+                progress: 94,
+                stage: "finalizing",
+                message: "A lista foi recuperada. Finalizando a preparação.",
+              });
+              const builtResponse = await buildAchievementPreparation(registeredGame, result);
+              const payload = await builtResponse.json();
+              send({
+                type: "success",
+                progress: 100,
+                stage: "complete",
+                message: "Erro corrigido automaticamente. As conquistas foram recuperadas com sucesso.",
+                result: payload,
+                attempts: completedAttempts + catalogDone,
+                sourceUrl: result.url,
+              });
+              return;
+            }
+          }
+
+          send({
+            type: "failed",
+            progress: 95,
+            stage: "needs-attention",
+            error: "Tentei novamente com diferentes endereços, leitores e o catálogo do Exophase, mas não consegui extrair uma lista válida. Não alterei nem apaguei suas conquistas salvas. Confira se o jogo tem uma página de conquistas/troféus no Exophase ou informe o link correto para adicionar como endereço preferencial.",
+            message: "Todas as tentativas automáticas terminaram sem encontrar uma lista válida. Nenhum dado publicado foi alterado.",
+            attempts: completedAttempts + catalogDone,
+          });
+        } catch (error) {
+          send({
+            type: "failed",
+            progress: 95,
+            stage: "needs-attention",
+            error: error instanceof Error ? error.message : "Falha inesperada durante a correção automática.",
+            message: "A correção automática parou por uma falha de serviço. Nenhuma lista publicada foi substituída.",
+          });
+        } finally {
+          try {
+            controller.close();
+          } catch {
+            // Sem cliente conectado.
+          }
+        }
+      })();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
+
 export async function GET(req: NextRequest) {
   const titleParam = req.nextUrl.searchParams.get("title")?.trim() ?? "";
   const slugParam = req.nextUrl.searchParams.get("slug")?.trim() ?? "";
+
+  if (req.nextUrl.searchParams.get("autoRecover") === "1") {
+    return createAutomaticRecoveryResponse(req);
+  }
 
   try {
     const registeredGame = await resolveGameTitle(
@@ -1090,8 +1417,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Encontrei o jogo no Exophase, mas não consegui ler a lista de conquistas em PT-BR dessa página.",
+            "Não consegui ler as conquistas pela rota principal do Exophase. O preparador pode tentar URLs alternativas, outros métodos de leitura e a busca no catálogo.",
           browserFallbackAvailable: true,
+          recoverySuggested: true,
           exophaseUrl: exophaseGame.url,
         },
         { status: 502 }
@@ -1106,7 +1434,10 @@ export async function GET(req: NextRequest) {
     const message =
       e instanceof Error ? e.message : "Não foi possível preparar o jogo.";
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({
+      error: message,
+      recoverySuggested: true,
+    }, { status: 500 });
   }
 }
 export async function POST(req: NextRequest) {
