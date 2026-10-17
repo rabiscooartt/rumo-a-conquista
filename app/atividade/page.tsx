@@ -3094,7 +3094,7 @@ export default function AtividadePage() {
                           return (
                             <article
                               key={item.gameSlug}
-                              className="grid grid-cols-[minmax(92px,120px)_minmax(0,1fr)] items-stretch gap-3 py-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[185px_minmax(0,1fr)] lg:gap-4"
+                              className="grid grid-cols-[minmax(92px,120px)_minmax(0,1fr)] items-stretch gap-3 py-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4"
                             >
                               <Link
                                 href={href}
