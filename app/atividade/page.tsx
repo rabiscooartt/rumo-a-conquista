@@ -1349,17 +1349,15 @@ function ActivityRow({
       </div>
 
       <div className="text-right">
-        {Number(entry.playedMinutes || 0) > 0 && (
-          <>
-            <p className="text-[18px] font-black leading-none text-white md:text-[19px]">
-              {formatPlayedTime(entry.playedMinutes)}
-            </p>
+        <p className={`text-[18px] font-black leading-none md:text-[19px] ${Number(entry.playedMinutes || 0) > 0 ? "text-white" : "text-white/35"}`}>
+          {Number(entry.playedMinutes || 0) > 0
+            ? formatPlayedTime(entry.playedMinutes)
+            : "—"}
+        </p>
 
-            <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
-              Tempo jogado
-            </p>
-          </>
-        )}
+        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
+          Tempo jogado
+        </p>
       </div>
 
       {isAdmin && (
@@ -1582,6 +1580,17 @@ export default function AtividadePage() {
     [recent60Entries]
   );
 
+  const daysWithRecordedTime = useMemo(
+    () =>
+      new Set(
+        recent60Entries
+          .filter((entry) => Number(entry.playedMinutes || 0) > 0)
+          .map((entry) => getDateKey(entry.date))
+          .filter(Boolean)
+      ).size,
+    [recent60Entries]
+  );
+
   const differentGames = useMemo(
     () =>
       new Set(
@@ -1595,9 +1604,9 @@ export default function AtividadePage() {
   );
 
   const averageMinutes =
-    uniqueDays > 0
-      ? Math.round(totalMinutes / uniqueDays)
-      : 0;
+    daysWithRecordedTime > 0
+      ? Math.round(totalMinutes / daysWithRecordedTime)
+      : null;
 
   const currentStreak = useMemo(
     () => calculateStreak(recent60Entries, today),
@@ -2305,7 +2314,7 @@ export default function AtividadePage() {
                 <Metric
                   icon={<IconMetricAverage className="h-[22px] w-[22px]" />}
                   label="Média por dia"
-                  value={isLoaded ? formatPlayedTime(averageMinutes) : "..."}
+                  value={isLoaded ? (averageMinutes === null ? "—" : formatPlayedTime(averageMinutes)) : "..."}
                   divided
                 />
 
