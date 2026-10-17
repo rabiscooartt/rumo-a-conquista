@@ -319,6 +319,16 @@ export default function ReviewsPage() {
   const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
   const lowScore = scoredGames.length ? Math.min(...scoredGames) : null;
 
+  const ratingDistribution = [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5].map((rating) => ({
+    rating,
+    count: scoredGames.filter((score) => {
+      if (score <= 0) return false;
+      const roundedStars = Math.round((score / 2) * 2) / 2;
+      return roundedStars === rating;
+    }).length,
+  }));
+  const maxRatingCount = Math.max(0, ...ratingDistribution.map((item) => item.count));
+
   return (
     <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
@@ -508,6 +518,42 @@ export default function ReviewsPage() {
                       <strong className="shrink-0 text-[14px] font-black text-white">{value}</strong>
                     </div>
                   ))}
+                </div>
+              </section>
+
+              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
+                  Distribuição de notas
+                </h2>
+
+                <div className="mt-4 space-y-2.5">
+                  {ratingDistribution.map(({ rating, count }) => {
+                    const width = maxRatingCount > 0 ? (count / maxRatingCount) * 100 : 0;
+                    const ratingLabel = `${Number.isInteger(rating) ? rating.toFixed(0) : rating.toFixed(1)}★`;
+
+                    return (
+                      <div
+                        key={rating}
+                        className="grid grid-cols-[30px_minmax(0,1fr)_22px] items-center gap-2"
+                        aria-label={`${ratingLabel}: ${count} reviews`}
+                        title={`${ratingLabel}: ${count} reviews`}
+                      >
+                        <span className="whitespace-nowrap text-right text-[10px] font-semibold tabular-nums text-white/55">
+                          {ratingLabel}
+                        </span>
+                        <div className="h-[6px] overflow-hidden rounded-[1px] bg-white/[0.09]">
+                          <div
+                            className="h-full rounded-[1px] bg-red-500/90 transition-[width] duration-300"
+                            style={{ width: `${width}%` }}
+                          />
+                        </div>
+                        <span className="text-right text-[11px] font-bold tabular-nums text-white/75">
+                          {loading ? "—" : count}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
 
