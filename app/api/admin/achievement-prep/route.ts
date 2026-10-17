@@ -1158,19 +1158,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const registeredGame = await resolveGameTitle(
-      body.slug?.trim() || null,
-      body.title?.trim() || ""
-    );
-
-    const exophaseUrl = body.exophaseUrl?.trim();
-    if (!exophaseUrl || !resolveExophaseUrl(exophaseUrl)) {
-      return NextResponse.json(
-        { error: "A URL do Exophase recebida é inválida." },
-        { status: 400 }
-      );
-    }
-
     return buildAchievementPreparation(registeredGame, {
       url: exophaseUrl,
       achievements,
