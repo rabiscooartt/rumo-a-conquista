@@ -361,12 +361,11 @@ function getActivityDateParts(dateKey?: string) {
   const day = parts[2];
 
   if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) return null;
-  if (!/^\\d{1,2}$/.test(day) || !/^\\d{4}$/.test(parts[0])) return null;
+  if (!/^\d{1,2}$/.test(day) || !/^\d{4}$/.test(parts[0])) return null;
 
   return {
     day: day.padStart(2, "0"),
     month: months[monthNumber - 1],
-    year: parts[0],
   };
 }
 
@@ -2554,14 +2553,13 @@ export default function AtividadePage() {
                                 />
                                 <time
                                   dateTime={achievement.activityDateKey || undefined}
-                                  title={formatActivityRowDate(achievement.activityDateKey)}
+                                  title={dateParts ? dateParts.day + " " + dateParts.month : "Data não registrada"}
                                   className="flex min-w-[34px] shrink-0 flex-col items-center justify-center text-center"
                                 >
                                   <span className={`text-[16px] font-black leading-none tabular-nums sm:text-[18px] ${dateParts ? "text-white" : "text-white/30"}`}>
                                     {dateParts?.day ?? "—"}
                                   </span>
                                   {dateParts ? <span className="mt-1 text-[9px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[10px]">{dateParts.month}</span> : null}
-                                  {dateParts ? <span className="mt-1 text-[8px] font-semibold leading-none tabular-nums text-white/30">{dateParts.year}</span> : null}
                                 </time>
                               </div>
                             </article>
@@ -2610,10 +2608,9 @@ export default function AtividadePage() {
 
                                 return (
                                   <article key={item.gameSlug} className="flex items-center gap-2 border-b border-white/[0.07] px-2.5 py-3 last:border-b-0 hover:bg-white/[0.025] sm:gap-3 sm:px-3.5 sm:py-3.5 lg:gap-4 lg:px-4">
-                                    <div className="flex w-[34px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]" title={dateParts ? "Publicada em " + day + "/" + item.dateKey.slice(5, 7) + "/" + dateParts.year : "Data de publicação não registrada"}>
+                                    <div className="flex w-[34px] shrink-0 flex-col items-center justify-center text-center sm:w-[38px]" title={dateParts ? "Publicada em " + day + " " + dateParts.month : "Data de publicação não registrada"}>
                                       <span className={`text-[18px] font-black leading-none tabular-nums sm:text-[20px] ${dateParts ? "text-white" : "text-white/30"}`}>{day}</span>
                                       {dateParts ? <span className="mt-1 text-[9px] font-black leading-none tracking-[0.08em] text-red-400 sm:text-[10px]">{dateParts.month}</span> : null}
-                                      {dateParts ? <span className="mt-1 text-[8px] font-semibold leading-none tabular-nums text-white/30">{dateParts.year}</span> : null}
                                     </div>
                                     <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                                       <div className="h-[62px] w-[44px] shrink-0 overflow-hidden border border-white/10 bg-[#080808] sm:h-[70px] sm:w-[50px]">
