@@ -269,8 +269,15 @@ export async function GET(request: NextRequest) {
     const achievementRows =
       (achievements ?? []) as unknown as DatabaseAchievementWithProgressRow[];
 
+    const effectiveReviewRecord =
+      effectiveReview && typeof effectiveReview === "object" && !Array.isArray(effectiveReview)
+        ? (effectiveReview as Record<string, unknown>)
+        : {};
+    const achievementsExplicitlyCleared =
+      effectiveReviewRecord.__achievementsListExplicitlyCleared === true;
+
     const legacyAchievements =
-      achievementRows.length === 0
+      !achievementsExplicitlyCleared && achievementRows.length === 0
         ? ((legacyGames as Record<string, { achievementsList?: unknown[] }>)[slug]
             ?.achievementsList ?? [])
         : [];
