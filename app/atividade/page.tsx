@@ -1269,7 +1269,7 @@ function ActivityRow({
 
   return (
     <article className="border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:px-4">
-      <div className={`grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px] ${!isAdmin ? "md:translate-x-[30px]" : ""}`}>
+      <div className={`grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 ${isAdmin ? "md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px]" : "md:ml-[30px] md:w-[calc(100%_-_60px)] md:grid-cols-[70px_minmax(0,1fr)_96px_120px]"}`}>
       <div>
         <p className="text-[29px] font-black leading-none tracking-tight text-white md:text-[31px]">
           {date.getDate()}
@@ -1336,7 +1336,7 @@ function ActivityRow({
         </p>
       </div>
 
-      {isAdmin ? (
+      {isAdmin && (
         <div className="hidden items-center justify-end gap-1 md:flex">
           <button
             type="button"
@@ -1353,8 +1353,6 @@ function ActivityRow({
             ×
           </button>
         </div>
-      ) : (
-        <div className="hidden md:block" />
       )}
       </div>
     </article>
