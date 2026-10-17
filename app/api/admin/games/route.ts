@@ -457,6 +457,30 @@ function extractFirstJourney(review: unknown): FirstJourneyState | undefined {
   ) ?? undefined;
 }
 
+const ACHIEVEMENTS_CLEARED_REVIEW_KEY = "__achievementsListExplicitlyCleared";
+
+function withAchievementsListClearState(
+  review: unknown,
+  achievementsList: IncomingAchievement[] | undefined
+) {
+  if (!Array.isArray(achievementsList)) return review ?? null;
+
+  const next: Record<string, unknown> =
+    review && typeof review === "object" && !Array.isArray(review)
+      ? { ...(review as Record<string, unknown>) }
+      : review === null || review === undefined
+        ? {}
+        : { value: review };
+
+  if (achievementsList.length === 0) {
+    next[ACHIEVEMENTS_CLEARED_REVIEW_KEY] = true;
+  } else {
+    delete next[ACHIEVEMENTS_CLEARED_REVIEW_KEY];
+  }
+
+  return Object.keys(next).length > 0 ? next : null;
+}
+
 function buildGameData(game: GamePayload) {
   const slug = normalizeSlug(game.slug);
 
@@ -1424,12 +1448,14 @@ export async function POST(request: NextRequest) {
       existingReview = existingGame?.review;
     }
 
+    const reviewForSave = withAchievementsListClearState(
+      body.review !== undefined ? body.review : existingReview,
+      body.achievementsList
+    );
+
     const game = buildGameData({
       ...body,
-      review:
-        body.review !== undefined
-          ? body.review
-          : existingReview,
+      review: reviewForSave,
     });
 
     const { error: gameError } = await client
@@ -1494,12 +1520,14 @@ export async function PUT(request: NextRequest) {
       existingReview = existingGame?.review;
     }
 
+    const reviewForSave = withAchievementsListClearState(
+      body.review !== undefined ? body.review : existingReview,
+      body.achievementsList
+    );
+
     const updateData = buildGameData({
       ...body,
-      review:
-        body.review !== undefined
-          ? body.review
-          : existingReview,
+      review: reviewForSave,
     });
 
     delete (updateData as Partial<typeof updateData>).slug;
