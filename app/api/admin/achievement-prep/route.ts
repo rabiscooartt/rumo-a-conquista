@@ -338,13 +338,21 @@ function isPortugueseExophasePage(html: string) {
 }
 
 async function findExophaseSteamGame(title: string) {
-  // A preparação usa a versão PT-BR do Exophase. Não usamos a página
-  // inglesa como fallback, porque títulos e descrições precisam permanecer
-  // em português quando a tradução estiver disponível.
+  // A página Steam do Exophase reúne as conquistas de Iceborne dentro de
+  // Monster Hunter: World; o slug "monster-hunter-world-iceborne-steam"
+  // não é o endereço canônico dessa lista.
+  const normalizedTitle = norm(title);
+  const exophaseSlug =
+    normalizedTitle.includes("monster hunter") && normalizedTitle.includes("iceborne")
+      ? "monster-hunter-world"
+      : slug(title);
+
+  // A preparação usa a versão PT-BR do Exophase para preservar os nomes
+  // e as descrições em português sempre que a tradução estiver disponível.
   return {
     url:
       "https://www.exophase.com/game/" +
-      slug(title) +
+      exophaseSlug +
       "-steam/achievements/pt-BR/",
   };
 }
@@ -1108,15 +1116,44 @@ export async function POST(req: NextRequest) {
       title?: string;
       exophaseUrl?: string;
       achievements?: ExophaseAchievement[];
+      sourceHtml?: string;
     };
 
-    const achievements = Array.isArray(body.achievements)
+    const registeredGame = await resolveGameTitle(
+      body.slug?.trim() || null,
+      body.title?.trim() || ""
+    );
+
+    const exophaseUrl = body.exophaseUrl?.trim();
+    if (!exophaseUrl || !resolveExophaseUrl(exophaseUrl)) {
+      return NextResponse.json(
+        { error: "A URL do Exophase recebida é inválida." },
+        { status: 400 }
+      );
+    }
+
+    const providedAchievements = Array.isArray(body.achievements)
       ? body.achievements.filter((item) => item?.name && item?.description)
       : [];
+    let achievements = providedAchievements;
+
+    // Se o navegador conseguiu ler uma versão HTML/texto que o servidor não
+    // conseguiu buscar, reutilizamos os mesmos parsers testados do endpoint GET.
+    // Isso evita a heurística frágil que tentava adivinhar nome/descrição linha a linha.
+    if (achievements.length === 0 && typeof body.sourceHtml === "string" && body.sourceHtml.trim()) {
+      const sourceHtml = body.sourceHtml;
+      achievements =
+        parseExophaseHtml(sourceHtml) ??
+        parseExophaseAchievementLinks(sourceHtml) ??
+        parseExophaseText(sourceHtml) ??
+        [];
+    }
 
     if (achievements.length === 0) {
       return NextResponse.json(
-        { error: "Nenhuma conquista estruturada foi recebida do Exophase." },
+        {
+          error: "Não consegui estruturar as conquistas do Exophase, mesmo após a leitura pelo navegador. Confira se a página aberta é a página Steam correta do jogo.",
+        },
         { status: 422 }
       );
     }
