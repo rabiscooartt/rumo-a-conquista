@@ -389,6 +389,12 @@ function PrepararJogoPage() {
   const [published, setPublished] = useState(false);
   const [draftUpdatedAt, setDraftUpdatedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [recoveryStatus, setRecoveryStatus] = useState<{
+    state: "idle" | "running" | "success" | "failed";
+    progress: number;
+    message: string;
+    attempts?: number;
+  }>({ state: "idle", progress: 0, message: "" });
   const [clearingCompleted, setClearingCompleted] = useState(false);
   const [clearCompletedMessage, setClearCompletedMessage] = useState("");
   const [clearCompletedFailed, setClearCompletedFailed] = useState(false);
@@ -597,6 +603,149 @@ function PrepararJogoPage() {
     };
   }, [result, saved]);
 
+  async function runAutomaticPreparationRecovery(
+    gameSlug: string,
+    gameTitle: string,
+    previousSourceUrl?: string
+  ): Promise<boolean> {
+    setRecoveryStatus({
+      state: "running",
+      progress: 0,
+      message: "Falha detectada. Iniciando tentativas automáticas de correção.",
+    });
+    setError("");
+
+    try {
+      const query = new URLSearchParams({ autoRecover: "1" });
+      if (gameSlug) query.set("slug", gameSlug);
+      else query.set("title", gameTitle);
+      if (previousSourceUrl) query.set("previousUrl", previousSourceUrl);
+
+      const response = await fetch("/api/admin/achievement-prep?" + query.toString(), {
+        cache: "no-store",
+        headers: { Accept: "application/x-ndjson" },
+      });
+
+      if (!response.ok || !response.body) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || "Não consegui iniciar a correção automática.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let completed = false;
+      let succeeded = false;
+
+      const handleEvent = (event: Record<string, unknown>) => {
+        const type = String(event.type || "");
+        if (type === "progress") {
+          setRecoveryStatus({
+            state: "running",
+            progress: Math.max(0, Math.min(99, Number(event.progress ?? 0))),
+            message: String(event.message || "Tentando corrigir automaticamente..."),
+            attempts: Number.isFinite(Number(event.attempts)) ? Number(event.attempts) : undefined,
+          });
+          return;
+        }
+
+        if (type === "success") {
+          const recoveredResult = event.result as R | undefined;
+          if (!recoveredResult || !Array.isArray(recoveredResult.achievements)) {
+            setRecoveryStatus({
+              state: "failed",
+              progress: 95,
+              message: "A leitura terminou, mas a resposta não continha uma lista válida de conquistas.",
+            });
+            setError("A correção automática não retornou uma lista válida. Nenhuma lista publicada foi alterada.");
+            completed = true;
+            return;
+          }
+
+          setResult(recoveredResult);
+          setJourneyStartEpisode(
+            String(recoveredResult.game?.youtubeFirstLiveEpisode ?? "").trim()
+          );
+          setError("");
+          setRecoveryStatus({
+            state: "success",
+            progress: 100,
+            message: String(event.message || "Erro corrigido automaticamente."),
+            attempts: Number.isFinite(Number(event.attempts)) ? Number(event.attempts) : undefined,
+          });
+          completed = true;
+          succeeded = true;
+          return;
+        }
+
+        if (type === "failed") {
+          const message = String(
+            event.error ||
+            "Todas as tentativas automáticas terminaram sem conseguir recuperar a lista."
+          );
+          setError(message);
+          setRecoveryStatus({
+            state: "failed",
+            progress: Math.max(90, Math.min(95, Number(event.progress ?? 95))),
+            message: String(event.message || "A recuperação automática não conseguiu resolver o problema."),
+            attempts: Number.isFinite(Number(event.attempts)) ? Number(event.attempts) : undefined,
+          });
+          completed = true;
+        }
+      };
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            handleEvent(JSON.parse(line) as Record<string, unknown>);
+          } catch {
+            // Ignora apenas um pacote malformado; a próxima mensagem pode continuar a recuperação.
+          }
+        }
+        if (completed) {
+          try { await reader.cancel(); } catch { /* stream já encerrado */ }
+          break;
+        }
+      }
+
+      if (!completed && buffer.trim()) {
+        try {
+          handleEvent(JSON.parse(buffer) as Record<string, unknown>);
+        } catch {
+          // A resposta terminou sem um último evento legível.
+        }
+      }
+
+      if (!completed) {
+        setRecoveryStatus({
+          state: "failed",
+          progress: 95,
+          message: "A conexão terminou antes de o preparador confirmar a recuperação.",
+        });
+        setError("A recuperação foi interrompida antes de confirmar uma lista válida. Tente novamente; os dados existentes foram preservados.");
+      }
+
+      return succeeded;
+    } catch (recoveryError) {
+      const message = recoveryError instanceof Error
+        ? recoveryError.message
+        : "Falha inesperada durante a correção automática.";
+      setError(message);
+      setRecoveryStatus({
+        state: "failed",
+        progress: 95,
+        message: "Não foi possível concluir a recuperação automática nesta tentativa. Nenhuma lista publicada foi substituída.",
+      });
+      return false;
+    }
+  }
+
   async function search(
     gameSlug = registeredSlug,
     gameTitle = title,
@@ -625,6 +774,8 @@ function PrepararJogoPage() {
 
     setLoading(true);
     setError("");
+    setRecoveryStatus({ state: "idle", progress: 0, message: "" });
+    let automaticRecoveryAttempted = false;
 
     try {
       // Ao abrir um jogo já preparado, use primeiro o snapshot completo.
@@ -827,61 +978,27 @@ function PrepararJogoPage() {
         return;
       }
 
-      if (response.status === 502 && payload.browserFallbackAvailable) {
-        const exophaseUrl = payload.exophaseUrl as string;
-        const readerResponse = await fetch(
-          "https://r.jina.ai/" + exophaseUrl,
-          {
-            cache: "no-store",
-            headers: {
-              Accept: "text/html",
-              "X-Engine": "browser",
-              "X-Respond-With": "html",
-              "X-No-Cache": "true",
-              "X-Wait-For-Selector": ".award-title",
-            },
-          }
+      if (
+        response.status >= 500 ||
+        payload?.browserFallbackAvailable ||
+        payload?.recoverySuggested === true
+      ) {
+        automaticRecoveryAttempted = true;
+        await runAutomaticPreparationRecovery(
+          gameSlug,
+          gameTitle,
+          typeof payload?.exophaseUrl === "string" ? payload.exophaseUrl : undefined
         );
-
-        if (!readerResponse.ok) {
-          throw new Error(
-            `Não foi possível ler o Exophase pelo navegador (Jina ${readerResponse.status}).`
-          );
-        }
-
-        const sourceHtml = await readerResponse.text();
-        if (!sourceHtml.trim()) {
-          throw new Error("O Exophase devolveu uma página vazia na tentativa pelo navegador.");
-        }
-
-        // O mesmo parser do servidor analisa o HTML/texto da página. Isso evita
-        // que uma heurística local perca conquistas quando o formato do Exophase muda.
-        const browserResponse = await fetch("/api/admin/achievement-prep", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-          body: JSON.stringify({
-            slug: gameSlug,
-            title: gameTitle,
-            exophaseUrl,
-            sourceHtml,
-          }),
-        });
-
-        const browserPayload = await browserResponse.json();
-        if (!browserResponse.ok) {
-          throw new Error(browserPayload.error || "Falha ao preparar as conquistas.");
-        }
-
-        setJourneyStartEpisode(
-          browserPayload.game?.youtubeFirstLiveEpisode?.trim() ?? ""
-        );
-        setResult(browserPayload);
         return;
       }
 
       throw new Error(payload.error || "Erro na busca.");
     } catch (e) {
+      if (!automaticRecoveryAttempted && (gameSlug || gameTitle.trim())) {
+        automaticRecoveryAttempted = true;
+        await runAutomaticPreparationRecovery(gameSlug, gameTitle);
+        return;
+      }
       setError(e instanceof Error ? e.message : "Erro na busca.");
     } finally {
       setLoading(false);
@@ -3568,10 +3685,75 @@ function PrepararJogoPage() {
           </section>
         )}
 
-        {registeredSlug && error && (
+        {registeredSlug && error && recoveryStatus.state !== "failed" && (
           <p className="mt-7 rounded-xl border border-red-500/20 bg-red-500/[.06] p-3 text-xs font-bold text-red-200">
             {error}
           </p>
+        )}
+
+        {registeredSlug && recoveryStatus.state !== "idle" && (
+          <section
+            role="status"
+            aria-live="polite"
+            className={`mt-5 rounded-2xl border p-4 ${
+              recoveryStatus.state === "success"
+                ? "border-emerald-400/25 bg-emerald-500/[.06]"
+                : recoveryStatus.state === "failed"
+                  ? "border-amber-400/25 bg-amber-500/[.05]"
+                  : "border-red-500/25 bg-red-500/[.045]"
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className={`text-[10px] font-black uppercase tracking-[.18em] ${
+                  recoveryStatus.state === "success"
+                    ? "text-emerald-200"
+                    : recoveryStatus.state === "failed"
+                      ? "text-amber-200"
+                      : "text-red-200"
+                }`}>
+                  {recoveryStatus.state === "success"
+                    ? "Correção automática concluída"
+                    : recoveryStatus.state === "failed"
+                      ? "Recuperação automática encerrada"
+                      : "Detectamos um erro · corrigindo automaticamente"}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-white/65">{recoveryStatus.message}</p>
+              </div>
+              <div className="text-2xl font-black tabular-nums text-white">
+                {recoveryStatus.progress}%
+              </div>
+            </div>
+            <div
+              role="progressbar"
+              aria-label="Progresso da correção automática"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={recoveryStatus.progress}
+              className="mt-3 h-2 overflow-hidden rounded-full bg-white/[.08]"
+            >
+              <div
+                className={`h-full rounded-full transition-[width] duration-300 ${
+                  recoveryStatus.state === "success"
+                    ? "bg-emerald-400"
+                    : recoveryStatus.state === "failed"
+                      ? "bg-amber-400"
+                      : "bg-gradient-to-r from-red-600 via-red-400 to-amber-300"
+                }`}
+                style={{ width: `${recoveryStatus.progress}%` }}
+              />
+            </div>
+            {recoveryStatus.attempts !== undefined && (
+              <p className="mt-2 text-[10px] text-white/35">
+                Tentativas concluídas: {recoveryStatus.attempts}
+              </p>
+            )}
+            {recoveryStatus.state === "failed" && (
+              <p className="mt-3 text-xs leading-relaxed text-amber-100/75">
+                O progresso ficou em 95% porque não seria correto marcar 100% sem recuperar a lista. Nenhuma conquista publicada foi apagada ou substituída.
+              </p>
+            )}
+          </section>
         )}
 
         {loading && !result && (
