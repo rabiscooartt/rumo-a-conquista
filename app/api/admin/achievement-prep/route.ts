@@ -1176,10 +1176,17 @@ function parseExophaseCatalogSearch(html: string, title: string): ExophaseRecove
   return ranked
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
-    .map(({ score: _score, ...candidate }) => candidate);
+    .map(({ score: _score, ...candidate }) => ({
+      url: candidate.url,
+      label: candidate.label,
+      source: "catalog" as const,
+    }));
 }
 
-async function discoverExophaseCatalogCandidates(title: string, onStage?: (message: string) => void) {
+async function discoverExophaseCatalogCandidates(
+  title: string,
+  onStage?: (message: string) => void
+): Promise<ExophaseRecoveryCandidate[]> {
   const searchUrl = "https://www.exophase.com/games/?q=" + encodeURIComponent(title);
   onStage?.("Buscando o jogo no catálogo do Exophase para descobrir o endereço correto.");
 
