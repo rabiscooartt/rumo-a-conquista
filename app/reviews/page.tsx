@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
 
 type ReviewRecord = {
@@ -127,16 +128,11 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const score = parseScore(review.nota);
   const image = cleanText(game.cardImage) || cleanText(game.image);
   const playtime = getReviewPlaytime(game);
-  const filledStars = score === null ? 0 : score / 2;
   const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-3 border-b border-white/[0.08] px-3 py-4 last:border-b-0 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
-      <Link
-        href={`/games/${encodeURIComponent(game.slug)}`}
-        aria-label={`Abrir página de ${game.title}`}
-        className="group block aspect-[3/4] w-full overflow-hidden border border-white/10 bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
-      >
+    <article className="group relative grid grid-cols-[112px_minmax(0,1fr)] gap-3 border-b border-white/[0.08] px-3 py-4 last:border-b-0 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
+      <div className="relative z-20 aspect-[3/4] w-full overflow-hidden border border-white/10 bg-black pointer-events-none">
         {image ? (
           <img
             src={image}
@@ -147,20 +143,14 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         ) : (
           <div className="flex h-full items-center justify-center px-1 text-center text-[8px] font-black text-white/25">RC</div>
         )}
-      </Link>
+      </div>
 
-      <div className="flex min-w-0 flex-col py-0.5">
+      <div className="relative z-20 flex min-w-0 flex-col py-0.5 pointer-events-none">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0">
-            <Link
-              href={`/games/${encodeURIComponent(game.slug)}`}
-              aria-label={`Abrir página de ${game.title}`}
-              className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
-            >
-              <h3 className="break-words text-[15px] font-black leading-snug text-white transition-colors hover:text-red-100 sm:text-[17px]">
-                {game.title}
-              </h3>
-            </Link>
+            <h3 className="break-words text-[15px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[17px]">
+              {game.title}
+            </h3>
           </div>
           <span className="hidden shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/[.05] px-2 py-1 text-[8px] font-black uppercase tracking-[.1em] text-emerald-200/80 sm:inline-flex">
             Publicada
@@ -170,26 +160,13 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
           {score !== null ? (
             <span className="inline-flex items-center gap-1.5" title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}>
-              <span className="inline-flex items-center gap-px text-[17px] leading-none" aria-label={`${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}>
-                {Array.from({ length: 5 }, (_, index) => {
-                  const fill = Math.max(0, Math.min(1, filledStars - index));
-                  return (
-                    <span
-                      key={index}
-                      aria-hidden="true"
-                      className="leading-none"
-                      style={{
-                        backgroundImage: `linear-gradient(90deg, #f5f5f5 ${fill * 100}%, rgba(255,255,255,0.18) ${fill * 100}%)`,
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        color: "transparent",
-                      }}
-                    >
-                      ★
-                    </span>
-                  );
-                })}
-              </span>
+              <StarRating
+                rating={score / 2}
+                size="small"
+                className="!text-[17px] !tracking-[-0.03em]"
+                ariaLabel={`Nota ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}
+                title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}
+              />
               <span className="text-[10px] font-semibold tabular-nums text-white/45">
                 {score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
               </span>
@@ -236,7 +213,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
 
         <Link
           href={`/games/${encodeURIComponent(game.slug)}/review`}
-          className="mt-1.5 inline-flex w-fit items-center gap-1 text-[12px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+          className="pointer-events-auto mt-1.5 inline-flex w-fit items-center gap-1 text-[12px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
         >
           Ler mais <span aria-hidden="true">→</span>
         </Link>
@@ -244,18 +221,25 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         <div className="mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3">
           <Link
             href={`/games/${encodeURIComponent(game.slug)}`}
-            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/45 transition hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+            className="pointer-events-auto inline-flex items-center gap-1.5 text-[11px] font-bold text-white/45 transition hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
           >
             Ver jogo
           </Link>
           <Link
             href={`/games/${encodeURIComponent(game.slug)}/review`}
-            className="inline-flex items-center gap-1.5 text-[12px] font-bold text-white/85 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+            className="pointer-events-auto inline-flex items-center gap-1.5 text-[12px] font-bold text-white/85 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
           >
             Abrir review <span aria-hidden="true">→</span>
           </Link>
         </div>
       </div>
+      <Link
+        href={`/games/${encodeURIComponent(game.slug)}/review`}
+        aria-label={`Abrir review completa de ${game.title}`}
+        className="absolute inset-0 z-10 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70"
+      >
+        <span className="sr-only">Abrir review completa de {game.title}</span>
+      </Link>
     </article>
   );
 }
