@@ -369,6 +369,39 @@ function getGamePlatform(game?: GameLike) {
   return "";
 }
 
+type ActivityPlatformBadge = {
+  label: string;
+  image?: string;
+  text?: string;
+};
+
+function getActivityPlatformBadge(game?: GameLike): ActivityPlatformBadge | null {
+  const platform = getGamePlatform(game).trim();
+  if (!platform) return null;
+
+  const normalized = normalizeKey(platform);
+  if (normalized.includes("steam")) {
+    return { label: platform, image: "/images/platforms/steam.png" };
+  }
+  if (normalized.includes("playstation") || /\\bps[345]\\b/.test(normalized)) {
+    return { label: platform, text: "PS" };
+  }
+  if (normalized.includes("xbox")) {
+    return { label: platform, text: "XB" };
+  }
+  if (normalized.includes("nintendo") || normalized.includes("switch")) {
+    return { label: platform, text: "NS" };
+  }
+  if (normalized.includes("epic")) {
+    return { label: platform, text: "EP" };
+  }
+  if (normalized.includes("gog")) {
+    return { label: platform, text: "GOG" };
+  }
+
+  return { label: platform, text: platform.slice(0, 2).toUpperCase() };
+}
+
 const ACTIVITY_PLATFORM_TAG_PREFIX = "__platform:";
 
 function getEntryPlatform(entry: JourneyEntry) {
@@ -1459,7 +1492,9 @@ export default function AtividadePage() {
     for (const achievement of allCompletedAchievements) {
       const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
       const meta = getAchievementJourneyMeta(game, achievement);
-      const activityDate = String(meta.date || getAchievementDate(achievement) || "").trim();
+      // Prioriza a data real em que esta conquista foi desbloqueada.
+      // A data da Jornada só serve como fallback quando a conquista não tem data própria.
+      const activityDate = String(getAchievementDate(achievement) || meta.date || "").trim();
       result.push({
         ...achievement,
         activityDate,
@@ -2227,6 +2262,8 @@ export default function AtividadePage() {
                           const game = games.find((item) => normalizeKey(item.slug) === normalizeKey(achievement.gameSlug));
                           const slug = achievement.gameSlug || game?.slug || "";
                           const cover = getGameCover(game, slug);
+                          const achievementImage = getAchievementImage(achievement);
+                          const platformBadge = getActivityPlatformBadge(game);
                           const trophy = getActivityTrophyMeta(achievement);
                           const target = achievement.id?.trim() || achievement.title || "Conquista";
                           const gameHref = slug ? "/games/" + slug + "?achievement=" + encodeURIComponent(target) + "#conquistas" : "/games";
@@ -2247,12 +2284,27 @@ export default function AtividadePage() {
                                   )}
                                 </div>
 
-                                <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[48px] sm:w-[48px]">
-                                  {getAchievementImage(achievement) ? (
-                                    <img src={getAchievementImage(achievement)} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" />
-                                  ) : (
-                                    <IconTrophy className="h-5 w-5 text-amber-400" />
-                                  )}
+                                <div className="relative h-[44px] w-[44px] shrink-0 sm:h-[48px] sm:w-[48px]">
+                                  <div className="flex h-full w-full items-center justify-center overflow-hidden border border-white/10 bg-[#080808]">
+                                    {achievementImage ? (
+                                      <img src={achievementImage} alt={achievement.title || "Conquista"} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]" loading="lazy" />
+                                    ) : (
+                                      <IconTrophy className="h-5 w-5 text-amber-400" />
+                                    )}
+                                  </div>
+                                  {platformBadge ? (
+                                    <span
+                                      title={platformBadge.label}
+                                      aria-label={"Plataforma: " + platformBadge.label}
+                                      className="absolute -bottom-[3px] -right-[3px] z-10 flex h-[16px] w-[16px] items-center justify-center overflow-hidden rounded-[2px] border border-white/65 bg-[#111820] shadow-md"
+                                    >
+                                      {platformBadge.image ? (
+                                        <img src={platformBadge.image} alt="" className="h-full w-full object-contain p-[1px]" loading="lazy" />
+                                      ) : (
+                                        <span className="px-[1px] text-[6px] font-black leading-none text-white">{platformBadge.text}</span>
+                                      )}
+                                    </span>
+                                  ) : null}
                                 </div>
 
                                 <div className="min-w-0 flex-1 py-0.5">
