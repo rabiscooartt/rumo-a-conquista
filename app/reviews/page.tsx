@@ -478,10 +478,10 @@ export default function ReviewsPage() {
         const score = parseScore(game.review?.nota);
         const matchesRating = ratingFilter === "all" || (score !== null && (
           ratingFilter === "9-10" ? score >= 9 :
-          ratingFilter === "7-8.9" ? score >= 7 && score < 9 :
-          ratingFilter === "5-6.9" ? score >= 5 && score < 7 :
-          ratingFilter === "3-4.9" ? score >= 3 && score < 5 :
-          ratingFilter === "0-2.9" ? score >= 0 && score < 3 : true
+          ratingFilter === "7-8.5" ? score >= 7 && score < 9 :
+          ratingFilter === "5-6.5" ? score >= 5 && score < 7 :
+          ratingFilter === "3-4.5" ? score >= 3 && score < 5 :
+          ratingFilter === "0-2.5" ? score >= 0 && score < 3 : true
         ));
         return matchesSearch && matchesRating;
       })
@@ -504,10 +504,10 @@ export default function ReviewsPage() {
 
   const sidebarRatingBuckets = [
     { label: "9–10", count: scoredGames.filter((score) => score >= 9).length },
-    { label: "7–8,9", count: scoredGames.filter((score) => score >= 7 && score < 9).length },
-    { label: "5–6,9", count: scoredGames.filter((score) => score >= 5 && score < 7).length },
-    { label: "3–4,9", count: scoredGames.filter((score) => score >= 3 && score < 5).length },
-    { label: "0–2,9", count: scoredGames.filter((score) => score >= 0 && score < 3).length },
+    { label: "7–8,5", count: scoredGames.filter((score) => score >= 7 && score < 9).length },
+    { label: "5–6,5", count: scoredGames.filter((score) => score >= 5 && score < 7).length },
+    { label: "3–4,5", count: scoredGames.filter((score) => score >= 3 && score < 5).length },
+    { label: "0–2,5", count: scoredGames.filter((score) => score >= 0 && score < 3).length },
   ];
   const maxSidebarRatingCount = Math.max(1, ...sidebarRatingBuckets.map((bucket) => bucket.count));
 
@@ -687,10 +687,10 @@ export default function ReviewsPage() {
                   >
                     <option value="all">Todas as notas</option>
                     <option value="9-10">Nota 9–10</option>
-                    <option value="7-8.9">Nota 7–8,9</option>
-                    <option value="5-6.9">Nota 5–6,9</option>
-                    <option value="3-4.9">Nota 3–4,9</option>
-                    <option value="0-2.9">Nota 0–2,9</option>
+                    <option value="7-8.5">Nota 7–8,5</option>
+                    <option value="5-6.5">Nota 5–6,5</option>
+                    <option value="3-4.5">Nota 3–4,5</option>
+                    <option value="0-2.5">Nota 0–2,5</option>
                   </select>
                   <select
                     value={reviewOrder}
