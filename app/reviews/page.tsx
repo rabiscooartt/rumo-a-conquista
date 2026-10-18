@@ -341,6 +341,15 @@ export default function ReviewsPage() {
     ? scoredGames.reduce((sum, score) => sum + score, 0) / scoredGames.length
     : null;
 
+  const sidebarRatingBuckets = [
+    { label: "9–10", count: scoredGames.filter((score) => score >= 9).length },
+    { label: "7–8,9", count: scoredGames.filter((score) => score >= 7 && score < 9).length },
+    { label: "5–6,9", count: scoredGames.filter((score) => score >= 5 && score < 7).length },
+    { label: "3–4,9", count: scoredGames.filter((score) => score >= 3 && score < 5).length },
+    { label: "0–2,9", count: scoredGames.filter((score) => score >= 0 && score < 3).length },
+  ];
+  const maxSidebarRatingCount = Math.max(1, ...sidebarRatingBuckets.map((bucket) => bucket.count));
+
   const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
 
   const featuredReview = useMemo(
@@ -398,6 +407,22 @@ export default function ReviewsPage() {
                   <span>◷</span> Atividade
                 </Link>
               </div>
+
+              <section className="mt-6 border-t border-white/[0.08] pt-5" aria-label="Distribuição das notas das reviews publicadas">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.12em] text-white/80">Distribuição das notas</h2>
+                <p className="mt-1 text-[9px] leading-relaxed text-white/35">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
+                <div className="mt-3 space-y-2.5">
+                  {sidebarRatingBuckets.map(({ label, count }) => (
+                    <div key={label} className="grid grid-cols-[38px_minmax(0,1fr)_14px] items-center gap-1.5" title={label + ": " + count + " reviews"}>
+                      <span className="text-[9px] font-semibold tabular-nums text-white/55">{label}</span>
+                      <div className="h-[5px] overflow-hidden rounded-full bg-white/[0.08]">
+                        <div className="h-full rounded-full bg-red-500 transition-[width] duration-300" style={{ width: (count / maxSidebarRatingCount) * 100 + "%" }} />
+                      </div>
+                      <span className="text-right text-[9px] font-bold tabular-nums text-white/65">{loading ? "—" : count}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
