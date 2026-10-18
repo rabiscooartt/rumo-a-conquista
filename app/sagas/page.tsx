@@ -1142,7 +1142,7 @@ export default function SagasPage() {
           ) : filteredEmblems.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
-            <div className="grid grid-cols-1 gap-x-5 gap-y-8 min-[520px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 2xl:gap-x-6 2xl:gap-y-9">
+            <div className="grid grid-cols-1 gap-x-5 gap-y-8 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-6 2xl:gap-y-9">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard
                   key={emblem.id}
