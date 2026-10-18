@@ -231,7 +231,7 @@ function WholeWordPreview({
       while (selectedWords.length > 1) {
         const lastWord = selectedWords[selectedWords.length - 1]
           .toLocaleLowerCase("pt-BR")
-          .replace(/^[^\\p{L}\\p{N}]+|[^\\p{L}\\p{N}]+$/gu, "");
+          .replace(/^[^A-Za-zÀ-ÿ0-9]+|[^A-Za-zÀ-ÿ0-9]+$/g, "");
 
         if (!danglingWords.has(lastWord)) break;
         selectedWords.pop();
