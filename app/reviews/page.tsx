@@ -203,19 +203,42 @@ function WholeWordPreview({
       const words = source.split(/\s+/).filter(Boolean);
       let low = 1;
       let high = words.length;
-      let best = "…";
+      let bestWordCount = 0;
 
       while (low <= high) {
         const middle = Math.floor((low + high) / 2);
         const candidate = `${words.slice(0, middle).join(" ")}…`;
 
         if (fits(candidate)) {
-          best = candidate;
+          bestWordCount = middle;
           low = middle + 1;
         } else {
           high = middle - 1;
         }
       }
+
+      // Don't leave a short article, preposition, or conjunction stranded
+      // immediately before the ellipsis (for example: "combates. O…").
+      const danglingWords = new Set([
+        "a", "o", "as", "os", "um", "uma", "uns", "umas",
+        "de", "da", "do", "das", "dos", "em", "no", "na", "nos", "nas",
+        "num", "numa", "nuns", "numas", "ao", "aos", "à", "às",
+        "e", "ou", "que", "se", "por", "para", "pelo", "pela", "pelos", "pelas",
+        "com", "sob", "sobre", "entre", "até", "mas",
+      ]);
+      const selectedWords = words.slice(0, bestWordCount);
+
+      while (selectedWords.length > 1) {
+        const lastWord = selectedWords[selectedWords.length - 1]
+          .toLocaleLowerCase("pt-BR")
+          .replace(/^[^\\p{L}\\p{N}]+|[^\\p{L}\\p{N}]+$/gu, "");
+
+        if (!danglingWords.has(lastWord)) break;
+        selectedWords.pop();
+      }
+
+      const prefix = selectedWords.join(" ").replace(/[.,;:!?…]+$/u, "");
+      const best = prefix ? `${prefix}…` : "…";
 
       measureElement.remove();
       setVisibleText((current) => current === best ? current : best);
