@@ -23,10 +23,8 @@ type ReviewGame = {
   hours?: unknown;
   manualTotalPlayedMinutes?: unknown;
   status?: unknown;
-  completedAt?: unknown;
-  finalBadge?: { unlockedAt?: unknown };
-  emblem?: { unlockedAt?: unknown };
-  firstJourney?: { status?: unknown; completedAt?: unknown };
+  progress?: unknown;
+  updatedAt?: unknown;
   achievementsList?: Array<{ status?: unknown }>;
   review?: ReviewRecord;
 };
@@ -250,94 +248,15 @@ function ReviewCard({ game }: { game: ReviewGame }) {
 }
 
 
-type CompletionMonth = {
-  key: string;
-  label: string;
-  count: number;
-  games: string[];
-};
-
-function getCompletionMonthKey(value: unknown): string {
-  const raw = cleanText(value);
-  if (!raw) return "";
-  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
-  if (iso) return iso[1] + "-" + iso[2];
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return "";
-  return parsed.getFullYear() + "-" + String(parsed.getMonth() + 1).padStart(2, "0");
-}
-
-function GameCompletionChart({ months }: { months: CompletionMonth[] }) {
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const maxCount = Math.max(1, ...months.map((month) => month.count));
-  const selected = months.find((month) => month.key === selectedMonth) ?? null;
-  const total = months.reduce((sum, month) => sum + month.count, 0);
-
-  return (
-    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
-          <span className="h-5 w-0.5 rounded-full bg-red-500" />
-          Jogos concluídos
-        </h2>
-        <span className="text-[11px] font-black tabular-nums text-white/70">{total}</span>
-      </div>
-      <p className="mt-1 text-[10px] font-medium text-white/40">Conclusões nos últimos 6 meses</p>
-      <div className="mt-3 grid grid-cols-6 gap-2" aria-label="Jogos concluídos por mês">
-        {months.map((month) => {
-          const barHeight = month.count > 0 ? Math.max(8, (month.count / maxCount) * 72) : 3;
-          const isSelected = selectedMonth === month.key;
-          return (
-            <button
-              key={month.key}
-              type="button"
-              onClick={() => setSelectedMonth((current) => current === month.key ? null : month.key)}
-              aria-pressed={isSelected}
-              title={month.count + " jogos concluídos em " + month.label}
-              className={"flex min-w-0 flex-col items-center rounded-md px-0.5 pb-1 pt-1 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 " + (isSelected ? "bg-red-500/[0.10]" : "")}
-            >
-              <span className={"text-[10px] font-black tabular-nums " + (month.count ? "text-white/80" : "text-white/25")}>{month.count}</span>
-              <div className="mt-1 flex h-[76px] w-full items-end justify-center">
-                <div
-                  className={"w-full max-w-[22px] rounded-t-[3px] transition-colors " + (isSelected ? "bg-red-400" : month.count ? "bg-red-600" : "bg-white/10")}
-                  style={{ height: barHeight + "px" }}
-                />
-              </div>
-              <span className={"mt-1 text-[9px] font-black tracking-[0.03em] " + (isSelected ? "text-red-300" : "text-white/45")}>{month.label}</span>
-            </button>
-          );
-        })}
-      </div>
-      <p className="mt-2 text-[9px] leading-relaxed text-white/35">
-        Usa apenas datas de conclusão ou maestria registradas no jogo. Clique em um mês para ver os títulos.
-      </p>
-      {selected ? (
-        <div className="mt-3 border-t border-white/[0.08] pt-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.08em] text-white/60">
-            {selected.label} · {selected.count} {selected.count === 1 ? "jogo" : "jogos"}
-          </p>
-          {selected.games.length ? (
-            <div className="mt-2 space-y-1.5">
-              {selected.games.map((title) => (
-                <p key={title} className="truncate text-[11px] font-medium text-white/80">{title}</p>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-[10px] text-white/40">Nenhum jogo concluído com data registrada neste mês.</p>
-          )}
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-
 export default function ReviewsPage() {
   const [games, setGames] = useState<ReviewGame[]>([]);
   const [catalogGames, setCatalogGames] = useState<ReviewGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("all");
+  const [platformFilter, setPlatformFilter] = useState("all");
+  const [reviewOrder, setReviewOrder] = useState("recent");
 
   useEffect(() => {
     let cancelled = false;
@@ -379,16 +298,37 @@ export default function ReviewsPage() {
     const query = search.trim().toLocaleLowerCase("pt-BR");
     return games
       .filter((game) => {
-        if (!query) return true;
-        return [
+        const matchesSearch = !query || [
           game.title,
           game.review?.titulo,
           game.review?.resumo,
           game.review?.texto,
         ].some((value) => cleanText(value).toLocaleLowerCase("pt-BR").includes(query));
+        const score = parseScore(game.review?.nota);
+        const matchesRating = ratingFilter === "all" || (score !== null && (
+          ratingFilter === "9-10" ? score >= 9 :
+          ratingFilter === "7-8.9" ? score >= 7 && score < 9 :
+          ratingFilter === "5-6.9" ? score >= 5 && score < 7 :
+          ratingFilter === "0-4.9" ? score >= 0 && score < 5 : true
+        ));
+        const platform = cleanText(game.platform) || "Steam";
+        const matchesPlatform = platformFilter === "all" || normalizeKey(platform) === normalizeKey(platformFilter);
+        return matchesSearch && matchesRating && matchesPlatform;
       })
-      .sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
-  }, [games, search]);
+      .sort((a, b) => {
+        if (reviewOrder === "title") return a.title.localeCompare(b.title, "pt-BR");
+        if (reviewOrder === "highest") return (parseScore(b.review?.nota) ?? -1) - (parseScore(a.review?.nota) ?? -1);
+        if (reviewOrder === "lowest") return (parseScore(a.review?.nota) ?? 99) - (parseScore(b.review?.nota) ?? 99);
+        const aTime = Date.parse(cleanText(a.updatedAt)) || 0;
+        const bTime = Date.parse(cleanText(b.updatedAt)) || 0;
+        return bTime - aTime;
+      });
+  }, [games, search, ratingFilter, platformFilter, reviewOrder]);
+
+  const reviewPlatformOptions = useMemo(
+    () => [...new Set(games.map((game) => cleanText(game.platform) || "Steam"))].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [games]
+  );
 
   const scoredGames = games
     .map((game) => parseScore(game.review?.nota))
@@ -397,53 +337,45 @@ export default function ReviewsPage() {
     ? scoredGames.reduce((sum, score) => sum + score, 0) / scoredGames.length
     : null;
 
-  const topRatedGames = useMemo(
-    () =>
-      [...games]
-        .filter((game) => parseScore(game.review?.nota) !== null)
-        .sort((a, b) => (parseScore(b.review?.nota) ?? -1) - (parseScore(a.review?.nota) ?? -1))
-        .slice(0, 4),
+  const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
+
+  const featuredReview = useMemo(
+    () => [...games]
+      .filter((game) => parseScore(game.review?.nota) !== null)
+      .sort((a, b) => (parseScore(b.review?.nota) ?? -1) - (parseScore(a.review?.nota) ?? -1))[0] ?? games[0] ?? null,
     [games]
   );
 
-  const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
-  const lowScore = scoredGames.length ? Math.min(...scoredGames) : null;
+  const latestReviews = useMemo(
+    () => [...games]
+      .sort((a, b) => (Date.parse(cleanText(b.updatedAt)) || 0) - (Date.parse(cleanText(a.updatedAt)) || 0))
+      .slice(0, 3),
+    [games]
+  );
 
+  const publishedReviewSlugs = useMemo(
+    () => new Set(games.map((game) => normalizeKey(game.slug))),
+    [games]
+  );
 
-  const completedGamesByMonth = useMemo<CompletionMonth[]>(() => {
-    const completedGames = catalogGames.flatMap((game) => {
-      const status = normalizeKey(game.status);
-      if (!["completed", "concluido", "concluida", "finalizado", "finalizada"].includes(status)) return [];
-
-      const completionMonth = [
-        game.completedAt,
-        game.firstJourney?.completedAt,
-        game.finalBadge?.unlockedAt,
-        game.emblem?.unlockedAt,
-      ].map(getCompletionMonthKey).find(Boolean);
-
-      return completionMonth ? [{ key: completionMonth, title: game.title }] : [];
-    });
-
-    const now = new Date();
-    return Array.from({ length: 6 }, (_, index) => {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1, 12);
-      const key = monthDate.getFullYear() + "-" + String(monthDate.getMonth() + 1).padStart(2, "0");
-      const monthGames = completedGames.filter((game) => game.key === key).map((game) => game.title)
-        .sort((a, b) => a.localeCompare(b, "pt-BR"));
-      const label = monthDate.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "").toUpperCase();
-      return { key, label, count: monthGames.length, games: monthGames };
-    });
-  }, [catalogGames]);
-
-  const compactRatingBuckets = [
-    { label: "9–10", count: scoredGames.filter((score) => score >= 9).length },
-    { label: "7–8,9", count: scoredGames.filter((score) => score >= 7 && score < 9).length },
-    { label: "5–6,9", count: scoredGames.filter((score) => score >= 5 && score < 7).length },
-    { label: "3–4,9", count: scoredGames.filter((score) => score >= 3 && score < 5).length },
-    { label: "0–2,9", count: scoredGames.filter((score) => score >= 0 && score < 3).length },
-  ];
-  const maxCompactRatingCount = Math.max(1, ...compactRatingBuckets.map((bucket) => bucket.count));
+  const upcomingReviews = useMemo(
+    () => catalogGames
+      .filter((game) => {
+        if (!game.slug || publishedReviewSlugs.has(normalizeKey(game.slug))) return false;
+        const status = normalizeKey(game.status);
+        return ["progress", "planned", "backlog", "inprogress", "emandamento"].includes(status);
+      })
+      .sort((a, b) => {
+        const aStatus = normalizeKey(a.status);
+        const bStatus = normalizeKey(b.status);
+        const aInProgress = ["progress", "inprogress", "emandamento"].includes(aStatus);
+        const bInProgress = ["progress", "inprogress", "emandamento"].includes(bStatus);
+        if (aInProgress !== bInProgress) return aInProgress ? -1 : 1;
+        return a.title.localeCompare(b.title, "pt-BR");
+      })
+      .slice(0, 3),
+    [catalogGames, publishedReviewSlugs]
+  );
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -457,20 +389,6 @@ export default function ReviewsPage() {
                 <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
                   <span className="text-base text-red-400">✎</span>
                   Review
-                </div>
-              </div>
-
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Coleção</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-red-400">▤</span>
-                  <span className="text-[11px] font-semibold text-white/65">{games.length} reviews publicadas</span>
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-amber-300">★</span>
-                  <span className="text-[11px] font-semibold text-white/65">
-                    Nota média {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
-                  </span>
                 </div>
               </div>
 
@@ -542,9 +460,7 @@ export default function ReviewsPage() {
                     <span className="inline-flex items-center gap-1.5 rounded-t-lg bg-red-500/10 px-4 py-3 text-[12px] font-black text-red-300">
                       <span aria-hidden="true">✎</span> Reviews
                     </span>
-                    <span className="px-2 py-3 text-[10px] font-black uppercase tracking-[.1em] text-white/30">
-                      {loading ? "Carregando..." : `${visibleGames.length} registros`}
-                    </span>
+
                   </div>
                 </div>
 
@@ -562,10 +478,38 @@ export default function ReviewsPage() {
                       className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
                     />
                   </label>
-                  <div className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[11px] font-black text-white/50">
-                    <span aria-hidden="true">★</span>
-                    Todas as notas
-                  </div>
+                  <select
+                    value={ratingFilter}
+                    onChange={(event) => setRatingFilter(event.target.value)}
+                    aria-label="Filtrar reviews por nota"
+                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[11px] font-bold text-white/70 outline-none focus:border-red-500/40 md:w-[125px]"
+                  >
+                    <option value="all">Todas as notas</option>
+                    <option value="9-10">Nota 9–10</option>
+                    <option value="7-8.9">Nota 7–8,9</option>
+                    <option value="5-6.9">Nota 5–6,9</option>
+                    <option value="0-4.9">Nota 0–4,9</option>
+                  </select>
+                  <select
+                    value={platformFilter}
+                    onChange={(event) => setPlatformFilter(event.target.value)}
+                    aria-label="Filtrar reviews por plataforma"
+                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[11px] font-bold text-white/70 outline-none focus:border-red-500/40 md:w-[116px]"
+                  >
+                    <option value="all">Plataforma</option>
+                    {reviewPlatformOptions.map((platform) => <option key={platform} value={platform}>{platform}</option>)}
+                  </select>
+                  <select
+                    value={reviewOrder}
+                    onChange={(event) => setReviewOrder(event.target.value)}
+                    aria-label="Ordenar reviews"
+                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[11px] font-bold text-white/70 outline-none focus:border-red-500/40 md:w-[128px]"
+                  >
+                    <option value="recent">Ordem: recentes</option>
+                    <option value="title">Ordem: título</option>
+                    <option value="highest">Maior nota</option>
+                    <option value="lowest">Menor nota</option>
+                  </select>
                 </div>
 
                 <div className="px-3 pb-3">
@@ -613,98 +557,92 @@ export default function ReviewsPage() {
             </div>
 
             <aside className="space-y-3 xl:sticky xl:top-20">
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Resumo das reviews
-                </h2>
-
-                <div className="mt-3 space-y-3.5">
-                  {[
-                    ["Reviews publicadas", loading ? "…" : String(games.length), "▤"],
-                    ["Nota média", averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10", "★"],
-                    ["Maior nota", highScore === null ? "—" : highScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10", "↑"],
-                    ["Menor nota", lowScore === null ? "—" : lowScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10", "↓"],
-                  ].map(([label, value, icon]) => (
-                    <div key={label} className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-3.5 last:border-b-0 last:pb-0">
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-black/25 text-sm text-red-300">{icon}</span>
-                        <span className="truncate text-[11px] font-semibold text-white/65">{label}</span>
-                      </div>
-                      <strong className="shrink-0 text-[14px] font-black text-white">{value}</strong>
-                    </div>
-                  ))}
+              <section className="overflow-hidden rounded-[14px] border border-red-500/20 bg-[#090b0f]">
+                <div className="flex items-center gap-2 border-b border-white/[0.08] px-3.5 py-3">
+                  <span className="text-red-500">★</span>
+                  <h2 className="text-[12px] font-black uppercase tracking-[0.05em] text-white/95">Review em destaque</h2>
                 </div>
-              </section>
-
-              <GameCompletionChart months={completedGamesByMonth} />
-
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Distribuição de notas
-                </h2>
-                <p className="mt-1 text-[10px] text-white/40">
-                  {scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"} · barras por faixa de nota
-                </p>
-                <div className="mt-3 space-y-2">
-                  {compactRatingBuckets.map(({ label, count }) => {
-                    const width = (count / maxCompactRatingCount) * 100;
-                    return (
-                      <div key={label} className="grid grid-cols-[42px_minmax(0,1fr)_18px] items-center gap-2">
-                        <span className="text-[9px] font-semibold tabular-nums text-white/55">{label}</span>
-                        <div className="h-[5px] overflow-hidden rounded-full bg-white/[0.09]">
-                          <div className="h-full rounded-full bg-red-500 transition-[width] duration-300" style={{ width: width + "%" }} />
-                        </div>
-                        <span className="text-right text-[10px] font-bold tabular-nums text-white/75">{loading ? "—" : count}</span>
+                {featuredReview ? (
+                  <>
+                    <Link href={"/games/" + encodeURIComponent(featuredReview.slug) + "/review"} className="group block p-2.5">
+                      <div className="aspect-[16/9] overflow-hidden rounded-lg border border-white/10 bg-black/30">
+                        {(cleanText(featuredReview.image) || cleanText(featuredReview.cardImage)) ? (
+                          <img src={cleanText(featuredReview.image) || cleanText(featuredReview.cardImage)} alt={"Imagem de " + featuredReview.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-[10px] font-bold text-white/25">RUMO À CONQUISTA</div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+                      <h3 className="mt-2.5 line-clamp-2 text-[14px] font-black leading-snug text-white group-hover:text-red-200">{featuredReview.title}</h3>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <p className="min-w-0 truncate text-[10px] font-bold text-red-300">{cleanText(featuredReview.review?.titulo) || "Review do jogo"}</p>
+                        <strong className="shrink-0 text-[16px] font-black text-white"><span className="text-red-500">★</span> {parseScore(featuredReview.review?.nota) === null ? "—" : parseScore(featuredReview.review?.nota)?.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10"}</strong>
+                      </div>
+                      <p className="mt-2 line-clamp-3 text-[11px] leading-[1.5] text-white/60">
+                        {cleanText(featuredReview.review?.resumo) || cleanText(featuredReview.review?.texto) || "Leia a análise completa deste jogo."}
+                      </p>
+                    </Link>
+                    <Link href={"/games/" + encodeURIComponent(featuredReview.slug) + "/review"} className="mx-2.5 mb-2.5 mt-0.5 flex items-center justify-center rounded-lg border border-red-500/35 bg-red-500/[0.07] px-3 py-2.5 text-[10px] font-black text-red-100 transition hover:bg-red-500/[0.14]">
+                      Ler review completa <span className="ml-1.5">→</span>
+                    </Link>
+                  </>
+                ) : (
+                  <p className="p-4 text-[11px] text-white/45">As reviews publicadas aparecerão aqui.</p>
+                )}
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Maiores notas
-                </h2>
-
-                {topRatedGames.length ? (
-                  <div className="mt-3 space-y-3">
-                    {topRatedGames.map((game) => {
+                <h2 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.05em] text-white/95"><span className="text-red-500">▣</span> Últimas análises</h2>
+                {latestReviews.length ? (
+                  <div className="mt-3 space-y-2.5">
+                    {latestReviews.map((game) => {
                       const score = parseScore(game.review?.nota);
                       return (
-                        <Link key={game.slug} href={`/games/${encodeURIComponent(game.slug)}/review`} className="flex items-center gap-3 border-b border-white/[0.06] pb-3 last:border-b-0 last:pb-0 group">
-                          <div className="h-11 w-9 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/30">
-                            {(cleanText(game.cardImage) || cleanText(game.image)) ? (
-                              <img src={cleanText(game.cardImage) || cleanText(game.image)} alt="" loading="lazy" className="h-full w-full object-cover" />
-                            ) : null}
+                        <Link key={game.slug} href={"/games/" + encodeURIComponent(game.slug) + "/review"} className="group flex items-center gap-2.5 border-b border-white/[0.07] pb-2.5 last:border-b-0 last:pb-0">
+                          <div className="h-[48px] w-[38px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/30">
+                            {(cleanText(game.cardImage) || cleanText(game.image)) ? <img src={cleanText(game.cardImage) || cleanText(game.image)} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-bold text-white/75 group-hover:text-red-200">{game.title}</p>
-                            <p className="mt-1 truncate text-[9px] text-white/35">{cleanText(game.review?.titulo) || "Review do jogo"}</p>
+                            <p className="truncate text-[11px] font-bold text-white/80 group-hover:text-red-200">{game.title}</p>
+                            <p className="mt-1 truncate text-[9px] text-white/40">{cleanText(game.review?.titulo) || "Review publicada"}</p>
+                            <div className="mt-1 flex items-center gap-2">
+                              {score !== null ? <span className="text-[10px] font-black text-red-400">★ {score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10</span> : null}
+                              {getReviewPlaytime(game) ? <span className="truncate text-[9px] text-white/35">{getReviewPlaytime(game)}</span> : null}
+                            </div>
                           </div>
-                          <strong className="text-sm font-black text-white">{score === null ? "—" : score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</strong>
+                          <span className="shrink-0 text-white/40 transition group-hover:text-red-300">›</span>
                         </Link>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="mt-3 text-[11px] text-white/35">As avaliações publicadas aparecerão aqui.</p>
+                  <p className="mt-3 text-[11px] text-white/40">As análises recentes aparecerão aqui quando forem publicadas.</p>
                 )}
               </section>
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
-                  <span className="h-5 w-0.5 rounded-full bg-red-500" />
-                  Sobre esta área
-                </h2>
-                <p className="mt-3 text-[11px] leading-relaxed text-white/45">
-                  As reviews aparecem aqui automaticamente quando são liberadas no Admin. Cada análise mantém sua página completa e o vínculo com o jogo correspondente.
-                </p>
-                <Link href="/biblioteca" className="mt-4 flex items-center justify-center rounded-xl border border-red-500/25 bg-red-500/[.06] px-3 py-2.5 text-[9px] font-black uppercase text-red-200 transition hover:bg-red-500/[.12]">
-                  Explorar jogos →
-                </Link>
+                <h2 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.05em] text-white/95"><span className="text-red-500">▣</span> Próximos reviews</h2>
+                {upcomingReviews.length ? (
+                  <div className="mt-3 space-y-2.5">
+                    {upcomingReviews.map((game) => {
+                      const status = normalizeKey(game.status);
+                      const isInProgress = ["progress", "inprogress", "emandamento"].includes(status);
+                      return (
+                        <Link key={game.slug} href={"/games/" + encodeURIComponent(game.slug)} className="group flex items-center gap-2.5 border-b border-white/[0.07] pb-2.5 last:border-b-0 last:pb-0">
+                          <div className="h-[46px] w-[36px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/30">
+                            {(cleanText(game.cardImage) || cleanText(game.image)) ? <img src={cleanText(game.cardImage) || cleanText(game.image)} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[11px] font-bold text-white/80 group-hover:text-red-200">{game.title}</p>
+                            <p className="mt-1 truncate text-[9px] text-white/35">{isInProgress ? "Em jogo · futura análise" : "Na fila de reviews"}</p>
+                          </div>
+                          <span className={"shrink-0 rounded-md border px-1.5 py-1 text-[8px] font-black uppercase tracking-[0.04em] " + (isInProgress ? "border-red-500/30 bg-red-500/[0.07] text-red-300" : "border-cyan-500/25 bg-cyan-500/[0.06] text-cyan-200")}>{isInProgress ? "Em jogo" : "Planejado"}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-[11px] leading-relaxed text-white/40">Os jogos em andamento e planejados aparecerão aqui enquanto ainda não tiverem uma review publicada.</p>
+                )}
               </section>
             </aside>
           </div>
