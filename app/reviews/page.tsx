@@ -297,7 +297,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="group relative isolate grid grid-cols-[112px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-3 py-4 transition-colors duration-200 hover:border-red-500/30 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
+    <article className="group relative isolate grid grid-cols-[96px_minmax(0,1fr)] gap-2.5 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-2.5 py-3 transition-colors duration-200 hover:border-red-500/30 min-[420px]:grid-cols-[112px_minmax(0,1fr)] min-[420px]:gap-3 min-[420px]:px-3 min-[420px]:py-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
       {image ? (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <img
@@ -319,7 +319,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
           />
         ) : (
-          <div className="flex h-full items-center justify-center px-1 text-center text-[8px] font-black text-white/25">RC</div>
+          <div className="flex h-full items-center justify-center px-1 text-center text-[9px] font-black text-white/35">RC</div>
         )}
       </div>
 
@@ -345,14 +345,14 @@ function ReviewCard({ game }: { game: ReviewGame }) {
                 ariaLabel={`Nota ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}
                 title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}
               />
-              <span className="text-[11px] font-semibold tabular-nums text-white/65">
+              <span className="text-[11px] font-semibold tabular-nums text-white/75">
                 {score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
               </span>
             </span>
           ) : null}
 
           {playtime ? (
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/60">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/70">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="12" cy="12" r="8.5" />
                 <path d="M12 7.5V12l3 1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -362,7 +362,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           ) : null}
 
           {cleanText(game.platform) ? (
-            <span className="rounded-md border border-white/[0.10] bg-white/[0.04] px-1.5 py-0.5 text-[11px] font-semibold text-white/65">
+            <span className="rounded-md border border-white/[0.10] bg-white/[0.05] px-1.5 py-0.5 text-[11px] font-semibold text-white/75">
               {cleanText(game.platform)}
             </span>
           ) : null}
@@ -559,7 +559,7 @@ export default function ReviewsPage() {
 
               <section className="mt-6 border-t border-white/[0.08] pt-5" aria-label="Distribuição das notas das reviews publicadas">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.12em] text-white/85">Distribuição das notas</h2>
-                <p className="mt-1 text-[10px] leading-relaxed text-white/50">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/60">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
                 <div className="mt-3 space-y-2.5">
                   {sidebarRatingBuckets.map(({ label, count }) => (
                     <div key={label} className="grid grid-cols-[38px_minmax(0,1fr)_14px] items-center gap-1.5" title={label + ": " + count + " reviews"}>
@@ -573,7 +573,7 @@ export default function ReviewsPage() {
                 </div>
               </section>
               <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[9px] font-black uppercase tracking-[0.20em] text-white/45">Navegação</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.20em] text-white/55">Navegação</p>
                 <Link href="/biblioteca" className="mt-3 flex items-center gap-2 rounded-md px-1 py-2 text-[12px] font-semibold text-white/65 transition hover:bg-white/[0.035] hover:text-white">
                   <span>▦</span> Biblioteca de jogos
                 </Link>
@@ -585,7 +585,7 @@ export default function ReviewsPage() {
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
-              <Link href="/configuracoes" className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55">
+              <Link href="/configuracoes" className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/65">
                 <span>⚙</span> Configurações
               </Link>
             </div>
@@ -600,7 +600,7 @@ export default function ReviewsPage() {
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.94)_25%,rgba(5,6,9,0.75)_49%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-                <div className="relative min-h-[235px] px-7 py-7">
+                <div className="relative min-h-[255px] px-5 py-6 sm:min-h-[235px] sm:px-7 sm:py-7">
                   <div className="max-w-[400px]">
                     <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                       <span className="text-[10px] leading-none">✣</span>
@@ -612,32 +612,32 @@ export default function ReviewsPage() {
                     </p>
                   </div>
 
-                  <div className="absolute bottom-7 left-7 right-7 grid grid-cols-2 gap-x-4 sm:max-w-[72%]">
-                    <div className="flex min-w-0 items-center gap-2.5 pr-4">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="absolute bottom-5 left-5 right-5 grid grid-cols-2 gap-x-3 sm:bottom-7 sm:left-7 sm:right-7 sm:gap-x-4 sm:max-w-[72%]">
+                    <div className="flex min-w-0 items-center gap-2 pr-2 sm:gap-2.5 sm:pr-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 sm:h-8 sm:w-8">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px] sm:h-[22px] sm:w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <path d="M14 2v6h6" />
                           <path d="m9 15 5.5-5.5a1.4 1.4 0 0 1 2 2L11 17l-3 1z" />
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">{loading ? "…" : games.length}</p>
-                        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Reviews publicadas</p>
+                        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">{loading ? "…" : games.length}</p>
+                        <p className="mt-1 text-[11px] font-medium leading-tight text-white/70 sm:text-[13px] sm:leading-[1.25] sm:text-white/65">Reviews publicadas</p>
                       </div>
                     </div>
-                    <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-4">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[22px] w-[22px]" fill="currentColor">
+                    <div className="flex min-w-0 items-center gap-2 border-l border-white/10 pl-2 sm:gap-2.5 sm:pl-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 sm:h-8 sm:w-8">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px] sm:h-[22px] sm:w-[22px]" fill="currentColor">
                           <path d="m12 2.8 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.36l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.8z" />
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
+                        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">
                           {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
                           <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
                         </p>
-                        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Nota média</p>
+                        <p className="mt-1 text-[11px] font-medium leading-tight text-white/70 sm:text-[13px] sm:leading-[1.25] sm:text-white/65">Nota média</p>
                       </div>
                     </div>
                   </div>
@@ -799,7 +799,7 @@ export default function ReviewsPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[12px] font-bold text-white/85 group-hover:text-red-200">{game.title}</p>
-                            <p className="mt-1 truncate text-[10px] text-white/50">{isInProgress ? "Em jogo · futura análise" : "Na fila de reviews"}</p>
+                            <p className="mt-1 truncate text-[10px] text-white/60">{isInProgress ? "Em jogo · futura análise" : "Na fila de reviews"}</p>
                           </div>
                           <span className={"shrink-0 rounded-md border px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.04em] " + (isInProgress ? "border-red-500/30 bg-red-500/[0.07] text-red-300" : "border-cyan-500/25 bg-cyan-500/[0.06] text-cyan-200")}>{isInProgress ? "Em jogo" : "Planejado"}</span>
                         </Link>
