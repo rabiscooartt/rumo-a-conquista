@@ -512,7 +512,7 @@ function EmblemCard({
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative block w-full min-w-0 rounded-[18px] border border-white/[0.08] bg-zinc-950/60 px-2 pb-3 pt-2 text-center shadow-[0_10px_30px_rgba(0,0,0,0.16)] transition duration-300 hover:-translate-y-1 hover:border-red-500/25 hover:bg-zinc-900/70 hover:shadow-[0_0_28px_rgba(239,68,68,0.08)] ${
+      className={`group relative block w-full min-w-0 scroll-mt-24 rounded-[18px] border border-white/[0.08] bg-zinc-950/60 px-2 pb-3 pt-2 text-center shadow-[0_10px_30px_rgba(0,0,0,0.16)] transition duration-300 hover:-translate-y-1 hover:border-red-500/25 hover:bg-zinc-900/70 hover:shadow-[0_0_28px_rgba(239,68,68,0.08)] ${
         isLarge ? "max-w-[380px]" : ""
       }`}
     >
