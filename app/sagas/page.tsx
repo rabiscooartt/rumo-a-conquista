@@ -537,7 +537,7 @@ function EmblemCard({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-px bg-gradient-to-r from-transparent via-red-500/65 to-transparent opacity-70" />
 
       <div
-        className={`relative isolate flex h-[205px] items-center justify-center overflow-hidden sm:h-[220px] lg:h-[230px] ${
+        className={`relative isolate flex h-[270px] items-center justify-center overflow-hidden sm:h-[292px] lg:h-[310px] ${
           isLocked
             ? "bg-[radial-gradient(ellipse_at_50%_38%,rgba(255,255,255,0.07),transparent_62%),linear-gradient(180deg,#0c0c0f,#070708)]"
             : "bg-[radial-gradient(ellipse_at_50%_38%,rgba(239,68,68,0.16),transparent_62%),linear-gradient(180deg,#16090c,#080809)]"
@@ -547,9 +547,9 @@ function EmblemCard({
         <div className="pointer-events-none absolute inset-x-6 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
 
         <div
-          className={`relative z-10 h-full w-full p-4 transition duration-300 group-hover:scale-[1.025] sm:p-5 ${
+          className={`relative z-10 h-full w-full p-1.5 transition duration-300 group-hover:scale-[1.025] sm:p-2.5 ${
             isLocked
-              ? "opacity-45 grayscale brightness-[0.7]"
+              ? "opacity-65 grayscale brightness-[0.82]"
               : "drop-shadow-[0_12px_18px_rgba(0,0,0,0.38)]"
           }`}
         >
@@ -560,27 +560,14 @@ function EmblemCard({
           />
         </div>
 
-        <div
-          className={`absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] backdrop-blur-md ${
-            isLocked
-              ? "border-white/[0.13] bg-black/75 text-white/55"
-              : "border-emerald-400/30 bg-emerald-950/85 text-emerald-300"
-          }`}
-        >
-          {isLocked ? (
-            <svg viewBox="0 0 24 24" aria-label="Bloqueado" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="10" width="14" height="11" rx="2" />
-              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        {!isLocked ? (
+          <div className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-950/85 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-emerald-300 backdrop-blur-md">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m5 12 4 4L19 6" />
             </svg>
-          ) : (
-            <>
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m5 12 4 4L19 6" />
-              </svg>
-              <span>Conquistado</span>
-            </>
-          )}
-        </div>
+            <span>Conquistado</span>
+          </div>
+        ) : null}
 
         {isLocked ? (
           <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/80 text-white/65 shadow-xl backdrop-blur-sm">
@@ -895,22 +882,20 @@ export default function SagasPage() {
       )}
 
       <section className="mx-auto w-full max-w-[1540px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-        <header className="relative isolate overflow-hidden rounded-[20px] border border-red-500/20 bg-[#08090c] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_12%_50%,rgba(239,68,68,0.17),transparent_42%),radial-gradient(ellipse_at_87%_20%,rgba(157,23,23,0.18),transparent_38%),linear-gradient(110deg,#100709_0%,#09090b_50%,#070809_100%)]" />
-          <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.13)_0.65px,transparent_0.8px)] [background-size:6px_6px]" />
-          <div className="pointer-events-none absolute -right-10 -top-16 -z-10 h-[310px] w-[310px] rounded-full border border-red-500/15 sm:right-[250px] sm:h-[360px] sm:w-[360px]" />
-          <div className="pointer-events-none absolute -right-2 top-1/2 -z-10 hidden -translate-y-1/2 text-red-500/[0.09] lg:block">
-            <svg viewBox="0 0 280 280" aria-hidden="true" className="h-[280px] w-[280px]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="140" cy="140" r="103" />
-              <circle cx="140" cy="140" r="88" strokeDasharray="3 8" />
-              <path d="M92 66h96v21a48 48 0 0 1-96 0V66Z" />
-              <path d="M92 75H67a22 22 0 0 0 22 40M188 75h25a22 22 0 0 1-22 40M125 135v28h30v-28M110 163h60v13h-60zM97 195h86" />
-              <path d="M56 204c-18-26-19-54-8-79 4 27 15 44 31 52M224 204c18-26 19-54 8-79-4 27-15 44-31 52" />
-              <path d="m117 66 23-24 23 24" />
-            </svg>
+        <header className="relative isolate overflow-hidden rounded-[20px] border border-red-500/25 bg-[#08090c] shadow-[0_20px_60px_rgba(0,0,0,0.42)]">
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/images/emblems-hero.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-cover object-[62%_center] sm:object-[58%_center]"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,7,0.95)_0%,rgba(7,6,8,0.88)_31%,rgba(8,7,8,0.38)_61%,rgba(5,5,6,0.78)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(185,28,43,0.12),transparent_55%)]" />
+            <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(rgba(255,255,255,0.12)_0.6px,transparent_0.75px)] [background-size:6px_6px]" />
           </div>
 
-          <div className="relative flex flex-col gap-6 px-5 py-6 sm:px-7 sm:py-7 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
+          <div className="relative z-10 flex flex-col gap-6 px-5 py-6 sm:px-7 sm:py-7 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
             <div className="max-w-[720px]">
               <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.26em] text-red-400 sm:text-[11px]">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
@@ -919,35 +904,35 @@ export default function SagasPage() {
               <h1 className="text-[30px] font-black leading-[1.06] tracking-tight text-white sm:text-[38px] lg:text-[42px]">
                 Coleção de <span className="text-red-500">Emblemas</span>
               </h1>
-              <p className="mt-3 max-w-[600px] text-[13px] leading-relaxed text-white/65 sm:text-sm">
+              <p className="mt-3 max-w-[600px] text-[13px] leading-relaxed text-white/70 sm:text-sm">
                 Cada emblema marca uma conquista da sua jornada. Veja o que já foi revelado e o que ainda aguarda por você.
               </p>
             </div>
 
-            <div className="w-full shrink-0 rounded-[16px] border border-white/[0.11] bg-black/45 p-4 shadow-inner backdrop-blur-sm sm:p-5 lg:max-w-[310px]">
+            <div className="w-full shrink-0 rounded-[16px] border border-white/[0.13] bg-[#060608]/80 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-5 lg:max-w-[310px]">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/55">
+                  <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/65">
                     Progresso da coleção
                   </p>
                   <p className="mt-2 text-[35px] font-black leading-none tracking-tight text-white sm:text-[38px]">
                     {totalProgress}<span className="ml-1 text-lg font-bold text-red-400">%</span>
                   </p>
                 </div>
-                <p className="pb-1 text-right text-[12px] font-semibold text-white/60">
+                <p className="pb-1 text-right text-[12px] font-semibold text-white/70">
                   <span className="block text-[18px] font-black text-white">{completedEmblems}<span className="mx-1 text-white/35">/</span>{totalEmblems}</span>
                   emblemas
                 </p>
               </div>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.09]">
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.12]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-red-400 shadow-[0_0_14px_rgba(239,68,68,0.45)] transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-red-400 shadow-[0_0_14px_rgba(239,68,68,0.5)] transition-all duration-500"
                   style={{ width: `${totalProgress}%` }}
                 />
               </div>
             </div>
           </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-px bg-gradient-to-r from-transparent via-red-500/70 to-transparent" />
         </header>
 
         <section className="mt-4 rounded-[18px] border border-white/[0.09] bg-[#08090c]/95 p-3 sm:mt-5 sm:p-4">
@@ -1067,7 +1052,7 @@ export default function SagasPage() {
               activeYear={activeYear}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4 min-[520px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 2xl:gap-5">
+            <div className="grid grid-cols-1 gap-5 min-[520px]:grid-cols-2 lg:grid-cols-3 2xl:gap-6">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard key={emblem.id} emblem={emblem} theme={theme} />
               ))}
