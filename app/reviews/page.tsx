@@ -358,13 +358,6 @@ export default function ReviewsPage() {
     [games]
   );
 
-  const latestReviews = useMemo(
-    () => [...games]
-      .sort((a, b) => (Date.parse(cleanText(b.updatedAt)) || 0) - (Date.parse(cleanText(a.updatedAt)) || 0))
-      .slice(0, 3),
-    [games]
-  );
-
   const publishedReviewSlugs = useMemo(
     () => new Set(games.map((game) => normalizeKey(game.slug))),
     [games]
@@ -602,34 +595,7 @@ export default function ReviewsPage() {
                 )}
               </section>
 
-              <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.05em] text-white/95"><span className="text-red-500">▣</span> Últimas análises</h2>
-                {latestReviews.length ? (
-                  <div className="mt-3 space-y-2.5">
-                    {latestReviews.map((game) => {
-                      const score = parseScore(game.review?.nota);
-                      return (
-                        <Link key={game.slug} href={"/games/" + encodeURIComponent(game.slug) + "/review"} className="group flex items-center gap-2.5 border-b border-white/[0.07] pb-2.5 last:border-b-0 last:pb-0">
-                          <div className="h-[48px] w-[38px] shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/30">
-                            {(cleanText(game.cardImage) || cleanText(game.image)) ? <img src={cleanText(game.cardImage) || cleanText(game.image)} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-bold text-white/80 group-hover:text-red-200">{game.title}</p>
-                            <p className="mt-1 truncate text-[9px] text-white/40">{cleanText(game.review?.titulo) || "Review publicada"}</p>
-                            <div className="mt-1 flex items-center gap-2">
-                              {score !== null ? <span className="text-[10px] font-black text-red-400">★ {score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10</span> : null}
-                              {getReviewPlaytime(game) ? <span className="truncate text-[9px] text-white/35">{getReviewPlaytime(game)}</span> : null}
-                            </div>
-                          </div>
-                          <span className="shrink-0 text-white/40 transition group-hover:text-red-300">›</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="mt-3 text-[11px] text-white/40">As análises recentes aparecerão aqui quando forem publicadas.</p>
-                )}
-              </section>
+
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.05em] text-white/95"><span className="text-red-500">▣</span> Próximos reviews</h2>
