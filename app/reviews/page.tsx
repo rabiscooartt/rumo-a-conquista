@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
@@ -121,6 +121,121 @@ function getReviewPlaytime(game: ReviewGame) {
   return saved.replace(/\s*[-–]\s*/g, " ").replace(/\bminutos?\b/gi, "m").replace(/\bmins?\b/gi, "m");
 }
 
+function WholeWordPreview({
+  text,
+  maxLines,
+  className,
+}: {
+  text: string;
+  maxLines: number;
+  className: string;
+}) {
+  const paragraphRef = useRef<HTMLParagraphElement | null>(null);
+  const [visibleText, setVisibleText] = useState(text);
+
+  useEffect(() => {
+    const element = paragraphRef.current;
+    if (!element) return;
+
+    const fitToWholeWords = () => {
+      const width = element.clientWidth;
+      const source = text.trim();
+
+      if (!source || width <= 0) {
+        setVisibleText(source);
+        return;
+      }
+
+      const style = window.getComputedStyle(element);
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        setVisibleText(source);
+        return;
+      }
+
+      context.font = [
+        style.fontStyle,
+        style.fontWeight,
+        style.fontSize,
+        style.fontFamily,
+      ].join(" ");
+
+      const letterSpacing = Number.parseFloat(style.letterSpacing) || 0;
+      const measure = (value: string) =>
+        context.measureText(value).width +
+        Math.max(0, value.length - 1) * letterSpacing;
+
+      const words = source.split(/\\s+/).filter(Boolean);
+      const lines: string[] = [""];
+      let wordIndex = 0;
+
+      for (; wordIndex < words.length; wordIndex += 1) {
+        const word = words[wordIndex];
+        const lastLineIndex = lines.length - 1;
+        const currentLine = lines[lastLineIndex];
+        const candidate = currentLine ? `${currentLine} ${word}` : word;
+
+        if (!currentLine || measure(candidate) <= width) {
+          lines[lastLineIndex] = candidate;
+          continue;
+        }
+
+        if (lines.length >= maxLines) break;
+        lines.push(word);
+      }
+
+      const wasTruncated = wordIndex < words.length;
+      if (!wasTruncated) {
+        setVisibleText(source);
+        return;
+      }
+
+      while (lines.length > 0) {
+        const lastLineIndex = lines.length - 1;
+        const lastLine = lines[lastLineIndex];
+
+        if (!lastLine || measure(`${lastLine}…`) <= width) {
+          if (lastLine) lines[lastLineIndex] = `${lastLine}…`;
+          break;
+        }
+
+        const lastSpace = lastLine.lastIndexOf(" ");
+        if (lastSpace >= 0) {
+          lines[lastLineIndex] = lastLine.slice(0, lastSpace);
+        } else if (lines.length > 1) {
+          lines.pop();
+        } else {
+          lines[0] = "";
+          break;
+        }
+      }
+
+      const fitted = lines.filter(Boolean).join(" ");
+      const nextText = fitted ? fitted : "…";
+      setVisibleText((current) => current === nextText ? current : nextText);
+    };
+
+    fitToWholeWords();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", fitToWholeWords);
+      return () => window.removeEventListener("resize", fitToWholeWords);
+    }
+
+    const resizeObserver = new ResizeObserver(fitToWholeWords);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [text, maxLines]);
+
+  return (
+    <p ref={paragraphRef} className={className} title={text}>
+      {visibleText}
+    </p>
+  );
+}
+
 function ReviewCard({ game }: { game: ReviewGame }) {
   const review = game.review ?? {};
   const reviewTitle = cleanText(review.titulo) || `Review de ${game.title}`;
@@ -226,15 +341,19 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         ) : null}
 
         {mainExcerpt ? (
-          <p className="mt-2.5 line-clamp-2 text-[13px] leading-[1.6] text-white/80">
-            {mainExcerpt}
-          </p>
+          <WholeWordPreview
+            text={mainExcerpt}
+            maxLines={2}
+            className="mt-2.5 text-[13px] leading-[1.6] text-white/80"
+          />
         ) : null}
 
         {secondaryExcerpt ? (
-          <p className="mt-2 line-clamp-3 text-[12px] leading-[1.65] text-white/65">
-            {secondaryExcerpt}
-          </p>
+          <WholeWordPreview
+            text={secondaryExcerpt}
+            maxLines={3}
+            className="mt-2 text-[12px] leading-[1.65] text-white/65"
+          />
         ) : null}
 
         <div className="mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3">
