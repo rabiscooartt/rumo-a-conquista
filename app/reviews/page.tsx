@@ -126,7 +126,6 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const reviewTitle = cleanText(review.titulo) || `Review de ${game.title}`;
   const summary = cleanText(review.resumo);
   const fullText = cleanText(review.texto);
-  const hasSeparateText = Boolean(summary && fullText && normalizeKey(summary) !== normalizeKey(fullText));
   const mainExcerpt = summary || fullText;
   const score = parseScore(review.nota);
   const image = cleanText(game.cardImage) || cleanText(game.image);
@@ -134,7 +133,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="group relative isolate grid grid-cols-[112px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-3 py-4 transition-colors duration-200 hover:border-white/[0.16] sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
+    <article className="group relative isolate grid grid-cols-[100px_minmax(0,1fr)] gap-2.5 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-2.5 py-3 transition-colors duration-200 hover:border-white/[0.16] sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-3 sm:px-3 sm:py-3.5 lg:grid-cols-[138px_minmax(0,1fr)] lg:gap-3">
       {image ? (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <img
@@ -163,7 +162,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
       <div className="relative z-20 flex min-w-0 flex-col py-0.5 pointer-events-none">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="break-words text-[15px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[17px]">
+            <h3 className="break-words text-[14px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[16px]">
               {game.title}
             </h3>
           </div>
@@ -172,13 +171,13 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           </span>
         </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
           {score !== null ? (
             <span className="inline-flex items-center gap-1.5" title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}>
               <StarRating
                 rating={score / 2}
                 size="small"
-                className="!text-[17px] !tracking-[-0.03em]"
+                className="!text-[16px] !tracking-[-0.03em]"
                 ariaLabel={`Nota ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}
                 title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}
               />
@@ -209,31 +208,25 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         </div>
 
         {isCustomTitle ? (
-          <p className="mt-2 text-[12px] font-bold leading-snug text-red-500 sm:text-[13px]">
+          <p className="mt-1.5 text-[11px] font-bold leading-snug text-red-500 sm:text-[12px]">
             {reviewTitle}
           </p>
         ) : null}
 
         {mainExcerpt ? (
-          <p className="mt-2 line-clamp-3 text-[12px] leading-[1.6] text-white/70 sm:line-clamp-4 sm:text-[13px]">
+          <p className="mt-1.5 line-clamp-2 text-[11px] leading-[1.5] text-white/70 sm:line-clamp-3 sm:text-[12px]">
             {mainExcerpt}
-          </p>
-        ) : null}
-
-        {hasSeparateText ? (
-          <p className="mt-2 line-clamp-2 text-[12px] leading-[1.6] text-white/55 sm:text-[13px]">
-            {fullText}
           </p>
         ) : null}
 
         <Link
           href={`/games/${encodeURIComponent(game.slug)}/review`}
-          className="pointer-events-auto mt-1.5 inline-flex w-fit items-center gap-1 text-[12px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+          className="pointer-events-auto mt-1 inline-flex w-fit items-center gap-1 text-[11px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
         >
           Ler mais <span aria-hidden="true">→</span>
         </Link>
 
-        <div className="mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3">
+        <div className="mt-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-1.5 border-t border-white/[0.08] pt-2.5">
           <Link
             href={`/games/${encodeURIComponent(game.slug)}`}
             className="pointer-events-auto inline-flex items-center gap-1.5 text-[11px] font-bold text-white/45 transition hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
@@ -242,7 +235,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           </Link>
           <Link
             href={`/games/${encodeURIComponent(game.slug)}/review`}
-            className="pointer-events-auto inline-flex items-center gap-1.5 text-[12px] font-bold text-white/85 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+            className="pointer-events-auto inline-flex items-center gap-1.5 text-[11px] font-bold text-white/85 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
           >
             Abrir review <span aria-hidden="true">→</span>
           </Link>
@@ -341,14 +334,14 @@ export default function ReviewsPage() {
     ? scoredGames.reduce((sum, score) => sum + score, 0) / scoredGames.length
     : null;
 
-  const sidebarRatingBuckets = [
+  const ratingBuckets = [
     { label: "9–10", count: scoredGames.filter((score) => score >= 9).length },
     { label: "7–8,9", count: scoredGames.filter((score) => score >= 7 && score < 9).length },
     { label: "5–6,9", count: scoredGames.filter((score) => score >= 5 && score < 7).length },
     { label: "3–4,9", count: scoredGames.filter((score) => score >= 3 && score < 5).length },
     { label: "0–2,9", count: scoredGames.filter((score) => score >= 0 && score < 3).length },
   ];
-  const maxSidebarRatingCount = Math.max(1, ...sidebarRatingBuckets.map((bucket) => bucket.count));
+  const maxRatingBucketCount = Math.max(1, ...ratingBuckets.map((bucket) => bucket.count));
 
   const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
 
@@ -408,21 +401,6 @@ export default function ReviewsPage() {
                 </Link>
               </div>
 
-              <section className="mt-6 border-t border-white/[0.08] pt-5" aria-label="Distribuição das notas das reviews publicadas">
-                <h2 className="text-[9px] font-black uppercase tracking-[0.12em] text-white/80">Distribuição das notas</h2>
-                <p className="mt-1 text-[9px] leading-relaxed text-white/35">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
-                <div className="mt-3 space-y-2.5">
-                  {sidebarRatingBuckets.map(({ label, count }) => (
-                    <div key={label} className="grid grid-cols-[38px_minmax(0,1fr)_14px] items-center gap-1.5" title={label + ": " + count + " reviews"}>
-                      <span className="text-[9px] font-semibold tabular-nums text-white/55">{label}</span>
-                      <div className="h-[5px] overflow-hidden rounded-full bg-white/[0.08]">
-                        <div className="h-full rounded-full bg-red-500 transition-[width] duration-300" style={{ width: (count / maxSidebarRatingCount) * 100 + "%" }} />
-                      </div>
-                      <span className="text-right text-[9px] font-bold tabular-nums text-white/65">{loading ? "—" : count}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
@@ -565,6 +543,33 @@ export default function ReviewsPage() {
                       </p>
                     </div>
                   )}
+                </div>
+              </section>
+
+              <section className="mt-3 rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5 sm:p-4" aria-label="Distribuição das notas das reviews publicadas">
+                <div className="flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <h2 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.08em] text-white/90">
+                      <span className="h-4 w-0.5 rounded-full bg-red-500" />
+                      Distribuição das notas
+                    </h2>
+                    <p className="mt-1 text-[10px] text-white/40">
+                      {scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                  {ratingBuckets.map(({ label, count }) => (
+                    <div key={label} className="min-w-0 rounded-lg border border-white/[0.06] bg-white/[0.015] px-2.5 py-2" title={label + ": " + count + " reviews"}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-semibold tabular-nums text-white/60">{label}</span>
+                        <span className="text-[10px] font-black tabular-nums text-white/75">{loading ? "—" : count}</span>
+                      </div>
+                      <div className="mt-2 h-[5px] overflow-hidden rounded-full bg-white/[0.08]">
+                        <div className="h-full rounded-full bg-red-500 transition-[width] duration-300" style={{ width: (count / maxRatingBucketCount) * 100 + "%" }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
             </div>
