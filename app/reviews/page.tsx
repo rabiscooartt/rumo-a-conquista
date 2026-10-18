@@ -138,7 +138,7 @@ function WholeWordPreview({
     if (!element) return;
 
     const fitToWholeWords = () => {
-      const width = element.clientWidth;
+      const width = element.getBoundingClientRect().width;
       const source = text.trim();
 
       if (!source || width <= 0) {
@@ -146,75 +146,79 @@ function WholeWordPreview({
         return;
       }
 
-      const style = window.getComputedStyle(element);
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
+      const computed = window.getComputedStyle(element);
+      const lineHeightValue = Number.parseFloat(computed.lineHeight);
+      const fontSizeValue = Number.parseFloat(computed.fontSize) || 12;
+      const lineHeight = Number.isFinite(lineHeightValue)
+        ? lineHeightValue
+        : fontSizeValue * 1.6;
+      const maxHeight = lineHeight * maxLines + 1;
 
-      if (!context) {
-        setVisibleText(source);
+      const measureElement = document.createElement("p");
+      measureElement.className = element.className;
+      Object.assign(measureElement.style, {
+        position: "fixed",
+        left: "-100000px",
+        top: "0",
+        visibility: "hidden",
+        pointerEvents: "none",
+        width: `${width}px`,
+        height: "auto",
+        minHeight: "0",
+        maxHeight: "none",
+        overflow: "visible",
+        display: "block",
+        margin: "0",
+        padding: "0",
+        border: "0",
+        boxSizing: computed.boxSizing,
+        fontFamily: computed.fontFamily,
+        fontSize: computed.fontSize,
+        fontStyle: computed.fontStyle,
+        fontWeight: computed.fontWeight,
+        fontVariant: computed.fontVariant,
+        lineHeight: computed.lineHeight,
+        letterSpacing: computed.letterSpacing,
+        wordSpacing: computed.wordSpacing,
+        textTransform: computed.textTransform,
+        textIndent: computed.textIndent,
+        whiteSpace: "normal",
+        overflowWrap: computed.overflowWrap,
+        wordBreak: computed.wordBreak,
+        hyphens: computed.hyphens,
+      });
+      document.body.appendChild(measureElement);
+
+      const fits = (candidate: string) => {
+        measureElement.textContent = candidate;
+        return measureElement.getBoundingClientRect().height <= maxHeight;
+      };
+
+      if (fits(source)) {
+        setVisibleText((current) => current === source ? current : source);
+        measureElement.remove();
         return;
       }
-
-      context.font = [
-        style.fontStyle,
-        style.fontWeight,
-        style.fontSize,
-        style.fontFamily,
-      ].join(" ");
-
-      const letterSpacing = Number.parseFloat(style.letterSpacing) || 0;
-      const measure = (value: string) =>
-        context.measureText(value).width +
-        Math.max(0, value.length - 1) * letterSpacing;
 
       const words = source.split(/\\s+/).filter(Boolean);
-      const lines: string[] = [""];
-      let wordIndex = 0;
+      let low = 1;
+      let high = words.length;
+      let best = "…";
 
-      for (; wordIndex < words.length; wordIndex += 1) {
-        const word = words[wordIndex];
-        const lastLineIndex = lines.length - 1;
-        const currentLine = lines[lastLineIndex];
-        const candidate = currentLine ? `${currentLine} ${word}` : word;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        const candidate = `${words.slice(0, middle).join(" ")}…`;
 
-        if (!currentLine || measure(candidate) <= width) {
-          lines[lastLineIndex] = candidate;
-          continue;
-        }
-
-        if (lines.length >= maxLines) break;
-        lines.push(word);
-      }
-
-      const wasTruncated = wordIndex < words.length;
-      if (!wasTruncated) {
-        setVisibleText(source);
-        return;
-      }
-
-      while (lines.length > 0) {
-        const lastLineIndex = lines.length - 1;
-        const lastLine = lines[lastLineIndex];
-
-        if (!lastLine || measure(`${lastLine}…`) <= width) {
-          if (lastLine) lines[lastLineIndex] = `${lastLine}…`;
-          break;
-        }
-
-        const lastSpace = lastLine.lastIndexOf(" ");
-        if (lastSpace >= 0) {
-          lines[lastLineIndex] = lastLine.slice(0, lastSpace);
-        } else if (lines.length > 1) {
-          lines.pop();
+        if (fits(candidate)) {
+          best = candidate;
+          low = middle + 1;
         } else {
-          lines[0] = "";
-          break;
+          high = middle - 1;
         }
       }
 
-      const fitted = lines.filter(Boolean).join(" ");
-      const nextText = fitted ? fitted : "…";
-      setVisibleText((current) => current === nextText ? current : nextText);
+      measureElement.remove();
+      setVisibleText((current) => current === best ? current : best);
     };
 
     fitToWholeWords();
@@ -230,7 +234,17 @@ function WholeWordPreview({
   }, [text, maxLines]);
 
   return (
-    <p ref={paragraphRef} className={className} title={text}>
+    <p
+      ref={paragraphRef}
+      className={className}
+      title={text}
+      style={{
+        display: "-webkit-box",
+        WebkitBoxOrient: "vertical",
+        WebkitLineClamp: maxLines,
+        overflow: "hidden",
+      }}
+    >
       {visibleText}
     </p>
   );
