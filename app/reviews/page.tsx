@@ -126,7 +126,19 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const reviewTitle = cleanText(review.titulo) || `Review de ${game.title}`;
   const summary = cleanText(review.resumo);
   const fullText = cleanText(review.texto);
-  const mainExcerpt = summary || fullText;
+  const summaryKey = normalizeKey(summary);
+  const fullTextKey = normalizeKey(fullText);
+  const fullTextIncludesSummary = summaryKey.length >= 30 && fullTextKey.includes(summaryKey);
+  const summaryIncludesFullText = fullTextKey.length >= 30 && summaryKey.includes(fullTextKey);
+  const hasDistinctReviewText = Boolean(
+    summary &&
+    fullText &&
+    summaryKey !== fullTextKey &&
+    !fullTextIncludesSummary &&
+    !summaryIncludesFullText
+  );
+  const mainExcerpt = fullTextIncludesSummary ? fullText : summary || fullText;
+  const secondaryExcerpt = hasDistinctReviewText ? fullText : "";
   const score = parseScore(review.nota);
   const image = cleanText(game.cardImage) || cleanText(game.image);
   const playtime = getReviewPlaytime(game);
@@ -214,8 +226,14 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         ) : null}
 
         {mainExcerpt ? (
-          <p className="mt-2.5 line-clamp-3 text-[13px] leading-[1.65] text-white/75">
+          <p className="mt-2.5 line-clamp-2 text-[13px] leading-[1.6] text-white/80">
             {mainExcerpt}
+          </p>
+        ) : null}
+
+        {secondaryExcerpt ? (
+          <p className="mt-2 line-clamp-3 text-[12px] leading-[1.65] text-white/65">
+            {secondaryExcerpt}
           </p>
         ) : null}
 
