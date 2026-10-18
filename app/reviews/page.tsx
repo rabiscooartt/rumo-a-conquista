@@ -126,7 +126,6 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const reviewTitle = cleanText(review.titulo) || `Review de ${game.title}`;
   const summary = cleanText(review.resumo);
   const fullText = cleanText(review.texto);
-  const hasSeparateText = Boolean(summary && fullText && normalizeKey(summary) !== normalizeKey(fullText));
   const mainExcerpt = summary || fullText;
   const score = parseScore(review.nota);
   const image = cleanText(game.cardImage) || cleanText(game.image);
@@ -134,7 +133,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="group relative isolate grid grid-cols-[112px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-3 py-4 transition-colors duration-200 hover:border-white/[0.16] sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
+    <article className="group relative isolate grid grid-cols-[112px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-3 py-4 transition-colors duration-200 hover:border-red-500/30 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
       {image ? (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <img
@@ -167,7 +166,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
               {game.title}
             </h3>
           </div>
-          <span className="hidden shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/[.05] px-2 py-1 text-[8px] font-black uppercase tracking-[.1em] text-emerald-200/80 sm:inline-flex">
+          <span className="hidden shrink-0 rounded-full border border-emerald-400/25 bg-emerald-400/[.07] px-2 py-1 text-[9px] font-black uppercase tracking-[.08em] text-emerald-100/90 sm:inline-flex">
             Publicada
           </span>
         </div>
@@ -182,14 +181,14 @@ function ReviewCard({ game }: { game: ReviewGame }) {
                 ariaLabel={`Nota ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}
                 title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}
               />
-              <span className="text-[10px] font-semibold tabular-nums text-white/45">
+              <span className="text-[11px] font-semibold tabular-nums text-white/65">
                 {score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
               </span>
             </span>
           ) : null}
 
           {playtime ? (
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/45">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/60">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="12" cy="12" r="8.5" />
                 <path d="M12 7.5V12l3 1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -199,44 +198,31 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           ) : null}
 
           {cleanText(game.platform) ? (
-            <span className="border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-[10px] font-semibold text-white/55">
+            <span className="rounded-md border border-white/[0.10] bg-white/[0.04] px-1.5 py-0.5 text-[11px] font-semibold text-white/65">
               {cleanText(game.platform)}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-400 sm:hidden">
+          <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-300 sm:hidden">
             Publicada
           </span>
         </div>
 
         {isCustomTitle ? (
-          <p className="mt-2 text-[12px] font-bold leading-snug text-red-500 sm:text-[13px]">
+          <p className="mt-2.5 text-[13px] font-bold leading-snug text-red-400 sm:text-[14px]">
             {reviewTitle}
           </p>
         ) : null}
 
         {mainExcerpt ? (
-          <p className="mt-2 line-clamp-3 text-[12px] leading-[1.6] text-white/70 sm:line-clamp-4 sm:text-[13px]">
+          <p className="mt-2.5 line-clamp-3 text-[13px] leading-[1.65] text-white/75">
             {mainExcerpt}
           </p>
         ) : null}
 
-        {hasSeparateText ? (
-          <p className="mt-2 line-clamp-2 text-[12px] leading-[1.6] text-white/55 sm:text-[13px]">
-            {fullText}
-          </p>
-        ) : null}
-
-        <Link
-          href={`/games/${encodeURIComponent(game.slug)}/review`}
-          className="pointer-events-auto mt-1.5 inline-flex w-fit items-center gap-1 text-[12px] font-bold text-white/90 transition hover:text-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
-        >
-          Ler mais <span aria-hidden="true">→</span>
-        </Link>
-
         <div className="mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3">
           <Link
             href={`/games/${encodeURIComponent(game.slug)}`}
-            className="pointer-events-auto inline-flex items-center gap-1.5 text-[11px] font-bold text-white/45 transition hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+            className="pointer-events-auto inline-flex items-center gap-1.5 text-[12px] font-bold text-white/60 transition hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
           >
             Ver jogo
           </Link>
@@ -320,7 +306,8 @@ export default function ReviewsPage() {
           ratingFilter === "9-10" ? score >= 9 :
           ratingFilter === "7-8.9" ? score >= 7 && score < 9 :
           ratingFilter === "5-6.9" ? score >= 5 && score < 7 :
-          ratingFilter === "0-4.9" ? score >= 0 && score < 5 : true
+          ratingFilter === "3-4.9" ? score >= 3 && score < 5 :
+          ratingFilter === "0-2.9" ? score >= 0 && score < 3 : true
         ));
         return matchesSearch && matchesRating;
       })
@@ -397,26 +384,26 @@ export default function ReviewsPage() {
               </div>
 
               <section className="mt-6 border-t border-white/[0.08] pt-5" aria-label="Distribuição das notas das reviews publicadas">
-                <h2 className="text-[9px] font-black uppercase tracking-[0.12em] text-white/80">Distribuição das notas</h2>
-                <p className="mt-1 text-[9px] leading-relaxed text-white/35">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.12em] text-white/85">Distribuição das notas</h2>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/50">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
                 <div className="mt-3 space-y-2.5">
                   {sidebarRatingBuckets.map(({ label, count }) => (
                     <div key={label} className="grid grid-cols-[38px_minmax(0,1fr)_14px] items-center gap-1.5" title={label + ": " + count + " reviews"}>
-                      <span className="text-[9px] font-semibold tabular-nums text-white/55">{label}</span>
+                      <span className="text-[10px] font-semibold tabular-nums text-white/70">{label}</span>
                       <div className="h-[5px] overflow-hidden rounded-full bg-white/[0.08]">
                         <div className="h-full rounded-full bg-red-500 transition-[width] duration-300" style={{ width: (count / maxSidebarRatingCount) * 100 + "%" }} />
                       </div>
-                      <span className="text-right text-[9px] font-bold tabular-nums text-white/65">{loading ? "—" : count}</span>
+                      <span className="text-right text-[10px] font-bold tabular-nums text-white/75">{loading ? "—" : count}</span>
                     </div>
                   ))}
                 </div>
               </section>
               <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Navegação</p>
-                <Link href="/biblioteca" className="mt-3 flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
+                <p className="text-[9px] font-black uppercase tracking-[0.20em] text-white/45">Navegação</p>
+                <Link href="/biblioteca" className="mt-3 flex items-center gap-2 rounded-md px-1 py-2 text-[12px] font-semibold text-white/65 transition hover:bg-white/[0.035] hover:text-white">
                   <span>▦</span> Biblioteca de jogos
                 </Link>
-                <Link href="/atividade" className="flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
+                <Link href="/atividade" className="flex items-center gap-2 rounded-md px-1 py-2 text-[12px] font-semibold text-white/65 transition hover:bg-white/[0.035] hover:text-white">
                   <span>◷</span> Atividade
                 </Link>
               </div>
@@ -453,11 +440,11 @@ export default function ReviewsPage() {
 
                   <div className="absolute bottom-7 left-7 right-7 grid grid-cols-2 gap-x-4 sm:max-w-[72%]">
                     <div>
-                      <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Reviews publicadas</p>
+                      <p className="text-[9px] font-black uppercase tracking-[.15em] text-white/55">Reviews publicadas</p>
                       <p className="mt-1 text-[24px] font-black leading-none text-white">{loading ? "…" : games.length}</p>
                     </div>
                     <div className="border-l border-white/[0.12] pl-4">
-                      <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Nota média</p>
+                      <p className="text-[9px] font-black uppercase tracking-[.15em] text-white/55">Nota média</p>
                       <p className="mt-1 text-[24px] font-black leading-none text-white">
                         {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
                         <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
@@ -488,26 +475,38 @@ export default function ReviewsPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por jogo ou título da review..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/25 focus:border-red-500/35"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-10 text-[12px] font-semibold text-white outline-none placeholder:text-white/40 focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20"
                     />
+                    {search ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearch("")}
+                        aria-label="Limpar busca"
+                        title="Limpar busca"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-sm font-bold text-white/45 transition hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+                      >
+                        ×
+                      </button>
+                    ) : null}
                   </label>
                   <select
                     value={ratingFilter}
                     onChange={(event) => setRatingFilter(event.target.value)}
                     aria-label="Filtrar reviews por nota"
-                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[11px] font-bold text-white/70 outline-none focus:border-red-500/40 md:w-[125px]"
+                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[12px] font-bold text-white/80 outline-none focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20 md:w-[130px]"
                   >
                     <option value="all">Todas as notas</option>
                     <option value="9-10">Nota 9–10</option>
                     <option value="7-8.9">Nota 7–8,9</option>
                     <option value="5-6.9">Nota 5–6,9</option>
-                    <option value="0-4.9">Nota 0–4,9</option>
+                    <option value="3-4.9">Nota 3–4,9</option>
+                    <option value="0-2.9">Nota 0–2,9</option>
                   </select>
                   <select
                     value={reviewOrder}
                     onChange={(event) => setReviewOrder(event.target.value)}
                     aria-label="Ordenar reviews"
-                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[11px] font-bold text-white/70 outline-none focus:border-red-500/40 md:w-[128px]"
+                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[12px] font-bold text-white/80 outline-none focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20 md:w-[132px]"
                   >
                     <option value="recent">Ordem: recentes</option>
                     <option value="title">Ordem: título</option>
@@ -517,7 +516,7 @@ export default function ReviewsPage() {
                 </div>
 
                 <div className="px-3 pb-3">
-                  <p className="mb-2 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/65">
+                  <p className="mb-2.5 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/75">
                     Reviews publicadas
                   </p>
 
@@ -549,7 +548,7 @@ export default function ReviewsPage() {
                       <h2 className="mt-4 text-sm font-black text-white">
                         {games.length ? "Nenhuma review encontrada" : "Ainda não há reviews publicadas"}
                       </h2>
-                      <p className="mx-auto mt-2 max-w-md text-[11px] leading-relaxed text-white/45">
+                      <p className="mx-auto mt-2 max-w-md text-[12px] leading-relaxed text-white/55">
                         {games.length
                           ? "Tente buscar pelo nome do jogo ou pelo título da análise."
                           : "Quando uma análise for liberada no Admin, ela aparecerá automaticamente nesta página."}
@@ -578,10 +577,10 @@ export default function ReviewsPage() {
                       </div>
                       <h3 className="mt-2.5 line-clamp-2 text-[14px] font-black leading-snug text-white group-hover:text-red-200">{featuredReview.title}</h3>
                       <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="min-w-0 truncate text-[10px] font-bold text-red-300">{cleanText(featuredReview.review?.titulo) || "Review do jogo"}</p>
+                        <p className="min-w-0 truncate text-[11px] font-bold text-red-300">{cleanText(featuredReview.review?.titulo) || "Review do jogo"}</p>
                         <strong className="shrink-0 text-[16px] font-black text-white"><span className="text-red-500">★</span> {parseScore(featuredReview.review?.nota) === null ? "—" : parseScore(featuredReview.review?.nota)?.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10"}</strong>
                       </div>
-                      <p className="mt-2 line-clamp-3 text-[11px] leading-[1.5] text-white/60">
+                      <p className="mt-2.5 line-clamp-3 text-[12px] leading-[1.6] text-white/70">
                         {cleanText(featuredReview.review?.resumo) || cleanText(featuredReview.review?.texto) || "Leia a análise completa deste jogo."}
                       </p>
                     </Link>
@@ -609,10 +608,10 @@ export default function ReviewsPage() {
                             {(cleanText(game.cardImage) || cleanText(game.image)) ? <img src={cleanText(game.cardImage) || cleanText(game.image)} alt="" loading="lazy" className="h-full w-full object-cover" /> : null}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-bold text-white/80 group-hover:text-red-200">{game.title}</p>
-                            <p className="mt-1 truncate text-[9px] text-white/35">{isInProgress ? "Em jogo · futura análise" : "Na fila de reviews"}</p>
+                            <p className="truncate text-[12px] font-bold text-white/85 group-hover:text-red-200">{game.title}</p>
+                            <p className="mt-1 truncate text-[10px] text-white/50">{isInProgress ? "Em jogo · futura análise" : "Na fila de reviews"}</p>
                           </div>
-                          <span className={"shrink-0 rounded-md border px-1.5 py-1 text-[8px] font-black uppercase tracking-[0.04em] " + (isInProgress ? "border-red-500/30 bg-red-500/[0.07] text-red-300" : "border-cyan-500/25 bg-cyan-500/[0.06] text-cyan-200")}>{isInProgress ? "Em jogo" : "Planejado"}</span>
+                          <span className={"shrink-0 rounded-md border px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.04em] " + (isInProgress ? "border-red-500/30 bg-red-500/[0.07] text-red-300" : "border-cyan-500/25 bg-cyan-500/[0.06] text-cyan-200")}>{isInProgress ? "Em jogo" : "Planejado"}</span>
                         </Link>
                       );
                     })}
