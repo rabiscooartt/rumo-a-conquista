@@ -398,16 +398,6 @@ export default function ReviewsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Navegação</p>
-                <Link href="/biblioteca" className="mt-3 flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
-                  <span>▦</span> Biblioteca de jogos
-                </Link>
-                <Link href="/atividade" className="flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
-                  <span>◷</span> Atividade
-                </Link>
-              </div>
-
               <section className="mt-6 border-t border-white/[0.08] pt-5" aria-label="Distribuição das notas das reviews publicadas">
                 <h2 className="text-[9px] font-black uppercase tracking-[0.12em] text-white/80">Distribuição das notas</h2>
                 <p className="mt-1 text-[9px] leading-relaxed text-white/35">{scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"}</p>
@@ -423,6 +413,16 @@ export default function ReviewsPage() {
                   ))}
                 </div>
               </section>
+              <div className="mt-6 border-t border-white/[0.08] pt-5">
+                <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">Navegação</p>
+                <Link href="/biblioteca" className="mt-3 flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
+                  <span>▦</span> Biblioteca de jogos
+                </Link>
+                <Link href="/atividade" className="flex items-center gap-2 px-0.5 py-2 text-[11px] font-semibold text-white/55 transition hover:text-white">
+                  <span>◷</span> Atividade
+                </Link>
+              </div>
+
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
