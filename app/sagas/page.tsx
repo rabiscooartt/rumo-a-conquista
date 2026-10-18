@@ -988,7 +988,7 @@ export default function SagasPage() {
         <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-[url('/images/emblems-hero.svg')] bg-cover bg-center"
+            className="absolute inset-0 bg-[url('/images/emblems-hero.webp')] bg-cover bg-[center_12%]"
           />
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,2,3,0.96)_0%,rgba(2,2,3,0.78)_27%,rgba(2,2,3,0.18)_54%,rgba(2,2,3,0.30)_73%,rgba(2,2,3,0.86)_100%)]" />
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.5),transparent_45%,rgba(0,0,0,0.08))]" />
