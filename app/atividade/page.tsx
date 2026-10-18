@@ -36,6 +36,7 @@ type GameLike = {
   cardImage?: string;
   manualTotalPlayedMinutes?: number | null;
   status?: string;
+  completedAt?: string;
   createdAt?: string;
   updatedAt?: string;
   platform?: string;
@@ -52,6 +53,8 @@ type GameLike = {
     description?: string;
     unlockedAt?: string;
   };
+  emblem?: { unlockedAt?: string };
+  gameEmblem?: { unlockedAt?: string };
   review?: unknown;
   youtubeFirstLiveUrl?: string;
   youtubeFirstLiveEpisode?: string;
@@ -1268,6 +1271,90 @@ function Metric({
 }
 
 
+
+type CompletionMonth = {
+  key: string;
+  label: string;
+  count: number;
+  games: string[];
+};
+
+function GameCompletionChart({ months }: { months: CompletionMonth[] }) {
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const maxCount = Math.max(1, ...months.map((month) => month.count));
+  const selected = months.find((month) => month.key === selectedMonth) ?? null;
+  const total = months.reduce((sum, month) => sum + month.count, 0);
+  const period = months.length
+    ? months[0].key.slice(5) + "/" + months[0].key.slice(0, 4) + " – " +
+      months[months.length - 1].key.slice(5) + "/" + months[months.length - 1].key.slice(0, 4)
+    : "";
+
+  return (
+    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
+          <span className="h-5 w-0.5 rounded-full bg-red-500" />
+          Jogos concluídos
+        </h2>
+        <span className="text-[11px] font-black tabular-nums text-white/70">{total}</span>
+      </div>
+      <p className="mt-1 text-[10px] font-medium text-white/40">Conclusões por mês · {period}</p>
+
+      <div className="mt-3 grid grid-cols-6 gap-2" aria-label="Jogos concluídos por mês">
+        {months.map((month) => {
+          const barHeight = month.count > 0 ? Math.max(8, (month.count / maxCount) * 72) : 3;
+          const isSelected = selectedMonth === month.key;
+          return (
+            <button
+              key={month.key}
+              type="button"
+              onClick={() => setSelectedMonth((current) => current === month.key ? null : month.key)}
+              aria-pressed={isSelected}
+              title={month.count + " jogos concluídos em " + month.label}
+              className={"flex min-w-0 flex-col items-center rounded-md px-0.5 pb-1 pt-1 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 " + (isSelected ? "bg-red-500/[0.10]" : "")}
+            >
+              <span className={"text-[10px] font-black tabular-nums " + (month.count ? "text-white/80" : "text-white/25")}>
+                {month.count}
+              </span>
+              <div className="mt-1 flex h-[76px] w-full items-end justify-center">
+                <div
+                  className={"w-full max-w-[22px] rounded-t-[3px] transition-colors " + (isSelected ? "bg-red-400" : month.count ? "bg-red-600" : "bg-white/10")}
+                  style={{ height: barHeight + "px" }}
+                />
+              </div>
+              <span className={"mt-1 text-[9px] font-black tracking-[0.03em] " + (isSelected ? "text-red-300" : "text-white/45")}>
+                {month.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="mt-2 text-[9px] leading-relaxed text-white/35">
+        Baseado nas datas de conclusão ou maestria registradas. Clique em um mês para ver os títulos.
+      </p>
+
+      {selected ? (
+        <div className="mt-3 border-t border-white/[0.08] pt-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.08em] text-white/60">
+            {selected.label} · {selected.count} {selected.count === 1 ? "jogo" : "jogos"}
+          </p>
+          {selected.games.length ? (
+            <div className="mt-2 space-y-1.5">
+              {selected.games.map((title) => (
+                <p key={title} className="truncate text-[11px] font-medium text-white/80">{title}</p>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-[10px] text-white/40">Nenhum jogo concluído registrado neste mês.</p>
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+
 /* ---------- ATIVIDADE ---------- */
 
 function ActivityRow({
@@ -2195,6 +2282,62 @@ export default function AtividadePage() {
       }))
       .sort((a, b) => b.minutes - a.minutes);
   }, [games, recent60Entries]);
+
+
+  const completedGamesByMonth = useMemo<CompletionMonth[]>(() => {
+    const datedCompletedGames = games.flatMap((game) => {
+      const status = normalizeKey(game.status);
+      const isCompleted = ["completed", "concluido", "concluida", "finalizado", "finalizada"].includes(status);
+      if (!isCompleted) return [];
+
+      const dateCandidates = [
+        game.completedAt,
+        game.firstJourney?.completedAt,
+        game.finalBadge?.unlockedAt,
+        game.emblem?.unlockedAt,
+        game.gameEmblem?.unlockedAt,
+      ];
+      const completionDate = dateCandidates
+        .map((value) => getActivityDateKey(typeof value === "string" ? value : ""))
+        .find(Boolean);
+      if (!completionDate) return [];
+
+      return [{
+        monthKey: completionDate.slice(0, 7),
+        title: normalizeGameTitle(game.title),
+      }];
+    });
+
+    const monthKeys = new Set(datedCompletedGames.map((game) => game.monthKey));
+    const currentMonth = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0");
+    const anchorKey = [...monthKeys].sort().at(-1) || currentMonth;
+    const anchorParts = anchorKey.split("-").map(Number);
+    const anchorDate = new Date(anchorParts[0], anchorParts[1] - 1, 1, 12, 0, 0, 0);
+
+    return Array.from({ length: 6 }, (_, index) => {
+      const monthDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - 5 + index, 1, 12, 0, 0, 0);
+      const key = monthDate.getFullYear() + "-" + String(monthDate.getMonth() + 1).padStart(2, "0");
+      return {
+        key,
+        label: getMonthShort(key + "-01"),
+        count: datedCompletedGames.filter((game) => game.monthKey === key).length,
+        games: datedCompletedGames.filter((game) => game.monthKey === key).map((game) => game.title).sort((a, b) => a.localeCompare(b, "pt-BR")),
+      };
+    });
+  }, [games, today]);
+
+  const sidebarRatedReviews = reviewDiary.filter((review) => review.score !== null);
+  const sidebarAverageScore = sidebarRatedReviews.length
+    ? sidebarRatedReviews.reduce((sum, review) => sum + (review.score ?? 0), 0) / sidebarRatedReviews.length
+    : null;
+  const sidebarScoreBuckets = [
+    { label: "9–10", count: sidebarRatedReviews.filter((review) => (review.score ?? -1) >= 9).length },
+    { label: "7–8,9", count: sidebarRatedReviews.filter((review) => (review.score ?? -1) >= 7 && (review.score ?? -1) < 9).length },
+    { label: "5–6,9", count: sidebarRatedReviews.filter((review) => (review.score ?? -1) >= 5 && (review.score ?? -1) < 7).length },
+    { label: "3–4,9", count: sidebarRatedReviews.filter((review) => (review.score ?? -1) >= 3 && (review.score ?? -1) < 5).length },
+    { label: "0–2,9", count: sidebarRatedReviews.filter((review) => (review.score ?? -1) >= 0 && (review.score ?? -1) < 3).length },
+  ];
+  const sidebarMaxScoreBucket = Math.max(1, ...sidebarScoreBuckets.map((bucket) => bucket.count));
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -3143,7 +3286,36 @@ export default function AtividadePage() {
                     </div>
                   ))}
                 </div>
+
+                <div className="mt-4 border-t border-white/[0.08] pt-3">
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/40">Nota média dos reviews</p>
+                      <p className="mt-1 text-[23px] font-black leading-none text-white">
+                        {sidebarAverageScore === null
+                          ? "—"
+                          : sidebarAverageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + "/10"}
+                      </p>
+                    </div>
+                    <p className="text-right text-[10px] font-semibold text-white/45">
+                      {reviewDiary.length} {reviewDiary.length === 1 ? "review publicada" : "reviews publicadas"}
+                    </p>
+                  </div>
+                  <div className="mt-3 space-y-1.5" aria-label="Distribuição das notas das reviews publicadas">
+                    {sidebarScoreBuckets.map((bucket) => (
+                      <div key={bucket.label} className="flex items-center gap-2">
+                        <span className="w-[42px] shrink-0 text-[9px] font-bold tabular-nums text-white/45">{bucket.label}</span>
+                        <div className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+                          <div className="h-full rounded-full bg-red-500" style={{ width: (bucket.count / sidebarMaxScoreBucket) * 100 + "%" }} />
+                        </div>
+                        <span className="w-4 shrink-0 text-right text-[9px] font-black tabular-nums text-white/65">{bucket.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </section>
+
+              <GameCompletionChart months={completedGamesByMonth} />
 
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
                 <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
