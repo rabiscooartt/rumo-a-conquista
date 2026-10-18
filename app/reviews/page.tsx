@@ -200,7 +200,7 @@ function WholeWordPreview({
         return;
       }
 
-      const words = source.split(/\\s+/).filter(Boolean);
+      const words = source.split(/\s+/).filter(Boolean);
       let low = 1;
       let high = words.length;
       let best = "…";
