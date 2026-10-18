@@ -457,7 +457,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.18]" : "scale-[1.14]"
+        isLarge ? "scale-[1.08]" : "scale-[1.06]"
       }`}
       onError={() => setHasError(true)}
     />
@@ -506,6 +506,7 @@ function EmblemCard({
   isLarge?: boolean;
 }) {
   const isLocked = !emblem.isCompleted;
+  const unlockedDate = formatDate(emblem.unlockedAt);
 
   return (
     <Link
@@ -516,16 +517,16 @@ function EmblemCard({
       }`}
     >
       <div
-        className={`relative mx-auto flex items-center justify-center overflow-visible ${
+        className={`relative mx-auto flex w-full items-center justify-center overflow-visible ${
           isLarge
-            ? "h-[290px] w-full max-w-[290px]"
-            : "h-[220px] w-full max-w-[220px]"
+            ? "h-[310px]"
+            : "h-[250px] sm:h-[260px] lg:h-[270px]"
         }`}
       >
         <div
           className={`h-full w-full transition duration-300 ${
             isLocked
-              ? "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
+              ? "scale-[0.98] opacity-65 blur-[1.5px] grayscale saturate-0 brightness-[0.78]"
               : "group-hover:scale-[1.03]"
           }`}
         >
@@ -569,10 +570,20 @@ function EmblemCard({
       <p
         className={`mt-1 line-clamp-1 font-bold ${
           isLarge ? "text-xs" : "text-[11px]"
-        } ${emblem.isCompleted ? theme.text : "text-white/35"}`}
+        } ${emblem.isCompleted ? theme.text : "text-white/45"}`}
       >
         {emblem.gameTitle}
       </p>
+
+      {emblem.isCompleted && unlockedDate ? (
+        <time
+          dateTime={normalizeDate(emblem.unlockedAt)}
+          className="mt-1.5 inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold text-emerald-200/75"
+        >
+          <span aria-hidden="true">✓</span>
+          {unlockedDate}
+        </time>
+      ) : null}
     </Link>
   );
 }
@@ -903,6 +914,17 @@ export default function SagasPage() {
     });
   }, [activeFilter, activeYear, emblemGroups]);
 
+  const filteredEmblems = useMemo(
+    () =>
+      filteredGroups.flatMap((group) =>
+        group.emblems.map((emblem) => ({
+          emblem,
+          theme: group.theme,
+        }))
+      ),
+    [filteredGroups]
+  );
+
   function applyYearFilter(year: string) {
     const normalizedYear = year.trim();
 
@@ -946,20 +968,8 @@ export default function SagasPage() {
         </button>
       )}
 
-      <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
-        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
-          <aside className="hidden border-r border-white/[0.08] px-4 py-5 xl:block">
-            <div className="sticky top-20">
-              <div className="border-b border-white/[0.08] pb-4 pt-2">
-                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
-                  <span className="text-red-500">✣</span>
-                  Emblemas
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          <div className="min-w-0 px-1">
+      <section className="mx-auto w-full max-w-[1780px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <div className="min-w-0">
         <Link
           href="/"
           className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
@@ -1129,25 +1139,20 @@ export default function SagasPage() {
             </div>
           ) : emblemGroups.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
-          ) : filteredGroups.length === 0 ? (
+          ) : filteredEmblems.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-              {filteredGroups.map((group) => (
-                <EmblemGroupCard key={group.key} group={group} />
+            <div className="grid grid-cols-1 gap-x-5 gap-y-8 min-[520px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 2xl:gap-x-6 2xl:gap-y-9">
+              {filteredEmblems.map(({ emblem, theme }) => (
+                <EmblemCard
+                  key={emblem.id}
+                  emblem={emblem}
+                  theme={theme}
+                />
               ))}
             </div>
           )}
         </section>
-          </div>
-
-          <aside className="hidden border-l border-white/[0.08] py-5 xl:block">
-            <div className="sticky top-20">
-              <div className="border-b border-white/[0.08] pb-4 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/30">
-                Área auxiliar
-              </div>
-            </div>
-          </aside>
         </div>
       </section>
     </main>
