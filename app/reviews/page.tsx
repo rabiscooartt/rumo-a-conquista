@@ -388,8 +388,8 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         {secondaryExcerpt ? (
           <WholeWordPreview
             text={secondaryExcerpt}
-            maxLines={3}
-            className="mt-2 text-[12px] leading-[1.65] text-white/65"
+            maxLines={2}
+            className="mt-2 text-[13px] leading-[1.6] text-white/70"
           />
         ) : null}
 
