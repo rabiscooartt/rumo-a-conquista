@@ -457,7 +457,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.08]" : "scale-[1.06]"
+        isLarge ? "scale-[1.22]" : "scale-[1.20]"
       }`}
       onError={() => setHasError(true)}
     />
@@ -512,21 +512,21 @@ function EmblemCard({
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative scroll-mt-24 text-center transition hover:-translate-y-1 ${
-        isLarge ? "w-full max-w-[340px]" : "w-full"
+      className={`group relative block w-full min-w-0 rounded-[18px] border border-white/[0.08] bg-zinc-950/60 px-2 pb-3 pt-2 text-center shadow-[0_10px_30px_rgba(0,0,0,0.16)] transition duration-300 hover:-translate-y-1 hover:border-red-500/25 hover:bg-zinc-900/70 hover:shadow-[0_0_28px_rgba(239,68,68,0.08)] ${
+        isLarge ? "max-w-[380px]" : ""
       }`}
     >
       <div
         className={`relative mx-auto flex w-full items-center justify-center overflow-visible ${
           isLarge
-            ? "h-[310px]"
-            : "h-[250px] sm:h-[260px] lg:h-[270px]"
+            ? "h-[330px]"
+            : "h-[280px] sm:h-[295px] lg:h-[300px]"
         }`}
       >
         <div
           className={`h-full w-full transition duration-300 ${
             isLocked
-              ? "scale-[0.98] opacity-65 blur-[1.5px] grayscale saturate-0 brightness-[0.78]"
+              ? "scale-100 opacity-65 blur-[1px] grayscale saturate-0 brightness-[0.78]"
               : "group-hover:scale-[1.03]"
           }`}
         >
@@ -550,7 +550,7 @@ function EmblemCard({
       </div>
 
       <div
-        className={`mx-auto mt-3 inline-flex rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${
+        className={`mx-auto mt-2 inline-flex rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${
           emblem.isCompleted
             ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
             : "border-white/10 bg-white/[0.03] text-white/40"
@@ -560,7 +560,7 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`mt-2 line-clamp-2 font-black leading-tight ${
+        className={`mt-1.5 w-full line-clamp-2 font-black leading-tight ${
           isLarge ? "text-xl" : "text-base"
         } ${emblem.isCompleted ? "text-white" : "text-white/55"}`}
       >
@@ -568,7 +568,7 @@ function EmblemCard({
       </h3>
 
       <p
-        className={`mt-1 line-clamp-1 font-bold ${
+        className={`mt-1 w-full line-clamp-1 font-bold ${
           isLarge ? "text-xs" : "text-[11px]"
         } ${emblem.isCompleted ? theme.text : "text-white/45"}`}
       >
@@ -578,7 +578,7 @@ function EmblemCard({
       {emblem.isCompleted && unlockedDate ? (
         <time
           dateTime={normalizeDate(emblem.unlockedAt)}
-          className="mt-1.5 inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold text-emerald-200/75"
+          className="mt-1 inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold text-emerald-200/75"
         >
           <span aria-hidden="true">✓</span>
           {unlockedDate}
@@ -1142,7 +1142,7 @@ export default function SagasPage() {
           ) : filteredEmblems.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
-            <div className="grid grid-cols-1 gap-x-5 gap-y-8 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-6 2xl:gap-y-9">
+            <div className="grid grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard
                   key={emblem.id}
