@@ -134,8 +134,20 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="group relative grid grid-cols-[112px_minmax(0,1fr)] gap-3 border-b border-white/[0.08] px-3 py-4 last:border-b-0 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
-      <div className="relative z-20 aspect-[3/4] w-full overflow-hidden border border-white/10 bg-black pointer-events-none">
+    <article className="group relative isolate grid grid-cols-[112px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-3 py-4 transition-colors duration-200 hover:border-white/[0.16] sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
+      {image ? (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+          <img
+            src={image}
+            alt=""
+            loading="lazy"
+            className="h-full w-full scale-110 object-cover opacity-30 blur-[5px]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#090b0f] via-[#090b0f]/90 to-[#090b0f]/65" />
+          <div className="absolute inset-0 bg-[#050608]/30" />
+        </div>
+      ) : null}
+      <div className="relative z-20 aspect-[3/4] w-full overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
         {image ? (
           <img
             src={image}
@@ -197,7 +209,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         </div>
 
         {isCustomTitle ? (
-          <p className="mt-2 text-[12px] font-bold leading-snug text-red-200/90 sm:text-[13px]">
+          <p className="mt-2 text-[12px] font-bold leading-snug text-red-500 sm:text-[13px]">
             {reviewTitle}
           </p>
         ) : null}
@@ -536,7 +548,7 @@ export default function ReviewsPage() {
                       </button>
                     </div>
                   ) : visibleGames.length > 0 ? (
-                    <div className="divide-y divide-white/[0.08]">
+                    <div className="space-y-2.5">
                       {visibleGames.map((game) => <ReviewCard key={game.slug} game={game} />)}
                     </div>
                   ) : (
