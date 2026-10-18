@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import BannerBackground from "@/components/BannerBackground";
 import Navbar from "@/components/Navbar";
 import { useSiteGames } from "@/lib/useSiteGames";
 import { type SiteSaga, useSiteSagas } from "@/lib/useSiteSagas";
@@ -986,9 +987,11 @@ export default function SagasPage() {
       <section className="mx-auto w-full max-w-[1780px] px-4 pb-6 pt-3 sm:px-6 lg:px-8 lg:pb-8 lg:pt-4">
         <div className="min-w-0">
         <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[url('/images/emblems-hero.webp')] bg-cover bg-[center_12%]"
+          <BannerBackground
+            bannerKey="emblemas"
+            imageUrl="/images/emblems-hero.webp"
+            className="z-0"
+            adminButtonClassName="!top-0"
           />
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,2,3,0.96)_0%,rgba(2,2,3,0.78)_27%,rgba(2,2,3,0.18)_54%,rgba(2,2,3,0.30)_73%,rgba(2,2,3,0.86)_100%)]" />
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.5),transparent_45%,rgba(0,0,0,0.08))]" />
