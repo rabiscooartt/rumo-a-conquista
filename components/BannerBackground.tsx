@@ -4,14 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useBannerSettings } from "@/components/BannerSettingsProvider";
 import type { SiteBannerKey, SiteBannerSetting } from "@/lib/banner-types";
 
-
-
 type Props = {
   bannerKey: SiteBannerKey;
   imageUrl: string;
   className?: string;
   adminButtonClassName?: string;
 };
+
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 export default function BannerBackground({
   bannerKey,
@@ -29,9 +30,21 @@ export default function BannerBackground({
   const [draft, setDraft] = useState<SiteBannerSetting>(initialSettings);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImagePreview, setSelectedImagePreview] = useState("");
+
+  useEffect(() => {
+    if (!selectedImageFile) {
+      setSelectedImagePreview("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedImageFile);
+    setSelectedImagePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedImageFile]);
 
   const loadSettings = useCallback(async () => {
     try {
@@ -43,14 +56,33 @@ export default function BannerBackground({
       if (!response.ok) return;
 
       const data = (await response.json()) as {
+        x?: number;
+        y?: number;
+        zoom?: number;
+        imageUrl?: string;
         authenticated?: boolean;
       };
 
+      const loaded: SiteBannerSetting = {
+        x: Number.isFinite(Number(data.x)) ? Number(data.x) : initialSettings.x,
+        y: Number.isFinite(Number(data.y)) ? Number(data.y) : initialSettings.y,
+        zoom:
+          Number.isFinite(Number(data.zoom)) && Number(data.zoom) > 0
+            ? Number(data.zoom)
+            : initialSettings.zoom,
+        imageUrl:
+          typeof data.imageUrl === "string"
+            ? data.imageUrl
+            : initialSettings.imageUrl,
+      };
+
       setIsAdmin(data.authenticated === true);
+      setSettings(loaded);
+      setDraft(loaded);
     } catch {
-      // A posição inicial já veio do servidor; falha aqui só afeta a UI do Admin.
+      // The page keeps the default image if the settings endpoint is unavailable.
     }
-  }, [bannerKey]);
+  }, [bannerKey, initialSettings]);
 
   useEffect(() => {
     setSettings(initialSettings);
@@ -58,6 +90,8 @@ export default function BannerBackground({
   }, [initialSettings]);
 
   useEffect(() => {
+    void loadSettings();
+
     function handleAuthChanged() {
       void loadSettings();
     }
@@ -94,40 +128,82 @@ export default function BannerBackground({
     draggingRef.current = false;
   }
 
+  function handleImageSelection(file: File | undefined) {
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      setError("Use uma imagem PNG, JPG ou WEBP.");
+      return;
+    }
+
+    if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) {
+      setError("A imagem precisa ter até 4 MB.");
+      return;
+    }
+
+    setSelectedImageFile(file);
+    setError("");
+  }
+
   async function save() {
     setIsSaving(true);
     setError("");
 
     try {
-      const response = await fetch("/api/admin/banner-settings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      let requestBody: BodyInit;
+      const headers: HeadersInit = {};
+
+      if (selectedImageFile) {
+        const formData = new FormData();
+        formData.set("banner", bannerKey);
+        formData.set("x", String(draft.x));
+        formData.set("y", String(draft.y));
+        formData.set("zoom", String(draft.zoom));
+        formData.set("file", selectedImageFile);
+        requestBody = formData;
+      } else {
+        headers["Content-Type"] = "application/json";
+        requestBody = JSON.stringify({
           banner: bannerKey,
           x: draft.x,
           y: draft.y,
           zoom: draft.zoom,
-        }),
+        });
+      }
+
+      const response = await fetch("/api/admin/banner-settings", {
+        method: "POST",
+        headers,
+        body: requestBody,
       });
 
       const data = (await response.json().catch(() => null)) as {
         error?: string;
+        imageUrl?: string;
       } | null;
 
       if (!response.ok) {
-        throw new Error(data?.error || "Não foi possível salvar a posição.");
+        throw new Error(data?.error || "Não foi possível salvar o banner.");
       }
 
-      setSettings(draft);
-      updateSharedSettings(draft);
+      const savedSettings: SiteBannerSetting = {
+        ...draft,
+        imageUrl:
+          typeof data?.imageUrl === "string"
+            ? data.imageUrl
+            : settings.imageUrl,
+      };
+
+      setSettings(savedSettings);
+      setDraft(savedSettings);
+      updateSharedSettings(savedSettings);
+      setSelectedImageFile(null);
       setIsOpen(false);
     } catch (saveError) {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "Não foi possível salvar a posição."
+          : "Não foi possível salvar o banner."
       );
     } finally {
       setIsSaving(false);
@@ -136,9 +212,12 @@ export default function BannerBackground({
 
   function reset() {
     setDraft(initialSettings);
+    setError("");
   }
 
   const visibleSettings = isOpen && isAdmin ? draft : settings;
+  const visibleImageUrl =
+    selectedImagePreview || visibleSettings.imageUrl || imageUrl;
 
   return (
     <>
@@ -147,7 +226,7 @@ export default function BannerBackground({
         aria-hidden="true"
       >
         <img
-          src={imageUrl}
+          src={visibleImageUrl}
           alt=""
           draggable={false}
           fetchPriority="high"
@@ -158,7 +237,6 @@ export default function BannerBackground({
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
-
           }}
         />
       </div>
@@ -170,6 +248,7 @@ export default function BannerBackground({
               type="button"
               onClick={() => {
                 setDraft(settings);
+                setSelectedImageFile(null);
                 setIsOpen(true);
                 setError("");
               }}
@@ -184,28 +263,54 @@ export default function BannerBackground({
       {isAdmin && isOpen ? (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-[900px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
                   Editor de BG · {bannerKey}
                 </p>
                 <p className="mt-1 text-[10px] text-white/40">
-                  Arraste a imagem diretamente na prévia. A posição salva será usada no banner público.
+                  Carregue uma imagem, arraste na prévia e ajuste o zoom. A imagem e o enquadramento ficam salvos para as próximas visitas.
                 </p>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-red-500/35 bg-red-500/15 px-3 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-red-100 transition hover:bg-red-500/25">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="sr-only"
+                      disabled={isSaving}
+                      onChange={(event) => {
+                        handleImageSelection(event.currentTarget.files?.[0]);
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                    <span aria-hidden="true">↑</span>
+                    Carregar imagem
+                  </label>
+                  <span className="max-w-full truncate text-[9px] text-white/40">
+                    {selectedImageFile
+                      ? selectedImageFile.name
+                      : settings.imageUrl
+                        ? "Imagem personalizada ativa"
+                        : "Imagem padrão do site"}{" "}
+                    · PNG/JPG/WEBP · até 4 MB
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={reset}
                   className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-white/55 hover:text-white"
                 >
-                  Resetar
+                  Resetar posição
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setDraft(settings);
+                    setSelectedImageFile(null);
                     setIsOpen(false);
                     setError("");
                   }}
@@ -219,10 +324,20 @@ export default function BannerBackground({
                   disabled={isSaving}
                   className="rounded-lg border border-red-500/35 bg-red-500/15 px-3 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-red-100 disabled:opacity-50"
                 >
-                  {isSaving ? "Salvando..." : "Salvar"}
+                  {isSaving
+                    ? selectedImageFile
+                      ? "Enviando imagem..."
+                      : "Salvando..."
+                    : "Salvar"}
                 </button>
               </div>
             </div>
+
+            {selectedImageFile ? (
+              <div className="mt-3 overflow-hidden rounded-lg border border-emerald-400/20 bg-emerald-500/[0.05] px-3 py-2 text-[10px] text-emerald-100/80">
+                A nova imagem está na prévia. Clique em <strong>Salvar</strong> para publicar o arquivo permanentemente.
+              </div>
+            ) : null}
 
             <div
               ref={editorRef}
@@ -243,8 +358,8 @@ export default function BannerBackground({
               }}
             >
               <img
-                src={imageUrl}
-                alt=""
+                src={visibleImageUrl}
+                alt="Prévia do banner"
                 draggable={false}
                 className="pointer-events-none absolute max-w-none select-none"
                 style={{
@@ -323,7 +438,7 @@ export default function BannerBackground({
             </div>
 
             {error ? (
-              <p className="mt-2 text-[9px] font-bold text-red-300">{error}</p>
+              <p role="alert" className="mt-3 text-[10px] font-bold text-red-300">{error}</p>
             ) : null}
           </div>
         </div>
