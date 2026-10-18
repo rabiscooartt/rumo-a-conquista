@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useBannerSettings } from "@/components/BannerSettingsProvider";
 import type { SiteBannerKey, SiteBannerSetting } from "@/lib/banner-types";
 
@@ -34,6 +35,11 @@ export default function BannerBackground({
   const [error, setError] = useState("");
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   useEffect(() => {
     if (!selectedImageFile) {
@@ -260,7 +266,7 @@ export default function BannerBackground({
         </div>
       ) : null}
 
-      {isAdmin && isOpen ? (
+      {isAdmin && isOpen && portalTarget ? createPortal((
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-[900px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -337,7 +343,7 @@ export default function BannerBackground({
               <div className="mt-3 overflow-hidden rounded-lg border border-emerald-400/20 bg-emerald-500/[0.05] px-3 py-2 text-[10px] text-emerald-100/80">
                 A nova imagem está na prévia. Clique em <strong>Salvar</strong> para publicar o arquivo permanentemente.
               </div>
-            ) : null}
+            ), portalTarget) : null}
 
             <div
               ref={editorRef}
