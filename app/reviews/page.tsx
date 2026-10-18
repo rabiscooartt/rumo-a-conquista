@@ -267,7 +267,6 @@ export default function ReviewsPage() {
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
-  const [platformFilter, setPlatformFilter] = useState("all");
   const [reviewOrder, setReviewOrder] = useState("recent");
 
   useEffect(() => {
@@ -323,9 +322,7 @@ export default function ReviewsPage() {
           ratingFilter === "5-6.9" ? score >= 5 && score < 7 :
           ratingFilter === "0-4.9" ? score >= 0 && score < 5 : true
         ));
-        const platform = cleanText(game.platform) || "Steam";
-        const matchesPlatform = platformFilter === "all" || normalizeKey(platform) === normalizeKey(platformFilter);
-        return matchesSearch && matchesRating && matchesPlatform;
+        return matchesSearch && matchesRating;
       })
       .sort((a, b) => {
         if (reviewOrder === "title") return a.title.localeCompare(b.title, "pt-BR");
@@ -335,12 +332,7 @@ export default function ReviewsPage() {
         const bTime = Date.parse(cleanText(b.updatedAt)) || 0;
         return bTime - aTime;
       });
-  }, [games, search, ratingFilter, platformFilter, reviewOrder]);
-
-  const reviewPlatformOptions = useMemo(
-    () => [...new Set(games.map((game) => cleanText(game.platform) || "Steam"))].sort((a, b) => a.localeCompare(b, "pt-BR")),
-    [games]
-  );
+  }, [games, search, ratingFilter, reviewOrder]);
 
   const scoredGames = games
     .map((game) => parseScore(game.review?.nota))
@@ -494,15 +486,6 @@ export default function ReviewsPage() {
                     <option value="7-8.9">Nota 7–8,9</option>
                     <option value="5-6.9">Nota 5–6,9</option>
                     <option value="0-4.9">Nota 0–4,9</option>
-                  </select>
-                  <select
-                    value={platformFilter}
-                    onChange={(event) => setPlatformFilter(event.target.value)}
-                    aria-label="Filtrar reviews por plataforma"
-                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[11px] font-bold text-white/70 outline-none focus:border-red-500/40 md:w-[116px]"
-                  >
-                    <option value="all">Plataforma</option>
-                    {reviewPlatformOptions.map((platform) => <option key={platform} value={platform}>{platform}</option>)}
                   </select>
                   <select
                     value={reviewOrder}
