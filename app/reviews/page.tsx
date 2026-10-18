@@ -22,6 +22,11 @@ type ReviewGame = {
   platform?: string;
   hours?: unknown;
   manualTotalPlayedMinutes?: unknown;
+  status?: unknown;
+  completedAt?: unknown;
+  finalBadge?: { unlockedAt?: unknown };
+  emblem?: { unlockedAt?: unknown };
+  firstJourney?: { status?: unknown; completedAt?: unknown };
   achievementsList?: Array<{ status?: unknown }>;
   review?: ReviewRecord;
 };
@@ -244,8 +249,92 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   );
 }
 
+
+type CompletionMonth = {
+  key: string;
+  label: string;
+  count: number;
+  games: string[];
+};
+
+function getCompletionMonthKey(value: unknown): string {
+  const raw = cleanText(value);
+  if (!raw) return "";
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+  if (iso) return iso[1] + "-" + iso[2];
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.getFullYear() + "-" + String(parsed.getMonth() + 1).padStart(2, "0");
+}
+
+function GameCompletionChart({ months }: { months: CompletionMonth[] }) {
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const maxCount = Math.max(1, ...months.map((month) => month.count));
+  const selected = months.find((month) => month.key === selectedMonth) ?? null;
+  const total = months.reduce((sum, month) => sum + month.count, 0);
+
+  return (
+    <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
+          <span className="h-5 w-0.5 rounded-full bg-red-500" />
+          Jogos concluídos
+        </h2>
+        <span className="text-[11px] font-black tabular-nums text-white/70">{total}</span>
+      </div>
+      <p className="mt-1 text-[10px] font-medium text-white/40">Conclusões nos últimos 6 meses</p>
+      <div className="mt-3 grid grid-cols-6 gap-2" aria-label="Jogos concluídos por mês">
+        {months.map((month) => {
+          const barHeight = month.count > 0 ? Math.max(8, (month.count / maxCount) * 72) : 3;
+          const isSelected = selectedMonth === month.key;
+          return (
+            <button
+              key={month.key}
+              type="button"
+              onClick={() => setSelectedMonth((current) => current === month.key ? null : month.key)}
+              aria-pressed={isSelected}
+              title={month.count + " jogos concluídos em " + month.label}
+              className={"flex min-w-0 flex-col items-center rounded-md px-0.5 pb-1 pt-1 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 " + (isSelected ? "bg-red-500/[0.10]" : "")}
+            >
+              <span className={"text-[10px] font-black tabular-nums " + (month.count ? "text-white/80" : "text-white/25")}>{month.count}</span>
+              <div className="mt-1 flex h-[76px] w-full items-end justify-center">
+                <div
+                  className={"w-full max-w-[22px] rounded-t-[3px] transition-colors " + (isSelected ? "bg-red-400" : month.count ? "bg-red-600" : "bg-white/10")}
+                  style={{ height: barHeight + "px" }}
+                />
+              </div>
+              <span className={"mt-1 text-[9px] font-black tracking-[0.03em] " + (isSelected ? "text-red-300" : "text-white/45")}>{month.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[9px] leading-relaxed text-white/35">
+        Usa apenas datas de conclusão ou maestria registradas no jogo. Clique em um mês para ver os títulos.
+      </p>
+      {selected ? (
+        <div className="mt-3 border-t border-white/[0.08] pt-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.08em] text-white/60">
+            {selected.label} · {selected.count} {selected.count === 1 ? "jogo" : "jogos"}
+          </p>
+          {selected.games.length ? (
+            <div className="mt-2 space-y-1.5">
+              {selected.games.map((title) => (
+                <p key={title} className="truncate text-[11px] font-medium text-white/80">{title}</p>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-[10px] text-white/40">Nenhum jogo concluído com data registrada neste mês.</p>
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+
 export default function ReviewsPage() {
   const [games, setGames] = useState<ReviewGame[]>([]);
+  const [catalogGames, setCatalogGames] = useState<ReviewGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
@@ -266,6 +355,7 @@ export default function ReviewsPage() {
         }
 
         if (!cancelled) {
+          setCatalogGames(payload.games);
           setGames(payload.games.filter((game) => Boolean(game.slug && canReadReview(game))));
         }
       } catch (error) {
@@ -319,15 +409,41 @@ export default function ReviewsPage() {
   const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
   const lowScore = scoredGames.length ? Math.min(...scoredGames) : null;
 
-  const ratingDistribution = [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5].map((rating) => ({
-    rating,
-    count: scoredGames.filter((score) => {
-      if (score <= 0) return false;
-      const roundedStars = Math.round((score / 2) * 2) / 2;
-      return roundedStars === rating;
-    }).length,
-  }));
-  const maxRatingCount = Math.max(0, ...ratingDistribution.map((item) => item.count));
+
+  const completedGamesByMonth = useMemo<CompletionMonth[]>(() => {
+    const completedGames = catalogGames.flatMap((game) => {
+      const status = normalizeKey(game.status);
+      if (!["completed", "concluido", "concluida", "finalizado", "finalizada"].includes(status)) return [];
+
+      const completionMonth = [
+        game.completedAt,
+        game.firstJourney?.completedAt,
+        game.finalBadge?.unlockedAt,
+        game.emblem?.unlockedAt,
+      ].map(getCompletionMonthKey).find(Boolean);
+
+      return completionMonth ? [{ key: completionMonth, title: game.title }] : [];
+    });
+
+    const now = new Date();
+    return Array.from({ length: 6 }, (_, index) => {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1, 12);
+      const key = monthDate.getFullYear() + "-" + String(monthDate.getMonth() + 1).padStart(2, "0");
+      const monthGames = completedGames.filter((game) => game.key === key).map((game) => game.title)
+        .sort((a, b) => a.localeCompare(b, "pt-BR"));
+      const label = monthDate.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "").toUpperCase();
+      return { key, label, count: monthGames.length, games: monthGames };
+    });
+  }, [catalogGames]);
+
+  const compactRatingBuckets = [
+    { label: "9–10", count: scoredGames.filter((score) => score >= 9).length },
+    { label: "7–8,9", count: scoredGames.filter((score) => score >= 7 && score < 9).length },
+    { label: "5–6,9", count: scoredGames.filter((score) => score >= 5 && score < 7).length },
+    { label: "3–4,9", count: scoredGames.filter((score) => score >= 3 && score < 5).length },
+    { label: "0–2,9", count: scoredGames.filter((score) => score >= 0 && score < 3).length },
+  ];
+  const maxCompactRatingCount = Math.max(1, ...compactRatingBuckets.map((bucket) => bucket.count));
 
   return (
     <main className="min-h-screen bg-[#050608] text-white">
@@ -521,36 +637,26 @@ export default function ReviewsPage() {
                 </div>
               </section>
 
+              <GameCompletionChart months={completedGamesByMonth} />
+
               <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-                <h2 className="flex items-center gap-2 text-[16px] font-black uppercase tracking-[0.01em] text-white/95">
+                <h2 className="flex items-center gap-2 text-[14px] font-black uppercase tracking-[0.01em] text-white/95">
                   <span className="h-5 w-0.5 rounded-full bg-red-500" />
                   Distribuição de notas
                 </h2>
-
-                <div className="mt-4 space-y-2.5">
-                  {ratingDistribution.map(({ rating, count }) => {
-                    const width = maxRatingCount > 0 ? (count / maxRatingCount) * 100 : 0;
-                    const ratingLabel = `${Number.isInteger(rating) ? rating.toFixed(0) : rating.toFixed(1)}★`;
-
+                <p className="mt-1 text-[10px] text-white/40">
+                  {scoredGames.length} {scoredGames.length === 1 ? "review avaliada" : "reviews avaliadas"} · barras por faixa de nota
+                </p>
+                <div className="mt-3 space-y-2">
+                  {compactRatingBuckets.map(({ label, count }) => {
+                    const width = (count / maxCompactRatingCount) * 100;
                     return (
-                      <div
-                        key={rating}
-                        className="grid grid-cols-[30px_minmax(0,1fr)_22px] items-center gap-2"
-                        aria-label={`${ratingLabel}: ${count} reviews`}
-                        title={`${ratingLabel}: ${count} reviews`}
-                      >
-                        <span className="whitespace-nowrap text-right text-[10px] font-semibold tabular-nums text-white/55">
-                          {ratingLabel}
-                        </span>
-                        <div className="h-[6px] overflow-hidden rounded-[1px] bg-white/[0.09]">
-                          <div
-                            className="h-full rounded-[1px] bg-red-500/90 transition-[width] duration-300"
-                            style={{ width: `${width}%` }}
-                          />
+                      <div key={label} className="grid grid-cols-[42px_minmax(0,1fr)_18px] items-center gap-2">
+                        <span className="text-[9px] font-semibold tabular-nums text-white/55">{label}</span>
+                        <div className="h-[5px] overflow-hidden rounded-full bg-white/[0.09]">
+                          <div className="h-full rounded-full bg-red-500 transition-[width] duration-300" style={{ width: width + "%" }} />
                         </div>
-                        <span className="text-right text-[11px] font-bold tabular-nums text-white/75">
-                          {loading ? "—" : count}
-                        </span>
+                        <span className="text-right text-[10px] font-bold tabular-nums text-white/75">{loading ? "—" : count}</span>
                       </div>
                     );
                   })}
