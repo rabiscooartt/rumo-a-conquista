@@ -665,6 +665,8 @@ export default function SagasPage() {
   const [activeFilter, setActiveFilter] = useState<EmblemFilter>("all");
   const [activeYear, setActiveYear] = useState<string>("all");
   const [yearInput, setYearInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"alphabetical" | "recent">("alphabetical");
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -914,16 +916,29 @@ export default function SagasPage() {
     });
   }, [activeFilter, activeYear, emblemGroups]);
 
-  const filteredEmblems = useMemo(
-    () =>
-      filteredGroups.flatMap((group) =>
-        group.emblems.map((emblem) => ({
-          emblem,
-          theme: group.theme,
-        }))
-      ),
-    [filteredGroups]
-  );
+  const filteredEmblems = useMemo(() => {
+    const query = normalizeText(searchQuery);
+    const items = filteredGroups.flatMap((group) =>
+      group.emblems
+        .filter((emblem) => {
+          if (!query) return true;
+          return normalizeText(
+            `${emblem.title} ${emblem.gameTitle} ${emblem.sagaTitle}`
+          ).includes(query);
+        })
+        .map((emblem) => ({ emblem, theme: group.theme }))
+    );
+
+    return items.sort((a, b) => {
+      if (sortOrder === "recent") {
+        return normalizeDate(b.emblem.unlockedAt).localeCompare(
+          normalizeDate(a.emblem.unlockedAt)
+        );
+      }
+
+      return a.emblem.gameTitle.localeCompare(b.emblem.gameTitle, "pt-BR");
+    });
+  }, [filteredGroups, searchQuery, sortOrder]);
 
   function applyYearFilter(year: string) {
     const normalizedYear = year.trim();
@@ -968,109 +983,103 @@ export default function SagasPage() {
         </button>
       )}
 
-      <section className="mx-auto w-full max-w-[1780px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+      <section className="mx-auto w-full max-w-[1780px] px-4 pb-6 pt-3 sm:px-6 lg:px-8 lg:pb-8 lg:pt-4">
         <div className="min-w-0">
-        <Link
-          href="/"
-          className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
-        >
-          ← Voltar para Home
-        </Link>
+        <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[url('/images/emblems-hero.svg')] bg-cover bg-center"
+          />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,2,3,0.96)_0%,rgba(2,2,3,0.78)_27%,rgba(2,2,3,0.18)_54%,rgba(2,2,3,0.30)_73%,rgba(2,2,3,0.86)_100%)]" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.5),transparent_45%,rgba(0,0,0,0.08))]" />
 
-        <header className="mt-5 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-6">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_32%)]" />
+          <div className="relative z-10 flex min-h-[220px] flex-col justify-between gap-5 p-5 sm:p-6 lg:min-h-[224px] lg:flex-row lg:items-center lg:gap-8 lg:px-7">
+            <div className="min-w-0 max-w-[760px] border-l-[4px] border-red-500 pl-4 sm:pl-5">
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-white/80">
+                <span className="text-red-500">◆</span>
+                Emblemas
+              </p>
+              <h1 className="mt-3 text-2xl font-black uppercase leading-[1.06] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] sm:text-3xl lg:text-[38px]">
+                Coleção de <span className="text-red-500">Emblemas</span>
+              </h1>
+              <p className="mt-3 max-w-[620px] text-xs leading-relaxed text-white/65 sm:text-sm">
+                Galeria das franquias, sagas e jogos especiais do projeto.
+                Cada emblema representa uma jornada concluída.
+              </p>
+            </div>
 
-            <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-                  Emblemas
-                </p>
-
-                <h1 className="mt-3 text-[34px] font-black text-white">
-                  Coleção de Emblemas
-                </h1>
-
-                <p className="mt-3 max-w-[780px] text-sm leading-relaxed text-white/50">
-                  Galeria das franquias, sagas e jogos avulsos do projeto. Cada
-                  card exibe o emblema disponível dentro da coleção.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                    {activeYear === "all" ? "Emblemas" : `Emblemas ${activeYear}`}
-                  </p>
-
-                  <p className="mt-1 text-3xl font-black text-white">
-                    {activeYear === "all"
-                      ? `${completedEmblems}/${totalEmblems}`
-                      : activeYearEmblemsCount}
-                  </p>
+            <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[310px] lg:w-[292px]">
+              <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/75">
+                Progresso da coleção
+              </p>
+              <div className="mt-3 flex items-center gap-4">
+                <div
+                  className="flex h-[86px] w-[86px] shrink-0 items-center justify-center rounded-full p-[7px]"
+                  style={{
+                    background: `conic-gradient(#f21d2f ${totalProgress}%, rgba(255,255,255,0.12) ${totalProgress}% 100%)`,
+                  }}
+                  aria-label={`${totalProgress}% da coleção conquistada`}
+                >
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-[#08090c] text-xl font-black text-white">
+                    {totalProgress}%
+                  </div>
                 </div>
-
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/5 px-5 py-4 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">
-                    Progresso
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-black leading-none text-white">
+                    {completedEmblems} <span className="text-white/35">/ {totalEmblems}</span>
                   </p>
-
-                  <p className="mt-1 text-3xl font-black text-cyan-300">
-                    {activeYear === "all" ? totalProgress : 100}%
+                  <p className="mt-2 text-[11px] font-medium text-white/60">
+                    Emblemas conquistados
                   </p>
+                  <div className="mt-3 h-[7px] overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,29,47,0.48)] transition-all duration-500"
+                      style={{ width: `${totalProgress}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        <section className="mt-4 rounded-[14px] border border-white/10 bg-zinc-950/70 p-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-red-400">
-                Organização
-              </p>
+        <section className="mt-3 rounded-[14px] border border-white/10 bg-[linear-gradient(105deg,rgba(7,7,8,0.98),rgba(13,13,16,0.96),rgba(5,5,5,0.98))] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.25)]">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <label className="relative min-w-0 flex-1 xl:min-w-[220px]">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-white/35" aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Buscar emblema por jogo, franquia ou saga..."
+                aria-label="Buscar emblema por jogo, franquia ou saga"
+                className="h-[42px] w-full rounded-[10px] border border-white/15 bg-black/55 pl-10 pr-4 text-xs font-medium text-white outline-none transition placeholder:text-white/35 hover:border-white/25 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/10"
+              />
+            </label>
 
-              <p className="mt-1 text-sm text-white/45">
-                Coleção em ordem alfabética. Use os filtros para separar
-                conquistados e bloqueados.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex overflow-hidden rounded-full border border-white/10 bg-black/35">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex h-[40px] overflow-hidden rounded-full border border-white/10 bg-black/45">
                 <input
                   value={yearInput}
                   onChange={(event) => {
-                    const onlyNumbers = event.target.value
-                      .replace(/\D/g, "")
-                      .slice(0, 4);
-
+                    const onlyNumbers = event.target.value.replace(/\D/g, "").slice(0, 4);
                     setYearInput(onlyNumbers);
-
-                    if (onlyNumbers.length === 4) {
-                      applyYearFilter(onlyNumbers);
-                    }
-
-                    if (onlyNumbers.length === 0) {
-                      clearYearFilter();
-                    }
+                    if (onlyNumbers.length === 4) applyYearFilter(onlyNumbers);
+                    if (onlyNumbers.length === 0) clearYearFilter();
                   }}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      applyYearFilter(yearInput);
-                    }
+                    if (event.key === "Enter") applyYearFilter(yearInput);
                   }}
                   placeholder="Ano"
                   inputMode="numeric"
-                  className="w-[82px] bg-transparent px-4 py-2 text-xs font-black text-white outline-none placeholder:text-white/30"
+                  aria-label="Filtrar por ano"
+                  className="w-[62px] bg-transparent px-3 text-xs font-bold text-white outline-none placeholder:text-white/35"
                 />
-
                 <button
                   type="button"
                   onClick={() => applyYearFilter(yearInput)}
-                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-xs font-black text-red-200 transition hover:bg-red-500/20"
-                  aria-label="Filtrar por ano"
+                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-xs text-red-200 transition hover:bg-red-500/20"
+                  aria-label="Aplicar filtro de ano"
                   title="Filtrar por ano"
                 >
                   🔎
@@ -1081,7 +1090,7 @@ export default function SagasPage() {
                 <button
                   type="button"
                   onClick={clearYearFilter}
-                  className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-200 transition hover:bg-emerald-500/[0.14]"
+                  className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-3 py-2 text-[10px] font-black text-emerald-200 transition hover:bg-emerald-500/[0.14]"
                 >
                   {activeYear} ×
                 </button>
@@ -1094,13 +1103,10 @@ export default function SagasPage() {
                   setActiveYear("all");
                   setYearInput("");
                 }}
-                className={getFilterButtonClass(
-                  activeFilter === "all" && activeYear === "all"
-                )}
+                className={getFilterButtonClass(activeFilter === "all" && activeYear === "all")}
               >
-                Todos {totalEmblems}
+                ▦&nbsp; Todos ({totalEmblems})
               </button>
-
               <button
                 type="button"
                 onClick={() => {
@@ -1108,13 +1114,10 @@ export default function SagasPage() {
                   setActiveYear("all");
                   setYearInput("");
                 }}
-                className={getFilterButtonClass(
-                  activeFilter === "completed" && activeYear === "all"
-                )}
+                className={getFilterButtonClass(activeFilter === "completed" && activeYear === "all")}
               >
-                Conquistados {completedEmblems}
+                🏆&nbsp; Conquistados ({completedEmblems})
               </button>
-
               <button
                 type="button"
                 onClick={() => {
@@ -1122,12 +1125,24 @@ export default function SagasPage() {
                   setActiveYear("all");
                   setYearInput("");
                 }}
-                className={getFilterButtonClass(
-                  activeFilter === "locked" && activeYear === "all"
-                )}
+                className={getFilterButtonClass(activeFilter === "locked" && activeYear === "all")}
               >
-                Bloqueados {lockedEmblems}
+                🔒&nbsp; Bloqueados ({lockedEmblems})
               </button>
+
+              <label className="flex h-[40px] items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 xl:ml-1">
+                <span aria-hidden="true" className="text-sm">↕</span>
+                <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.08em] text-white/65">Ordem:</span>
+                <select
+                  value={sortOrder}
+                  onChange={(event) => setSortOrder(event.target.value as "alphabetical" | "recent")}
+                  aria-label="Ordenar emblemas"
+                  className="max-w-[135px] bg-transparent text-[10px] font-bold text-white outline-none"
+                >
+                  <option value="alphabetical" className="bg-zinc-950">Alfabética</option>
+                  <option value="recent" className="bg-zinc-950">Mais recentes</option>
+                </select>
+              </label>
             </div>
           </div>
         </section>
