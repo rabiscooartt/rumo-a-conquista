@@ -568,16 +568,18 @@ function EmblemCard({
           }`}
         >
           {isLocked ? (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" aria-label="Bloqueado" title="Bloqueado" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="10" width="14" height="11" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m5 12 4 4L19 6" />
-            </svg>
+            <>
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m5 12 4 4L19 6" />
+              </svg>
+              <span>Conquistado</span>
+            </>
           )}
-          {isLocked ? "Bloqueado" : "Conquistado"}
         </div>
 
         {isLocked ? (
@@ -615,9 +617,7 @@ function EmblemCard({
               </time>
             </div>
           ) : (
-            <div className="h-[41px] border-t border-white/[0.07] pt-3 text-center text-[11px] font-semibold text-white/35">
-              {isLocked ? "Ainda não revelado" : "Relíquia conquistada"}
-            </div>
+            <div aria-hidden="true" className="h-[41px] border-t border-white/[0.07]" />
           )}
         </div>
       </div>
@@ -800,7 +800,6 @@ export default function SagasPage() {
 
   const totalEmblems = allEmblems.length;
   const completedEmblems = allEmblems.filter((emblem) => emblem.isCompleted).length;
-  const lockedEmblems = totalEmblems - completedEmblems;
 
   const totalProgress =
     totalEmblems > 0 ? Math.round((completedEmblems / totalEmblems) * 100) : 0;
@@ -946,9 +945,6 @@ export default function SagasPage() {
                   style={{ width: `${totalProgress}%` }}
                 />
               </div>
-              <p className="mt-2 text-[11px] font-medium text-white/45">
-                {lockedEmblems} {lockedEmblems === 1 ? "emblema ainda bloqueado" : "emblemas ainda bloqueados"}
-              </p>
             </div>
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
