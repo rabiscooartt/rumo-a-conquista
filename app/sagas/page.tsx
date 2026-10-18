@@ -472,8 +472,25 @@ function getFilterButtonClass(isActive: boolean) {
   }`;
 }
 
-function EmptyMessage({ activeFilter }: { activeFilter: EmblemFilter }) {
-  if (activeFilter === "completed") {
+function EmptyMessage({
+  activeFilter,
+  hasSearch = false,
+  activeYear = "all",
+}: {
+  activeFilter: EmblemFilter;
+  hasSearch?: boolean;
+  activeYear?: string;
+}) {
+  if (hasSearch) {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-[#08090c] p-10 text-center">
+        <p className="text-base font-bold text-white">Nenhum emblema encontrado</p>
+        <p className="mt-2 text-sm text-white/55">Tente outro nome de jogo ou franquia.</p>
+      </div>
+    );
+  }
+
+  if (activeYear !== "all" || activeFilter === "completed") {
     return (
       <div className="rounded-[24px] border border-white/10 bg-zinc-950/80 p-8 text-white/50">
         Nenhum emblema conquistado ainda.
@@ -499,151 +516,112 @@ function EmptyMessage({ activeFilter }: { activeFilter: EmblemFilter }) {
 function EmblemCard({
   emblem,
   theme,
-  isLarge = false,
 }: {
   emblem: EmblemItem;
   theme: AccentTheme;
-  isLarge?: boolean;
 }) {
   const isLocked = !emblem.isCompleted;
+  const unlockedDate = formatDate(emblem.unlockedAt);
 
   return (
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative scroll-mt-24 text-center transition hover:-translate-y-1 ${
-        isLarge ? "w-full max-w-[340px]" : "w-full"
+      aria-label={`${isLocked ? "Emblema bloqueado" : emblem.title} — ${emblem.gameTitle}`}
+      className={`group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[18px] border bg-[#08090c] text-left shadow-[0_12px_34px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(0,0,0,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/70 ${
+        isLocked
+          ? "border-white/[0.11] hover:border-white/25"
+          : `${theme.border} hover:border-red-400/55`
       }`}
     >
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-px bg-gradient-to-r from-transparent via-red-500/65 to-transparent opacity-70" />
+
       <div
-        className={`relative mx-auto flex items-center justify-center overflow-visible ${
-          isLarge
-            ? "h-[290px] w-full max-w-[290px]"
-            : "h-[220px] w-full max-w-[220px]"
+        className={`relative isolate flex h-[205px] items-center justify-center overflow-hidden sm:h-[220px] lg:h-[230px] ${
+          isLocked
+            ? "bg-[radial-gradient(ellipse_at_50%_38%,rgba(255,255,255,0.07),transparent_62%),linear-gradient(180deg,#0c0c0f,#070708)]"
+            : "bg-[radial-gradient(ellipse_at_50%_38%,rgba(239,68,68,0.16),transparent_62%),linear-gradient(180deg,#16090c,#080809)]"
         }`}
       >
+        <div className="pointer-events-none absolute inset-0 opacity-60 [background-image:radial-gradient(rgba(255,255,255,0.11)_0.6px,transparent_0.7px)] [background-size:6px_6px]" />
+        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
+
         <div
-          className={`h-full w-full transition duration-300 ${
+          className={`relative z-10 h-full w-full p-4 transition duration-300 group-hover:scale-[1.025] sm:p-5 ${
             isLocked
-              ? "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
-              : "group-hover:scale-[1.03]"
+              ? "opacity-45 grayscale brightness-[0.7]"
+              : "drop-shadow-[0_12px_18px_rgba(0,0,0,0.38)]"
           }`}
         >
           <BadgeImage
             src={emblem.image}
-            alt={emblem.title}
+            alt={isLocked ? "Emblema bloqueado" : emblem.title}
             fallbackIcon={emblem.fallbackIcon}
-            isLarge={isLarge}
           />
         </div>
 
-        {isLocked && (
-          <div
-            className={`pointer-events-none absolute right-2 top-2 z-20 flex items-center justify-center rounded-full border border-white/15 bg-black/75 shadow-[0_0_18px_rgba(0,0,0,0.5)] backdrop-blur-sm ${
-              isLarge ? "h-10 w-10 text-lg" : "h-8 w-8 text-base"
-            }`}
-          >
-            🔒
+        <div
+          className={`absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] backdrop-blur-md ${
+            isLocked
+              ? "border-white/[0.13] bg-black/75 text-white/55"
+              : "border-emerald-400/30 bg-emerald-950/85 text-emerald-300"
+          }`}
+        >
+          {isLocked ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="10" width="14" height="11" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m5 12 4 4L19 6" />
+            </svg>
+          )}
+          {isLocked ? "Bloqueado" : "Conquistado"}
+        </div>
+
+        {isLocked ? (
+          <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/80 text-white/65 shadow-xl backdrop-blur-sm">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="10" width="14" height="11" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
           </div>
-        )}
+        ) : null}
       </div>
 
-      <div
-        className={`mx-auto mt-3 inline-flex rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${
-          emblem.isCompleted
-            ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
-            : "border-white/10 bg-white/[0.03] text-white/40"
-        }`}
-      >
-        {emblem.isCompleted ? "Conquistado" : "Bloqueado"}
-      </div>
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
+        <h2 className={`line-clamp-2 min-h-[2.6em] text-center text-[17px] font-black leading-[1.3] tracking-tight transition-colors ${
+          isLocked ? "text-white/55" : "text-white group-hover:text-red-100"
+        }`}>
+          {isLocked ? "Emblema bloqueado" : emblem.title}
+        </h2>
+        <p className={`mt-1 line-clamp-1 text-center text-[12px] font-semibold ${
+          isLocked ? "text-white/45" : theme.text
+        }`} title={emblem.gameTitle}>
+          {emblem.gameTitle}
+        </p>
 
-      <h3
-        className={`mt-2 line-clamp-2 font-black leading-tight ${
-          isLarge ? "text-xl" : "text-base"
-        } ${emblem.isCompleted ? "text-white" : "text-white/55"}`}
-      >
-        {emblem.isCompleted ? emblem.title : "Emblema bloqueado"}
-      </h3>
-
-      <p
-        className={`mt-1 line-clamp-1 font-bold ${
-          isLarge ? "text-xs" : "text-[11px]"
-        } ${emblem.isCompleted ? theme.text : "text-white/35"}`}
-      >
-        {emblem.gameTitle}
-      </p>
-    </Link>
-  );
-}
-
-function EmblemGroupCard({ group }: { group: EmblemGroup }) {
-  const hasSingleEmblem = group.emblems.length === 1;
-  const unlockedEmblem = group.emblems.find(
-    (emblem) => emblem.isCompleted && emblem.unlockedAt
-  );
-  const unlockedDate = formatDate(unlockedEmblem?.unlockedAt);
-
-  return (
-    <article
-      className={`group/card overflow-hidden rounded-[30px] border bg-zinc-950/75 p-5 shadow-xl transition hover:-translate-y-1 hover:border-white/20 ${
-        group.isCompleted
-          ? `${group.theme.border} ${group.theme.glow}`
-          : "border-white/10"
-      }`}
-    >
-      <div className="border-b border-white/10 pb-3">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
-              Franquia / Jogo
-            </p>
-
-            <h2 className="mt-1 line-clamp-1 text-2xl font-black text-white">
-              {group.title}
-            </h2>
-          </div>
-
-          {unlockedDate ? (
-            <div className="shrink-0 pt-1 text-right">
-              <p className="text-[8px] font-black uppercase tracking-[0.22em] text-emerald-300/45">
-                Conquistado
-              </p>
-
-              <time
-                dateTime={unlockedEmblem?.unlockedAt}
-                className="mt-1 block text-xs font-black tracking-[0.08em] text-emerald-200/70"
-              >
+        <div className="mt-auto pt-3">
+          {unlockedDate && !isLocked ? (
+            <div className="flex items-center justify-center gap-2 border-t border-white/[0.09] pt-3 text-[11px] font-bold text-white/55">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-emerald-300/85" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M16 3v4M8 3v4M3 10h18" />
+              </svg>
+              <span>Conquistado em</span>
+              <time dateTime={normalizeDate(emblem.unlockedAt)} className="text-emerald-200/90">
                 {unlockedDate}
               </time>
             </div>
-          ) : null}
+          ) : (
+            <div className="h-[41px] border-t border-white/[0.07] pt-3 text-center text-[11px] font-semibold text-white/35">
+              {isLocked ? "Ainda não revelado" : "Relíquia conquistada"}
+            </div>
+          )}
         </div>
-
-        {group.subtitle && (
-          <p className={`mt-1 line-clamp-1 text-xs font-bold ${group.theme.text}`}>
-            {group.subtitle}
-          </p>
-        )}
       </div>
-
-      <div
-        className={
-          hasSingleEmblem
-            ? "mt-5 flex justify-center"
-            : "mt-5 grid grid-cols-2 gap-4"
-        }
-      >
-        {group.emblems.map((emblem) => (
-          <EmblemCard
-            key={emblem.id}
-            emblem={emblem}
-            theme={group.theme}
-            isLarge={hasSingleEmblem}
-          />
-        ))}
-      </div>
-    </article>
+    </Link>
   );
 }
 
@@ -653,7 +631,8 @@ export default function SagasPage() {
 
   const [activeFilter, setActiveFilter] = useState<EmblemFilter>("all");
   const [activeYear, setActiveYear] = useState<string>("all");
-  const [yearInput, setYearInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState<"alphabetical" | "recent" | "oldest">("alphabetical");
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -849,77 +828,47 @@ export default function SagasPage() {
     }))
     .sort((yearA, yearB) => Number(yearB.year) - Number(yearA.year));
 
-  const activeYearEmblemsCount =
-    activeYear === "all"
-      ? completedEmblems
-      : emblemsByYear.find((item) => item.year === activeYear)?.count || 0;
+  const filteredEmblems = useMemo(() => {
+    const query = normalizeText(search);
+    const items = emblemGroups.flatMap((group) =>
+      group.emblems.map((emblem) => ({ emblem, theme: group.theme }))
+    );
 
-  const filteredGroups = useMemo(() => {
-    const shouldSortByConquestDate =
-      activeYear !== "all" || activeFilter === "completed";
+    return items
+      .filter(({ emblem }) => {
+        if (activeYear !== "all") {
+          if (!emblem.isCompleted || getYearFromDate(emblem.unlockedAt) !== activeYear) {
+            return false;
+          }
+        } else {
+          if (activeFilter === "completed" && !emblem.isCompleted) return false;
+          if (activeFilter === "locked" && emblem.isCompleted) return false;
+        }
 
-    const groups = emblemGroups
-      .map((group) => {
-        const emblems = group.emblems
-          .filter((emblem) => {
-            if (activeYear !== "all") {
-              return (
-                emblem.isCompleted &&
-                getYearFromDate(emblem.unlockedAt) === activeYear
-              );
-            }
+        if (!query) return true;
 
-            if (activeFilter === "completed") return emblem.isCompleted;
-            if (activeFilter === "locked") return !emblem.isCompleted;
+        const searchableText = [
+          emblem.gameTitle,
+          emblem.sagaTitle,
+          emblem.isCompleted ? emblem.title : "",
+        ].join(" ");
 
-            return true;
-          })
-          .sort((emblemA, emblemB) => {
-            if (!shouldSortByConquestDate) {
-              return 0;
-            }
-
-            return normalizeDate(emblemB.unlockedAt).localeCompare(
-              normalizeDate(emblemA.unlockedAt)
-            );
-          });
-
-        return {
-          ...group,
-          emblems,
-        };
+        return normalizeText(searchableText).includes(query);
       })
-      .filter((group) => group.emblems.length > 0);
+      .sort((a, b) => {
+        if (sortOrder === "recent") {
+          return normalizeDate(b.emblem.unlockedAt).localeCompare(normalizeDate(a.emblem.unlockedAt)) ||
+            a.emblem.gameTitle.localeCompare(b.emblem.gameTitle, "pt-BR");
+        }
 
-    if (!shouldSortByConquestDate) {
-      return groups;
-    }
+        if (sortOrder === "oldest") {
+          return normalizeDate(a.emblem.unlockedAt).localeCompare(normalizeDate(b.emblem.unlockedAt)) ||
+            a.emblem.gameTitle.localeCompare(b.emblem.gameTitle, "pt-BR");
+        }
 
-    return groups.sort((groupA, groupB) => {
-      const firstDateA = normalizeDate(groupA.emblems[0]?.unlockedAt);
-      const firstDateB = normalizeDate(groupB.emblems[0]?.unlockedAt);
-
-      return firstDateB.localeCompare(firstDateA);
-    });
-  }, [activeFilter, activeYear, emblemGroups]);
-
-  function applyYearFilter(year: string) {
-    const normalizedYear = year.trim();
-
-    if (!/^\d{4}$/.test(normalizedYear)) {
-      alert("Digite um ano com 4 números. Ex: 2026");
-      return;
-    }
-
-    setActiveYear(normalizedYear);
-    setActiveFilter("completed");
-  }
-
-  function clearYearFilter() {
-    setActiveYear("all");
-    setYearInput("");
-    setActiveFilter("all");
-  }
+        return a.emblem.gameTitle.localeCompare(b.emblem.gameTitle, "pt-BR");
+      });
+  }, [activeFilter, activeYear, emblemGroups, search, sortOrder]);
 
   function scrollToTop() {
     window.scrollTo({
@@ -946,209 +895,189 @@ export default function SagasPage() {
         </button>
       )}
 
-      <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
-        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
-          <aside className="hidden border-r border-white/[0.08] px-4 py-5 xl:block">
-            <div className="sticky top-20">
-              <div className="border-b border-white/[0.08] pb-4 pt-2">
-                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
-                  <span className="text-red-500">✣</span>
-                  Emblemas
-                </div>
+      <section className="mx-auto w-full max-w-[1540px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <header className="relative isolate overflow-hidden rounded-[20px] border border-red-500/20 bg-[#08090c] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_12%_50%,rgba(239,68,68,0.17),transparent_42%),radial-gradient(ellipse_at_87%_20%,rgba(157,23,23,0.18),transparent_38%),linear-gradient(110deg,#100709_0%,#09090b_50%,#070809_100%)]" />
+          <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.13)_0.65px,transparent_0.8px)] [background-size:6px_6px]" />
+          <div className="pointer-events-none absolute -right-10 -top-16 -z-10 h-[310px] w-[310px] rounded-full border border-red-500/15 sm:right-[250px] sm:h-[360px] sm:w-[360px]" />
+          <div className="pointer-events-none absolute -right-2 top-1/2 -z-10 hidden -translate-y-1/2 text-red-500/[0.09] lg:block">
+            <svg viewBox="0 0 280 280" aria-hidden="true" className="h-[280px] w-[280px]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="140" cy="140" r="103" />
+              <circle cx="140" cy="140" r="88" strokeDasharray="3 8" />
+              <path d="M92 66h96v21a48 48 0 0 1-96 0V66Z" />
+              <path d="M92 75H67a22 22 0 0 0 22 40M188 75h25a22 22 0 0 1-22 40M125 135v28h30v-28M110 163h60v13h-60zM97 195h86" />
+              <path d="M56 204c-18-26-19-54-8-79 4 27 15 44 31 52M224 204c18-26 19-54 8-79-4 27-15 44-31 52" />
+              <path d="m117 66 23-24 23 24" />
+            </svg>
+          </div>
+
+          <div className="relative flex flex-col gap-6 px-5 py-6 sm:px-7 sm:py-7 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
+            <div className="max-w-[720px]">
+              <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.26em] text-red-400 sm:text-[11px]">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
+                Acervo da jornada
               </div>
+              <h1 className="text-[30px] font-black leading-[1.06] tracking-tight text-white sm:text-[38px] lg:text-[42px]">
+                Coleção de <span className="text-red-500">Emblemas</span>
+              </h1>
+              <p className="mt-3 max-w-[600px] text-[13px] leading-relaxed text-white/65 sm:text-sm">
+                Cada emblema marca uma conquista da sua jornada. Veja o que já foi revelado e o que ainda aguarda por você.
+              </p>
             </div>
-          </aside>
 
-          <div className="min-w-0 px-1">
-        <Link
-          href="/"
-          className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
-        >
-          ← Voltar para Home
-        </Link>
-
-        <header className="mt-5 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-6">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_32%)]" />
-
-            <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-                  Emblemas
-                </p>
-
-                <h1 className="mt-3 text-[34px] font-black text-white">
-                  Coleção de Emblemas
-                </h1>
-
-                <p className="mt-3 max-w-[780px] text-sm leading-relaxed text-white/50">
-                  Galeria das franquias, sagas e jogos avulsos do projeto. Cada
-                  card exibe o emblema disponível dentro da coleção.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
-                    {activeYear === "all" ? "Emblemas" : `Emblemas ${activeYear}`}
+            <div className="w-full shrink-0 rounded-[16px] border border-white/[0.11] bg-black/45 p-4 shadow-inner backdrop-blur-sm sm:p-5 lg:max-w-[310px]">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/55">
+                    Progresso da coleção
                   </p>
-
-                  <p className="mt-1 text-3xl font-black text-white">
-                    {activeYear === "all"
-                      ? `${completedEmblems}/${totalEmblems}`
-                      : activeYearEmblemsCount}
+                  <p className="mt-2 text-[35px] font-black leading-none tracking-tight text-white sm:text-[38px]">
+                    {totalProgress}<span className="ml-1 text-lg font-bold text-red-400">%</span>
                   </p>
                 </div>
-
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/5 px-5 py-4 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">
-                    Progresso
-                  </p>
-
-                  <p className="mt-1 text-3xl font-black text-cyan-300">
-                    {activeYear === "all" ? totalProgress : 100}%
-                  </p>
-                </div>
+                <p className="pb-1 text-right text-[12px] font-semibold text-white/60">
+                  <span className="block text-[18px] font-black text-white">{completedEmblems}<span className="mx-1 text-white/35">/</span>{totalEmblems}</span>
+                  emblemas
+                </p>
               </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.09]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-red-400 shadow-[0_0_14px_rgba(239,68,68,0.45)] transition-all duration-500"
+                  style={{ width: `${totalProgress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-[11px] font-medium text-white/45">
+                {lockedEmblems} {lockedEmblems === 1 ? "emblema ainda bloqueado" : "emblemas ainda bloqueados"}
+              </p>
             </div>
           </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
         </header>
 
-        <section className="mt-4 rounded-[14px] border border-white/10 bg-zinc-950/70 p-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-red-400">
-                Organização
-              </p>
-
-              <p className="mt-1 text-sm text-white/45">
-                Coleção em ordem alfabética. Use os filtros para separar
-                conquistados e bloqueados.
-              </p>
+        <section className="mt-4 rounded-[18px] border border-white/[0.09] bg-[#08090c]/95 p-3 sm:mt-5 sm:p-4">
+          <div className="grid gap-3 2xl:grid-cols-[minmax(270px,1fr)_auto_auto] 2xl:items-center">
+            <div className="relative min-w-0">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-4-4" />
+              </svg>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por jogo, emblema ou franquia..."
+                aria-label="Buscar emblemas"
+                className="w-full rounded-xl border border-white/[0.12] bg-black/35 py-3 pl-10 pr-10 text-[12px] font-semibold text-white outline-none transition placeholder:text-white/35 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/15 sm:text-[13px]"
+              />
+              {search ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Limpar busca"
+                  title="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-1.5 py-1 text-sm font-bold text-white/50 transition hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                >
+                  ×
+                </button>
+              ) : null}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex overflow-hidden rounded-full border border-white/10 bg-black/35">
-                <input
-                  value={yearInput}
-                  onChange={(event) => {
-                    const onlyNumbers = event.target.value
-                      .replace(/\D/g, "")
-                      .slice(0, 4);
-
-                    setYearInput(onlyNumbers);
-
-                    if (onlyNumbers.length === 4) {
-                      applyYearFilter(onlyNumbers);
-                    }
-
-                    if (onlyNumbers.length === 0) {
-                      clearYearFilter();
-                    }
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      applyYearFilter(yearInput);
-                    }
-                  }}
-                  placeholder="Ano"
-                  inputMode="numeric"
-                  className="w-[82px] bg-transparent px-4 py-2 text-xs font-black text-white outline-none placeholder:text-white/30"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => applyYearFilter(yearInput)}
-                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-xs font-black text-red-200 transition hover:bg-red-500/20"
-                  aria-label="Filtrar por ano"
-                  title="Filtrar por ano"
-                >
-                  🔎
-                </button>
-              </div>
-
-              {activeYear !== "all" && (
-                <button
-                  type="button"
-                  onClick={clearYearFilter}
-                  className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-200 transition hover:bg-emerald-500/[0.14]"
-                >
-                  {activeYear} ×
-                </button>
-              )}
-
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setActiveFilter("all");
-                  setActiveYear("all");
-                  setYearInput("");
-                }}
-                className={getFilterButtonClass(
-                  activeFilter === "all" && activeYear === "all"
-                )}
+                onClick={() => { setActiveFilter("all"); setActiveYear("all"); }}
+                aria-pressed={activeFilter === "all" && activeYear === "all"}
+                className={getFilterButtonClass(activeFilter === "all" && activeYear === "all")}
               >
-                Todos {totalEmblems}
+                Todos
               </button>
-
               <button
                 type="button"
-                onClick={() => {
-                  setActiveFilter("completed");
-                  setActiveYear("all");
-                  setYearInput("");
-                }}
-                className={getFilterButtonClass(
-                  activeFilter === "completed" && activeYear === "all"
-                )}
+                onClick={() => { setActiveFilter("completed"); setActiveYear("all"); }}
+                aria-pressed={activeFilter === "completed" && activeYear === "all"}
+                className={getFilterButtonClass(activeFilter === "completed" && activeYear === "all")}
               >
-                Conquistados {completedEmblems}
+                Conquistados
               </button>
-
               <button
                 type="button"
-                onClick={() => {
-                  setActiveFilter("locked");
-                  setActiveYear("all");
-                  setYearInput("");
-                }}
-                className={getFilterButtonClass(
-                  activeFilter === "locked" && activeYear === "all"
-                )}
+                onClick={() => { setActiveFilter("locked"); setActiveYear("all"); }}
+                aria-pressed={activeFilter === "locked" && activeYear === "all"}
+                className={getFilterButtonClass(activeFilter === "locked" && activeYear === "all")}
               >
-                Bloqueados {lockedEmblems}
+                Bloqueados
               </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <label className="sr-only" htmlFor="emblem-year-filter">Ano da conquista</label>
+              <select
+                id="emblem-year-filter"
+                value={activeYear}
+                onChange={(event) => {
+                  const year = event.target.value;
+                  setActiveYear(year);
+                  setActiveFilter(year === "all" ? "all" : "completed");
+                }}
+                aria-label="Filtrar por ano da conquista"
+                className="min-w-0 rounded-xl border border-white/[0.12] bg-[#0b0c0f] px-3 py-3 text-[11px] font-bold text-white/75 outline-none transition focus:border-red-500/50 focus:ring-2 focus:ring-red-500/15 sm:text-[12px]"
+              >
+                <option value="all">Todos os anos</option>
+                {emblemsByYear.map(({ year }) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+              <label className="sr-only" htmlFor="emblem-sort">Ordenar emblemas</label>
+              <select
+                id="emblem-sort"
+                value={sortOrder}
+                onChange={(event) => setSortOrder(event.target.value as "alphabetical" | "recent" | "oldest")}
+                aria-label="Ordenar emblemas"
+                className="min-w-0 rounded-xl border border-white/[0.12] bg-[#0b0c0f] px-3 py-3 text-[11px] font-bold text-white/75 outline-none transition focus:border-red-500/50 focus:ring-2 focus:ring-red-500/15 sm:text-[12px]"
+              >
+                <option value="alphabetical">Ordem: A–Z</option>
+                <option value="recent">Mais recentes</option>
+                <option value="oldest">Mais antigos</option>
+              </select>
             </div>
           </div>
+
+          {(activeYear !== "all" || search) ? (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.07] pt-3 text-[11px] text-white/50">
+              <p>
+                {filteredEmblems.length} {filteredEmblems.length === 1 ? "resultado" : "resultados"}
+                {activeYear !== "all" ? ` • Conquistas de ${activeYear}` : ""}
+              </p>
+              <button
+                type="button"
+                onClick={() => { setSearch(""); setActiveYear("all"); setActiveFilter("all"); }}
+                className="font-bold text-red-300 transition hover:text-red-200"
+              >
+                Limpar filtros
+              </button>
+            </div>
+          ) : null}
         </section>
 
-        <section className="mt-4">
+        <section className="mt-4 sm:mt-5">
           {!isLoaded ? (
-            <div className="rounded-[24px] border border-white/10 bg-zinc-950/80 p-8 text-white/50">
+            <div className="rounded-2xl border border-white/10 bg-[#08090c] p-8 text-center text-sm text-white/55">
               Carregando emblemas...
             </div>
-          ) : emblemGroups.length === 0 ? (
-            <EmptyMessage activeFilter={activeFilter} />
-          ) : filteredGroups.length === 0 ? (
-            <EmptyMessage activeFilter={activeFilter} />
+          ) : filteredEmblems.length === 0 ? (
+            <EmptyMessage
+              activeFilter={activeFilter}
+              hasSearch={Boolean(search)}
+              activeYear={activeYear}
+            />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-              {filteredGroups.map((group) => (
-                <EmblemGroupCard key={group.key} group={group} />
+            <div className="grid grid-cols-1 gap-4 min-[520px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 2xl:gap-5">
+              {filteredEmblems.map(({ emblem, theme }) => (
+                <EmblemCard key={emblem.id} emblem={emblem} theme={theme} />
               ))}
             </div>
           )}
         </section>
-          </div>
-
-          <aside className="hidden border-l border-white/[0.08] py-5 xl:block">
-            <div className="sticky top-20">
-              <div className="border-b border-white/[0.08] pb-4 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/30">
-                Área auxiliar
-              </div>
-            </div>
-          </aside>
-        </div>
       </section>
     </main>
   );
