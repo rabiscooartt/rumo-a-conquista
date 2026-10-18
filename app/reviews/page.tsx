@@ -350,8 +350,6 @@ export default function ReviewsPage() {
   ];
   const maxSidebarRatingCount = Math.max(1, ...sidebarRatingBuckets.map((bucket) => bucket.count));
 
-  const highScore = scoredGames.length ? Math.max(...scoredGames) : null;
-
   const featuredReview = useMemo(
     () => [...games]
       .filter((game) => parseScore(game.review?.nota) !== null)
@@ -453,7 +451,7 @@ export default function ReviewsPage() {
                     </p>
                   </div>
 
-                  <div className="absolute bottom-7 left-7 right-7 grid grid-cols-2 gap-y-3 sm:grid-cols-3 sm:gap-y-0">
+                  <div className="absolute bottom-7 left-7 right-7 grid grid-cols-2 gap-x-4 sm:max-w-[72%]">
                     <div>
                       <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Reviews publicadas</p>
                       <p className="mt-1 text-[24px] font-black leading-none text-white">{loading ? "…" : games.length}</p>
@@ -462,13 +460,6 @@ export default function ReviewsPage() {
                       <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Nota média</p>
                       <p className="mt-1 text-[24px] font-black leading-none text-white">
                         {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
-                        <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
-                      </p>
-                    </div>
-                    <div className="hidden border-l border-white/[0.12] pl-4 sm:block">
-                      <p className="text-[8px] font-black uppercase tracking-[.15em] text-white/40">Melhor nota</p>
-                      <p className="mt-1 text-[24px] font-black leading-none text-white">
-                        {highScore === null ? "—" : highScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
                         <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
                       </p>
                     </div>
