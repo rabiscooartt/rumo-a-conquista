@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 
-const VALID_BANNERS = new Set(["jogos", "atividade", "conteudo"]);
+const VALID_BANNERS = new Set(["jogos", "atividade", "conteudo", "reviews"]);
 
 export async function GET(request: NextRequest) {
   const banner = request.nextUrl.searchParams.get("banner") || "";

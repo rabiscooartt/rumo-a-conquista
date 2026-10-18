@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 
-const VALID_BANNERS = new Set(["jogos", "atividade", "conteudo"]);
+const VALID_BANNERS = new Set(["jogos", "atividade", "conteudo", "reviews"]);
 
 function normalize(value: unknown, fallback: number) {
   const number = Number(value);

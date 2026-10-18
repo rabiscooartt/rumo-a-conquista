@@ -435,7 +435,7 @@ export default function ReviewsPage() {
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0">
               <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-                <BannerBackground bannerKey="conteudo" imageUrl="/images/content-banner-bg.png" adminButtonClassName="top-16" />
+                <BannerBackground bannerKey="reviews" imageUrl="/api/reviews-banner?v=1" adminButtonClassName="top-16" />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.94)_25%,rgba(5,6,9,0.75)_49%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 

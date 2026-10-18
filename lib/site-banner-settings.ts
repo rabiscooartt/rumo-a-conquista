@@ -19,6 +19,7 @@ export const SITE_BANNER_DEFAULTS: Record<
   jogos: { ...DEFAULT_SETTINGS },
   atividade: { ...DEFAULT_SETTINGS },
   conteudo: { ...DEFAULT_SETTINGS },
+  reviews: { ...DEFAULT_SETTINGS },
 };
 
 export async function loadSiteBannerSettings(): Promise<
@@ -28,6 +29,7 @@ export async function loadSiteBannerSettings(): Promise<
     jogos: { ...DEFAULT_SETTINGS },
     atividade: { ...DEFAULT_SETTINGS },
     conteudo: { ...DEFAULT_SETTINGS },
+    reviews: { ...DEFAULT_SETTINGS },
   };
 
   try {
@@ -35,7 +37,7 @@ export async function loadSiteBannerSettings(): Promise<
     const { data, error } = await client
       .from("site_banner_settings")
       .select("banner_key, x, y, zoom")
-      .in("banner_key", ["jogos", "atividade", "conteudo"]);
+      .in("banner_key", ["jogos", "atividade", "conteudo", "reviews"]);
 
     if (error) throw error;
 
@@ -45,7 +47,8 @@ export async function loadSiteBannerSettings(): Promise<
       if (
         bannerKey !== "jogos" &&
         bannerKey !== "atividade" &&
-        bannerKey !== "conteudo"
+        bannerKey !== "conteudo" &&
+        bannerKey !== "reviews"
       ) {
         continue;
       }
