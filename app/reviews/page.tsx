@@ -458,11 +458,23 @@ export default function ReviewsPage() {
 
                   <div className="absolute bottom-7 left-7 right-7 grid grid-cols-2 gap-x-4 sm:max-w-[72%]">
                     <div>
-                      <p className="text-[9px] font-black uppercase tracking-[.15em] text-white/55">Reviews publicadas</p>
+                      <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[.15em] text-white/55">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <path d="M14 2v6h6" />
+                          <path d="m9 15 5.5-5.5a1.4 1.4 0 0 1 2 2L11 17l-3 1z" />
+                        </svg>
+                        <span>Reviews publicadas</span>
+                      </p>
                       <p className="mt-1 text-[24px] font-black leading-none text-white">{loading ? "…" : games.length}</p>
                     </div>
                     <div className="border-l border-white/[0.12] pl-4">
-                      <p className="text-[9px] font-black uppercase tracking-[.15em] text-white/55">Nota média</p>
+                      <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[.15em] text-white/55">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-red-500" fill="currentColor">
+                          <path d="m12 2.8 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.36l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.8z" />
+                        </svg>
+                        <span>Nota média</span>
+                      </p>
                       <p className="mt-1 text-[24px] font-black leading-none text-white">
                         {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
                         <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
