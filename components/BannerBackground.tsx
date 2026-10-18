@@ -151,7 +151,7 @@ export default function BannerBackground({
 
     try {
       let requestBody: BodyInit;
-      const headers: HeadersInit = {};
+      const headers: Record<string, string> = {};
 
       if (selectedImageFile) {
         const formData = new FormData();
