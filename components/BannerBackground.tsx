@@ -343,7 +343,7 @@ export default function BannerBackground({
               <div className="mt-3 overflow-hidden rounded-lg border border-emerald-400/20 bg-emerald-500/[0.05] px-3 py-2 text-[10px] text-emerald-100/80">
                 A nova imagem está na prévia. Clique em <strong>Salvar</strong> para publicar o arquivo permanentemente.
               </div>
-            ), portalTarget) : null}
+            ) : null}
 
             <div
               ref={editorRef}
@@ -448,7 +448,7 @@ export default function BannerBackground({
             ) : null}
           </div>
         </div>
-      ) : null}
+      ), portalTarget) : null}
     </>
   );
 }
