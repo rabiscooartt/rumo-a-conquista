@@ -458,7 +458,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.08]" : "scale-[1.07]"
+        isLarge ? "scale-[1.00]" : "scale-[1.00]"
       }`}
       onError={() => setHasError(true)}
     />
@@ -1026,7 +1026,7 @@ export default function SagasPage() {
         <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
           <BannerBackground
             bannerKey="emblemas"
-            imageUrl="/images/emblems-hero.svg"
+            imageUrl="/images/emblems-hero.webp"
             className="z-0"
             adminButtonClassName="!top-0"
           />
