@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
         x: Number.isFinite(Number(data?.x)) ? Number(data?.x ?? 0) : 0,
         y: Number.isFinite(Number(data?.y)) ? Number(data?.y ?? 0) : 0,
         zoom:
-          Number.isFinite(Number(data?.zoom)) && Number(data?.zoom) > 0
-            ? Number(data?.zoom)
+          Number.isFinite(Number(data?.zoom))
+            ? Math.max(1, Math.min(2, Number(data?.zoom)))
             : 1,
         imageUrl: "",
       };
