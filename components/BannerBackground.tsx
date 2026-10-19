@@ -28,6 +28,7 @@ export default function BannerBackground({
 
   const { setting: initialSettings, update: updateSharedSettings } =
     useBannerSettings(bannerKey);
+  const isEmblemsBanner = bannerKey === "emblemas";
   const [settings, setSettings] = useState<SiteBannerSetting>(initialSettings);
   const [draft, setDraft] = useState<SiteBannerSetting>(initialSettings);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -55,7 +56,7 @@ export default function BannerBackground({
   }, []);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !isEmblemsBanner) return;
 
     updatePreviewAspectRatio();
     const banner = bannerHostRef.current?.parentElement;
@@ -69,7 +70,7 @@ export default function BannerBackground({
       observer.disconnect();
       window.removeEventListener("resize", updatePreviewAspectRatio);
     };
-  }, [isOpen, updatePreviewAspectRatio]);
+  }, [bannerKey, isEmblemsBanner, isOpen, updatePreviewAspectRatio]);
 
   useEffect(() => {
     if (!selectedImageFile) {
@@ -103,9 +104,13 @@ export default function BannerBackground({
         x: Number.isFinite(Number(data.x)) ? Number(data.x) : initialSettings.x,
         y: Number.isFinite(Number(data.y)) ? Number(data.y) : initialSettings.y,
         zoom:
-          Number.isFinite(Number(data.zoom))
-            ? Math.max(1, Math.min(2, Number(data.zoom)))
-            : Math.max(1, initialSettings.zoom),
+          Number.isFinite(Number(data.zoom)) && Number(data.zoom) > 0
+            ? isEmblemsBanner
+              ? Math.max(1, Math.min(2, Number(data.zoom)))
+              : Number(data.zoom)
+            : isEmblemsBanner
+              ? Math.max(1, initialSettings.zoom)
+              : initialSettings.zoom,
         imageUrl:
           typeof data.imageUrl === "string"
             ? data.imageUrl
@@ -276,10 +281,12 @@ export default function BannerBackground({
           loading="eager"
           className="pointer-events-none absolute max-w-none select-none"
           style={{
-            width: `${Math.max(1, visibleSettings.zoom) * 100}%`,
-            height: `${Math.max(1, visibleSettings.zoom) * 100}%`,
-            objectFit: "cover",
-            objectPosition: "center top",
+            width: `${(isEmblemsBanner ? Math.max(1, visibleSettings.zoom) : visibleSettings.zoom) * 100}%`,
+            height: isEmblemsBanner
+              ? `${Math.max(1, visibleSettings.zoom) * 100}%`
+              : undefined,
+            objectFit: isEmblemsBanner ? "cover" : undefined,
+            objectPosition: isEmblemsBanner ? "center top" : undefined,
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
@@ -411,8 +418,8 @@ export default function BannerBackground({
 
             <div
               ref={editorRef}
-              className="relative mt-4 w-full cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
-              style={{ aspectRatio: String(previewAspectRatio) }}
+              className={`relative mt-4 ${isEmblemsBanner ? "w-full" : "aspect-[4/1]"} cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing`}
+              style={isEmblemsBanner ? { aspectRatio: String(previewAspectRatio) } : undefined}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 startDrag(event.clientX, event.clientY);
@@ -434,10 +441,10 @@ export default function BannerBackground({
                 draggable={false}
                 className="pointer-events-none absolute max-w-none select-none"
                 style={{
-                  width: `${Math.max(1, draft.zoom) * 100}%`,
-                  height: `${Math.max(1, draft.zoom) * 100}%`,
-                  objectFit: "cover",
-                  objectPosition: "center top",
+                  width: `${(isEmblemsBanner ? Math.max(1, draft.zoom) : draft.zoom) * 100}%`,
+                  height: isEmblemsBanner ? `${Math.max(1, draft.zoom) * 100}%` : undefined,
+                  objectFit: isEmblemsBanner ? "cover" : undefined,
+                  objectPosition: isEmblemsBanner ? "center top" : undefined,
                   left: `${50 + draft.x}%`,
                   top: `${50 + draft.y}%`,
                   transform: "translate(-50%, -50%)",
@@ -496,7 +503,7 @@ export default function BannerBackground({
                 </span>
                 <input
                   type="range"
-                  min="1"
+                  min={isEmblemsBanner ? "1" : "0.8"}
                   max="2"
                   step="0.01"
                   value={draft.zoom}
