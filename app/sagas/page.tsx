@@ -458,7 +458,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.05]" : "scale-[1.04]"
+        isLarge ? "scale-[1.22]" : "scale-[1.20]"
       }`}
       onError={() => setHasError(true)}
     />
@@ -551,13 +551,13 @@ function EmblemCard({
         </span>
       </div>
 
-      <div className={`relative mx-auto mt-2 flex w-full items-center justify-center ${isLarge ? "h-[244px]" : "h-[224px] sm:h-[232px] lg:h-[236px]"}`}>
+      <div className={`relative mx-auto mt-2 flex w-full items-center justify-center ${isLarge ? "h-[330px]" : "h-[280px] sm:h-[295px] lg:h-[300px]"}`}>
         <div
           aria-hidden="true"
           className={`absolute left-1/2 top-1/2 aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border ${
             isLocked
-              ? "h-[208px] border-white/15 bg-[radial-gradient(circle,rgba(90,90,96,0.15),rgba(0,0,0,0.08)_66%,transparent_70%)]"
-              : "h-[208px] border-red-500/35 bg-[radial-gradient(circle,rgba(127,29,29,0.18),rgba(0,0,0,0.08)_66%,transparent_70%)]"
+              ? "h-[248px] border-white/15 bg-[radial-gradient(circle,rgba(90,90,96,0.15),rgba(0,0,0,0.08)_66%,transparent_70%)]"
+              : "h-[248px] border-red-500/35 bg-[radial-gradient(circle,rgba(127,29,29,0.18),rgba(0,0,0,0.08)_66%,transparent_70%)]"
           }`}
         >
           <div className="absolute inset-[8px] rounded-full border border-dashed border-current opacity-35" />
