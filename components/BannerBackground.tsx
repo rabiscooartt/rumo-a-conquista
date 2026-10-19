@@ -22,6 +22,7 @@ export default function BannerBackground({
   adminButtonClassName = "",
 }: Props) {
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const bannerHostRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
@@ -36,10 +37,38 @@ export default function BannerBackground({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [previewAspectRatio, setPreviewAspectRatio] = useState(6.5);
 
   useEffect(() => {
     setPortalTarget(document.body);
   }, []);
+
+  const updatePreviewAspectRatio = useCallback(() => {
+    const banner = bannerHostRef.current?.parentElement;
+    if (!banner) return;
+
+    const rect = banner.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      setPreviewAspectRatio(rect.width / rect.height);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    updatePreviewAspectRatio();
+    const banner = bannerHostRef.current?.parentElement;
+    if (!banner) return;
+
+    const observer = new ResizeObserver(updatePreviewAspectRatio);
+    observer.observe(banner);
+    window.addEventListener("resize", updatePreviewAspectRatio);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updatePreviewAspectRatio);
+    };
+  }, [isOpen, updatePreviewAspectRatio]);
 
   useEffect(() => {
     if (!selectedImageFile) {
@@ -73,9 +102,9 @@ export default function BannerBackground({
         x: Number.isFinite(Number(data.x)) ? Number(data.x) : initialSettings.x,
         y: Number.isFinite(Number(data.y)) ? Number(data.y) : initialSettings.y,
         zoom:
-          Number.isFinite(Number(data.zoom)) && Number(data.zoom) > 0
-            ? Number(data.zoom)
-            : initialSettings.zoom,
+          Number.isFinite(Number(data.zoom))
+            ? Math.max(1, Math.min(2, Number(data.zoom)))
+            : Math.max(1, initialSettings.zoom),
         imageUrl:
           typeof data.imageUrl === "string"
             ? data.imageUrl
@@ -228,6 +257,7 @@ export default function BannerBackground({
   return (
     <>
       <div
+        ref={bannerHostRef}
         className={`absolute inset-0 overflow-hidden ${className}`}
         aria-hidden="true"
       >
@@ -239,7 +269,10 @@ export default function BannerBackground({
           loading="eager"
           className="pointer-events-none absolute max-w-none select-none"
           style={{
-            width: `${visibleSettings.zoom * 100}%`,
+            width: `${Math.max(1, visibleSettings.zoom) * 100}%`,
+            height: `${Math.max(1, visibleSettings.zoom) * 100}%`,
+            objectFit: "cover",
+            objectPosition: "center",
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
@@ -268,14 +301,14 @@ export default function BannerBackground({
 
       {isAdmin && isOpen && portalTarget ? createPortal((
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-[900px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
+          <div className="w-full max-w-[1120px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
                   Editor de BG · {bannerKey}
                 </p>
                 <p className="mt-1 text-[10px] text-white/40">
-                  Carregue uma imagem, arraste na prévia e ajuste o zoom. A imagem e o enquadramento ficam salvos para as próximas visitas.
+                  A prévia usa a mesma proporção do banner real desta aba. Carregue a imagem, arraste e ajuste o zoom; o resultado será o mesmo no site.
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -347,7 +380,8 @@ export default function BannerBackground({
 
             <div
               ref={editorRef}
-              className="relative mt-4 aspect-[4/1] cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
+              className="relative mt-4 w-full cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
+              style={{ aspectRatio: String(previewAspectRatio) }}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 startDrag(event.clientX, event.clientY);
@@ -369,7 +403,10 @@ export default function BannerBackground({
                 draggable={false}
                 className="pointer-events-none absolute max-w-none select-none"
                 style={{
-                  width: `${draft.zoom * 100}%`,
+                  width: `${Math.max(1, draft.zoom) * 100}%`,
+                  height: `${Math.max(1, draft.zoom) * 100}%`,
+                  objectFit: "cover",
+                  objectPosition: "center",
                   left: `${50 + draft.x}%`,
                   top: `${50 + draft.y}%`,
                   transform: "translate(-50%, -50%)",
@@ -428,7 +465,7 @@ export default function BannerBackground({
                 </span>
                 <input
                   type="range"
-                  min="0.8"
+                  min="1"
                   max="2"
                   step="0.01"
                   value={draft.zoom}
