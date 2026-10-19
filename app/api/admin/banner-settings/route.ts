@@ -23,7 +23,7 @@ function normalizeSettings(input: Record<string, unknown>) {
   return {
     x: Math.max(-50, Math.min(50, normalize(input.x, 0))),
     y: Math.max(-50, Math.min(50, normalize(input.y, 0))),
-    zoom: Math.max(0.8, Math.min(2, normalize(input.zoom, 1))),
+    zoom: Math.max(1, Math.min(2, normalize(input.zoom, 1))),
   };
 }
 
@@ -96,9 +96,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        x: data?.x ?? 0,
-        y: data?.y ?? 0,
-        zoom: data?.zoom ?? 1,
+        ...normalizeSettings({
+          x: data?.x ?? 0,
+          y: data?.y ?? 0,
+          zoom: data?.zoom ?? 1,
+        }),
         imageUrl: await getStoredBannerImageUrl(client, bannerKey),
         authenticated: await isAdmin(request),
       },
