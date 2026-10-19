@@ -36,6 +36,7 @@ export default function BannerBackground({
   const [error, setError] = useState("");
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
+  const [restoreDefaultRequested, setRestoreDefaultRequested] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [previewAspectRatio, setPreviewAspectRatio] = useState(6.5);
 
@@ -177,6 +178,7 @@ export default function BannerBackground({
     }
 
     setSelectedImageFile(file);
+    setRestoreDefaultRequested(false);
     setError("");
   }
 
@@ -194,6 +196,7 @@ export default function BannerBackground({
         formData.set("x", String(draft.x));
         formData.set("y", String(draft.y));
         formData.set("zoom", String(draft.zoom));
+        formData.set("resetImage", String(restoreDefaultRequested));
         formData.set("file", selectedImageFile);
         requestBody = formData;
       } else {
@@ -203,6 +206,7 @@ export default function BannerBackground({
           x: draft.x,
           y: draft.y,
           zoom: draft.zoom,
+          resetImage: restoreDefaultRequested,
         });
       }
 
@@ -233,6 +237,7 @@ export default function BannerBackground({
       setDraft(savedSettings);
       updateSharedSettings(savedSettings);
       setSelectedImageFile(null);
+      setRestoreDefaultRequested(false);
       setIsOpen(false);
     } catch (saveError) {
       setError(
@@ -252,7 +257,9 @@ export default function BannerBackground({
 
   const visibleSettings = isOpen && isAdmin ? draft : settings;
   const visibleImageUrl =
-    selectedImagePreview || visibleSettings.imageUrl || imageUrl;
+    selectedImagePreview ||
+    (!restoreDefaultRequested ? visibleSettings.imageUrl : "") ||
+    imageUrl;
 
   return (
     <>
@@ -288,6 +295,7 @@ export default function BannerBackground({
               onClick={() => {
                 setDraft(settings);
                 setSelectedImageFile(null);
+                setRestoreDefaultRequested(false);
                 setIsOpen(true);
                 setError("");
               }}
@@ -329,11 +337,28 @@ export default function BannerBackground({
                   <span className="max-w-full truncate text-[9px] text-white/40">
                     {selectedImageFile
                       ? selectedImageFile.name
-                      : settings.imageUrl
-                        ? "Imagem personalizada ativa"
-                        : "Imagem padrão do site"}{" "}
+                      : restoreDefaultRequested
+                        ? "A imagem padrão será usada ao salvar"
+                        : settings.imageUrl
+                          ? "Imagem personalizada ativa"
+                          : "Imagem padrão do site"}{" "}
                     · PNG/JPG/WEBP · até 4 MB
                   </span>
+                  {settings.imageUrl && !restoreDefaultRequested ? (
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => {
+                        setSelectedImageFile(null);
+                        setRestoreDefaultRequested(true);
+                        setDraft({ x: 0, y: 0, zoom: 1, imageUrl: "" });
+                        setError("");
+                      }}
+                      className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[9px] font-black uppercase tracking-[0.08em] text-white/65 transition hover:border-red-500/35 hover:text-white disabled:opacity-50"
+                    >
+                      Usar imagem padrão
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -350,6 +375,7 @@ export default function BannerBackground({
                   onClick={() => {
                     setDraft(settings);
                     setSelectedImageFile(null);
+                    setRestoreDefaultRequested(false);
                     setIsOpen(false);
                     setError("");
                   }}
@@ -375,6 +401,11 @@ export default function BannerBackground({
             {selectedImageFile ? (
               <div className="mt-3 overflow-hidden rounded-lg border border-emerald-400/20 bg-emerald-500/[0.05] px-3 py-2 text-[10px] text-emerald-100/80">
                 A nova imagem está na prévia. Clique em <strong>Salvar</strong> para publicar o arquivo permanentemente.
+              </div>
+            ) : null}
+            {restoreDefaultRequested ? (
+              <div className="mt-3 overflow-hidden rounded-lg border border-amber-400/20 bg-amber-500/[0.05] px-3 py-2 text-[10px] text-amber-100/80">
+                Ao salvar, a imagem personalizada desta aba será removida do armazenamento e a imagem padrão do projeto será usada.
               </div>
             ) : null}
 
