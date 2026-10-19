@@ -1048,34 +1048,39 @@ export default function SagasPage() {
               </p>
             </div>
 
-            <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[310px] lg:w-[292px]">
+            <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[360px] lg:w-[350px]">
               <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/75">
                 Progresso da coleção
               </p>
-              <div className="mt-3 flex items-center gap-4">
+              <div className="mt-3 flex items-center gap-3.5">
                 <div
-                  className="flex h-[86px] w-[86px] shrink-0 items-center justify-center rounded-full p-[7px]"
+                  className="flex h-[86px] w-[86px] shrink-0 flex-col items-center justify-center rounded-full p-[7px]"
                   style={{
                     background: `conic-gradient(#f21d2f ${totalProgress}%, rgba(255,255,255,0.12) ${totalProgress}% 100%)`,
                   }}
                   aria-label={`${totalProgress}% da coleção conquistada`}
                 >
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-[#08090c] text-xl font-black text-white">
-                    {totalProgress}%
+                  <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[#08090c] text-white">
+                    <span className="text-xl font-black leading-none">{totalProgress}%</span>
+                    <span className="mt-1 text-[9px] font-semibold text-white/55">{completedEmblems} de {totalEmblems}</span>
                   </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-black leading-none text-white">
-                    {completedEmblems} <span className="text-white/35">/ {totalEmblems}</span>
-                  </p>
-                  <p className="mt-2 text-[11px] font-medium text-white/60">
-                    Emblemas conquistados
-                  </p>
-                  <div className="mt-3 h-[7px] overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,29,47,0.48)] transition-all duration-500"
-                      style={{ width: `${totalProgress}%` }}
-                    />
+
+                <div className="min-w-0 flex-1 divide-y divide-white/[0.08]">
+                  <div className="flex items-center gap-2 py-1.5 first:pt-0">
+                    <span aria-hidden="true" className="text-sm">🏆</span>
+                    <span className="min-w-0 flex-1 text-[10px] font-medium text-white/65">Conquistados</span>
+                    <span className="text-xs font-black text-white">{completedEmblems}</span>
+                  </div>
+                  <div className="flex items-center gap-2 py-1.5">
+                    <span aria-hidden="true" className="text-sm">🔒</span>
+                    <span className="min-w-0 flex-1 text-[10px] font-medium text-white/65">Bloqueados</span>
+                    <span className="text-xs font-black text-white">{lockedEmblems}</span>
+                  </div>
+                  <div className="flex items-center gap-2 py-1.5 last:pb-0">
+                    <span aria-hidden="true" className="text-sm">▱</span>
+                    <span className="min-w-0 flex-1 text-[10px] font-medium text-white/65">Total de emblemas</span>
+                    <span className="text-xs font-black text-white">{totalEmblems}</span>
                   </div>
                 </div>
               </div>
