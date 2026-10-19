@@ -458,7 +458,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.22]" : "scale-[1.20]"
+        isLarge ? "scale-[1.08]" : "scale-[1.07]"
       }`}
       onError={() => setHasError(true)}
     />
@@ -589,7 +589,7 @@ function EmblemCard({
         ) : null}
       </div>
 
-      <h3 className={`mt-1.5 line-clamp-2 min-h-[38px] font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+      <h3 className={`mt-4 line-clamp-2 min-h-[38px] font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
         emblem.isCompleted ? "text-white" : "text-white/65"
       }`}>
         {emblem.isCompleted ? emblem.title : "Emblema bloqueado"}
@@ -1026,7 +1026,7 @@ export default function SagasPage() {
         <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
           <BannerBackground
             bannerKey="emblemas"
-            imageUrl="/images/emblems-hero.webp"
+            imageUrl="/images/emblems-hero.svg"
             className="z-0"
             adminButtonClassName="!top-0"
           />

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 320" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 240" fill="none">
 <defs>
   <linearGradient id="wall" x1="0" y1="0" x2="1800" y2="420" gradientUnits="userSpaceOnUse"><stop stop-color="#030303"/><stop offset=".48" stop-color="#180707"/><stop offset=".72" stop-color="#100707"/><stop offset="1" stop-color="#020203"/></linearGradient>
   <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5d4030"/><stop offset=".45" stop-color="#171414"/><stop offset="1" stop-color="#090909"/></linearGradient>
@@ -10,6 +10,7 @@
   <pattern id="grain" width="55" height="55" patternUnits="userSpaceOnUse"><path d="M0 54.5H55M54.5 0V55" stroke="#d8aa7d" stroke-opacity=".045"/><circle cx="7" cy="11" r="1" fill="#e9bd82" fill-opacity=".1"/><circle cx="34" cy="38" r=".8" fill="#fff" fill-opacity=".08"/></pattern>
 </defs>
 <rect width="1800" height="420" fill="url(#wall)"/><rect width="1800" height="420" fill="url(#glow)"/>
+<g transform="translate(280 14) scale(0.8)">
 <!-- distant gothic arches -->
 <g stroke="#70472d" stroke-opacity=".55" stroke-width="7">
  <path d="M-55 300V115Q-55 -20 90 -20Q235 -20 235 115V300"/><path d="M250 310V100Q250 -22 365 -22Q480 -22 480 100V310"/>
@@ -45,6 +46,19 @@
  <path d="M1072 257Q1117 244 1120 207Q1082 213 1061 239"/><path d="M1088 221Q1130 201 1123 169Q1090 182 1073 210"/>
  <path d="M1071 181Q1104 156 1088 127Q1062 149 1059 175"/><path d="M1042 221Q1074 197 1059 168Q1030 189 1029 216"/>
 </g>
+<!-- flank medallions, scaled together with the trophy so all focal elements fit the banner -->
+<g transform="translate(760 208)">
+  <circle r="72" fill="#15080a" stroke="url(#gold)" stroke-width="8"/>
+  <circle r="60" stroke="#b67c39" stroke-width="2"/><circle r="51" stroke="#f1c06a" stroke-opacity=".65" stroke-dasharray="4 6" stroke-width="1.5"/>
+  <path d="M0-43 10-10 43 0 10 10 0 43-10 10-43 0-10-10Z" fill="url(#gold)" stroke="#f4ce78" stroke-width="2"/>
+  <circle r="11" fill="#541016" stroke="#f2c46a" stroke-width="3"/><circle r="3" fill="#f7d78a"/>
+</g>
+<g transform="translate(1300 208)">
+  <circle r="72" fill="#15080a" stroke="url(#gold)" stroke-width="8"/>
+  <circle r="60" stroke="#b67c39" stroke-width="2"/><circle r="51" stroke="#f1c06a" stroke-opacity=".65" stroke-dasharray="4 6" stroke-width="1.5"/>
+  <path d="M0-43 12-15 35-28 24-4 44 0 24 8 35 29 10 18 0 43-10 18-35 29-24 8-44 0-24-4-35-28-12-15Z" fill="url(#gold)" stroke="#f4ce78" stroke-width="2"/>
+  <path d="M0-19V21M-18-9 0 4 18-9M-13-23 0-10 13-23" stroke="#6e1118" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 <!-- trophy glow -->
 <ellipse cx="1000" cy="206" rx="245" ry="205" fill="url(#fire)" opacity=".34"/>
 <circle cx="1000" cy="206" r="132" stroke="#e0a747" stroke-opacity=".55" stroke-width="2"/><circle cx="1000" cy="206" r="120" stroke="#a96b27" stroke-opacity=".8" stroke-width="3"/><circle cx="1000" cy="206" r="108" stroke="#f2c15b" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="5 10"/>
@@ -61,6 +75,7 @@
 <!-- flames and embers -->
 <g><ellipse cx="610" cy="340" rx="54" ry="55" fill="url(#fire)" opacity=".75"/><path d="M590 376Q560 343 607 286Q600 326 629 339Q652 363 628 390Z" fill="#e75d1f" opacity=".8"/><ellipse cx="1395" cy="340" rx="54" ry="55" fill="url(#fire)" opacity=".7"/><path d="M1377 376Q1347 343 1394 286Q1387 326 1416 339Q1439 363 1415 390Z" fill="#e75d1f" opacity=".8"/></g>
 <g fill="#ffbd61" opacity=".9"><circle cx="690" cy="297" r="2"/><circle cx="737" cy="258" r="1.5"/><circle cx="782" cy="332" r="2"/><circle cx="1277" cy="295" r="2"/><circle cx="1337" cy="255" r="1.5"/><circle cx="1189" cy="308" r="1.8"/><circle cx="960" cy="45" r="1.5"/><circle cx="1046" cy="37" r="1.5"/><circle cx="886" cy="306" r="1.4"/></g>
+</g>
 <rect width="1800" height="420" fill="url(#shade)"/><rect width="1800" height="420" fill="url(#grain)"/>
 <path d="M0 3H1800" stroke="#c89b66" stroke-opacity=".35" stroke-width="3"/>
 </svg>
