@@ -539,7 +539,7 @@ function EmblemCard({
         >
           {isLocked ? (
             <>
-              <span aria-hidden="true">♙</span>
+              <span aria-hidden="true">🔒</span>
               Bloqueado
             </>
           ) : (
@@ -617,7 +617,7 @@ function EmblemCard({
           <span>✓ Conquistado</span>
         ) : (
           <>
-            <span aria-hidden="true">♙</span>
+            <span aria-hidden="true">🔒</span>
             Em progresso no futuro
           </>
         )}
