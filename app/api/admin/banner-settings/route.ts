@@ -19,11 +19,19 @@ function normalize(value: unknown, fallback: number) {
   return Number.isFinite(number) ? number : fallback;
 }
 
-function normalizeSettings(input: Record<string, unknown>) {
+function normalizeSettings(
+  input: Record<string, unknown>,
+  bannerKey: SiteBannerKey
+) {
+  const zoom = normalize(input.zoom, 1);
+
   return {
     x: Math.max(-50, Math.min(50, normalize(input.x, 0))),
     y: Math.max(-50, Math.min(50, normalize(input.y, 0))),
-    zoom: Math.max(1, Math.min(2, normalize(input.zoom, 1))),
+    zoom:
+      bannerKey === "emblemas"
+        ? Math.max(1, Math.min(2, zoom))
+        : Math.max(0.8, Math.min(2, zoom)),
   };
 }
 
@@ -96,11 +104,14 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        ...normalizeSettings({
-          x: data?.x ?? 0,
-          y: data?.y ?? 0,
-          zoom: data?.zoom ?? 1,
-        }),
+        ...normalizeSettings(
+          {
+            x: data?.x ?? 0,
+            y: data?.y ?? 0,
+            zoom: data?.zoom ?? 1,
+          },
+          bannerKey
+        ),
         imageUrl: await getStoredBannerImageUrl(client, bannerKey),
         authenticated: await isAdmin(request),
       },
@@ -165,7 +176,7 @@ export async function POST(request: NextRequest) {
     }
 
     const bannerKey = banner as SiteBannerKey;
-    const settings = normalizeSettings(body);
+    const settings = normalizeSettings(body, bannerKey);
     const client = createAdminSupabaseClient();
 
     const imagePath = `banners/${bannerKey}/background`;
