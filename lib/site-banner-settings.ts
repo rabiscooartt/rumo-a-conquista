@@ -92,8 +92,10 @@ export async function loadSiteBannerSettings(): Promise<
         x: Number.isFinite(Number(row.x)) ? Number(row.x) : 0,
         y: Number.isFinite(Number(row.y)) ? Number(row.y) : 0,
         zoom:
-          Number.isFinite(Number(row.zoom))
-            ? Math.max(1, Math.min(2, Number(row.zoom)))
+          Number.isFinite(Number(row.zoom)) && Number(row.zoom) > 0
+            ? bannerKey === "emblemas"
+              ? Math.max(1, Math.min(2, Number(row.zoom)))
+              : Number(row.zoom)
             : 1,
         imageUrl: "",
       };
