@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
         x: formData.get("x"),
         y: formData.get("y"),
         zoom: formData.get("zoom"),
+        resetImage: formData.get("resetImage") === "true",
       };
       const candidate = formData.get("file");
       if (candidate instanceof File && candidate.size > 0) file = candidate;
@@ -167,18 +168,26 @@ export async function POST(request: NextRequest) {
     const settings = normalizeSettings(body);
     const client = createAdminSupabaseClient();
 
+    const imagePath = `banners/${bannerKey}/background`;
+
     if (file) {
       await ensureBucket(client);
-      const path = `banners/${bannerKey}/background`;
       const { error: uploadError } = await client.storage
         .from(BUCKET)
-        .upload(path, file, {
+        .upload(imagePath, file, {
           contentType: file.type,
           upsert: true,
           cacheControl: "60",
         });
 
       if (uploadError) throw uploadError;
+    } else if (body.resetImage === true) {
+      await ensureBucket(client);
+      const { error: removeError } = await client.storage
+        .from(BUCKET)
+        .remove([imagePath]);
+
+      if (removeError) throw removeError;
     }
 
     const { error } = await client
