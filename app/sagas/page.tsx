@@ -744,7 +744,7 @@ function EmblemCard({
 
       <div
         className={`relative mx-auto mt-2 flex w-full shrink-0 items-center justify-center overflow-hidden ${
-          isLarge ? "h-[285px]" : "h-[260px] sm:h-[275px] lg:h-[285px]"
+          isLarge ? "h-[300px]" : "h-[270px] sm:h-[285px] lg:h-[300px]"
         }`}
       >
         <div
@@ -764,21 +764,21 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`mt-2 min-h-[42px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+        className={`mt-1 min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
         } ${isLocked ? "text-white/75" : "text-white"}`}
       >
         {emblem.title}
       </h3>
 
-      <div className="mt-1 flex shrink-0 items-center justify-center gap-2" aria-hidden="true">
+      <div className="mt-0.5 flex shrink-0 items-center justify-center gap-2" aria-hidden="true">
         <span className={`h-px w-8 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
         <span className={`text-[9px] ${isLocked ? "text-white/35" : "text-amber-400/75"}`}>◆</span>
         <span className={`h-px w-8 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
       </div>
 
       <p
-        className={`mt-1 w-full truncate text-[11px] font-semibold ${
+        className={`mt-0.5 w-full truncate text-[11px] font-semibold ${
           isLocked ? "text-white/50" : theme.text
         }`}
       >
