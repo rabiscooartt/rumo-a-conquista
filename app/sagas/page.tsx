@@ -508,27 +508,75 @@ function EmblemCard({
 }) {
   const isLocked = !emblem.isCompleted;
   const unlockedDate = formatDate(emblem.unlockedAt);
+  const isSpecialFranchise = /crisol/i.test(emblem.gameTitle);
+  const isFranchise = Boolean(emblem.sagaSlug) || isSpecialFranchise;
+  const categoryLabel = isSpecialFranchise
+    ? "Franquia especial"
+    : isFranchise
+      ? "Franquia"
+      : "Jogo";
 
   return (
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative block w-full min-w-0 scroll-mt-24 rounded-[18px] border border-white/[0.08] bg-zinc-950/60 px-2 pb-3 pt-2 text-center shadow-[0_10px_30px_rgba(0,0,0,0.16)] transition duration-300 hover:-translate-y-1 hover:border-red-500/25 hover:bg-zinc-900/70 hover:shadow-[0_0_28px_rgba(239,68,68,0.08)] ${
-        isLarge ? "max-w-[380px]" : ""
-      }`}
+      className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-hidden rounded-[18px] border px-3 pb-3 pt-3 text-center transition duration-300 hover:-translate-y-1 ${
+        isLocked
+          ? "border-white/[0.14] bg-[linear-gradient(160deg,rgba(24,24,27,0.94),rgba(5,5,6,0.98))] hover:border-white/30 hover:shadow-[0_0_26px_rgba(255,255,255,0.04)]"
+          : "border-red-500/55 bg-[linear-gradient(160deg,rgba(32,8,12,0.94),rgba(5,5,6,0.98))] shadow-[inset_0_0_24px_rgba(239,68,68,0.035)] hover:border-red-400/80 hover:shadow-[0_0_28px_rgba(239,68,68,0.12)]"
+      } ${isLarge ? "max-w-[380px]" : ""}`}
     >
+      <div className="flex h-7 shrink-0 items-center justify-between gap-2 border-b border-white/[0.09] pb-2">
+        <span
+          className={`inline-flex min-w-0 items-center gap-1.5 truncate text-[9px] font-black uppercase tracking-[0.17em] ${
+            isLocked ? "text-white/55" : "text-white/70"
+          }`}
+        >
+          {isFranchise ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3 20 7v5c0 4.5-3.5 7.5-8 9-4.5-1.5-8-4.5-8-9V7l8-4Z" />
+              <path d="M9 12h6M12 9v6" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 8h12a3 3 0 0 1 2.9 3.8l-1.1 4.1a2 2 0 0 1-3.2 1L14 15h-4l-2.6 1.9a2 2 0 0 1-3.2-1l-1.1-4.1A3 3 0 0 1 6 8Z" />
+              <path d="M8 10v4M6 12h4M16 11h.01M18 13h.01" />
+            </svg>
+          )}
+          <span className="truncate">{categoryLabel}</span>
+        </span>
+
+        <span
+          className={`inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-full border px-2.5 text-[8px] font-black uppercase tracking-[0.1em] ${
+            isLocked
+              ? "border-white/25 bg-black/35 text-white/65"
+              : "border-emerald-400/45 bg-emerald-950/45 text-emerald-300"
+          }`}
+        >
+          {isLocked ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="10" width="14" height="11" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m5 12 4 4L19 6" />
+            </svg>
+          )}
+          {isLocked ? "Bloqueado" : "Conquistado"}
+        </span>
+      </div>
+
       <div
-        className={`relative mx-auto flex w-full items-center justify-center overflow-hidden ${
-          isLarge
-            ? "h-[330px]"
-            : "h-[280px] sm:h-[295px] lg:h-[300px]"
+        className={`relative mx-auto mt-2 flex w-full shrink-0 items-center justify-center overflow-hidden ${
+          isLarge ? "h-[270px]" : "h-[245px] sm:h-[260px] lg:h-[270px]"
         }`}
       >
         <div
           className={`h-full w-full transition duration-300 ${
             isLocked
-              ? "scale-100 opacity-65 blur-[1px] grayscale saturate-0 brightness-[0.78]"
-              : "group-hover:scale-[1.03]"
+              ? "scale-100 opacity-70 blur-[0.5px] grayscale saturate-0 brightness-[0.72]"
+              : "group-hover:scale-[1.015]"
           }`}
         >
           <BadgeImage
@@ -538,53 +586,52 @@ function EmblemCard({
             isLarge={isLarge}
           />
         </div>
-
-        {isLocked && (
-          <div
-            className={`pointer-events-none absolute right-2 top-2 z-20 flex items-center justify-center rounded-full border border-white/15 bg-black/75 shadow-[0_0_18px_rgba(0,0,0,0.5)] backdrop-blur-sm ${
-              isLarge ? "h-10 w-10 text-lg" : "h-8 w-8 text-base"
-            }`}
-          >
-            🔒
-          </div>
-        )}
-      </div>
-
-      <div
-        className={`mx-auto mt-2 inline-flex rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${
-          emblem.isCompleted
-            ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
-            : "border-white/10 bg-white/[0.03] text-white/40"
-        }`}
-      >
-        {emblem.isCompleted ? "Conquistado" : "Bloqueado"}
       </div>
 
       <h3
-        className={`mt-1.5 w-full line-clamp-2 font-black leading-tight ${
-          isLarge ? "text-xl" : "text-base"
-        } ${emblem.isCompleted ? "text-white" : "text-white/55"}`}
+        className={`mt-2 min-h-[42px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+          isLarge ? "text-lg" : ""
+        } ${isLocked ? "text-white/75" : "text-white"}`}
       >
-        {emblem.isCompleted ? emblem.title : "Emblema bloqueado"}
+        {emblem.title}
       </h3>
 
+      <div className="mt-1 flex shrink-0 items-center justify-center gap-2" aria-hidden="true">
+        <span className={`h-px w-8 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
+        <span className={`text-[9px] ${isLocked ? "text-white/35" : "text-amber-400/75"}`}>◆</span>
+        <span className={`h-px w-8 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
+      </div>
+
       <p
-        className={`mt-1 w-full line-clamp-1 font-bold ${
-          isLarge ? "text-xs" : "text-[11px]"
-        } ${emblem.isCompleted ? theme.text : "text-white/45"}`}
+        className={`mt-1 w-full truncate text-[11px] font-semibold ${
+          isLocked ? "text-white/50" : theme.text
+        }`}
       >
         {emblem.gameTitle}
       </p>
 
-      {emblem.isCompleted && unlockedDate ? (
-        <time
-          dateTime={normalizeDate(emblem.unlockedAt)}
-          className="mt-1 inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold text-emerald-200/75"
-        >
-          <span aria-hidden="true">✓</span>
-          {unlockedDate}
-        </time>
-      ) : null}
+      <div className="mt-auto pt-3">
+        {emblem.isCompleted && unlockedDate ? (
+          <time
+            dateTime={normalizeDate(emblem.unlockedAt)}
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-[10px] border border-emerald-500/45 bg-emerald-950/45 text-[11px] font-black tracking-[0.02em] text-cyan-300"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="5" width="18" height="16" rx="2" />
+              <path d="M16 3v4M8 3v4M3 10h18" />
+            </svg>
+            {unlockedDate}
+          </time>
+        ) : (
+          <div className="flex h-9 w-full items-center justify-center gap-2 rounded-[10px] border border-white/[0.10] bg-white/[0.035] text-[10px] font-semibold text-white/45">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="10" width="14" height="11" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            Em progresso no futuro
+          </div>
+        )}
+      </div>
     </Link>
   );
 }
