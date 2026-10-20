@@ -424,6 +424,8 @@ function getGameEmblem(
   };
 }
 
+type BadgeImageFit = "portrait" | "square" | "landscape";
+
 function BadgeImage({
   src,
   alt,
@@ -436,9 +438,11 @@ function BadgeImage({
   isLarge?: boolean;
 }) {
   const [hasError, setHasError] = useState(false);
+  const [fit, setFit] = useState<BadgeImageFit>("square");
 
   useEffect(() => {
     setHasError(false);
+    setFit("square");
   }, [src]);
 
   if (!src || hasError) {
@@ -457,9 +461,20 @@ function BadgeImage({
     <img
       src={src}
       alt={alt}
-      className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-100" : "scale-100"
-      }`}
+      className="block max-h-full max-w-full object-contain object-center transition duration-300"
+      style={{
+        width: fit === "landscape" ? "100%" : "auto",
+        height: fit === "landscape" ? "auto" : "100%",
+        maxWidth: fit === "portrait" ? "88%" : "100%",
+        maxHeight: fit === "landscape" ? "86%" : "100%",
+      }}
+      onLoad={(event) => {
+        const image = event.currentTarget;
+        if (!image.naturalWidth || !image.naturalHeight) return;
+
+        const ratio = image.naturalWidth / image.naturalHeight;
+        setFit(ratio < 0.82 ? "portrait" : ratio > 1.18 ? "landscape" : "square");
+      }}
       onError={() => setHasError(true)}
     />
   );
@@ -569,14 +584,14 @@ function EmblemCard({
 
       <div
         className={`relative mx-auto mt-2 flex w-full shrink-0 items-center justify-center overflow-hidden ${
-          isLarge ? "h-[270px]" : "h-[245px] sm:h-[260px] lg:h-[270px]"
+          isLarge ? "h-[285px]" : "h-[260px] sm:h-[275px] lg:h-[285px]"
         }`}
       >
         <div
           className={`h-full w-full transition duration-300 ${
             isLocked
               ? "scale-100 opacity-70 blur-[0.5px] grayscale saturate-0 brightness-[0.72]"
-              : "group-hover:scale-[1.015]"
+              : "group-hover:brightness-110"
           }`}
         >
           <BadgeImage
