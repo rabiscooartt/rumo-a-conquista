@@ -531,7 +531,7 @@ function BadgeImage({
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full items-center justify-center overflow-hidden"
+      className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(175,157,128,0.09)_0%,rgba(130,118,100,0.03)_38%,transparent_72%)]"
     >
       {!src || hasError ? (
         <div
@@ -544,7 +544,7 @@ function BadgeImage({
         </div>
       ) : (
         <div
-          className="relative shrink-0 overflow-hidden rounded-[12px] border border-white/[0.09] bg-[linear-gradient(145deg,rgba(255,255,255,0.045),rgba(0,0,0,0.24))] shadow-[inset_0_0_18px_rgba(0,0,0,0.22)] transition-colors duration-300"
+          className="relative shrink-0 overflow-visible rounded-[12px] border border-transparent bg-transparent shadow-none transition-colors duration-300"
           style={{
             width: hasLayout ? panelWidth : "100%",
             height: hasLayout ? panelHeight : "100%",
@@ -690,8 +690,8 @@ function EmblemCard({
       id={`emblem-${emblem.gameSlug}`}
       className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-hidden rounded-[18px] border px-3 pb-3 pt-3 text-center transition duration-300 hover:-translate-y-1 ${
         isLocked
-          ? "border-white/[0.14] bg-[linear-gradient(160deg,rgba(24,24,27,0.94),rgba(5,5,6,0.98))] hover:border-white/30 hover:shadow-[0_0_26px_rgba(255,255,255,0.04)]"
-          : "border-red-500/55 bg-[linear-gradient(160deg,rgba(32,8,12,0.94),rgba(5,5,6,0.98))] shadow-[inset_0_0_24px_rgba(239,68,68,0.035)] hover:border-red-400/80 hover:shadow-[0_0_28px_rgba(239,68,68,0.12)]"
+          ? "border-transparent bg-white/[0.008] hover:border-white/[0.11] hover:bg-white/[0.02] hover:shadow-[0_12px_30px_rgba(0,0,0,0.20)]"
+          : "border-transparent bg-[radial-gradient(ellipse_at_50%_42%,rgba(116,29,35,0.18)_0%,rgba(25,7,10,0.035)_50%,transparent_76%)] hover:border-red-500/25 hover:shadow-[0_0_24px_rgba(239,68,68,0.06)]"
       } ${isLarge ? "max-w-[380px]" : ""}`}
     >
       <div className="flex h-6 shrink-0 items-center justify-end border-b border-white/[0.09] pb-1">
@@ -1165,7 +1165,7 @@ export default function SagasPage() {
   return (
     <main
       id="topo-emblemas"
-      className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white"
+      className="min-h-screen bg-[radial-gradient(ellipse_at_50%_40%,rgba(117,109,93,0.16)_0%,rgba(20,20,19,0.06)_36%,transparent_66%),radial-gradient(ellipse_at_8%_70%,rgba(90,88,82,0.08)_0%,transparent_35%),radial-gradient(ellipse_at_91%_78%,rgba(112,91,72,0.07)_0%,transparent_32%),linear-gradient(180deg,#0b0b0a_0%,#070706_46%,#020202_100%)] text-white
     >
       <Navbar />
 
