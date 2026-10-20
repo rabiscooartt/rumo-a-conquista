@@ -458,7 +458,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.22]" : "scale-[1.20]"
+        isLarge ? "scale-100" : "scale-100"
       }`}
       onError={() => setHasError(true)}
     />
@@ -518,7 +518,7 @@ function EmblemCard({
       }`}
     >
       <div
-        className={`relative mx-auto flex w-full items-center justify-center overflow-visible ${
+        className={`relative mx-auto flex w-full items-center justify-center overflow-hidden ${
           isLarge
             ? "h-[330px]"
             : "h-[280px] sm:h-[295px] lg:h-[300px]"
