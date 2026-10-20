@@ -1356,30 +1356,32 @@ export default function SagasPage() {
           ) : filteredEmblems.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
-            <div
-              className="relative isolate mx-auto w-full max-w-[1600px] overflow-hidden rounded-[18px] py-3 sm:py-4"
-              style={{
-                background:
-                  "radial-gradient(ellipse at 50% 0%, rgba(206, 199, 179, 0.13) 0%, rgba(93, 88, 77, 0.055) 30%, transparent 62%), radial-gradient(ellipse at 9% 52%, rgba(144, 132, 109, 0.055) 0%, transparent 35%), radial-gradient(ellipse at 92% 70%, rgba(115, 101, 82, 0.045) 0%, transparent 34%), linear-gradient(180deg, #141411 0%, #0a0a09 44%, #040404 100%)",
-              }}
-            >
+            <div className="relative isolate mx-auto w-full max-w-[1600px] overflow-visible py-3 sm:py-4">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 opacity-70"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(112deg, transparent 14%, rgba(226, 218, 195, 0.045) 28%, transparent 42%), linear-gradient(76deg, transparent 38%, rgba(216, 205, 179, 0.03) 47%, transparent 57%), radial-gradient(circle at 8% 14%, rgba(244, 239, 222, 0.28) 0.7px, transparent 1.4px), radial-gradient(circle at 18% 38%, rgba(244, 239, 222, 0.18) 0.7px, transparent 1.5px), radial-gradient(circle at 28% 77%, rgba(244, 239, 222, 0.16) 0.8px, transparent 1.5px), radial-gradient(circle at 42% 19%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.4px), radial-gradient(circle at 57% 63%, rgba(244, 239, 222, 0.16) 0.7px, transparent 1.5px), radial-gradient(circle at 68% 29%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.5px), radial-gradient(circle at 79% 81%, rgba(244, 239, 222, 0.16) 0.8px, transparent 1.5px), radial-gradient(circle at 91% 41%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.5px)",
-                }}
-              />
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0"
+                className="pointer-events-none absolute left-1/2 top-0 z-0 h-full w-screen -translate-x-1/2"
                 style={{
                   background:
-                    "linear-gradient(180deg, rgba(0,0,0,0.03) 0%, transparent 20%, transparent 82%, rgba(0,0,0,0.28) 100%)",
+                    "radial-gradient(ellipse 72% 52% at 50% 3%, rgba(178, 171, 151, 0.12) 0%, rgba(92, 88, 77, 0.045) 36%, transparent 72%), radial-gradient(ellipse 36% 80% at 16% 32%, rgba(102, 105, 105, 0.035) 0%, transparent 72%), radial-gradient(ellipse 32% 82% at 85% 55%, rgba(119, 101, 79, 0.03) 0%, transparent 76%), linear-gradient(180deg, #090909 0%, #070706 50%, #020202 100%)",
                 }}
               />
-            <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-0 z-0 h-full w-screen -translate-x-1/2"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(110deg, transparent 13%, rgba(227, 219, 198, 0.015) 18%, rgba(227, 219, 198, 0.065) 23%, rgba(227, 219, 198, 0.018) 29%, transparent 35%), linear-gradient(73deg, transparent 31%, rgba(220, 212, 192, 0.025) 36%, rgba(220, 212, 192, 0.055) 41%, transparent 49%), linear-gradient(104deg, transparent 52%, rgba(214, 207, 187, 0.02) 57%, rgba(214, 207, 187, 0.045) 61%, transparent 68%), radial-gradient(circle at 7% 12%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.5px), radial-gradient(circle at 15% 43%, rgba(244, 239, 222, 0.13) 0.8px, transparent 1.6px), radial-gradient(circle at 25% 74%, rgba(244, 239, 222, 0.14) 0.7px, transparent 1.5px), radial-gradient(circle at 36% 18%, rgba(244, 239, 222, 0.18) 0.7px, transparent 1.5px), radial-gradient(circle at 47% 57%, rgba(244, 239, 222, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 59% 27%, rgba(244, 239, 222, 0.17) 0.7px, transparent 1.5px), radial-gradient(circle at 71% 81%, rgba(244, 239, 222, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 82% 38%, rgba(244, 239, 222, 0.16) 0.7px, transparent 1.5px), radial-gradient(circle at 94% 16%, rgba(244, 239, 222, 0.13) 0.7px, transparent 1.5px)",
+                }}
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-0 z-0 h-full w-screen -translate-x-1/2"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 12%, transparent 78%, rgba(0, 0, 0, 0.30) 100%)",
+                }}
+              />
+            <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard
                   key={emblem.id}
