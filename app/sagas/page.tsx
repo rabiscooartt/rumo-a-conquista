@@ -511,33 +511,30 @@ function BadgeImage({
     (contentBounds.bottom - contentBounds.top) * naturalHeight
   );
 
-  // Keep a small inset around the visible artwork. This inset belongs to
-  // the adaptive artwork panel, not to the entire card width.
-  const artPadding = 10;
+  // Use nearly the full shared art area. Transparent source margins are
+  // optically centered, while the original image keeps its aspect ratio.
   const scale = hasLayout
     ? Math.min(
-        Math.max(1, boxSize.width - artPadding * 2 - 4) / visibleWidth,
-        Math.max(1, boxSize.height - artPadding * 2 - 4) / visibleHeight
+        (boxSize.width * 0.97) / visibleWidth,
+        (boxSize.height * 0.97) / visibleHeight
       )
     : 1;
 
   const renderedWidth = naturalWidth * scale;
   const renderedHeight = naturalHeight * scale;
-  const fittedVisibleWidth = visibleWidth * scale;
-  const fittedVisibleHeight = visibleHeight * scale;
-  const panelWidth = fittedVisibleWidth + artPadding * 2;
-  const panelHeight = fittedVisibleHeight + artPadding * 2;
   const offsetX = hasLayout
-    ? artPadding - contentBounds.left * renderedWidth
+    ? boxSize.width / 2 -
+      ((contentBounds.left + contentBounds.right) / 2) * renderedWidth
     : 0;
   const offsetY = hasLayout
-    ? artPadding - contentBounds.top * renderedHeight
+    ? boxSize.height / 2 -
+      ((contentBounds.top + contentBounds.bottom) / 2) * renderedHeight
     : 0;
 
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full items-center justify-center overflow-hidden"
+      className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.035)_0%,rgba(0,0,0,0)_72%)]"
     >
       {!src || hasError ? (
         <div
@@ -549,98 +546,88 @@ function BadgeImage({
           {fallbackIcon}
         </div>
       ) : (
-        <div
-          className="relative shrink-0 overflow-hidden rounded-[14px] border border-white/[0.07] bg-[linear-gradient(145deg,rgba(255,255,255,0.035),rgba(0,0,0,0.20))] shadow-[inset_0_0_24px_rgba(0,0,0,0.22)] transition-colors duration-300"
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          className="block transition duration-300"
           style={{
-            width: hasLayout ? panelWidth : "100%",
-            height: hasLayout ? panelHeight : "100%",
-            maxWidth: "100%",
-            maxHeight: "100%",
+            position: "absolute",
+            width: hasLayout ? renderedWidth : "100%",
+            height: hasLayout ? renderedHeight : "100%",
+            left: hasLayout ? offsetX : 0,
+            top: hasLayout ? offsetY : 0,
+            maxWidth: "none",
+            maxHeight: "none",
+            objectFit: hasLayout ? "fill" : "contain",
           }}
-        >
-          <img
-            src={src}
-            alt={alt}
-            draggable={false}
-            className="block transition duration-300"
-            style={{
-              position: "absolute",
-              width: hasLayout ? renderedWidth : "100%",
-              height: hasLayout ? renderedHeight : "100%",
-              left: hasLayout ? offsetX : 0,
-              top: hasLayout ? offsetY : 0,
-              maxWidth: "none",
-              maxHeight: "none",
-              objectFit: hasLayout ? "fill" : "contain",
-            }}
-            onLoad={(event) => {
-              const image = event.currentTarget;
-              const width = image.naturalWidth;
-              const height = image.naturalHeight;
-              if (!width || !height || !src) return;
+          onLoad={(event) => {
+            const image = event.currentTarget;
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+            if (!width || !height || !src) return;
 
-              let nextBounds = FULL_BADGE_BOUNDS;
+            let nextBounds = FULL_BADGE_BOUNDS;
 
-              // Inspect a small same-origin canvas instead of every original
-              // pixel to keep client work light on image-heavy pages.
-              try {
-                const imageUrl = new URL(
-                  image.currentSrc || image.src,
-                  window.location.href
-                );
-                if (imageUrl.origin === window.location.origin) {
-                  const reduction = Math.min(1, 192 / Math.max(width, height));
-                  const scanWidth = Math.max(1, Math.round(width * reduction));
-                  const scanHeight = Math.max(1, Math.round(height * reduction));
-                  const canvas = document.createElement("canvas");
-                  canvas.width = scanWidth;
-                  canvas.height = scanHeight;
-                  const context = canvas.getContext("2d", {
-                    willReadFrequently: true,
-                  });
-                  if (context) {
-                    context.drawImage(image, 0, 0, scanWidth, scanHeight);
-                    const pixels = context.getImageData(
-                      0,
-                      0,
-                      scanWidth,
-                      scanHeight
-                    ).data;
-                    let minX = scanWidth;
-                    let minY = scanHeight;
-                    let maxX = -1;
-                    let maxY = -1;
+            // Inspect a reduced same-origin canvas for transparent margins.
+            // The source image itself is never edited or replaced.
+            try {
+              const imageUrl = new URL(
+                image.currentSrc || image.src,
+                window.location.href
+              );
+              if (imageUrl.origin === window.location.origin) {
+                const reduction = Math.min(1, 192 / Math.max(width, height));
+                const scanWidth = Math.max(1, Math.round(width * reduction));
+                const scanHeight = Math.max(1, Math.round(height * reduction));
+                const canvas = document.createElement("canvas");
+                canvas.width = scanWidth;
+                canvas.height = scanHeight;
+                const context = canvas.getContext("2d", {
+                  willReadFrequently: true,
+                });
+                if (context) {
+                  context.drawImage(image, 0, 0, scanWidth, scanHeight);
+                  const pixels = context.getImageData(
+                    0,
+                    0,
+                    scanWidth,
+                    scanHeight
+                  ).data;
+                  let minX = scanWidth;
+                  let minY = scanHeight;
+                  let maxX = -1;
+                  let maxY = -1;
 
-                    for (let y = 0; y < scanHeight; y += 1) {
-                      for (let x = 0; x < scanWidth; x += 1) {
-                        if (pixels[(y * scanWidth + x) * 4 + 3] > 0) {
-                          if (x < minX) minX = x;
-                          if (x > maxX) maxX = x;
-                          if (y < minY) minY = y;
-                          if (y > maxY) maxY = y;
-                        }
+                  for (let y = 0; y < scanHeight; y += 1) {
+                    for (let x = 0; x < scanWidth; x += 1) {
+                      if (pixels[(y * scanWidth + x) * 4 + 3] > 0) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
                       }
                     }
+                  }
 
-                    if (maxX >= minX && maxY >= minY) {
-                      nextBounds = {
-                        left: minX / scanWidth,
-                        top: minY / scanHeight,
-                        right: (maxX + 1) / scanWidth,
-                        bottom: (maxY + 1) / scanHeight,
-                      };
-                    }
+                  if (maxX >= minX && maxY >= minY) {
+                    nextBounds = {
+                      left: minX / scanWidth,
+                      top: minY / scanHeight,
+                      right: (maxX + 1) / scanWidth,
+                      bottom: (maxY + 1) / scanHeight,
+                    };
                   }
                 }
-              } catch {
-                // Keep full-image bounds if inspection is unavailable.
               }
+            } catch {
+              // Keep full-image bounds if inspection is unavailable.
+            }
 
-              setLoadedImage({ src, width, height, bounds: nextBounds });
-            }}
-            onError={() => setFailedSrc(src)}
-          />
-        </div>
+            setLoadedImage({ src, width, height, bounds: nextBounds });
+          }}
+          onError={() => setFailedSrc(src)}
+        />
       )}
     </div>
   );
@@ -795,7 +782,7 @@ function EmblemCard({
         {emblem.isCompleted && unlockedDate ? (
           <time
             dateTime={normalizeDate(emblem.unlockedAt)}
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-[10px] border border-emerald-500/45 bg-emerald-950/45 text-[11px] font-black tracking-[0.02em] text-cyan-300"
+            className="mx-auto inline-flex h-8 w-fit max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-emerald-500/45 bg-emerald-950/45 px-3 text-[11px] font-black tracking-[0.02em] text-cyan-300"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="16" rx="2" />
@@ -804,7 +791,7 @@ function EmblemCard({
             {unlockedDate}
           </time>
         ) : (
-          <div className="flex h-9 w-full items-center justify-center gap-2 rounded-[10px] border border-white/[0.10] bg-white/[0.035] text-[10px] font-semibold text-white/45">
+          <div className="mx-auto inline-flex h-8 w-fit max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/[0.10] bg-white/[0.035] px-3 text-[10px] font-semibold text-white/45">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="10" width="14" height="11" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
