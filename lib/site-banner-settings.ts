@@ -53,16 +53,6 @@ async function getStoredBannerImageUrl(
       .getPublicUrl(`${path}/background`);
     const version = file.updated_at || file.created_at;
 
-    // Ignore the stale Emblems banner upload that was cropped in the editor.
-    // A new upload changes its storage version and will be respected normally.
-    if (
-      bannerKey === "emblemas" &&
-      version &&
-      new Date(version).toISOString() === "2026-10-19T19:19:52.534Z"
-    ) {
-      return "";
-    }
-
     return version
       ? `${data.publicUrl}?v=${encodeURIComponent(version)}`
       : data.publicUrl;
@@ -103,9 +93,7 @@ export async function loadSiteBannerSettings(): Promise<
         y: Number.isFinite(Number(row.y)) ? Number(row.y) : 0,
         zoom:
           Number.isFinite(Number(row.zoom)) && Number(row.zoom) > 0
-            ? bannerKey === "emblemas"
-              ? Math.max(1, Math.min(2, Number(row.zoom)))
-              : Number(row.zoom)
+            ? Number(row.zoom)
             : 1,
         imageUrl: "",
       };

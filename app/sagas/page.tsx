@@ -458,7 +458,7 @@ function BadgeImage({
       src={src}
       alt={alt}
       className={`h-full w-full object-contain transition duration-300 ${
-        isLarge ? "scale-[1.00]" : "scale-[1.00]"
+        isLarge ? "scale-[1.22]" : "scale-[1.20]"
       }`}
       onError={() => setHasError(true)}
     />
@@ -508,70 +508,27 @@ function EmblemCard({
 }) {
   const isLocked = !emblem.isCompleted;
   const unlockedDate = formatDate(emblem.unlockedAt);
-  const categoryLabel = /especial/i.test(`${emblem.gameTitle} ${emblem.sagaTitle}`)
-    ? "Jogo especial"
-    : "Jogo";
 
   return (
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative block h-full w-full min-w-0 scroll-mt-24 overflow-hidden rounded-[18px] border px-3 pb-3 pt-3 text-center transition duration-300 hover:-translate-y-1 ${
-        isLocked
-          ? "border-white/[0.12] bg-[linear-gradient(160deg,rgba(24,24,27,0.94),rgba(5,5,6,0.98))] hover:border-white/25 hover:shadow-[0_0_26px_rgba(255,255,255,0.04)]"
-          : "border-red-500/45 bg-[linear-gradient(160deg,rgba(26,8,10,0.96),rgba(5,5,6,0.98))] shadow-[inset_0_0_24px_rgba(239,68,68,0.025)] hover:border-red-400/75 hover:shadow-[0_0_28px_rgba(239,68,68,0.10)]"
-      } ${isLarge ? "max-w-[380px]" : ""}`}
+      className={`group relative block w-full min-w-0 scroll-mt-24 rounded-[18px] border border-white/[0.08] bg-zinc-950/60 px-2 pb-3 pt-2 text-center shadow-[0_10px_30px_rgba(0,0,0,0.16)] transition duration-300 hover:-translate-y-1 hover:border-red-500/25 hover:bg-zinc-900/70 hover:shadow-[0_0_28px_rgba(239,68,68,0.08)] ${
+        isLarge ? "max-w-[380px]" : ""
+      }`}
     >
-      <div className="flex min-h-[26px] items-center justify-between gap-2 border-b border-white/[0.07] pb-2">
-        <span className="flex min-w-0 items-center gap-1.5 truncate text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
-          <span aria-hidden="true" className={isLocked ? "text-white/35" : "text-red-300/80"}>
-            ◈
-          </span>
-          <span className="truncate">{categoryLabel}</span>
-        </span>
-
-        <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[0.1em] ${
-            isLocked
-              ? "border-white/15 bg-black/45 text-white/45"
-              : "border-emerald-400/35 bg-emerald-500/[0.08] text-emerald-300"
-          }`}
-        >
-          {isLocked ? (
-            <>
-              <span aria-hidden="true">🔒</span>
-              Bloqueado
-            </>
-          ) : (
-            <>
-              <span aria-hidden="true">✓</span>
-              Conquistado
-            </>
-          )}
-        </span>
-      </div>
-
-      <div className={`relative mx-auto mt-2 flex w-full items-center justify-center ${isLarge ? "h-[330px]" : "h-[280px] sm:h-[295px] lg:h-[300px]"}`}>
+      <div
+        className={`relative mx-auto flex w-full items-center justify-center overflow-visible ${
+          isLarge
+            ? "h-[330px]"
+            : "h-[280px] sm:h-[295px] lg:h-[300px]"
+        }`}
+      >
         <div
-          aria-hidden="true"
-          className={`absolute left-1/2 top-1/2 aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border ${
+          className={`h-full w-full transition duration-300 ${
             isLocked
-              ? "h-[248px] border-white/15 bg-[radial-gradient(circle,rgba(90,90,96,0.15),rgba(0,0,0,0.08)_66%,transparent_70%)]"
-              : "h-[248px] border-red-500/35 bg-[radial-gradient(circle,rgba(127,29,29,0.18),rgba(0,0,0,0.08)_66%,transparent_70%)]"
-          }`}
-        >
-          <div className="absolute inset-[8px] rounded-full border border-dashed border-current opacity-35" />
-          <span className="absolute -top-1 left-1/2 -translate-x-1/2 text-[9px] text-amber-300/75">◆</span>
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] text-amber-300/75">◆</span>
-          <span className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] text-red-300/75">◆</span>
-          <span className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 text-[8px] text-red-300/75">◆</span>
-        </div>
-
-        <div
-          className={`relative z-10 flex h-full w-full items-center justify-center px-1 transition duration-300 ${
-            isLocked
-              ? "opacity-60 grayscale saturate-0 brightness-[0.76] group-hover:opacity-75"
-              : "group-hover:scale-[1.025]"
+              ? "scale-100 opacity-65 blur-[1px] grayscale saturate-0 brightness-[0.78]"
+              : "group-hover:scale-[1.03]"
           }`}
         >
           <BadgeImage
@@ -582,46 +539,52 @@ function EmblemCard({
           />
         </div>
 
-        {isLocked ? (
-          <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/75 text-sm text-white/75 shadow-[0_0_22px_rgba(0,0,0,0.6)]">
+        {isLocked && (
+          <div
+            className={`pointer-events-none absolute right-2 top-2 z-20 flex items-center justify-center rounded-full border border-white/15 bg-black/75 shadow-[0_0_18px_rgba(0,0,0,0.5)] backdrop-blur-sm ${
+              isLarge ? "h-10 w-10 text-lg" : "h-8 w-8 text-base"
+            }`}
+          >
             🔒
           </div>
-        ) : null}
+        )}
       </div>
 
-      <h3 className={`mt-4 line-clamp-2 min-h-[38px] font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
-        emblem.isCompleted ? "text-white" : "text-white/65"
-      }`}>
+      <div
+        className={`mx-auto mt-2 inline-flex rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${
+          emblem.isCompleted
+            ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+            : "border-white/10 bg-white/[0.03] text-white/40"
+        }`}
+      >
+        {emblem.isCompleted ? "Conquistado" : "Bloqueado"}
+      </div>
+
+      <h3
+        className={`mt-1.5 w-full line-clamp-2 font-black leading-tight ${
+          isLarge ? "text-xl" : "text-base"
+        } ${emblem.isCompleted ? "text-white" : "text-white/55"}`}
+      >
         {emblem.isCompleted ? emblem.title : "Emblema bloqueado"}
       </h3>
 
-      <p className={`mt-1 line-clamp-1 text-[11px] font-medium ${
-        emblem.isCompleted ? theme.text : "text-white/40"
-      }`}>
+      <p
+        className={`mt-1 w-full line-clamp-1 font-bold ${
+          isLarge ? "text-xs" : "text-[11px]"
+        } ${emblem.isCompleted ? theme.text : "text-white/45"}`}
+      >
         {emblem.gameTitle}
       </p>
 
-      <div
-        className={`mt-3 flex h-[34px] items-center justify-center gap-2 rounded-[9px] border text-[10px] font-bold tracking-[0.03em] ${
-          emblem.isCompleted
-            ? "border-emerald-500/45 bg-emerald-950/45 text-cyan-300"
-            : "border-white/[0.08] bg-white/[0.025] text-white/40"
-        }`}
-      >
-        {emblem.isCompleted && unlockedDate ? (
-          <time dateTime={normalizeDate(emblem.unlockedAt)} className="inline-flex items-center gap-2">
-            <span aria-hidden="true">▦</span>
-            {unlockedDate}
-          </time>
-        ) : emblem.isCompleted ? (
-          <span>✓ Conquistado</span>
-        ) : (
-          <>
-            <span aria-hidden="true">🔒</span>
-            Em progresso no futuro
-          </>
-        )}
-      </div>
+      {emblem.isCompleted && unlockedDate ? (
+        <time
+          dateTime={normalizeDate(emblem.unlockedAt)}
+          className="mt-1 inline-flex items-center justify-center gap-1.5 text-[10px] font-semibold text-emerald-200/75"
+        >
+          <span aria-hidden="true">✓</span>
+          {unlockedDate}
+        </time>
+      ) : null}
     </Link>
   );
 }
@@ -1026,7 +989,7 @@ export default function SagasPage() {
         <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
           <BannerBackground
             bannerKey="emblemas"
-            imageUrl="/images/emblems-hero.svg"
+            imageUrl="/images/emblems-hero.webp"
             className="z-0"
             adminButtonClassName="!top-0"
           />
@@ -1048,39 +1011,34 @@ export default function SagasPage() {
               </p>
             </div>
 
-            <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[360px] lg:w-[350px]">
+            <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[310px] lg:w-[292px]">
               <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/75">
                 Progresso da coleção
               </p>
-              <div className="mt-3 flex items-center gap-3.5">
+              <div className="mt-3 flex items-center gap-4">
                 <div
-                  className="flex h-[86px] w-[86px] shrink-0 flex-col items-center justify-center rounded-full p-[7px]"
+                  className="flex h-[86px] w-[86px] shrink-0 items-center justify-center rounded-full p-[7px]"
                   style={{
                     background: `conic-gradient(#f21d2f ${totalProgress}%, rgba(255,255,255,0.12) ${totalProgress}% 100%)`,
                   }}
                   aria-label={`${totalProgress}% da coleção conquistada`}
                 >
-                  <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[#08090c] text-white">
-                    <span className="text-xl font-black leading-none">{totalProgress}%</span>
-                    <span className="mt-1 text-[9px] font-semibold text-white/55">{completedEmblems} de {totalEmblems}</span>
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-[#08090c] text-xl font-black text-white">
+                    {totalProgress}%
                   </div>
                 </div>
-
-                <div className="min-w-0 flex-1 divide-y divide-white/[0.08]">
-                  <div className="flex items-center gap-2 py-1.5 first:pt-0">
-                    <span aria-hidden="true" className="text-sm">🏆</span>
-                    <span className="min-w-0 flex-1 text-[10px] font-medium text-white/65">Conquistados</span>
-                    <span className="text-xs font-black text-white">{completedEmblems}</span>
-                  </div>
-                  <div className="flex items-center gap-2 py-1.5">
-                    <span aria-hidden="true" className="text-sm">🔒</span>
-                    <span className="min-w-0 flex-1 text-[10px] font-medium text-white/65">Bloqueados</span>
-                    <span className="text-xs font-black text-white">{lockedEmblems}</span>
-                  </div>
-                  <div className="flex items-center gap-2 py-1.5 last:pb-0">
-                    <span aria-hidden="true" className="text-sm">▱</span>
-                    <span className="min-w-0 flex-1 text-[10px] font-medium text-white/65">Total de emblemas</span>
-                    <span className="text-xs font-black text-white">{totalEmblems}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-black leading-none text-white">
+                    {completedEmblems} <span className="text-white/35">/ {totalEmblems}</span>
+                  </p>
+                  <p className="mt-2 text-[11px] font-medium text-white/60">
+                    Emblemas conquistados
+                  </p>
+                  <div className="mt-3 h-[7px] overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,29,47,0.48)] transition-all duration-500"
+                      style={{ width: `${totalProgress}%` }}
+                    />
                   </div>
                 </div>
               </div>

@@ -19,19 +19,11 @@ function normalize(value: unknown, fallback: number) {
   return Number.isFinite(number) ? number : fallback;
 }
 
-function normalizeSettings(
-  input: Record<string, unknown>,
-  bannerKey: SiteBannerKey
-) {
-  const zoom = normalize(input.zoom, 1);
-
+function normalizeSettings(input: Record<string, unknown>) {
   return {
     x: Math.max(-50, Math.min(50, normalize(input.x, 0))),
     y: Math.max(-50, Math.min(50, normalize(input.y, 0))),
-    zoom:
-      bannerKey === "emblemas"
-        ? Math.max(1, Math.min(2, zoom))
-        : Math.max(0.8, Math.min(2, zoom)),
+    zoom: Math.max(0.8, Math.min(2, normalize(input.zoom, 1))),
   };
 }
 
@@ -77,16 +69,6 @@ async function getStoredBannerImageUrl(
       .getPublicUrl(`${path}/background`);
     const version = file.updated_at || file.created_at;
 
-    // Ignore the stale Emblems banner upload that was cropped in the editor.
-    // A new upload changes its storage version and will be respected normally.
-    if (
-      bannerKey === "emblemas" &&
-      version &&
-      new Date(version).toISOString() === "2026-10-19T19:19:52.534Z"
-    ) {
-      return "";
-    }
-
     return version
       ? `${data.publicUrl}?v=${encodeURIComponent(version)}`
       : data.publicUrl;
@@ -114,14 +96,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        ...normalizeSettings(
-          {
-            x: data?.x ?? 0,
-            y: data?.y ?? 0,
-            zoom: data?.zoom ?? 1,
-          },
-          bannerKey
-        ),
+        x: data?.x ?? 0,
+        y: data?.y ?? 0,
+        zoom: data?.zoom ?? 1,
         imageUrl: await getStoredBannerImageUrl(client, bannerKey),
         authenticated: await isAdmin(request),
       },
@@ -158,7 +135,6 @@ export async function POST(request: NextRequest) {
         x: formData.get("x"),
         y: formData.get("y"),
         zoom: formData.get("zoom"),
-        resetImage: formData.get("resetImage") === "true",
       };
       const candidate = formData.get("file");
       if (candidate instanceof File && candidate.size > 0) file = candidate;
@@ -186,29 +162,21 @@ export async function POST(request: NextRequest) {
     }
 
     const bannerKey = banner as SiteBannerKey;
-    const settings = normalizeSettings(body, bannerKey);
+    const settings = normalizeSettings(body);
     const client = createAdminSupabaseClient();
-
-    const imagePath = `banners/${bannerKey}/background`;
 
     if (file) {
       await ensureBucket(client);
+      const path = `banners/${bannerKey}/background`;
       const { error: uploadError } = await client.storage
         .from(BUCKET)
-        .upload(imagePath, file, {
+        .upload(path, file, {
           contentType: file.type,
           upsert: true,
           cacheControl: "60",
         });
 
       if (uploadError) throw uploadError;
-    } else if (body.resetImage === true) {
-      await ensureBucket(client);
-      const { error: removeError } = await client.storage
-        .from(BUCKET)
-        .remove([imagePath]);
-
-      if (removeError) throw removeError;
     }
 
     const { error } = await client

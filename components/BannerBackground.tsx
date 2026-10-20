@@ -22,13 +22,11 @@ export default function BannerBackground({
   adminButtonClassName = "",
 }: Props) {
   const editorRef = useRef<HTMLDivElement | null>(null);
-  const bannerHostRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
   const { setting: initialSettings, update: updateSharedSettings } =
     useBannerSettings(bannerKey);
-  const isEmblemsBanner = bannerKey === "emblemas";
   const [settings, setSettings] = useState<SiteBannerSetting>(initialSettings);
   const [draft, setDraft] = useState<SiteBannerSetting>(initialSettings);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -37,40 +35,11 @@ export default function BannerBackground({
   const [error, setError] = useState("");
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
-  const [restoreDefaultRequested, setRestoreDefaultRequested] = useState(false);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  const [previewAspectRatio, setPreviewAspectRatio] = useState(6.5);
 
   useEffect(() => {
     setPortalTarget(document.body);
   }, []);
-
-  const updatePreviewAspectRatio = useCallback(() => {
-    const banner = bannerHostRef.current?.parentElement;
-    if (!banner) return;
-
-    const rect = banner.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-      setPreviewAspectRatio(rect.width / rect.height);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen || !isEmblemsBanner) return;
-
-    updatePreviewAspectRatio();
-    const banner = bannerHostRef.current?.parentElement;
-    if (!banner) return;
-
-    const observer = new ResizeObserver(updatePreviewAspectRatio);
-    observer.observe(banner);
-    window.addEventListener("resize", updatePreviewAspectRatio);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updatePreviewAspectRatio);
-    };
-  }, [bannerKey, isEmblemsBanner, isOpen, updatePreviewAspectRatio]);
 
   useEffect(() => {
     if (!selectedImageFile) {
@@ -105,12 +74,8 @@ export default function BannerBackground({
         y: Number.isFinite(Number(data.y)) ? Number(data.y) : initialSettings.y,
         zoom:
           Number.isFinite(Number(data.zoom)) && Number(data.zoom) > 0
-            ? isEmblemsBanner
-              ? Math.max(1, Math.min(2, Number(data.zoom)))
-              : Number(data.zoom)
-            : isEmblemsBanner
-              ? Math.max(1, initialSettings.zoom)
-              : initialSettings.zoom,
+            ? Number(data.zoom)
+            : initialSettings.zoom,
         imageUrl:
           typeof data.imageUrl === "string"
             ? data.imageUrl
@@ -182,17 +147,7 @@ export default function BannerBackground({
       return;
     }
 
-    // A new upload must start centered at 100% zoom. Reusing offsets/zoom
-    // from the previous banner image makes a fresh upload appear cropped.
-    setDraft((current) => ({
-      ...current,
-      x: 0,
-      y: 0,
-      zoom: 1,
-      imageUrl: "",
-    }));
     setSelectedImageFile(file);
-    setRestoreDefaultRequested(false);
     setError("");
   }
 
@@ -210,7 +165,6 @@ export default function BannerBackground({
         formData.set("x", String(draft.x));
         formData.set("y", String(draft.y));
         formData.set("zoom", String(draft.zoom));
-        formData.set("resetImage", String(restoreDefaultRequested));
         formData.set("file", selectedImageFile);
         requestBody = formData;
       } else {
@@ -220,7 +174,6 @@ export default function BannerBackground({
           x: draft.x,
           y: draft.y,
           zoom: draft.zoom,
-          resetImage: restoreDefaultRequested,
         });
       }
 
@@ -251,7 +204,6 @@ export default function BannerBackground({
       setDraft(savedSettings);
       updateSharedSettings(savedSettings);
       setSelectedImageFile(null);
-      setRestoreDefaultRequested(false);
       setIsOpen(false);
     } catch (saveError) {
       setError(
@@ -271,14 +223,11 @@ export default function BannerBackground({
 
   const visibleSettings = isOpen && isAdmin ? draft : settings;
   const visibleImageUrl =
-    selectedImagePreview ||
-    (!restoreDefaultRequested ? visibleSettings.imageUrl : "") ||
-    imageUrl;
+    selectedImagePreview || visibleSettings.imageUrl || imageUrl;
 
   return (
     <>
       <div
-        ref={bannerHostRef}
         className={`absolute inset-0 overflow-hidden ${className}`}
         aria-hidden="true"
       >
@@ -291,9 +240,6 @@ export default function BannerBackground({
           className="pointer-events-none absolute max-w-none select-none"
           style={{
             width: `${visibleSettings.zoom * 100}%`,
-            height: `${visibleSettings.zoom * 100}%`,
-            objectFit: "contain",
-            objectPosition: "center",
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
@@ -309,7 +255,6 @@ export default function BannerBackground({
               onClick={() => {
                 setDraft(settings);
                 setSelectedImageFile(null);
-                setRestoreDefaultRequested(false);
                 setIsOpen(true);
                 setError("");
               }}
@@ -323,14 +268,14 @@ export default function BannerBackground({
 
       {isAdmin && isOpen && portalTarget ? createPortal((
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-[1120px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
+          <div className="w-full max-w-[900px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl backdrop-blur-xl">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
                   Editor de BG · {bannerKey}
                 </p>
                 <p className="mt-1 text-[10px] text-white/40">
-                  Uma imagem nova começa centralizada e inteira, sem corte automático. Arraste ou use o zoom apenas se quiser recortar manualmente.
+                  Carregue uma imagem, arraste na prévia e ajuste o zoom. A imagem e o enquadramento ficam salvos para as próximas visitas.
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -351,28 +296,11 @@ export default function BannerBackground({
                   <span className="max-w-full truncate text-[9px] text-white/40">
                     {selectedImageFile
                       ? selectedImageFile.name
-                      : restoreDefaultRequested
-                        ? "A imagem padrão será usada ao salvar"
-                        : settings.imageUrl
-                          ? "Imagem personalizada ativa"
-                          : "Imagem padrão do site"}{" "}
+                      : settings.imageUrl
+                        ? "Imagem personalizada ativa"
+                        : "Imagem padrão do site"}{" "}
                     · PNG/JPG/WEBP · até 4 MB
                   </span>
-                  {settings.imageUrl && !restoreDefaultRequested ? (
-                    <button
-                      type="button"
-                      disabled={isSaving}
-                      onClick={() => {
-                        setSelectedImageFile(null);
-                        setRestoreDefaultRequested(true);
-                        setDraft({ x: 0, y: 0, zoom: 1, imageUrl: "" });
-                        setError("");
-                      }}
-                      className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[9px] font-black uppercase tracking-[0.08em] text-white/65 transition hover:border-red-500/35 hover:text-white disabled:opacity-50"
-                    >
-                      Usar imagem padrão
-                    </button>
-                  ) : null}
                 </div>
               </div>
 
@@ -389,7 +317,6 @@ export default function BannerBackground({
                   onClick={() => {
                     setDraft(settings);
                     setSelectedImageFile(null);
-                    setRestoreDefaultRequested(false);
                     setIsOpen(false);
                     setError("");
                   }}
@@ -417,16 +344,10 @@ export default function BannerBackground({
                 A nova imagem está na prévia. Clique em <strong>Salvar</strong> para publicar o arquivo permanentemente.
               </div>
             ) : null}
-            {restoreDefaultRequested ? (
-              <div className="mt-3 overflow-hidden rounded-lg border border-amber-400/20 bg-amber-500/[0.05] px-3 py-2 text-[10px] text-amber-100/80">
-                Ao salvar, a imagem personalizada desta aba será removida do armazenamento e a imagem padrão do projeto será usada.
-              </div>
-            ) : null}
 
             <div
               ref={editorRef}
-              className={`relative mt-4 ${isEmblemsBanner ? "w-full" : "aspect-[4/1]"} cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing`}
-              style={isEmblemsBanner ? { aspectRatio: String(previewAspectRatio) } : undefined}
+              className="relative mt-4 aspect-[4/1] cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 startDrag(event.clientX, event.clientY);
@@ -449,9 +370,6 @@ export default function BannerBackground({
                 className="pointer-events-none absolute max-w-none select-none"
                 style={{
                   width: `${draft.zoom * 100}%`,
-                  height: `${draft.zoom * 100}%`,
-                  objectFit: "contain",
-                  objectPosition: "center",
                   left: `${50 + draft.x}%`,
                   top: `${50 + draft.y}%`,
                   transform: "translate(-50%, -50%)",
@@ -510,7 +428,7 @@ export default function BannerBackground({
                 </span>
                 <input
                   type="range"
-                  min={isEmblemsBanner ? "1" : "0.8"}
+                  min="0.8"
                   max="2"
                   step="0.01"
                   value={draft.zoom}
