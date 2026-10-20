@@ -691,7 +691,7 @@ function EmblemCard({
       className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-hidden rounded-[18px] border px-3 pb-3 pt-3 text-center transition duration-300 hover:-translate-y-1 ${
         isLocked
           ? "border-transparent bg-white/[0.008] hover:border-white/[0.11] hover:bg-white/[0.02] hover:shadow-[0_12px_30px_rgba(0,0,0,0.20)]"
-          : "border-transparent bg-[radial-gradient(ellipse_at_50%_42%,rgba(116,29,35,0.18)_0%,rgba(25,7,10,0.035)_50%,transparent_76%)] hover:border-red-500/25 hover:shadow-[0_0_24px_rgba(239,68,68,0.06)]"
+          : "border-transparent bg-red-950/[0.10] hover:border-red-500/25 hover:bg-red-950/[0.14] hover:shadow-[0_0_24px_rgba(239,68,68,0.06)]"
       } ${isLarge ? "max-w-[380px]" : ""}`}
     >
       <div className="flex h-6 shrink-0 items-center justify-end border-b border-white/[0.09] pb-1">
@@ -1165,7 +1165,7 @@ export default function SagasPage() {
   return (
     <main
       id="topo-emblemas"
-      className="min-h-screen bg-[radial-gradient(ellipse_at_50%_40%,rgba(117,109,93,0.16)_0%,rgba(20,20,19,0.06)_36%,transparent_66%),radial-gradient(ellipse_at_8%_70%,rgba(90,88,82,0.08)_0%,transparent_35%),radial-gradient(ellipse_at_91%_78%,rgba(112,91,72,0.07)_0%,transparent_32%),linear-gradient(180deg,#0b0b0a_0%,#070706_46%,#020202_100%)] text-white
+      className="min-h-screen bg-[radial-gradient(ellipse_at_center,#141310_0%,#070706_48%,#020202_100%)] text-white"
     >
       <Navbar />
 
