@@ -1359,26 +1359,32 @@ export default function SagasPage() {
             <div className="relative isolate mx-auto w-full max-w-[1600px] overflow-visible py-3 sm:py-4">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-0 z-0 h-full w-screen -translate-x-1/2"
+                className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
                 style={{
                   background:
-                    "radial-gradient(ellipse 72% 52% at 50% 3%, rgba(178, 171, 151, 0.12) 0%, rgba(92, 88, 77, 0.045) 36%, transparent 72%), radial-gradient(ellipse 36% 80% at 16% 32%, rgba(102, 105, 105, 0.035) 0%, transparent 72%), radial-gradient(ellipse 32% 82% at 85% 55%, rgba(119, 101, 79, 0.03) 0%, transparent 76%), linear-gradient(180deg, #090909 0%, #070706 50%, #020202 100%)",
+                    "radial-gradient(ellipse 72% 58% at 50% 14%, rgba(206, 201, 185, 0.19) 0%, rgba(142, 136, 119, 0.085) 26%, rgba(90, 86, 77, 0.035) 48%, transparent 72%), radial-gradient(ellipse 30% 62% at 18% 24%, rgba(124, 132, 137, 0.055) 0%, transparent 74%), radial-gradient(ellipse 32% 68% at 83% 38%, rgba(143, 119, 91, 0.05) 0%, transparent 74%), linear-gradient(180deg, #0b0b0a 0%, #070706 52%, #020202 100%)",
+                  maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                 }}
               />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-0 z-0 h-full w-screen -translate-x-1/2"
+                className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
                 style={{
                   backgroundImage:
-                    "linear-gradient(110deg, transparent 13%, rgba(227, 219, 198, 0.015) 18%, rgba(227, 219, 198, 0.065) 23%, rgba(227, 219, 198, 0.018) 29%, transparent 35%), linear-gradient(73deg, transparent 31%, rgba(220, 212, 192, 0.025) 36%, rgba(220, 212, 192, 0.055) 41%, transparent 49%), linear-gradient(104deg, transparent 52%, rgba(214, 207, 187, 0.02) 57%, rgba(214, 207, 187, 0.045) 61%, transparent 68%), radial-gradient(circle at 7% 12%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.5px), radial-gradient(circle at 15% 43%, rgba(244, 239, 222, 0.13) 0.8px, transparent 1.6px), radial-gradient(circle at 25% 74%, rgba(244, 239, 222, 0.14) 0.7px, transparent 1.5px), radial-gradient(circle at 36% 18%, rgba(244, 239, 222, 0.18) 0.7px, transparent 1.5px), radial-gradient(circle at 47% 57%, rgba(244, 239, 222, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 59% 27%, rgba(244, 239, 222, 0.17) 0.7px, transparent 1.5px), radial-gradient(circle at 71% 81%, rgba(244, 239, 222, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 82% 38%, rgba(244, 239, 222, 0.16) 0.7px, transparent 1.5px), radial-gradient(circle at 94% 16%, rgba(244, 239, 222, 0.13) 0.7px, transparent 1.5px)",
+                    "linear-gradient(110deg, transparent 9%, rgba(227, 219, 198, 0.035) 15%, rgba(236, 230, 211, 0.12) 21%, rgba(227, 219, 198, 0.045) 28%, transparent 36%), linear-gradient(76deg, transparent 27%, rgba(220, 212, 192, 0.035) 33%, rgba(232, 224, 204, 0.085) 39%, rgba(220, 212, 192, 0.025) 45%, transparent 52%), linear-gradient(103deg, transparent 51%, rgba(214, 207, 187, 0.03) 56%, rgba(228, 219, 197, 0.075) 61%, transparent 69%), linear-gradient(82deg, transparent 72%, rgba(220, 211, 190, 0.025) 76%, rgba(220, 211, 190, 0.055) 80%, transparent 86%), radial-gradient(circle at 6% 12%, rgba(244, 239, 222, 0.23) 0.8px, transparent 1.6px), radial-gradient(circle at 12% 39%, rgba(244, 239, 222, 0.14) 0.8px, transparent 1.6px), radial-gradient(circle at 19% 68%, rgba(244, 239, 222, 0.17) 0.8px, transparent 1.6px), radial-gradient(circle at 25% 26%, rgba(244, 239, 222, 0.13) 0.7px, transparent 1.5px), radial-gradient(circle at 34% 14%, rgba(244, 239, 222, 0.2) 0.8px, transparent 1.6px), radial-gradient(circle at 39% 57%, rgba(244, 239, 222, 0.15) 0.8px, transparent 1.6px), radial-gradient(circle at 48% 33%, rgba(244, 239, 222, 0.13) 0.7px, transparent 1.5px), radial-gradient(circle at 56% 71%, rgba(244, 239, 222, 0.17) 0.8px, transparent 1.6px), radial-gradient(circle at 63% 18%, rgba(244, 239, 222, 0.19) 0.8px, transparent 1.6px), radial-gradient(circle at 70% 47%, rgba(244, 239, 222, 0.13) 0.7px, transparent 1.5px), radial-gradient(circle at 78% 76%, rgba(244, 239, 222, 0.17) 0.8px, transparent 1.6px), radial-gradient(circle at 86% 27%, rgba(244, 239, 222, 0.2) 0.8px, transparent 1.6px), radial-gradient(circle at 94% 60%, rgba(244, 239, 222, 0.14) 0.8px, transparent 1.6px)",
+                  maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                 }}
               />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-0 z-0 h-full w-screen -translate-x-1/2"
+                className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
                 style={{
                   background:
-                    "linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 12%, transparent 78%, rgba(0, 0, 0, 0.30) 100%)",
+                    "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.015) 10%, transparent 24%, transparent 76%, rgba(0,0,0,0.34) 100%)",
+                  maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                 }}
               />
             <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
