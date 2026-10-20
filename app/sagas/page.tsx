@@ -531,7 +531,7 @@ function BadgeImage({
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(175,157,128,0.09)_0%,rgba(130,118,100,0.03)_38%,transparent_72%)]"
+      className="relative z-10 flex h-full w-full items-center justify-center overflow-visible bg-[radial-gradient(ellipse_at_center,rgba(175,157,128,0.075)_0%,rgba(130,118,100,0.025)_38%,transparent_72%)]"
     >
       {!src || hasError ? (
         <div
@@ -688,13 +688,13 @@ function EmblemCard({
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-hidden rounded-[18px] border px-3 pb-3 pt-3 text-center transition duration-300 hover:-translate-y-1 ${
+      className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-visible rounded-[8px] border border-transparent px-3 pb-3 pt-2 text-center transition duration-300 hover:-translate-y-1 ${
         isLocked
-          ? "border-transparent bg-white/[0.008] hover:border-white/[0.11] hover:bg-white/[0.02] hover:shadow-[0_12px_30px_rgba(0,0,0,0.20)]"
-          : "border-transparent bg-red-950/[0.10] hover:border-red-500/25 hover:bg-red-950/[0.14] hover:shadow-[0_0_24px_rgba(239,68,68,0.06)]"
+          ? "bg-transparent hover:bg-white/[0.018] hover:shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
+          : "bg-transparent hover:bg-red-950/[0.045] hover:shadow-[0_0_24px_rgba(239,68,68,0.045)]"
       } ${isLarge ? "max-w-[380px]" : ""}`}
     >
-      <div className="flex h-6 shrink-0 items-center justify-end border-b border-white/[0.09] pb-1">
+      <div className="flex h-6 shrink-0 items-center justify-end pb-0">
         <span
           className={`inline-flex h-5 shrink-0 items-center justify-center gap-1 rounded-full border px-2 text-[7px] font-black uppercase tracking-[0.08em] ${
             isLocked
@@ -1356,6 +1356,29 @@ export default function SagasPage() {
           ) : filteredEmblems.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
+            <div
+              className="relative isolate mx-auto w-full max-w-[1600px] overflow-hidden rounded-[18px] py-3 sm:py-4"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 50% 0%, rgba(206, 199, 179, 0.13) 0%, rgba(93, 88, 77, 0.055) 30%, transparent 62%), radial-gradient(ellipse at 9% 52%, rgba(144, 132, 109, 0.055) 0%, transparent 35%), radial-gradient(ellipse at 92% 70%, rgba(115, 101, 82, 0.045) 0%, transparent 34%), linear-gradient(180deg, #141411 0%, #0a0a09 44%, #040404 100%)",
+              }}
+            >
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-70"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(112deg, transparent 14%, rgba(226, 218, 195, 0.045) 28%, transparent 42%), linear-gradient(76deg, transparent 38%, rgba(216, 205, 179, 0.03) 47%, transparent 57%), radial-gradient(circle at 8% 14%, rgba(244, 239, 222, 0.28) 0.7px, transparent 1.4px), radial-gradient(circle at 18% 38%, rgba(244, 239, 222, 0.18) 0.7px, transparent 1.5px), radial-gradient(circle at 28% 77%, rgba(244, 239, 222, 0.16) 0.8px, transparent 1.5px), radial-gradient(circle at 42% 19%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.4px), radial-gradient(circle at 57% 63%, rgba(244, 239, 222, 0.16) 0.7px, transparent 1.5px), radial-gradient(circle at 68% 29%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.5px), radial-gradient(circle at 79% 81%, rgba(244, 239, 222, 0.16) 0.8px, transparent 1.5px), radial-gradient(circle at 91% 41%, rgba(244, 239, 222, 0.2) 0.7px, transparent 1.5px)",
+                }}
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(0,0,0,0.03) 0%, transparent 20%, transparent 82%, rgba(0,0,0,0.28) 100%)",
+                }}
+              />
             <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard
@@ -1364,6 +1387,7 @@ export default function SagasPage() {
                   theme={theme}
                 />
               ))}
+            </div>
             </div>
           )}
         </section>
