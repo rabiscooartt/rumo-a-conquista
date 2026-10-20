@@ -182,6 +182,15 @@ export default function BannerBackground({
       return;
     }
 
+    // A new upload must start centered at 100% zoom. Reusing offsets/zoom
+    // from the previous banner image makes a fresh upload appear cropped.
+    setDraft((current) => ({
+      ...current,
+      x: 0,
+      y: 0,
+      zoom: 1,
+      imageUrl: "",
+    }));
     setSelectedImageFile(file);
     setRestoreDefaultRequested(false);
     setError("");
@@ -281,12 +290,10 @@ export default function BannerBackground({
           loading="eager"
           className="pointer-events-none absolute max-w-none select-none"
           style={{
-            width: `${(isEmblemsBanner ? Math.max(1, visibleSettings.zoom) : visibleSettings.zoom) * 100}%`,
-            height: isEmblemsBanner
-              ? `${Math.max(1, visibleSettings.zoom) * 100}%`
-              : undefined,
-            objectFit: isEmblemsBanner ? "cover" : undefined,
-            objectPosition: isEmblemsBanner ? "center top" : undefined,
+            width: `${visibleSettings.zoom * 100}%`,
+            height: `${visibleSettings.zoom * 100}%`,
+            objectFit: "contain",
+            objectPosition: "center",
             left: `${50 + visibleSettings.x}%`,
             top: `${50 + visibleSettings.y}%`,
             transform: "translate(-50%, -50%)",
@@ -323,7 +330,7 @@ export default function BannerBackground({
                   Editor de BG · {bannerKey}
                 </p>
                 <p className="mt-1 text-[10px] text-white/40">
-                  A prévia usa a mesma proporção do banner real desta aba. Carregue a imagem, arraste e ajuste o zoom; o resultado será o mesmo no site.
+                  Uma imagem nova começa centralizada e inteira, sem corte automático. Arraste ou use o zoom apenas se quiser recortar manualmente.
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -441,10 +448,10 @@ export default function BannerBackground({
                 draggable={false}
                 className="pointer-events-none absolute max-w-none select-none"
                 style={{
-                  width: `${(isEmblemsBanner ? Math.max(1, draft.zoom) : draft.zoom) * 100}%`,
-                  height: isEmblemsBanner ? `${Math.max(1, draft.zoom) * 100}%` : undefined,
-                  objectFit: isEmblemsBanner ? "cover" : undefined,
-                  objectPosition: isEmblemsBanner ? "center top" : undefined,
+                  width: `${draft.zoom * 100}%`,
+                  height: `${draft.zoom * 100}%`,
+                  objectFit: "contain",
+                  objectPosition: "center",
                   left: `${50 + draft.x}%`,
                   top: `${50 + draft.y}%`,
                   transform: "translate(-50%, -50%)",
