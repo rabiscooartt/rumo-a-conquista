@@ -1382,7 +1382,7 @@ export default function SagasPage() {
           ) : filteredEmblems.length === 0 ? (
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
-            <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
+            <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:ml-[-50px] lg:mr-0 lg:w-[calc(100%+100px)] lg:max-w-none lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard
                   key={emblem.id}
