@@ -688,10 +688,10 @@ function EmblemCard({
     <Link
       href={`/games/${emblem.gameSlug}`}
       id={`emblem-${emblem.gameSlug}`}
-      className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-visible rounded-[8px] border border-transparent px-3 pb-3 pt-2 text-center transition duration-300 hover:-translate-y-1 ${
+      className={`group relative flex h-full min-h-[405px] w-full min-w-0 flex-col scroll-mt-24 overflow-visible rounded-[10px] border px-3 pb-3 pt-2 text-center transition duration-300 hover:-translate-y-1 ${
         isLocked
-          ? "bg-transparent hover:bg-white/[0.018] hover:shadow-[0_10px_28px_rgba(0,0,0,0.18)]"
-          : "bg-transparent hover:bg-red-950/[0.045] hover:shadow-[0_0_24px_rgba(239,68,68,0.045)]"
+          ? "border-white/[0.075] bg-[linear-gradient(180deg,rgba(21,21,23,0.82)_0%,rgba(5,5,6,0.94)_100%)] hover:border-white/[0.14] hover:bg-[linear-gradient(180deg,rgba(27,27,29,0.86)_0%,rgba(7,7,8,0.96)_100%)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.22)]"
+          : "border-red-900/55 bg-[linear-gradient(180deg,rgba(48,8,14,0.82)_0%,rgba(14,4,7,0.94)_100%)] shadow-[inset_0_0_30px_rgba(127,29,29,0.07)] hover:border-red-800/70 hover:bg-[linear-gradient(180deg,rgba(58,9,16,0.86)_0%,rgba(18,4,7,0.96)_100%)] hover:shadow-[0_0_24px_rgba(127,29,29,0.12)]"
       } ${isLarge ? "max-w-[380px]" : ""}`}
     >
       <div className="flex h-6 shrink-0 items-center justify-end pb-0">
