@@ -683,13 +683,6 @@ function EmblemCard({
 }) {
   const isLocked = !emblem.isCompleted;
   const unlockedDate = formatDate(emblem.unlockedAt);
-  const isSpecialFranchise = /crisol/i.test(emblem.gameTitle);
-  const isFranchise = Boolean(emblem.sagaSlug) || isSpecialFranchise;
-  const categoryLabel = isSpecialFranchise
-    ? "Franquia especial"
-    : isFranchise
-      ? "Franquia"
-      : "Jogo";
 
   return (
     <Link
@@ -701,40 +694,21 @@ function EmblemCard({
           : "border-red-500/55 bg-[linear-gradient(160deg,rgba(32,8,12,0.94),rgba(5,5,6,0.98))] shadow-[inset_0_0_24px_rgba(239,68,68,0.035)] hover:border-red-400/80 hover:shadow-[0_0_28px_rgba(239,68,68,0.12)]"
       } ${isLarge ? "max-w-[380px]" : ""}`}
     >
-      <div className="flex h-7 shrink-0 items-center justify-between gap-2 border-b border-white/[0.09] pb-2">
+      <div className="flex h-6 shrink-0 items-center justify-end border-b border-white/[0.09] pb-1">
         <span
-          className={`inline-flex min-w-0 items-center gap-1.5 truncate text-[9px] font-black uppercase tracking-[0.17em] ${
-            isLocked ? "text-white/55" : "text-white/70"
-          }`}
-        >
-          {isFranchise ? (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3 20 7v5c0 4.5-3.5 7.5-8 9-4.5-1.5-8-4.5-8-9V7l8-4Z" />
-              <path d="M9 12h6M12 9v6" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 8h12a3 3 0 0 1 2.9 3.8l-1.1 4.1a2 2 0 0 1-3.2 1L14 15h-4l-2.6 1.9a2 2 0 0 1-3.2-1l-1.1-4.1A3 3 0 0 1 6 8Z" />
-              <path d="M8 10v4M6 12h4M16 11h.01M18 13h.01" />
-            </svg>
-          )}
-          <span className="truncate">{categoryLabel}</span>
-        </span>
-
-        <span
-          className={`inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-full border px-2.5 text-[8px] font-black uppercase tracking-[0.1em] ${
+          className={`inline-flex h-5 shrink-0 items-center justify-center gap-1 rounded-full border px-2 text-[7px] font-black uppercase tracking-[0.08em] ${
             isLocked
-              ? "border-white/25 bg-black/35 text-white/65"
-              : "border-emerald-400/45 bg-emerald-950/45 text-emerald-300"
+              ? "border-white/20 bg-black/25 text-white/55"
+              : "border-emerald-400/35 bg-emerald-950/35 text-emerald-300/90"
           }`}
         >
           {isLocked ? (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="10" width="14" height="11" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="m5 12 4 4L19 6" />
             </svg>
           )}
