@@ -721,8 +721,14 @@ function EmblemCard({
           isLarge ? "h-[300px]" : "h-[270px] sm:h-[285px] lg:h-[300px]"
         }`}
       >
+        {!isLocked ? (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[62%] w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-900/[0.16] blur-3xl"
+          />
+        ) : null}
         <div
-          className={`h-full w-full transition duration-300 ${
+          className={`relative z-10 h-full w-full transition duration-300 ${
             isLocked
               ? "scale-100 opacity-70 blur-[0.5px] grayscale saturate-0 brightness-[0.72]"
               : "group-hover:brightness-110"
@@ -1362,7 +1368,7 @@ export default function SagasPage() {
                 className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
                 style={{
                   background:
-                    "radial-gradient(ellipse 72% 58% at 50% 14%, rgba(130, 19, 31, 0.15) 0%, rgba(80, 13, 22, 0.075) 26%, rgba(42, 8, 13, 0.035) 48%, transparent 72%), radial-gradient(ellipse 30% 62% at 18% 24%, rgba(105, 23, 32, 0.045) 0%, transparent 74%), radial-gradient(ellipse 32% 68% at 83% 38%, rgba(95, 17, 25, 0.035) 0%, transparent 74%), linear-gradient(180deg, #090708 0%, #070506 52%, #020202 100%)",
+                    "radial-gradient(ellipse 72% 58% at 50% 14%, rgba(104, 104, 104, 0.075) 0%, rgba(66, 66, 66, 0.035) 26%, rgba(30, 30, 30, 0.015) 48%, transparent 72%), radial-gradient(ellipse 30% 62% at 18% 24%, rgba(94, 100, 105, 0.025) 0%, transparent 74%), radial-gradient(ellipse 32% 68% at 83% 38%, rgba(100, 94, 88, 0.018) 0%, transparent 74%), linear-gradient(180deg, #080808 0%, #060606 52%, #020202 100%)",
                   maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                   WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                 }}
@@ -1372,7 +1378,7 @@ export default function SagasPage() {
                 className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
                 style={{
                   backgroundImage:
-                    "linear-gradient(110deg, transparent 9%, rgba(105, 22, 31, 0.015) 15%, rgba(144, 32, 42, 0.07) 21%, rgba(105, 22, 31, 0.02) 28%, transparent 36%), linear-gradient(76deg, transparent 27%, rgba(110, 26, 34, 0.018) 33%, rgba(146, 38, 47, 0.05) 39%, rgba(110, 26, 34, 0.015) 45%, transparent 52%), linear-gradient(103deg, transparent 51%, rgba(96, 22, 29, 0.015) 56%, rgba(141, 31, 40, 0.045) 61%, transparent 69%), linear-gradient(82deg, transparent 72%, rgba(110, 26, 34, 0.015) 76%, rgba(142, 34, 44, 0.035) 80%, transparent 86%), radial-gradient(circle at 6% 12%, rgba(186, 181, 180, 0.13) 0.8px, transparent 1.6px), radial-gradient(circle at 12% 39%, rgba(164, 67, 75, 0.10) 0.8px, transparent 1.6px), radial-gradient(circle at 19% 68%, rgba(174, 102, 105, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 25% 26%, rgba(186, 181, 180, 0.08) 0.7px, transparent 1.5px), radial-gradient(circle at 34% 14%, rgba(186, 181, 180, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 39% 57%, rgba(164, 67, 75, 0.10) 0.8px, transparent 1.6px), radial-gradient(circle at 48% 33%, rgba(186, 181, 180, 0.08) 0.7px, transparent 1.5px), radial-gradient(circle at 56% 71%, rgba(174, 102, 105, 0.11) 0.8px, transparent 1.6px), radial-gradient(circle at 63% 18%, rgba(186, 181, 180, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 70% 47%, rgba(164, 67, 75, 0.09) 0.7px, transparent 1.5px), radial-gradient(circle at 78% 76%, rgba(174, 102, 105, 0.10) 0.8px, transparent 1.6px), radial-gradient(circle at 86% 27%, rgba(186, 181, 180, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 94% 60%, rgba(164, 67, 75, 0.09) 0.8px, transparent 1.6px)",
+                    "linear-gradient(110deg, transparent 9%, rgba(205, 205, 205, 0.008) 15%, rgba(225, 225, 225, 0.032) 21%, rgba(205, 205, 205, 0.01) 28%, transparent 36%), linear-gradient(76deg, transparent 27%, rgba(195, 195, 195, 0.009) 33%, rgba(220, 220, 220, 0.025) 39%, rgba(195, 195, 195, 0.008) 45%, transparent 52%), linear-gradient(103deg, transparent 51%, rgba(195, 195, 195, 0.008) 56%, rgba(220, 220, 220, 0.022) 61%, transparent 69%), linear-gradient(82deg, transparent 72%, rgba(195, 195, 195, 0.007) 76%, rgba(220, 220, 220, 0.018) 80%, transparent 86%), radial-gradient(circle at 6% 12%, rgba(220, 220, 220, 0.12) 0.8px, transparent 1.6px), radial-gradient(circle at 12% 39%, rgba(180, 180, 180, 0.07) 0.8px, transparent 1.6px), radial-gradient(circle at 19% 68%, rgba(195, 195, 195, 0.08) 0.8px, transparent 1.6px), radial-gradient(circle at 25% 26%, rgba(220, 220, 220, 0.05) 0.7px, transparent 1.5px), radial-gradient(circle at 34% 14%, rgba(220, 220, 220, 0.10) 0.8px, transparent 1.6px), radial-gradient(circle at 39% 57%, rgba(180, 180, 180, 0.07) 0.8px, transparent 1.6px), radial-gradient(circle at 48% 33%, rgba(220, 220, 220, 0.05) 0.7px, transparent 1.5px), radial-gradient(circle at 56% 71%, rgba(195, 195, 195, 0.08) 0.8px, transparent 1.6px), radial-gradient(circle at 63% 18%, rgba(220, 220, 220, 0.10) 0.8px, transparent 1.6px), radial-gradient(circle at 70% 47%, rgba(180, 180, 180, 0.06) 0.7px, transparent 1.5px), radial-gradient(circle at 78% 76%, rgba(195, 195, 195, 0.07) 0.8px, transparent 1.6px), radial-gradient(circle at 86% 27%, rgba(220, 220, 220, 0.09) 0.8px, transparent 1.6px), radial-gradient(circle at 94% 60%, rgba(180, 180, 180, 0.06) 0.8px, transparent 1.6px)",
                   maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                   WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
                 }}
