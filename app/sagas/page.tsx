@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import BannerBackground from "@/components/BannerBackground";
 import Navbar from "@/components/Navbar";
@@ -424,7 +424,26 @@ function getGameEmblem(
   };
 }
 
-type BadgeImageFit = "portrait" | "square" | "landscape";
+type BadgeImageBounds = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
+type LoadedBadgeImage = {
+  src: string;
+  width: number;
+  height: number;
+  bounds: BadgeImageBounds;
+};
+
+const FULL_BADGE_BOUNDS: BadgeImageBounds = {
+  left: 0,
+  top: 0,
+  right: 1,
+  bottom: 1,
+};
 
 function BadgeImage({
   src,
@@ -437,46 +456,172 @@ function BadgeImage({
   fallbackIcon: string;
   isLarge?: boolean;
 }) {
-  const [hasError, setHasError] = useState(false);
-  const [fit, setFit] = useState<BadgeImageFit>("square");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const [loadedImage, setLoadedImage] = useState<LoadedBadgeImage | null>(null);
+  const [boxSize, setBoxSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    setHasError(false);
-    setFit("square");
-  }, [src]);
+    const container = containerRef.current;
+    if (!container) return;
 
-  if (!src || hasError) {
-    return (
-      <div
-        className={`flex h-full w-full items-center justify-center ${
-          isLarge ? "text-7xl" : "text-6xl"
-        }`}
-      >
-        {fallbackIcon}
-      </div>
-    );
-  }
+    const measure = () => {
+      const rect = container.getBoundingClientRect();
+      setBoxSize((previous) =>
+        Math.abs(previous.width - rect.width) < 1 &&
+        Math.abs(previous.height - rect.height) < 1
+          ? previous
+          : { width: rect.width, height: rect.height }
+      );
+    };
+
+    const initialMeasure = window.requestAnimationFrame(measure);
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => {
+        window.cancelAnimationFrame(initialMeasure);
+        window.removeEventListener("resize", measure);
+      };
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => {
+      window.cancelAnimationFrame(initialMeasure);
+      observer.disconnect();
+    };
+  }, []);
+
+  const hasError = Boolean(src && failedSrc === src);
+  const imageForCurrentSource =
+    src && loadedImage?.src === src ? loadedImage : null;
+  const hasLayout =
+    Boolean(imageForCurrentSource) && boxSize.width > 0 && boxSize.height > 0;
+  const contentBounds = imageForCurrentSource?.bounds ?? FULL_BADGE_BOUNDS;
+  const naturalWidth = imageForCurrentSource?.width ?? 0;
+  const naturalHeight = imageForCurrentSource?.height ?? 0;
+
+  const visibleWidth = Math.max(
+    0.01,
+    (contentBounds.right - contentBounds.left) * naturalWidth
+  );
+  const visibleHeight = Math.max(
+    0.01,
+    (contentBounds.bottom - contentBounds.top) * naturalHeight
+  );
+
+  // Fit the visible pixels inside a consistent safe area without distorting
+  // the source file; transparent margins can extend outside the clipped box.
+  const scale = hasLayout
+    ? Math.min(
+        (boxSize.width * 0.94) / visibleWidth,
+        (boxSize.height * 0.94) / visibleHeight
+      )
+    : 1;
+
+  const renderedWidth = naturalWidth * scale;
+  const renderedHeight = naturalHeight * scale;
+  const offsetX = hasLayout
+    ? boxSize.width / 2 -
+      ((contentBounds.left + contentBounds.right) / 2) * renderedWidth
+    : 0;
+  const offsetY = hasLayout
+    ? boxSize.height / 2 -
+      ((contentBounds.top + contentBounds.bottom) / 2) * renderedHeight
+    : 0;
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="block max-h-full max-w-full object-contain object-center transition duration-300"
-      style={{
-        width: fit === "landscape" ? "100%" : "auto",
-        height: fit === "landscape" ? "auto" : "100%",
-        maxWidth: fit === "portrait" ? "88%" : "100%",
-        maxHeight: fit === "landscape" ? "86%" : "100%",
-      }}
-      onLoad={(event) => {
-        const image = event.currentTarget;
-        if (!image.naturalWidth || !image.naturalHeight) return;
+    <div
+      ref={containerRef}
+      className="relative h-full w-full overflow-hidden"
+    >
+      {!src || hasError ? (
+        <div
+          className={
+            "flex h-full w-full items-center justify-center " +
+            (isLarge ? "text-7xl" : "text-6xl")
+          }
+        >
+          {fallbackIcon}
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          className="block transition duration-300"
+          style={{
+            position: "absolute",
+            width: hasLayout ? renderedWidth : "100%",
+            height: hasLayout ? renderedHeight : "100%",
+            left: hasLayout ? offsetX : 0,
+            top: hasLayout ? offsetY : 0,
+            maxWidth: "none",
+            maxHeight: "none",
+            objectFit: hasLayout ? "fill" : "contain",
+          }}
+          onLoad={(event) => {
+            const image = event.currentTarget;
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+            if (!width || !height || !src) return;
 
-        const ratio = image.naturalWidth / image.naturalHeight;
-        setFit(ratio < 0.82 ? "portrait" : ratio > 1.18 ? "landscape" : "square");
-      }}
-      onError={() => setHasError(true)}
-    />
+            let nextBounds = FULL_BADGE_BOUNDS;
+
+            // Canvas inspection is safe for same-origin assets. Externally
+            // hosted images keep the proportional, non-cropped fallback.
+            try {
+              const imageUrl = new URL(
+                image.currentSrc || image.src,
+                window.location.href
+              );
+              if (imageUrl.origin === window.location.origin) {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext("2d", {
+                  willReadFrequently: true,
+                });
+                if (context) {
+                  context.drawImage(image, 0, 0, width, height);
+                  const pixels = context.getImageData(0, 0, width, height).data;
+                  let minX = width;
+                  let minY = height;
+                  let maxX = -1;
+                  let maxY = -1;
+
+                  for (let y = 0; y < height; y += 1) {
+                    for (let x = 0; x < width; x += 1) {
+                      if (pixels[(y * width + x) * 4 + 3] > 0) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                      }
+                    }
+                  }
+
+                  if (maxX >= minX && maxY >= minY) {
+                    nextBounds = {
+                      left: minX / width,
+                      top: minY / height,
+                      right: (maxX + 1) / width,
+                      bottom: (maxY + 1) / height,
+                    };
+                  }
+                }
+              }
+            } catch {
+              // Keep full-image bounds if inspection is blocked or unavailable.
+            }
+
+            setLoadedImage({ src, width, height, bounds: nextBounds });
+          }}
+          onError={() => setFailedSrc(src)}
+        />
+      )}
+    </div>
   );
 }
 
