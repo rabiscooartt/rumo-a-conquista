@@ -717,7 +717,7 @@ function EmblemCard({
       </div>
 
       <div
-        className={`relative mx-auto mt-2 flex w-full shrink-0 items-center justify-center overflow-hidden ${
+        className={`relative mx-auto mt-1 flex w-full shrink-0 items-center justify-center overflow-hidden ${
           isLarge ? "h-[300px]" : "h-[270px] sm:h-[285px] lg:h-[300px]"
         }`}
       >
