@@ -654,10 +654,10 @@ export default function ReviewsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2.5 p-3 md:flex-row">
+                <div className="flex flex-col gap-2.5 p-3 sm:flex-row sm:items-center">
                   <label className="relative block min-w-0 flex-1">
                     <span className="sr-only">Buscar review ou jogo</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <circle cx="11" cy="11" r="7" />
                       <path d="m20 20-4-4" />
                     </svg>
@@ -665,7 +665,7 @@ export default function ReviewsPage() {
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por jogo ou título da review..."
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-10 text-[12px] font-semibold text-white outline-none placeholder:text-white/40 focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20"
+                      className="h-9 w-full rounded-full border border-white/10 bg-[#050608] pl-9 pr-9 text-[11px] font-semibold text-white outline-none placeholder:text-white/40 transition focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20"
                     />
                     {search ? (
                       <button
@@ -679,30 +679,52 @@ export default function ReviewsPage() {
                       </button>
                     ) : null}
                   </label>
-                  <select
-                    value={ratingFilter}
-                    onChange={(event) => setRatingFilter(event.target.value)}
-                    aria-label="Filtrar reviews por nota"
-                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[12px] font-bold text-white/80 outline-none focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20 md:w-[130px]"
-                  >
-                    <option value="all">Todas as notas</option>
-                    <option value="9-10">Nota 9–10</option>
-                    <option value="7-8.5">Nota 7–8,5</option>
-                    <option value="5-6.5">Nota 5–6,5</option>
-                    <option value="3-4.5">Nota 3–4,5</option>
-                    <option value="0-2.5">Nota 0–2,5</option>
-                  </select>
-                  <select
-                    value={reviewOrder}
-                    onChange={(event) => setReviewOrder(event.target.value)}
-                    aria-label="Ordenar reviews"
-                    className="w-full rounded-xl border border-white/10 bg-[#090b0f] px-3 py-3 text-[12px] font-bold text-white/80 outline-none focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20 md:w-[132px]"
-                  >
-                    <option value="recent">Ordem: recentes</option>
-                    <option value="title">Ordem: título</option>
-                    <option value="highest">Maior nota</option>
-                    <option value="lowest">Menor nota</option>
-                  </select>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className={`relative inline-flex h-9 min-w-0 items-center gap-2 rounded-full border px-3 transition focus-within:ring-2 focus-within:ring-red-500/20 ${ratingFilter === "all" ? "border-red-500/50 bg-red-500/10 text-red-300" : "border-white/10 bg-[#090b0f] text-white/75 focus-within:border-red-500/45"}`}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" />
+                      </svg>
+                      <span className="sr-only">Filtrar reviews por nota</span>
+                      <select
+                        value={ratingFilter}
+                        onChange={(event) => setRatingFilter(event.target.value)}
+                        aria-label="Filtrar reviews por nota"
+                        className="h-full min-w-0 w-[116px] appearance-none bg-transparent pr-3 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
+                      >
+                        <option value="all">Todas as notas</option>
+                        <option value="9-10">Nota 9–10</option>
+                        <option value="7-8.5">Nota 7–8,5</option>
+                        <option value="5-6.5">Nota 5–6,5</option>
+                        <option value="3-4.5">Nota 3–4,5</option>
+                        <option value="0-2.5">Nota 0–2,5</option>
+                      </select>
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute right-3 h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m7 10 5 5 5-5" />
+                      </svg>
+                    </label>
+
+                    <label className="relative inline-flex h-9 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-[#090b0f] px-3 text-white/75 transition focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/20">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 4v15m0-15L5 7m3-3 3 3M16 20V5m0 15 3-3m-3 3-3-3" />
+                      </svg>
+                      <span className="text-[10px] font-black uppercase tracking-[0.07em]">Ordem:</span>
+                      <select
+                        value={reviewOrder}
+                        onChange={(event) => setReviewOrder(event.target.value)}
+                        aria-label="Ordenar reviews"
+                        className="h-full min-w-0 w-[80px] appearance-none bg-transparent pr-3 text-[10px] font-black text-white outline-none"
+                      >
+                        <option value="recent">Recentes</option>
+                        <option value="title">Título</option>
+                        <option value="highest">Maior nota</option>
+                        <option value="lowest">Menor nota</option>
+                      </select>
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute right-3 h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m7 10 5 5 5-5" />
+                      </svg>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="px-3 pb-3">
