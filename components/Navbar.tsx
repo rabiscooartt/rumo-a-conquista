@@ -307,7 +307,9 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
-          {navLinks.map((link) => {
+          {navLinks
+            .filter((link) => link.href !== "/backlog" || isAdminMode)
+            .map((link) => {
             const targetHref =
               isAdminMode && link.adminHref ? link.adminHref : link.href;
             const isActive = isActiveLink(targetHref);
@@ -331,7 +333,7 @@ export default function Navbar() {
                   }`}
                 />
 
-                <span className="whitespace-nowrap">{link.label}</span>
+                <span className="whitespace-nowrap">{isAdminMode && link.href === "/backlog" ? "Editar Fila" : link.label}</span>
 
                 <span
                   className={`absolute bottom-0 left-0 h-[3px] rounded-full bg-red-500 transition-all ${

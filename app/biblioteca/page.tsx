@@ -1944,7 +1944,17 @@ export default function BibliotecaPage() {
         return false;
       }
       if (activeFilter === "mastery" && !isCompletedGame(game)) return false;
-      if (activeFilter === "backlog" && !isBacklogGame(game)) return false;
+      if (
+        activeFilter === "backlog" &&
+        (
+          !backlogOrder.includes(readText(game.slug, "")) ||
+          !isBacklogGame(game) ||
+          isProgressGame(game, gameHasActivity) ||
+          isCompletedGame(game)
+        )
+      ) {
+        return false;
+      }
 
       if (
         platformFilter !== "all" &&
@@ -2860,7 +2870,19 @@ export default function BibliotecaPage() {
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
                   <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Próximos na Fila</h2>
                 </div>
-                <Link href="/backlog" className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 hover:text-red-300">Ver fila</Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPlatformFilter("all");
+                    setSortMode("recent");
+                    setFilterMenu(null);
+                    handleFilterChange("backlog");
+                  }}
+                  className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 transition hover:text-red-300"
+                >
+                  Ver fila
+                </button>
               </div>
 
               <div className="mt-3 space-y-2">
