@@ -191,10 +191,6 @@ export default function GamePickerAdminPage() {
   }, [state]);
 
   const selectedSet = useMemo(() => new Set(state.manualNames), [state.manualNames]);
-  const candidateMap = useMemo(
-    () => new Map(state.bank.map((candidate) => [candidate.name, candidate])),
-    [state.bank]
-  );
   const filteredBank = useMemo(() => {
     const term = normalize(search);
     return state.bank.filter((candidate) => {
@@ -209,7 +205,8 @@ export default function GamePickerAdminPage() {
   const remainingCount = state.bank.length - state.manualNames.length;
 
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
     try {
@@ -230,7 +227,7 @@ export default function GamePickerAdminPage() {
     } catch {
       setMessage("Não foi possível ler esse arquivo. Tente importar o CSV novamente.");
     } finally {
-      event.currentTarget.value = "";
+      input.value = "";
     }
   }
 
