@@ -353,7 +353,7 @@ export default function GamePickerAdminPage() {
 
     setState((current) => ({
       ...current,
-      bank: [...current.bank, { name, category: "Em breve" }].sort(
+      bank: [...current.bank, { name, category: "Em breve" as CandidateCategory }].sort(
         (a, b) => a.name.localeCompare(b.name, "pt-BR")
       ),
     }));
@@ -458,7 +458,7 @@ export default function GamePickerAdminPage() {
           : {
               ...candidate,
               name,
-              category: "Em breve",
+              category: "Em breve" as CandidateCategory,
               ...(titleChanged
                 ? { genre: "", genreChecked: false, genreSource: "" }
                 : {}),
