@@ -12,10 +12,13 @@ type GameRow = {
 
 type GenreResult = {
   genres: string[];
-  source: "igdb" | "steam" | "none";
+  source: "igdb" | "steam" | "wikidata" | "none";
 };
 
 let igdbToken: { value: string; expiresAt: number } | null = null;
+
+const genreLookupCache = new Map<string, { result: GenreResult; expiresAt: number }>();
+const GENRE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value: unknown) {
   return String(value ?? "")
@@ -28,28 +31,57 @@ function normalizeText(value: unknown) {
 }
 
 const EDITION_SUFFIXES = [
-  "deluxe edition",
-  "definitive edition",
-  "special edition",
-  "complete edition",
-  "collector edition",
-  "collectors edition",
-  "standard edition",
   "game of the year edition",
+  "collectors edition",
+  "collector edition",
+  "definitive edition",
+  "anniversary edition",
+  "legendary edition",
+  "ultimate edition",
+  "deluxe edition",
+  "complete edition",
+  "enhanced edition",
+  "special edition",
+  "standard edition",
+  "premium edition",
+  "royal edition",
+  "gold edition",
+  "remastered edition",
+  "directors cut",
   "game of the year",
+  "video game franchise",
+  "video game series",
+  "computer game",
+  "video game",
   "goty edition",
   "goty",
+  "hd remaster",
+  "remastered",
+  "remaster",
+  "redux",
+  "definitive",
+  "directors cut",
+  "enhanced",
+  "anniversary",
   "edition",
 ];
 
 function normalizeEditionTitle(value: unknown) {
   let normalized = normalizeText(value);
-  for (const suffix of EDITION_SUFFIXES) {
-    if (normalized.endsWith(" " + suffix)) {
-      normalized = normalized.slice(0, -(suffix.length + 1)).trim();
-      break;
+  let changed = true;
+
+  // Some storefront names stack two edition labels (e.g. "X Ultimate Edition").
+  while (changed && normalized) {
+    changed = false;
+    for (const suffix of EDITION_SUFFIXES) {
+      if (normalized.endsWith(" " + suffix)) {
+        normalized = normalized.slice(0, -(suffix.length + 1)).trim();
+        changed = true;
+        break;
+      }
     }
   }
+
   return normalized;
 }
 
@@ -61,6 +93,13 @@ function matchesGameTitle(query: string, candidate: unknown) {
   const queryBase = normalizeEditionTitle(query);
   const candidateBase = normalizeEditionTitle(candidate);
   return Boolean(queryBase && queryBase === candidateBase);
+}
+
+function getTitleSearchVariants(title: string) {
+  const normalized = normalizeText(title);
+  const base = normalizeEditionTitle(title);
+  return [...new Set([title.trim(), ...(base && base !== normalized ? [base] : [])])]
+    .filter(Boolean);
 }
 
 function translateGenre(value: string) {
@@ -143,92 +182,308 @@ async function detectWithIgdb(title: string): Promise<string[] | null> {
   const auth = await getIgdbToken();
   if (!auth) return null;
 
-  const response = await fetch("https://api.igdb.com/v4/games", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Client-ID": auth.clientId,
-      Authorization: `Bearer ${auth.token}`,
-    },
-    body: `search "${title.replace(/"/g, "\\\"")}"; fields name,genres.name; where version_parent = null; limit 5;`,
-    cache: "no-store",
-  });
+  let receivedResponse = false;
+  const resultsByName = new Map<string, { name?: string; genres?: Array<{ name?: string }> }>();
 
-  if (!response.ok) return null;
+  for (const searchTerm of getTitleSearchVariants(title)) {
+    try {
+      const response = await fetch("https://api.igdb.com/v4/games", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Client-ID": auth.clientId,
+          Authorization: "Bearer " + auth.token,
+        },
+        body: 'search "' + searchTerm.replace(/\\/g, "\\\\").replace(/"/g, '\\"') +
+          '"; fields name,genres.name; where version_parent = null; limit 10;',
+        cache: "no-store",
+        signal: AbortSignal.timeout(4500),
+      });
 
-  const results = (await response.json()) as Array<{
-    name?: string;
-    genres?: Array<{ name?: string }>;
-  }>;
+      if (!response.ok) continue;
+      receivedResponse = true;
+      const results = (await response.json()) as Array<{
+        name?: string;
+        genres?: Array<{ name?: string }>;
+      }>;
 
-  if (!results.length) return [];
+      for (const game of results) {
+        const key = normalizeText(game.name);
+        if (key) resultsByName.set(key, game);
+      }
 
-  const matchingGame = results.find((game) => matchesGameTitle(title, game.name));
-  if (!matchingGame) return [];
+      const matchingGame = results.find((game) => matchesGameTitle(title, game.name));
+      if (matchingGame) {
+        const genres = cleanGenres((matchingGame.genres ?? []).map((genre) => genre.name ?? ""));
+        if (genres.length > 0) return genres;
+      }
+    } catch (error) {
+      console.warn("[Genres] Consulta de título na IGDB falhou:", error);
+    }
+  }
 
-  return cleanGenres((matchingGame.genres ?? []).map((genre) => genre.name ?? ""));
+  if (!receivedResponse && resultsByName.size === 0) return null;
+  return [];
 }
 
 async function detectWithSteam(title: string): Promise<string[] | null> {
-  const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(title)}&l=english&cc=US`;
-  const searchResponse = await fetch(searchUrl, {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
+  let receivedResponse = false;
+  const itemsById = new Map<number, { id?: number; name?: string; type?: number }>();
+
+  for (const searchTerm of getTitleSearchVariants(title)) {
+    try {
+      const searchUrl =
+        "https://store.steampowered.com/api/storesearch/?term=" +
+        encodeURIComponent(searchTerm) +
+        "&l=english&cc=US";
+      const searchResponse = await fetch(searchUrl, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(4500),
+      });
+
+      if (!searchResponse.ok) continue;
+      receivedResponse = true;
+
+      const searchPayload = (await searchResponse.json()) as {
+        items?: Array<{ id?: number; name?: string; type?: number }>;
+      };
+
+      for (const item of searchPayload.items ?? []) {
+        if (item.id && (item.type === undefined || item.type === 0)) {
+          itemsById.set(item.id, item);
+        }
+      }
+
+      const matchingItem = [...itemsById.values()].find((item) =>
+        matchesGameTitle(title, item.name)
+      );
+      if (!matchingItem?.id) continue;
+
+      const detailsResponse = await fetch(
+        "https://store.steampowered.com/api/appdetails?appids=" +
+          matchingItem.id +
+          "&cc=US&l=english",
+        {
+          cache: "no-store",
+          headers: { Accetype WikidataSearchItem = {
+  id?: string;
+  label?: string;
+  title?: string;
+  description?: string;
+};
+
+type WikidataEntity = {
+  claims?: Record<
+    string,
+    Array<{
+      mainsnak?: {
+        datavalue?: {
+          value?: { id?: string; "numeric-id"?: number; "entity-type"?: string };
+        };
+      };
+    }>
+  >;
+};
+
+function looksLikeGameDescription(value: string) {
+  const description = normalizeText(value);
+  return /(video game|computer game|arcade game|game franchise|game series|interactive entertainment)/.test(description);
+}
+
+async function detectWithWikidata(title: string): Promise<string[] | null> {
+  let receivedResponse = false;
+  const matches = new Map<string, WikidataSearchItem>();
+
+  for (const searchTerm of getTitleSearchVariants(title)) {
+    try {
+      const searchUrl = new URL("https://www.wikidata.org/w/api.php");
+      searchUrl.search = new URLSearchParams({
+        action: "wbsearchentities",
+        search: searchTerm,
+        language: "en",
+        uselang: "en",
+        type: "item",
+        limit: "8",
+        format: "json",
+      }).toString();
+
+      const response = await fetch(searchUrl, {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
+        },
+        signal: AbortSignal.timeout(4500),
+      });
+      if (!response.ok) continue;
+      receivedResponse = true;
+
+      const payload = (await response.json()) as { search?: WikidataSearchItem[] };
+      for (const item of payload.search ?? []) {
+        const label = item.label || item.title || "";
+        if (!item.id || !matchesGameTitle(title, label)) continue;
+        if (item.description && !looksLikeGameDescription(item.description)) continue;
+        matches.set(item.id, { ...item, label });
+      }
+    } catch (error) {
+      console.warn("[Genres] Consulta no Wikidata falhou:", error);
+    }
+  }
+
+  if (matches.size === 0) return receivedResponse ? [] : null;
+
+  const orderedMatches = [...matches.values()].sort((a, b) => {
+    const aExact = normalizeText(a.label || a.title) === normalizeText(title) ? 1 : 0;
+    const bExact = normalizeText(b.label || b.title) === normalizeText(title) ? 1 : 0;
+    const aDescribed = a.description && looksLikeGameDescription(a.description) ? 1 : 0;
+    const bDescribed = b.description && looksLikeGameDescription(b.description) ? 1 : 0;
+    return bExact - aExact || Number(bDescribed) - Number(aDescribed);
   });
 
-  if (!searchResponse.ok) return null;
+  for (const item of orderedMatches.slice(0, 3)) {
+    if (!item.id) continue;
 
-  const searchPayload = (await searchResponse.json()) as {
-    items?: Array<{ id?: number; name?: string }>;
-  };
-  const items = searchPayload.items ?? [];
+    try {
+      const entityUrl = new URL("https://www.wikidata.org/w/api.php");
+      entityUrl.search = new URLSearchParams({
+        action: "wbgetentities",
+        ids: item.id,
+        props: "claims",
+        format: "json",
+      }).toString();
 
-  // Never use the first search result blindly: similarly named games and DLCs
-  // can have different genres, so only accept exact or edition-label matches.
-  const match = items.find((item) => matchesGameTitle(title, item.name));
-  if (!match?.id) return [];
+      const entityResponse = await fetch(entityUrl, {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
+        },
+        signal: AbortSignal.timeout(4500),
+      });
+      if (!entityResponse.ok) continue;
 
-  const detailsResponse = await fetch(
-    `https://store.steampowered.com/api/appdetails?appids=${match.id}&cc=US&l=english`,
-    { cache: "no-store", headers: { Accept: "application/json" } }
-  );
+      const entityPayload = (await entityResponse.json()) as {
+        entities?: Record<string, WikidataEntity>;
+      };
+      const claims = entityPayload.entities?.[item.id]?.claims?.P136 ?? [];
+      const genreIds = [...new Set(
+        claims
+          .map((claim) => {
+            const value = claim.mainsnak?.datavalue?.value;
+            if (value?.id) return value.id;
+            if (typeof value?.["numeric-id"] === "number") return "Q" + value["numeric-id"];
+            return "";
+          })
+          .filter((id) => /^Q\d+$/.test(id))
+      )];
+      if (genreIds.length === 0) continue;
 
-  if (!detailsResponse.ok) return null;
+      const labelsUrl = new URL("https://www.wikidata.org/w/api.php");
+      labelsUrl.search = new URLSearchParams({
+        action: "wbgetentities",
+        ids: genreIds.join("|"),
+        props: "labels",
+        languages: "en|pt",
+        languagefallback: "1",
+        format: "json",
+      }).toString();
 
-  const detailsPayload = (await detailsResponse.json()) as Record<
-    string,
-    {
-      success?: boolean;
-      data?: { genres?: Array<{ description?: string }> };
+      const labelsResponse = await fetch(labelsUrl, {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
+        },
+        signal: AbortSignal.timeout(4500),
+      });
+      if (!labelsResponse.ok) continue;
+
+      const labelsPayload = (await labelsResponse.json()) as {
+        entities?: Record<string, { labels?: Record<string, { value?: string }> }>;
+      };
+      const genres = cleanGenres(
+        genreIds.map((id) =>
+          labelsPayload.entities?.[id]?.labels?.en?.value ||
+          labelsPayload.entities?.[id]?.labels?.pt?.value ||
+          ""
+        )
+      );
+      if (genres.length > 0) return genres;
+    } catch (error) {
+      console.warn("[Genres] Não foi possível ler gêneros do Wikidata:", error);
     }
-  >;
-  const details = detailsPayload[String(match.id)];
-  if (!details?.success) return [];
+  }
 
-  return cleanGenres(
-    (details.data?.genres ?? []).map((genre) => genre.description ?? "")
-  );
+  return [];
+}
+
+pt: "application/json" },
+          signal: AbortSignal.timeout(4500),
+        }
+      );
+
+      if (!detailsResponse.ok) continue;
+
+      const detailsPayload = (await detailsResponse.json()) as Record<
+        string,
+        {
+          success?: boolean;
+          data?: { genres?: Array<{ description?: string }> };
+        }
+      >;
+      const details = detailsPayload[String(matchingItem.id)];
+      if (!details?.success) continue;
+
+      const genres = cleanGenres(
+        (details.data?.genres ?? []).map((genre) => genre.description ?? "")
+      );
+      if (genres.length > 0) return genres;
+    } catch (error) {
+      console.warn("[Genres] Consulta de título na Steam falhou:", error);
+    }
+  }
+
+  if (!receivedResponse) return null;
+  return [];
 }
 
 async function detectGenres(title: string): Promise<GenreResult> {
-  // Priority 1: Steam Store genre metadata.
-  try {
-    const steamGenres = await detectWithSteam(title);
-    if (steamGenres && steamGenres.length > 0) {
-      return { genres: steamGenres, source: "steam" };
-    }
-  } catch (error) {
-    console.warn("[Genres] Steam Store falhou:", error);
-  }
+  const cacheKey = normalizeText(title);
+  const cached = genreLookupCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.result;
+  if (cached) genreLookupCache.delete(cacheKey);
 
-  // Priority 2: structured IGDB metadata when Steam has no reliable match.
-  try {
-    const igdbGenres = await detectWithIgdb(title);
-    if (igdbGenres && igdbGenres.length > 0) {
-      return { genres: igdbGenres, source: "igdb" };
+  const providers: Array<{
+    source: GenreResult["source"];
+    lookup: (title: string) => Promise<string[] | null>;
+  }> = [
+    { source: "steam", lookup: detectWithSteam },
+    { source: "igdb", lookup: detectWithIgdb },
+    {
+      source: "wikidata",
+      lookup: detectWithWikidata,
+    },
+  ];
+
+  for (const provider of providers) {
+    try {
+      const genres = await provider.lookup(title);
+      if (genres && genres.length > 0) {
+        const result: GenreResult = { genres, source: provider.source };
+        if (genreLookupCache.size > 1500) {
+          const firstKey = genreLookupCache.keys().next().value;
+          if (firstKey) genreLookupCache.delete(firstKey);
+        }
+        genreLookupCache.set(cacheKey, {
+          result,
+          expiresAt: Date.now() + GENRE_CACHE_TTL_MS,
+        });
+        return result;
+      }
+    } catch (error) {
+      console.warn("[Genres] Provedor " + provider.source + " falhou:", error);
     }
-  } catch (error) {
-    console.warn("[Genres] IGDB falhou:", error);
   }
 
   return { genres: [], source: "none" };
@@ -331,7 +586,7 @@ export async function POST(request: NextRequest) {
           .map((title) => title.trim().replace(/\s+/g, " "))
           .filter(Boolean)
       )
-    ).slice(0, 6);
+    ).slice(0, 3);
 
     if (titles.length === 0) {
       return NextResponse.json(
@@ -347,8 +602,8 @@ export async function POST(request: NextRequest) {
       source: GenreResult["source"];
     }> = [];
 
-    // Mantém o número de buscas externas concorrentes baixo para evitar limites
-    // da IGDB/Steam ao classificar lotes maiores no navegador.
+    // Cada requisição processa até três jogos, para manter a cadeia de fontes
+    // externas rápida e reduzir risco de timeout ao usar o Wikidata como fallback.
     for (let index = 0; index < titles.length; index += 3) {
       const batch = titles.slice(index, index + 3);
       const detected = await Promise.all(

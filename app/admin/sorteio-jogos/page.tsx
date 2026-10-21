@@ -391,8 +391,8 @@ export default function GamePickerAdminPage() {
     let found = 0;
     try {
       // The API accepts up to six titles and limits its upstream concurrency.
-      for (let index = 0; index < titles.length; index += 6) {
-        const batch = titles.slice(index, index + 6);
+      for (let index = 0; index < titles.length; index += 3) {
+        const batch = titles.slice(index, index + 3);
         const results = await requestGameGenres(batch);
         const resultsByTitle = new Map(results.map((result) => [normalize(result.title), result]));
         found += results.filter((result) => Boolean(result.primaryGenre)).length;
