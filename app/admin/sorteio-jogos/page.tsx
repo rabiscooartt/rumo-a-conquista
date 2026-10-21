@@ -164,7 +164,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
     };
     const bank = Array.isArray(parsed.bank)
       ? cleanCandidates([
-          ["Jogo", "Categoria"],
+          ["Jogo", "Categoria", "Gênero", "Gênero verificado", "Fonte do gênero"],
           ...parsed.bank.map((candidate) => [
             String(candidate?.name || ""),
             String(candidate?.category || ""),
