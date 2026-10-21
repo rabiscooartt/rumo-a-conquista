@@ -165,7 +165,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null };
+    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [] };
 
     const parsed = JSON.parse(saved) as {
       bank?: Candidate[];
