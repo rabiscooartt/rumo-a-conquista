@@ -1267,7 +1267,12 @@ export default function SagasPage() {
         <section className="mt-3 rounded-[14px] border border-white/10 bg-[linear-gradient(105deg,rgba(7,7,8,0.98),rgba(13,13,16,0.96),rgba(5,5,5,0.98))] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.25)]">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <label className="relative min-w-0 flex-1 xl:min-w-[220px]">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-white/35" aria-hidden="true">⌕</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" className="h-[14px] w-[14px]">
+                  <circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="m15.5 15.5 4.1 4.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              </span>
               <input
                 type="search"
                 value={searchQuery}
@@ -1299,11 +1304,14 @@ export default function SagasPage() {
                 <button
                   type="button"
                   onClick={() => applyYearFilter(yearInput)}
-                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-xs text-red-200 transition hover:bg-red-500/20"
+                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-white/55 transition hover:bg-red-500/20 hover:text-white"
                   aria-label="Aplicar filtro de ano"
                   title="Filtrar por ano"
                 >
-                  🔎
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="mx-auto h-3.5 w-3.5">
+                    <circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" strokeWidth="1.8" />
+                    <path d="m15.5 15.5 4.1 4.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
                 </button>
               </div>
 
@@ -1326,7 +1334,20 @@ export default function SagasPage() {
                 }}
                 className={getFilterButtonClass(activeFilter === "all" && activeYear === "all")}
               >
-                ▦&nbsp; Todos ({totalEmblems})
+                <span className="inline-flex items-center gap-1.5">
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    aria-hidden="true"
+                    className={activeFilter === "all" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/35"}
+                  >
+                    <rect x="3" y="3" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+                    <rect x="12" y="3" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+                    <rect x="3" y="12" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+                    <rect x="12" y="12" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  <span>Todos ({totalEmblems})</span>
+                </span>
               </button>
               <button
                 type="button"
@@ -1337,7 +1358,18 @@ export default function SagasPage() {
                 }}
                 className={getFilterButtonClass(activeFilter === "completed" && activeYear === "all")}
               >
-                🏆&nbsp; Conquistados ({completedEmblems})
+                <span className="inline-flex items-center gap-1.5">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    className={activeFilter === "completed" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/35"}
+                  >
+                    <path d="M8 4h8v4.5a4 4 0 0 1-8 0V4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                    <path d="M8 6H5v1.5a4 4 0 0 0 4 4M16 6h3v1.5a4 4 0 0 1-4 4M12 13v4M9 17h6M8 21h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Conquistados ({completedEmblems})</span>
+                </span>
               </button>
               <button
                 type="button"
@@ -1348,11 +1380,26 @@ export default function SagasPage() {
                 }}
                 className={getFilterButtonClass(activeFilter === "locked" && activeYear === "all")}
               >
-                🔒&nbsp; Bloqueados ({lockedEmblems})
+                <span className="inline-flex items-center gap-1.5">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    className={activeFilter === "locked" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/35"}
+                  >
+                    <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7" />
+                    <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>Bloqueados ({lockedEmblems})</span>
+                </span>
               </button>
 
               <label className="flex h-[40px] items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 xl:ml-1">
-                <span aria-hidden="true" className="text-sm">↕</span>
+                <span aria-hidden="true" className="text-white/40">
+                  <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
+                    <path d="M4.5 13V3m0 0L2 5.5M4.5 3 7 5.5M11.5 3v10m0 0L9 10.5m2.5 2.5 2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
                 <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.08em] text-white/65">Ordem:</span>
                 <select
                   value={sortOrder}
