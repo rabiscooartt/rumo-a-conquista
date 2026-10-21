@@ -364,11 +364,11 @@ export default function GamePickerAdminPage() {
     lookupGenreForAddedGame(name, '"' + name + '" foi adicionado ao banco como "' + newGameCategory + '".');
   }
 
-  async function classifyPendingGenres() {
+  async function classifyPendingGenres(includeUnknown = false) {
     if (isClassifying) return;
 
     const titles = state.bank
-      .filter((candidate) => !candidate.genre && !candidate.genreChecked)
+      .filter((candidate) => !candidate.genre && (includeUnknown || !candidate.genreChecked))
       .map((candidate) => candidate.name);
 
     if (titles.length === 0) {
@@ -542,8 +542,8 @@ export default function GamePickerAdminPage() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => void classifyPendingGenres()}
-              disabled={isClassifying || genrePendingCount === 0 || state.bank.length === 0}
+              onClick={() => void classifyPendingGenres(genrePendingCount === 0 && genreUnknownCount > 0)}
+              disabled={isClassifying || (genrePendingCount === 0 && genreUnknownCount === 0) || state.bank.length === 0}
               className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-3 text-sm font-black text-cyan-100 transition hover:bg-cyan-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span>{isClassifying ? "↻" : "◎"}</span>
@@ -551,7 +551,9 @@ export default function GamePickerAdminPage() {
                 ? "Buscando " + genreProgress.done + "/" + genreProgress.total
                 : genrePendingCount > 0
                   ? "Identificar gêneros (" + genrePendingCount + ")"
-                  : "Gêneros verificados"}
+                  : genreUnknownCount > 0
+                    ? "Tentar novamente (" + genreUnknownCount + ")"
+                    : "Gêneros verificados"}
             </button>
             <button
               type="button"
