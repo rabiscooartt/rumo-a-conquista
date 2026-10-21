@@ -171,6 +171,9 @@ export default function GamePickerAdminPage() {
   const [categoryFilter, setCategoryFilter] = useState<"Todos" | CandidateCategory>("Todos");
   const [isDrawing, setIsDrawing] = useState(false);
   const [message, setMessage] = useState("");
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [newGameName, setNewGameName] = useState("");
+  const [newGameCategory, setNewGameCategory] = useState<CandidateCategory>("Na fila");
 
   useEffect(() => {
     const stored = readSavedState();
@@ -229,6 +232,67 @@ export default function GamePickerAdminPage() {
     } finally {
       input.value = "";
     }
+  }
+
+  function addGame() {
+    const name = newGameName.trim().replace(/\\s+/g, " ");
+
+    if (!name) {
+      setMessage("Digite o nome do jogo antes de adicionar.");
+      return;
+    }
+
+    const incomingKey = baseEditionKey(name);
+    const existing = state.bank.find(
+      (candidate) => baseEditionKey(candidate.name) === incomingKey
+    );
+
+    if (existing) {
+      if (isDeluxe(name) && !isDeluxe(existing.name)) {
+        const category: CandidateCategory =
+          existing.category === "Rejogar" || newGameCategory === "Rejogar"
+            ? "Rejogar"
+            : "Na fila";
+
+        setState((current) => ({
+          ...current,
+          bank: current.bank
+            .map((candidate) =>
+              candidate.name === existing.name
+                ? { ...candidate, name, category }
+                : candidate
+            )
+            .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+          manualNames: current.manualNames.map((item) =>
+            item === existing.name ? name : item
+          ),
+          randomNames: current.randomNames.map((item) =>
+            item === existing.name ? name : item
+          ),
+        }));
+        setNewGameName("");
+        setMessage(
+          "A versão normal foi substituída pela Deluxe. O jogo continua aparecendo apenas uma vez no banco."
+        );
+        return;
+      }
+
+      setMessage(
+        '"' +
+          existing.name +
+          '" já está no banco. Não adicionei uma cópia para evitar duplicatas.'
+      );
+      return;
+    }
+
+    setState((current) => ({
+      ...current,
+      bank: [...current.bank, { name, category: newGameCategory }].sort(
+        (a, b) => a.name.localeCompare(b.name, "pt-BR")
+      ),
+    }));
+    setNewGameName("");
+    setMessage('"' + name + '" foi adicionado ao banco como "' + newGameCategory + '".');
   }
 
   function toggleManual(name: string) {
@@ -327,6 +391,15 @@ export default function GamePickerAdminPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setIsAddFormOpen((open) => !open)}
+              aria-expanded={isAddFormOpen}
+              className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20"
+            >
+              <span>{isAddFormOpen ? "×" : "＋"}</span>
+              {isAddFormOpen ? "Fechar cadastro" : "Adicionar jogo"}
+            </button>
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20">
               <span>＋</span> Importar CSV
               <input type="file" accept=".csv,text/csv" onChange={(event) => void handleImport(event)} className="hidden" />
@@ -339,6 +412,60 @@ export default function GamePickerAdminPage() {
             </Link>
           </div>
         </div>
+
+        {isAddFormOpen && (
+          <section className="mb-6 rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.08] via-white/[0.025] to-transparent p-5 sm:p-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-400">Cadastro manual</p>
+                <h2 className="mt-1 text-lg font-black text-white">Adicionar jogo ao banco</h2>
+                <p className="mt-1 text-sm leading-6 text-white/45">
+                  O jogo será salvo neste navegador e poderá participar dos próximos sorteios, sem alterar a fila oficial de Maestrias.
+                </p>
+              </div>
+              <span className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-white/45">
+                {state.bank.length} no banco
+              </span>
+            </div>
+
+            <form
+              className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_210px_auto]"
+              onSubmit={(event) => {
+                event.preventDefault();
+                addGame();
+              }}
+            >
+              <input
+                aria-label="Nome do jogo"
+                value={newGameName}
+                onChange={(event) => setNewGameName(event.target.value)}
+                maxLength={140}
+                placeholder="Nome do jogo (ex.: God of War Ragnarök)"
+                className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-red-500/50"
+                required
+              />
+              <select
+                aria-label="Categoria do jogo"
+                value={newGameCategory}
+                onChange={(event) => setNewGameCategory(event.target.value as CandidateCategory)}
+                className="rounded-xl border border-white/10 bg-[#101319] px-3 py-3 text-sm text-white/85 outline-none focus:border-red-500/50"
+              >
+                <option value="Na fila">🎮 Na fila</option>
+                <option value="Rejogar">🔄 Rejogar</option>
+              </select>
+              <button
+                type="submit"
+                disabled={!newGameName.trim() || isDrawing}
+                className="rounded-xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ＋ Adicionar
+              </button>
+            </form>
+            <p className="mt-3 text-xs leading-5 text-white/35">
+              Títulos repetidos são bloqueados. Se já houver uma versão normal e você cadastrar a Deluxe, a normal será substituída.
+            </p>
+          </section>
+        )}
 
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
