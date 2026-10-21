@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
@@ -16,6 +16,10 @@ type GamePickerState = {
 };
 
 const STORAGE_KEY = "rumo-a-conquista-game-picker-v1";
+const REEL_WINNER_INDEX = 34;
+const REEL_CARD_STEP = 180;
+const REEL_CARD_WIDTH = 170;
+const REEL_DURATION_MS = 6200;
 async function requestGameGenres(titles: string[], mode: "normal" | "retry" = "normal"): Promise<GenreLookupResult[]> {
   const response = await fetch("/api/admin/games/genres", {
     method: "POST",
@@ -216,6 +220,12 @@ export default function GamePickerAdminPage() {
   const [isClassifying, setIsClassifying] = useState(false);
   const [genreProgress, setGenreProgress] = useState({ done: 0, total: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
+  const [wheelItems, setWheelItems] = useState<Candidate[]>([]);
+  const [wheelPosition, setWheelPosition] = useState(-REEL_CARD_WIDTH / 2);
+  const [isReelAnimating, setIsReelAnimating] = useState(false);
+  const [showWinnerAlert, setShowWinnerAlert] = useState(false);
+  const drawStartTimer = useRef<number | null>(null);
+  const drawFinishTimer = useRef<number | null>(null);
   const [message, setMessage] = useState("");
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [newGameName, setNewGameName] = useState("");
@@ -226,6 +236,13 @@ export default function GamePickerAdminPage() {
     const stored = readSavedState();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState({ ...stored, initialized: true });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
+      if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -528,11 +545,32 @@ export default function GamePickerAdminPage() {
       return;
     }
 
-    const winner = pool[Math.floor(Math.random() * pool.length)];
-    setIsDrawing(true);
-    setMessage("A roleta está sorteando um jogo da categoria Em breve…");
+    if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
+    if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
 
-    window.setTimeout(() => {
+    // O vencedor é escolhido antes da animação; a roleta apenas revela esse resultado real.
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+    const alternatives = pool.filter((candidate) => candidate.name !== winner.name);
+    const strip: Candidate[] = Array.from({ length: REEL_WINNER_INDEX }, () => {
+      const source = alternatives.length > 0 ? alternatives : pool;
+      return source[Math.floor(Math.random() * source.length)];
+    });
+    strip.push(winner);
+
+    setShowWinnerAlert(false);
+    setWheelItems(strip);
+    setWheelPosition(-REEL_CARD_WIDTH / 2);
+    setIsReelAnimating(false);
+    setIsDrawing(true);
+    setMessage("A roleta está girando… aguarde o jogo parar no marcador central.");
+
+    drawStartTimer.current = window.setTimeout(() => {
+      setIsReelAnimating(true);
+      setWheelPosition(-(REEL_WINNER_INDEX * REEL_CARD_STEP + REEL_CARD_WIDTH / 2));
+      drawStartTimer.current = null;
+    }, 80);
+
+    drawFinishTimer.current = window.setTimeout(() => {
       setState((current) => ({
         ...current,
         drawnName: current.bank.some(
@@ -540,11 +578,18 @@ export default function GamePickerAdminPage() {
         ) ? winner.name : null,
       }));
       setIsDrawing(false);
+      setIsReelAnimating(false);
+      setShowWinnerAlert(true);
       setMessage("Sorteio concluído. Jogo escolhido: " + winner.name + ".");
-    }, 900);
+      drawFinishTimer.current = null;
+    }, REEL_DURATION_MS + 250);
   }
 
   function clearDrawnGame() {
+    if (isDrawing) return;
+    setShowWinnerAlert(false);
+    setWheelItems([]);
+    setWheelPosition(-REEL_CARD_WIDTH / 2);
     setState((current) => ({ ...current, drawnName: null }));
     setMessage("Resultado limpo. O banco de jogos foi preservado.");
   }
@@ -585,8 +630,6 @@ export default function GamePickerAdminPage() {
     URL.revokeObjectURL(url);
   }
 
-  const hasCompleteBatch = state.manualNames.length === 5 && state.randomNames.length === 5;
-
   return (
     <main className="min-h-screen bg-[#07090d] text-white">
       <Navbar />
@@ -599,7 +642,7 @@ export default function GamePickerAdminPage() {
             </div>
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Banco de Jogos <span className="text-red-500">&</span> Roleta</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50 sm:text-base">
-              Guarde jogos que você tem vontade de experimentar em breve. Escolha 5 e deixe a roleta sortear outros 5, sem repetir títulos.
+              Guarde os jogos que você quer experimentar. A roleta vai escolher um título aleatório e revelar o vencedor com uma animação.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -790,11 +833,48 @@ export default function GamePickerAdminPage() {
             <div className="space-y-5">
               <section className="rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.09] via-white/[0.025] to-transparent p-5 sm:p-6">
                 <SectionTitle eyebrow="Roleta Em breve" title="Sortear o próximo jogo" detail="Um único título será escolhido aleatoriamente entre todos os jogos cadastrados como Em breve." />
-                <div className="mb-5 flex items-center gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className={"flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-red-400/30 bg-red-500/10 text-3xl " + (isDrawing ? "animate-spin" : "")}>🎲</div>
-                  <div>
-                    <p className="text-base font-black text-white">{isDrawing ? "Sorteando um jogo..." : state.drawnName ? "Jogo sorteado" : "Pronto para sortear"}</p>
-                    <p className="mt-1 text-sm text-white/45">{remainingCount} jogos disponíveis na categoria Em breve</p>
+                <div className="mb-3 flex items-center justify-between gap-3 text-xs text-white/45">
+                  <span>{isDrawing ? "A sorte está lançada..." : state.drawnName ? "Último jogo sorteado" : "Todos os jogos estão na disputa"}</span>
+                  <span>{remainingCount} jogos</span>
+                </div>
+                <div className="relative mb-5 h-[164px] overflow-hidden rounded-2xl border border-white/10 bg-[#08090c] before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-10 before:bg-gradient-to-r before:from-[#08090c] before:to-transparent after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-10 after:bg-gradient-to-l after:from-[#08090c] after:to-transparent" aria-label="Roleta animada de jogos">
+                  <div className="absolute left-1/2 top-0 z-20 h-full w-0.5 -translate-x-1/2 bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.85)]" />
+                  <div className="absolute left-1/2 top-0 z-20 h-0 w-0 -translate-x-1/2 border-x-[9px] border-t-[12px] border-x-transparent border-t-red-500" />
+                  {wheelItems.length > 0 ? (
+                    <div
+                      className="absolute left-1/2 top-0 flex h-full items-center gap-[10px] will-change-transform"
+                      style={{
+                        transform: "translateX(" + wheelPosition + "px)",
+                        transition: isReelAnimating ? "transform " + REEL_DURATION_MS + "ms cubic-bezier(0.08, 0.65, 0.04, 1)" : "none",
+                      }}
+                    >
+                      {wheelItems.map((candidate, index) => {
+                        const isWinnerTile = index === REEL_WINNER_INDEX;
+                        return (
+                          <div
+                            key={index + "-" + candidate.name}
+                            className={"flex h-[112px] w-[170px] shrink-0 flex-col items-center justify-center rounded-xl border px-3 text-center " + (isWinnerTile && !isDrawing ? "border-emerald-300/80 bg-emerald-400/15 shadow-[0_0_30px_rgba(52,211,153,0.22)]" : "border-white/10 bg-white/[0.035]")}
+                          >
+                            <span className="mb-2 text-2xl">{isWinnerTile && !isDrawing ? "🏆" : "🎮"}</span>
+                            <span className="line-clamp-2 text-xs font-black leading-4 text-white/90">{candidate.name}</span>
+                            {isWinnerTile && !isDrawing && <span className="mt-1 text-[9px] font-black uppercase tracking-widest text-emerald-300">Vencedor</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
+                      <span className="text-3xl">🎰</span>
+                      <span className="text-sm font-bold text-white/60">Aperte o botão para girar a roleta</span>
+                    </div>
+                  )}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-8 bg-gradient-to-t from-[#08090c] to-transparent" />
+                </div>
+                <div className="mb-5 flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+                  <span className="text-xl">{isDrawing ? "🎰" : state.drawnName ? "🏆" : "🎲"}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-white">{isDrawing ? "A roleta está girando!" : state.drawnName ? "Resultado definido" : "Pronto para sortear"}</p>
+                    <p className="mt-1 break-words text-xs text-white/45">{isDrawing ? "O marcador vermelho vai indicar o jogo vencedor." : state.drawnName || (remainingCount + " jogos aguardando o sorteio")}</p>
                   </div>
                 </div>
                 <button type="button" onClick={drawRandomGame} disabled={remainingCount === 0 || isDrawing} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
@@ -821,9 +901,29 @@ export default function GamePickerAdminPage() {
 
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
                   <button type="button" onClick={() => void copyDrawnGame()} disabled={!state.drawnName} className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30">Copiar jogo sorteado</button>
-                  <button type="button" onClick={clearDrawnGame} disabled={!state.drawnName} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">Limpar resultado</button>
+                  <button type="button" onClick={clearDrawnGame} disabled={!state.drawnName || isDrawing} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">Limpar resultado</button>
                 </div>
               </section>
+            </div>
+          </div>
+        )}
+
+        {showWinnerAlert && state.drawnName && (
+          <div role="dialog" aria-modal="true" aria-labelledby="roulette-winner-title" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+            <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-emerald-300/30 bg-[#0b0d12] p-6 text-center shadow-[0_0_100px_rgba(16,185,129,0.18)] sm:p-9">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-emerald-300 to-red-500" />
+              <div className="mb-3 flex justify-center gap-5 text-2xl" aria-hidden="true"><span>✨</span><span>🎉</span><span>✨</span></div>
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full border border-emerald-300/30 bg-emerald-400/10 text-5xl shadow-[0_0_45px_rgba(16,185,129,0.20)]">🏆</div>
+              <p className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-300">Sorteio concluído</p>
+              <h2 id="roulette-winner-title" className="mt-2 text-2xl font-black text-white sm:text-3xl">O jogo escolhido foi...</h2>
+              <div className="my-6 rounded-2xl border border-emerald-300/25 bg-emerald-400/[0.07] px-4 py-6">
+                <p className="break-words text-2xl font-black leading-tight text-white sm:text-3xl">{state.drawnName}</p>
+              </div>
+              <p className="mx-auto max-w-sm text-sm leading-6 text-white/50">Esse é o próximo jogo escolhido pela roleta do Rumo à Conquista!</p>
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <button type="button" onClick={() => setShowWinnerAlert(false)} className="rounded-xl border border-white/10 px-4 py-3 font-bold text-white/75 transition hover:bg-white/[0.06]">Fechar resultado</button>
+                <button type="button" onClick={() => { setShowWinnerAlert(false); window.setTimeout(() => drawRandomGame(), 0); }} className="rounded-xl bg-red-600 px-4 py-3 font-black text-white transition hover:bg-red-500">Sortear novamente</button>
+              </div>
             </div>
           </div>
         )}
