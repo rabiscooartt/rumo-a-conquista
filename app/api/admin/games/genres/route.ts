@@ -695,7 +695,7 @@ async function detectWithOpenAIWeb(titles: string[]): Promise<Array<{
   const instructions =
     "Você pesquisa gêneros predominantes de jogos de videogame usando resultados reais da web. " +
     "Para cada título, procure evidência explícita sobre o gênero em uma página que corresponda ao jogo correto. " +
-    "Priorize Game Info do Exophase e metadados da Steam ou IGDB; use MobyGames, Wikipedia ou outros sites confiáveis quando necessário. " +
+    "Pesquise prioritariamente exophase.com, store.steampowered.com, steamcommunity.com e igdb.com; use mobygames.com, wikipedia.org, gog.com, thegamesdb.net, gamespot.com, gamefaqs.gamespot.com e rawg.io como alternativas. " +
     "Escolha exatamente um gênero desta lista: " + GAME_GENRES.join(", ") + ". " +
     "Se a fonte usar outro termo, mapeie somente quando houver correspondência clara. " +
     "Não deduza um gênero apenas pelo nome, não confunda sequências, DLCs ou jogos homônimos e não invente URLs. " +
@@ -715,24 +715,11 @@ async function detectWithOpenAIWeb(titles: string[]): Promise<Array<{
       instructions,
       input: "Pesquise os gêneros destes títulos e devolva o resultado estruturado, mantendo os nomes originais exatamente como recebidos:\n" +
         JSON.stringify(titles),
+      // This model's web_search tool does not support the filters parameter.
+      // Domain restrictions are enforced below by isAllowedGameSource() before saving.
       tools: [{
         type: "web_search",
         search_context_size: "low",
-        filters: {
-          allowed_domains: [
-            "exophase.com",
-            "store.steampowered.com",
-            "steamcommunity.com",
-            "igdb.com",
-            "mobygames.com",
-            "wikipedia.org",
-            "gog.com",
-            "thegamesdb.net",
-            "gamespot.com",
-            "gamefaqs.gamespot.com",
-            "rawg.io",
-          ],
-        },
       }],
       text: {
         format: {
