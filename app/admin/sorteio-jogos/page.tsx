@@ -775,19 +775,19 @@ export default function GamePickerAdminPage() {
                               {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
                             </span>
                             {candidate.genre && candidate.genreSource && candidate.genreSource !== "none" && (
-                              candidate.genreSource === "openai_web" && candidate.genreSourceUrl ? (
+                              candidate.genreSourceUrl ? (
                                 <a
                                   href={candidate.genreSourceUrl}
                                   target="_blank"
                                   rel="noreferrer"
                                   title="Abrir a fonte consultada para este gênero"
-                                  className="text-[9px] font-bold uppercase tracking-wider text-violet-200/70 underline decoration-violet-200/25 underline-offset-2 hover:text-violet-100"
+                                  className="text-[9px] font-bold uppercase tracking-wider text-white/50 underline decoration-white/20 underline-offset-2 hover:text-white/80"
                                 >
-                                  Fonte verificada ↗
+                                  Fonte ↗
                                 </a>
                               ) : (
                                 <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
-                                  {candidate.genreSource}
+                                  {candidate.genreSource === "openai_web" ? "web" : candidate.genreSource}
                                 </span>
                               )
                             )}

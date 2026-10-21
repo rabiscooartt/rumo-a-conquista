@@ -89,9 +89,9 @@ function normalizeEditionTitle(value: unknown) {
 
 function normalizeTitleForMatch(value: unknown) {
   return normalizeEditionTitle(value)
-    .replace(/^(the|a|an)\\s+/, "")
-    .replace(/\\s+\\((?:pc|windows|steam|playstation ?[345]|xbox(?: one| series [xs])?|nintendo switch)\\)$/, "")
-    .replace(/\\s*\\((?:19|20)\\d{2}\\)$/, "")
+    .replace(/^(the|a|an)\s+/, "")
+    .replace(/\s+\\((?:pc|windows|steam|playstation ?[345]|xbox(?: one| series [xs])?|nintendo switch)\\)$/, "")
+    .replace(/\s*\\((?:19|20)\d{2}\\)$/, "")
     .trim();
 }
 
@@ -107,7 +107,7 @@ function getTitleSearchVariants(title: string, deepSearch = false) {
   const variants = [title.trim(), ...(base && base !== normalized ? [base] : [])];
 
   if (deepSearch) {
-    const withoutArticle = (value: string) => value.replace(/^(the|a|an)\\s+/i, "").trim();
+    const withoutArticle = (value: string) => value.replace(/^(the|a|an)\s+/i, "").trim();
     const expanded = [...variants];
     for (const variant of variants) {
       const noArticle = withoutArticle(variant);
@@ -115,13 +115,13 @@ function getTitleSearchVariants(title: string, deepSearch = false) {
 
       // Storefronts differ in subtitle separators; query the leading title too,
       // while match validation below still requires a compatible full title or alias.
-      const separatorIndex = variant.search(/\\s(?::|[-–—|])\\s/);
+      const separatorIndex = variant.search(/\s(?::|[-–—|])\s/);
       if (separatorIndex > 2) {
         const head = variant.slice(0, separatorIndex).trim();
         if (head.length >= 3) expanded.push(head);
       }
 
-      const withoutFinalYear = variant.replace(/\\s*\\((?:19|20)\\d{2}\\)$/,"").trim();
+      const withoutFinalYear = variant.replace(/\s*\\((?:19|20)\d{2}\\)$/,"").trim();
       if (withoutFinalYear && withoutFinalYear !== variant) expanded.push(withoutFinalYear);
     }
     variants.push(...expanded);
