@@ -1,4 +1,4 @@
-export type SiteBannerKey = "jogos" | "atividade" | "conteudo" | "reviews" | "emblemas";
+export type SiteBannerKey = "jogos" | "atividade" | "conteudo" | "reviews" | "emblemas" | "backlog";
 
 export type SiteBannerSetting = {
   x: number;

@@ -10,6 +10,7 @@ const VALID_BANNERS = new Set<SiteBannerKey>([
   "conteudo",
   "reviews",
   "emblemas",
+  "backlog",
 ]);
 
 async function getStoredBannerImageUrl(

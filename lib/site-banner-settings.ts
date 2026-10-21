@@ -13,6 +13,7 @@ const BANNER_KEYS: SiteBannerKey[] = [
   "conteudo",
   "reviews",
   "emblemas",
+  "backlog",
 ];
 
 const DEFAULT_SETTINGS: SiteBannerSetting = {
@@ -31,6 +32,7 @@ export const SITE_BANNER_DEFAULTS: Record<
   conteudo: { ...DEFAULT_SETTINGS },
   reviews: { ...DEFAULT_SETTINGS },
   emblemas: { ...DEFAULT_SETTINGS },
+  backlog: { ...DEFAULT_SETTINGS },
 };
 
 async function getStoredBannerImageUrl(
@@ -70,6 +72,7 @@ export async function loadSiteBannerSettings(): Promise<
     conteudo: { ...DEFAULT_SETTINGS },
     reviews: { ...DEFAULT_SETTINGS },
     emblemas: { ...DEFAULT_SETTINGS },
+  backlog: { ...DEFAULT_SETTINGS },
   };
 
   let client: ReturnType<typeof createAdminSupabaseClient> | null = null;

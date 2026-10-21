@@ -10,6 +10,7 @@ const VALID_BANNERS = new Set<SiteBannerKey>([
   "conteudo",
   "reviews",
   "emblemas",
+  "backlog",
 ]);
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
