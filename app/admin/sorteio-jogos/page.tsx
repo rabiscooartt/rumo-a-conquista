@@ -397,6 +397,8 @@ export default function GamePickerAdminPage() {
           bank: current.bank.map((candidate) => {
             const result = resultsByTitle.get(normalize(candidate.name));
             if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
+            // Nunca substitui um gênero já identificado por uma tentativa posterior.
+            if (candidate.genre) return candidate;
             return { ...candidate, genre: result.primaryGenre || "", genreChecked: true, genreSource: result.source || "none", genreSourceUrl: result.sourceUrl || "" };
           }),
         }));
@@ -787,7 +789,7 @@ export default function GamePickerAdminPage() {
                                 </a>
                               ) : (
                                 <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
-                                  {candidate.genreSource === "openai_web" ? "web" : candidate.genreSource}
+                                  {candidate.genreSource}
                                 </span>
                               )
                             )}

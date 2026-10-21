@@ -48,8 +48,17 @@ const EDITION_SUFFIXES = [
   "premium edition",
   "royal edition",
   "gold edition",
+  "platinum edition",
+  "founders edition",
+  "launch edition",
   "remastered edition",
   "directors cut",
+  "ultimate collection",
+  "complete collection",
+  "definitive collection",
+  "anniversary collection",
+  "legacy collection",
+  "master collection",
   "game of the year",
   "video game franchise",
   "video game series",
@@ -60,6 +69,8 @@ const EDITION_SUFFIXES = [
   "hd remaster",
   "remastered",
   "remaster",
+  "remake",
+  "reimagined",
   "redux",
   "definitive",
   "directors cut",
@@ -127,7 +138,8 @@ function getTitleSearchVariants(title: string, deepSearch = false) {
     variants.push(...expanded);
   }
 
-  return [...new Set(variants.map((variant) => variant.trim()).filter(Boolean))].slice(0, deepSearch ? 8 : 2);
+  // Retry expands known edition/localization variants but still validates candidates strictly.
+  return [...new Set(variants.map((variant) => variant.trim()).filter(Boolean))].slice(0, deepSearch ? 16 : 2);
 }
 
 function translateGenre(value: string) {
@@ -441,8 +453,10 @@ async function detectWithSteam(title: string, deepSearch = false): Promise<strin
         }
       }
 
-      for (const match of matches.slice(0, 2)) {
-        if (!Number.isFinite(match.id)) continue;
+      const checkedIds = new Set<number>();
+      for (const match of matches) {
+        if (!Number.isFinite(match.id) || checkedIds.has(match.id)) continue;
+        checkedIds.add(match.id);
         const genres = await getSteamGenresByAppId(match.id);
         if (genres.length > 0) return genres;
       }
@@ -542,10 +556,13 @@ async function detectWithWikidata(title: string, deepSearch = false): Promise<st
 
       const label = item.label || item.title || "";
       const aliasHit = Boolean(
-        item.match?.text && matchesGameTitle(title, item.match.text)
+        (item.match?.text && matchesGameTitle(title, item.match.text)) ||
+        (item.aliases ?? []).some((alias) =>
+          typeof alias.value === "string" && matchesGameTitle(title, alias.value)
+        )
       );
       const score =
-        (normalizeText(label) === normalizeText(title) ? 100 : 0) +
+        (normalizeTitleForMatch(label) === normalizeTitleForMatch(title) ? 100 : 0) +
         (aliasHit ? 40 : 0) +
         (item.description && looksLikeGameDescription(item.description) ? 25 : 0);
       const previous = candidates.get(item.id);
