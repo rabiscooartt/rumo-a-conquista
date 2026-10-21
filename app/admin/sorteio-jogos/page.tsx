@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
 type CandidateCategory = "Na fila" | "Rejogar";
-type Candidate = { name: string; category: CandidateCategory; genre?: string; genreChecked?: boolean };
+type Candidate = { name: string; category: CandidateCategory; genre?: string; genreChecked?: boolean; genreSource?: string };
 type GenreLookupResult = { title: string; genres: string[]; primaryGenre: string; source: string };
 type GamePickerState = {
   bank: Candidate[];
@@ -107,6 +107,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
   const categoryColumn = headers.findIndex((header) => header === "categoria" || header === "status");
   const genreColumn = headers.findIndex((header) => header === "genero" || header === "genero predominante");
   const checkedColumn = headers.findIndex((header) => header === "genero verificado" || header === "genero conferido");
+  const sourceColumn = headers.findIndex((header) => header === "fonte do genero");
   const hasHeader = nameColumn >= 0 && categoryColumn >= 0;
   const gameColumn = hasHeader ? nameColumn : 0;
   const statusColumn = hasHeader ? categoryColumn : 1;
@@ -118,6 +119,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
     const status = normalize(row[statusColumn] || "");
     const genre = genreColumn >= 0 ? (row[genreColumn] || "").trim() : "";
     const checkedValue = checkedColumn >= 0 ? normalize(row[checkedColumn] || "") : "";
+    const genreSource = sourceColumn >= 0 ? (row[sourceColumn] || "").trim().toLowerCase() : "";
     const genreChecked = Boolean(genre) || ["true", "sim", "yes", "1"].includes(checkedValue);
 
     if (!name || /^https?:\/\//i.test(name)) continue;
@@ -139,7 +141,8 @@ function cleanCandidates(rows: string[][]): Candidate[] {
     const chosenCategory = previous.category === "Rejogar" || category === "Rejogar" ? "Rejogar" : "Na fila";
     const chosenGenre = previous.genre || genre;
     const chosenGenreChecked = previous.genreChecked === true || genreChecked;
-    editionMap.set(key, { name: chosenName, category: chosenCategory, genre: chosenGenre, genreChecked: chosenGenreChecked });
+    const chosenGenreSource = previous.genreSource || genreSource;
+    editionMap.set(key, { name: chosenName, category: chosenCategory, genre: chosenGenre, genreChecked: chosenGenreChecked, genreSource: chosenGenreSource });
   }
 
   return [...editionMap.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
@@ -167,6 +170,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
             String(candidate?.category || ""),
             String(candidate?.genre || ""),
             candidate?.genreChecked ? "true" : "false",
+            String(candidate?.genreSource || ""),
           ]),
         ])
       : [];
@@ -288,7 +292,7 @@ export default function GamePickerAdminPage() {
           ...current,
           bank: current.bank.map((candidate) =>
             candidate.name === name
-              ? { ...candidate, genre, genreChecked: true }
+              ? { ...candidate, genre, genreChecked: true, genreSource: result?.source || "none" }
               : candidate
           ),
         }));
@@ -395,7 +399,7 @@ export default function GamePickerAdminPage() {
           bank: current.bank.map((candidate) => {
             const result = resultsByTitle.get(normalize(candidate.name));
             if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
-            return { ...candidate, genre: result.primaryGenre || "", genreChecked: true };
+            return { ...candidate, genre: result.primaryGenre || "", genreChecked: true, genreSource: result.source || "none" };
           }),
         }));
 
@@ -505,12 +509,13 @@ export default function GamePickerAdminPage() {
     if (state.bank.length === 0) return;
     const escapeCsv = (value: string) => '"' + value.replace(/"/g, '""') + '"';
     const csv = [
-      ["Jogo", "Categoria", "Gênero", "Gênero verificado"].map(escapeCsv).join(","),
+      ["Jogo", "Categoria", "Gênero", "Gênero verificado", "Fonte do gênero"].map(escapeCsv).join(","),
       ...state.bank.map((candidate) => [
         candidate.name,
         candidate.category,
         candidate.genre || "",
         candidate.genreChecked ? "true" : "false",
+        candidate.genreSource || "",
       ].map(escapeCsv).join(",")),
     ].join("\r\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -718,6 +723,11 @@ export default function GamePickerAdminPage() {
                             <span className="rounded-md border border-cyan-400/15 bg-cyan-400/[0.04] px-1.5 py-0.5 text-[10px] font-semibold text-cyan-100/70">
                               {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
                             </span>
+                            {candidate.genre && candidate.genreSource && candidate.genreSource !== "none" && (
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
+                                {candidate.genreSource}
+                              </span>
+                            )}
                           </span>
                         </span>
                         {checked && <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-red-300">Escolhido</span>}

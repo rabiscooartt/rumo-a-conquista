@@ -27,6 +27,42 @@ function normalizeText(value: unknown) {
     .trim();
 }
 
+const EDITION_SUFFIXES = [
+  "deluxe edition",
+  "definitive edition",
+  "special edition",
+  "complete edition",
+  "collector edition",
+  "collectors edition",
+  "standard edition",
+  "game of the year edition",
+  "game of the year",
+  "goty edition",
+  "goty",
+  "edition",
+];
+
+function normalizeEditionTitle(value: unknown) {
+  let normalized = normalizeText(value);
+  for (const suffix of EDITION_SUFFIXES) {
+    if (normalized.endsWith(" " + suffix)) {
+      normalized = normalized.slice(0, -(suffix.length + 1)).trim();
+      break;
+    }
+  }
+  return normalized;
+}
+
+function matchesGameTitle(query: string, candidate: unknown) {
+  const queryExact = normalizeText(query);
+  const candidateExact = normalizeText(candidate);
+  if (queryExact && queryExact === candidateExact) return true;
+
+  const queryBase = normalizeEditionTitle(query);
+  const candidateBase = normalizeEditionTitle(candidate);
+  return Boolean(queryBase && queryBase === candidateBase);
+}
+
 function translateGenre(value: string) {
   const normalized = normalizeText(value);
 
@@ -127,37 +163,34 @@ async function detectWithIgdb(title: string): Promise<string[] | null> {
 
   if (!results.length) return [];
 
-  const normalizedTitle = normalizeText(title);
-  const exact =
-    results.find((game) => normalizeText(game.name) === normalizedTitle) ??
-    results[0];
+  const matchingGame = results.find((game) => matchesGameTitle(title, game.name));
+  if (!matchingGame) return [];
 
-  return cleanGenres((exact.genres ?? []).map((genre) => genre.name ?? ""));
+  return cleanGenres((matchingGame.genres ?? []).map((genre) => genre.name ?? ""));
 }
 
 async function detectWithSteam(title: string): Promise<string[] | null> {
   const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(title)}&l=english&cc=US`;
-  const searchResponse = await fetch(searchUrl, { cache: "no-store" });
+  const searchResponse = await fetch(searchUrl, {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+  });
 
   if (!searchResponse.ok) return null;
 
   const searchPayload = (await searchResponse.json()) as {
     items?: Array<{ id?: number; name?: string }>;
   };
-
   const items = searchPayload.items ?? [];
-  if (!items.length) return [];
 
-  const normalizedTitle = normalizeText(title);
-  const exact =
-    items.find((item) => normalizeText(item.name) === normalizedTitle) ??
-    items[0];
-
-  if (!exact.id) return [];
+  // Never use the first search result blindly: similarly named games and DLCs
+  // can have different genres, so only accept exact or edition-label matches.
+  const match = items.find((item) => matchesGameTitle(title, item.name));
+  if (!match?.id) return [];
 
   const detailsResponse = await fetch(
-    `https://store.steampowered.com/api/appdetails?appids=${exact.id}&cc=US&l=english`,
-    { cache: "no-store" }
+    `https://store.steampowered.com/api/appdetails?appids=${match.id}&cc=US&l=english`,
+    { cache: "no-store", headers: { Accept: "application/json" } }
   );
 
   if (!detailsResponse.ok) return null;
@@ -169,8 +202,7 @@ async function detectWithSteam(title: string): Promise<string[] | null> {
       data?: { genres?: Array<{ description?: string }> };
     }
   >;
-
-  const details = detailsPayload[String(exact.id)];
+  const details = detailsPayload[String(match.id)];
   if (!details?.success) return [];
 
   return cleanGenres(
@@ -179,22 +211,24 @@ async function detectWithSteam(title: string): Promise<string[] | null> {
 }
 
 async function detectGenres(title: string): Promise<GenreResult> {
-  try {
-    const igdbGenres = await detectWithIgdb(title);
-    if (igdbGenres !== null) {
-      return { genres: igdbGenres, source: "igdb" };
-    }
-  } catch (error) {
-    console.warn("[Genres] IGDB falhou:", error);
-  }
-
+  // Priority 1: Steam Store genre metadata.
   try {
     const steamGenres = await detectWithSteam(title);
-    if (steamGenres !== null) {
+    if (steamGenres && steamGenres.length > 0) {
       return { genres: steamGenres, source: "steam" };
     }
   } catch (error) {
     console.warn("[Genres] Steam Store falhou:", error);
+  }
+
+  // Priority 2: structured IGDB metadata when Steam has no reliable match.
+  try {
+    const igdbGenres = await detectWithIgdb(title);
+    if (igdbGenres && igdbGenres.length > 0) {
+      return { genres: igdbGenres, source: "igdb" };
+    }
+  } catch (error) {
+    console.warn("[Genres] IGDB falhou:", error);
   }
 
   return { genres: [], source: "none" };
