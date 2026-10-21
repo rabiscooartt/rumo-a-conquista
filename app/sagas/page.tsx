@@ -732,7 +732,7 @@ function EmblemCard({
         <div
           className={`relative z-10 h-full w-full transition duration-300 ${
             isLocked
-              ? "scale-100 opacity-70 blur-[0.5px] grayscale saturate-0 brightness-[0.72]"
+              ? "scale-100 opacity-[0.58] blur-[4px] grayscale saturate-0 brightness-[0.62]"
               : "group-hover:brightness-110"
           }`}
         >
