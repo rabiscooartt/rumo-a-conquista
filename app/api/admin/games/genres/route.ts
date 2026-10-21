@@ -90,8 +90,8 @@ function normalizeEditionTitle(value: unknown) {
 function normalizeTitleForMatch(value: unknown) {
   return normalizeEditionTitle(value)
     .replace(/^(the|a|an)\s+/, "")
-    .replace(/\s+\\((?:pc|windows|steam|playstation ?[345]|xbox(?: one| series [xs])?|nintendo switch)\\)$/, "")
-    .replace(/\s*\\((?:19|20)\d{2}\\)$/, "")
+    .replace(/\s+\((?:pc|windows|steam|playstation ?[345]|xbox(?: one| series [xs])?|nintendo switch)\)$/, "")
+    .replace(/\s*\((?:19|20)\d{2}\)$/, "")
     .trim();
 }
 
@@ -121,7 +121,7 @@ function getTitleSearchVariants(title: string, deepSearch = false) {
         if (head.length >= 3) expanded.push(head);
       }
 
-      const withoutFinalYear = variant.replace(/\s*\\((?:19|20)\d{2}\\)$/,"").trim();
+      const withoutFinalYear = variant.replace(/\s*\((?:19|20)\d{2}\)$/,"").trim();
       if (withoutFinalYear && withoutFinalYear !== variant) expanded.push(withoutFinalYear);
     }
     variants.push(...expanded);
