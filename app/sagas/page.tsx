@@ -698,10 +698,10 @@ function EmblemCard({
     >
       <div className="relative z-20 flex h-6 shrink-0 items-center justify-end pb-0">
         <span
-          className={`inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 text-[8px] font-black uppercase tracking-[0.06em] ${
+          className={`inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 text-[9px] font-black uppercase tracking-[0.05em] ${
             isLocked
               ? "border-white/20 bg-black/25 text-white/55"
-              : "border-emerald-400/35 bg-emerald-950/35 text-emerald-300/90"
+              : "border-emerald-300/60 bg-emerald-950/70 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.08)]"
           }`}
         >
           {isLocked ? (
@@ -746,7 +746,7 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`mt-1 min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+        className={`mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
         } ${isLocked ? "text-white/75" : "text-white"}`}
       >
