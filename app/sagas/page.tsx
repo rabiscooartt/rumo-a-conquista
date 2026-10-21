@@ -1339,7 +1339,7 @@ export default function SagasPage() {
                     viewBox="0 0 20 20"
                     fill="none"
                     aria-hidden="true"
-                    className={activeFilter === "all" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/35"}
+                    className={activeFilter === "all" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/50"}
                   >
                     <rect x="3" y="3" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
                     <rect x="12" y="3" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
@@ -1363,7 +1363,7 @@ export default function SagasPage() {
                     viewBox="0 0 24 24"
                     fill="none"
                     aria-hidden="true"
-                    className={activeFilter === "completed" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/35"}
+                    className={activeFilter === "completed" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/50"}
                   >
                     <path d="M8 4h8v4.5a4 4 0 0 1-8 0V4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
                     <path d="M8 6H5v1.5a4 4 0 0 0 4 4M16 6h3v1.5a4 4 0 0 1-4 4M12 13v4M9 17h6M8 21h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -1385,7 +1385,7 @@ export default function SagasPage() {
                     viewBox="0 0 24 24"
                     fill="none"
                     aria-hidden="true"
-                    className={activeFilter === "locked" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/35"}
+                    className={activeFilter === "locked" && activeYear === "all" ? "h-3.5 w-3.5 shrink-0 text-red-300" : "h-3.5 w-3.5 shrink-0 text-white/50"}
                   >
                     <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7" />
                     <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
