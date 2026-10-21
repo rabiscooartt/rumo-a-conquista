@@ -15,7 +15,7 @@ type GamePickerState = {
 };
 
 const STORAGE_KEY = "rumo-a-conquista-game-picker-v1";
-async function requestGameGenres(titles: string[], mode: "sources" | "web" = "sources"): Promise<GenreLookupResult[]> {
+async function requestGameGenres(titles: string[], mode: "normal" | "retry" = "normal"): Promise<GenreLookupResult[]> {
   const response = await fetch("/api/admin/games/genres", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -207,7 +207,6 @@ export default function GamePickerAdminPage() {
   const [search, setSearch] = useState("");
     const [genreFilter, setGenreFilter] = useState("Todos");
   const [isClassifying, setIsClassifying] = useState(false);
-  const [isWebResearching, setIsWebResearching] = useState(false);
   const [genreProgress, setGenreProgress] = useState({ done: 0, total: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [message, setMessage] = useState("");
@@ -381,7 +380,7 @@ export default function GamePickerAdminPage() {
 
     setIsClassifying(true);
     setGenreProgress({ done: 0, total: titles.length });
-    setMessage("Iniciando busca automática dos gêneros para " + titles.length + " jogos...");
+    setMessage((includeUnknown ? "Iniciando busca ampliada" : "Iniciando busca automática") + " dos gêneros para " + titles.length + " jogos...");
 
     let processed = 0;
     let found = 0;
@@ -389,7 +388,7 @@ export default function GamePickerAdminPage() {
       // The API accepts up to six titles and limits its upstream concurrency.
       for (let index = 0; index < titles.length; index += 3) {
         const batch = titles.slice(index, index + 3);
-        const results = await requestGameGenres(batch);
+        const results = await requestGameGenres(batch, includeUnknown ? "retry" : "normal");
         const resultsByTitle = new Map(results.map((result) => [normalize(result.title), result]));
         found += results.filter((result) => Boolean(result.primaryGenre)).length;
 
@@ -404,10 +403,10 @@ export default function GamePickerAdminPage() {
 
         processed += batch.length;
         setGenreProgress({ done: processed, total: titles.length });
-        setMessage("Buscando gêneros: " + processed + "/" + titles.length + " verificados · " + found + " identificados.");
+        setMessage((includeUnknown ? "Busca ampliada" : "Buscando gêneros") + ": " + processed + "/" + titles.length + " verificados · " + found + " identificados.");
       }
 
-      setMessage("Busca concluída: " + found + " gêneros predominantes identificados de " + titles.length + " jogos. Sem gênero confiável: " + (titles.length - found) + ".");
+      setMessage((includeUnknown ? "Busca ampliada concluída" : "Busca concluída") + ": " + found + " gêneros predominantes identificados de " + titles.length + " jogos. Sem gênero confiável: " + (titles.length - found) + ".");
     } catch (error) {
       setMessage(
         "A busca foi interrompida em " + processed + "/" + titles.length + " jogos. " +
@@ -415,72 +414,6 @@ export default function GamePickerAdminPage() {
       );
     } finally {
       setIsClassifying(false);
-    }
-  }
-
-  async function researchUnknownGenresWithAI() {
-    if (isClassifying || isWebResearching) return;
-
-    const titles = state.bank
-      .filter((candidate) => !candidate.genre && candidate.genreChecked)
-      .map((candidate) => candidate.name);
-
-    if (titles.length === 0) {
-      setMessage("Não há jogos sem gênero identificado para pesquisar com IA/web.");
-      return;
-    }
-
-    const confirmed = window.confirm(
-      "Pesquisar " + titles.length + " jogos usando a API OpenAI e pesquisa na web? " +
-      "Essa ação pode gerar cobrança de uso da API. Só os gêneros apoiados por uma fonte encontrada serão salvos."
-    );
-    if (!confirmed) return;
-
-    setIsWebResearching(true);
-    setGenreProgress({ done: 0, total: titles.length });
-    setMessage("Iniciando pesquisa com IA + web para " + titles.length + " jogos...");
-
-    let processed = 0;
-    let found = 0;
-    try {
-      for (let index = 0; index < titles.length; index += 3) {
-        const batch = titles.slice(index, index + 3);
-        const results = await requestGameGenres(batch, "web");
-        const resultsByTitle = new Map(results.map((result) => [normalize(result.title), result]));
-        found += results.filter((result) => Boolean(result.primaryGenre) && result.source === "openai_web" && Boolean(result.sourceUrl)).length;
-
-        setState((current) => ({
-          ...current,
-          bank: current.bank.map((candidate) => {
-            const result = resultsByTitle.get(normalize(candidate.name));
-            if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
-            if (!result.primaryGenre || result.source !== "openai_web" || !result.sourceUrl) return candidate;
-            return {
-              ...candidate,
-              genre: result.primaryGenre,
-              genreChecked: true,
-              genreSource: result.source,
-              genreSourceUrl: result.sourceUrl,
-            };
-          }),
-        }));
-
-        processed += batch.length;
-        setGenreProgress({ done: processed, total: titles.length });
-        setMessage("Pesquisa IA + web: " + processed + "/" + titles.length + " verificados · " + found + " gêneros confirmados com fonte.");
-      }
-
-      setMessage(
-        "Pesquisa IA + web concluída: " + found + " gêneros confirmados de " + titles.length +
-        " jogos. Ainda sem fonte confiável: " + (titles.length - found) + "."
-      );
-    } catch (error) {
-      setMessage(
-        "A pesquisa IA + web foi interrompida em " + processed + "/" + titles.length + " jogos. " +
-        (error instanceof Error ? error.message : "Tente novamente para continuar.")
-      );
-    } finally {
-      setIsWebResearching(false);
     }
   }
 
@@ -680,7 +613,7 @@ export default function GamePickerAdminPage() {
             <button
               type="button"
               onClick={() => void classifyPendingGenres(genrePendingCount === 0 && genreUnknownCount > 0)}
-              disabled={isClassifying || isWebResearching || (genrePendingCount === 0 && genreUnknownCount === 0) || state.bank.length === 0}
+              disabled={isClassifying || (genrePendingCount === 0 && genreUnknownCount === 0) || state.bank.length === 0}
               className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-3 text-sm font-black text-cyan-100 transition hover:bg-cyan-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span>{isClassifying ? "↻" : "◎"}</span>
@@ -691,18 +624,6 @@ export default function GamePickerAdminPage() {
                   : genreUnknownCount > 0
                     ? "Tentar novamente (" + genreUnknownCount + ")"
                     : "Gêneros verificados"}
-            </button>
-            <button
-              type="button"
-              title="Usa a API OpenAI e pesquisa na web; pode gerar cobrança de API. Só executa após confirmação."
-              onClick={() => void researchUnknownGenresWithAI()}
-              disabled={isClassifying || isWebResearching || genreUnknownCount === 0 || state.bank.length === 0}
-              className="inline-flex items-center gap-2 rounded-xl border border-violet-400/25 bg-violet-400/[0.07] px-4 py-3 text-sm font-black text-violet-100 transition hover:bg-violet-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <span>{isWebResearching ? "↻" : "✦"}</span>
-              {isWebResearching
-                ? "IA + Web " + genreProgress.done + "/" + genreProgress.total
-                : "Pesquisa IA + Web (" + genreUnknownCount + ")"}
             </button>
             <button
               type="button"
@@ -862,7 +783,7 @@ export default function GamePickerAdminPage() {
                                   title="Abrir a fonte consultada para este gênero"
                                   className="text-[9px] font-bold uppercase tracking-wider text-violet-200/70 underline decoration-violet-200/25 underline-offset-2 hover:text-violet-100"
                                 >
-                                  IA + Web ↗
+                                  Fonte verificada ↗
                                 </a>
                               ) : (
                                 <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
