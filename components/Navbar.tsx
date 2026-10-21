@@ -249,6 +249,13 @@ const navLinks = [
     icon: DiamondIcon,
   },
   {
+    label: "Banco de Jogos",
+    href: "/biblioteca",
+    adminHref: "/admin/sorteio-jogos",
+    adminOnly: true,
+    icon: GamepadIcon,
+  },
+  {
     label: "Emblemas",
     href: "/sagas",
     icon: ShieldIcon,
@@ -308,7 +315,7 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
           {navLinks
-            .filter((link) => link.href !== "/backlog" || isAdminMode)
+            .filter((link) => (!("adminOnly" in link) || !link.adminOnly || isAdminMode) && (link.href !== "/backlog" || isAdminMode))
             .map((link) => {
             const targetHref =
               isAdminMode && link.adminHref ? link.adminHref : link.href;
@@ -379,6 +386,14 @@ export default function Navbar() {
             Jogos
           </Link>
 
+          {isAdminMode && (
+            <Link
+              href="/admin/sorteio-jogos"
+              className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white/70"
+            >
+              Banco
+            </Link>
+          )}
           <Link
             href="/sagas"
             className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-black text-red-300"
