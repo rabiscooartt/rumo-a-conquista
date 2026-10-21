@@ -746,7 +746,7 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`relative top-[3px] mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+        className={`relative top-[7px] mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
         } ${isLocked ? "text-white/75" : "text-white"}`}
       >
