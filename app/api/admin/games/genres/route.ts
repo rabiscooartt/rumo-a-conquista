@@ -448,36 +448,6 @@ async function detectWithWikidata(title: string): Promise<string[] | null> {
   return [];
 }
 
-pt: "application/json" },
-          signal: AbortSignal.timeout(4500),
-        }
-      );
-
-      if (!detailsResponse.ok) continue;
-
-      const detailsPayload = (await detailsResponse.json()) as Record<
-        string,
-        {
-          success?: boolean;
-          data?: { genres?: Array<{ description?: string }> };
-        }
-      >;
-      const details = detailsPayload[String(matchingItem.id)];
-      if (!details?.success) continue;
-
-      const genres = cleanGenres(
-        (details.data?.genres ?? []).map((genre) => genre.description ?? "")
-      );
-      if (genres.length > 0) return genres;
-    } catch (error) {
-      console.warn("[Genres] Consulta de título na Steam falhou:", error);
-    }
-  }
-
-  if (!receivedResponse) return null;
-  return [];
-}
-
 async function detectGenres(title: string): Promise<GenreResult> {
   const cacheKey = normalizeText(title);
   const cached = genreLookupCache.get(cacheKey);
