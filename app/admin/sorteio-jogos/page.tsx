@@ -295,6 +295,29 @@ export default function GamePickerAdminPage() {
     setMessage('"' + name + '" foi adicionado ao banco como "' + newGameCategory + '".');
   }
 
+  function removeGame(name: string) {
+    const confirmed = window.confirm(
+      'Remover "' +
+        name +
+        '" do banco de jogos? Ele também sairá da seleção atual, se estiver escolhido.'
+    );
+
+    if (!confirmed) return;
+
+    setState((current) => ({
+      ...current,
+      bank: current.bank.filter((candidate) => candidate.name !== name),
+      manualNames: current.manualNames.filter((item) => item !== name),
+      // Qualquer alteração no banco invalida o resultado da roleta atual.
+      randomNames: [],
+    }));
+    setMessage(
+      '"' +
+        name +
+        '" foi removido do banco. A seleção dos jogos restantes foi preservada; o resultado da roleta foi limpo para permitir um novo sorteio.'
+    );
+  }
+
   function toggleManual(name: string) {
     setState((current) => {
       const exists = current.manualNames.includes(name);
@@ -528,14 +551,35 @@ export default function GamePickerAdminPage() {
                   const checked = selectedSet.has(candidate.name);
                   const locked = !checked && state.manualNames.length >= 5;
                   return (
-                    <button key={candidate.name} type="button" disabled={locked || isDrawing} aria-pressed={checked} onClick={() => toggleManual(candidate.name)} className={"flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition " + (checked ? "border-red-500/40 bg-red-500/10" : "border-white/[0.07] bg-black/20 hover:border-white/20 hover:bg-white/[0.04]") + ((locked || isDrawing) ? " cursor-not-allowed opacity-45" : "")}>
-                      <span className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-black " + (checked ? "border-red-400 bg-red-500 text-white" : "border-white/20 text-transparent")}>{checked ? "✓" : "✓"}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-bold text-white/90">{candidate.name}</span>
-                        <span className={"mt-1 block text-[10px] font-black uppercase tracking-[0.16em] " + (candidate.category === "Rejogar" ? "text-amber-200/70" : "text-white/35")}>{candidate.category}</span>
-                      </span>
-                      {checked && <span className="text-[10px] font-black uppercase tracking-wider text-red-300">Escolhido</span>}
-                    </button>
+                    <div
+                      key={candidate.name}
+                      className={"flex w-full items-center gap-2 rounded-xl border px-2 py-2 transition " + (checked ? "border-red-500/40 bg-red-500/10" : "border-white/[0.07] bg-black/20 hover:border-white/20 hover:bg-white/[0.04]")}
+                    >
+                      <button
+                        type="button"
+                        disabled={locked || isDrawing}
+                        aria-pressed={checked}
+                        onClick={() => toggleManual(candidate.name)}
+                        className={"flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1.5 text-left transition " + ((locked || isDrawing) ? "cursor-not-allowed opacity-45" : "")}
+                      >
+                        <span className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-black " + (checked ? "border-red-400 bg-red-500 text-white" : "border-white/20 text-transparent")}>✓</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-bold text-white/90">{candidate.name}</span>
+                          <span className={"mt-1 block text-[10px] font-black uppercase tracking-[0.16em] " + (candidate.category === "Rejogar" ? "text-amber-200/70" : "text-white/35")}>{candidate.category}</span>
+                        </span>
+                        {checked && <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-red-300">Escolhido</span>}
+                      </button>
+                      <button
+                        type="button"
+                        title={"Remover " + candidate.name + " do banco"}
+                        aria-label={"Remover " + candidate.name + " do banco"}
+                        disabled={isDrawing}
+                        onClick={() => removeGame(candidate.name)}
+                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/45 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs"
+                      >
+                        Remover
+                      </button>
+                    </div>
                   );
                 })}
                 {filteredBank.length === 0 && <p className="rounded-xl border border-white/10 px-4 py-8 text-center text-sm text-white/40">Nenhum jogo encontrado com esse filtro.</p>}
