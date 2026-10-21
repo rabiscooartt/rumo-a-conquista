@@ -746,7 +746,7 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`relative top-[11px] mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+        className={`relative top-[14px] mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
         } ${isLocked ? "text-white/75" : "text-white"}`}
       >
@@ -754,11 +754,11 @@ function EmblemCard({
       </h3>
 
       <div className="mt-0.5 flex shrink-0 items-center justify-center gap-1.5" aria-hidden="true">
-        <span className={`h-px w-5 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
+        <span className={`h-px w-4 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
         <svg
           viewBox="0 0 24 12"
           aria-hidden="true"
-          className={`h-3 w-6 shrink-0 ${isLocked ? "text-white/35" : "text-amber-400/85"}`}
+          className={`h-2.5 w-5 shrink-0 ${isLocked ? "text-white/35" : "text-amber-400/85"}`}
           fill="none"
           stroke="currentColor"
           strokeWidth="1"
@@ -770,7 +770,7 @@ function EmblemCard({
           <path d="M4 4.5 5.5 6 4 7.5M20 4.5 18.5 6 20 7.5" strokeOpacity="0.7" />
           <path d="M12 3.6 14.4 6 12 8.4 9.6 6 12 3.6Z" className={isLocked ? "fill-white/40 stroke-white/40" : "fill-red-500 stroke-red-400"} strokeWidth="0.7" />
         </svg>
-        <span className={`h-px w-5 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
+        <span className={`h-px w-4 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
       </div>
 
       <p
