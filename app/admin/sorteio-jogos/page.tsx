@@ -388,13 +388,13 @@ export default function GamePickerAdminPage() {
         const batch = titles.slice(index, index + 6);
         const results = await requestGameGenres(batch);
         const resultsByTitle = new Map(results.map((result) => [normalize(result.title), result]));
+        found += results.filter((result) => Boolean(result.primaryGenre)).length;
 
         setState((current) => ({
           ...current,
           bank: current.bank.map((candidate) => {
             const result = resultsByTitle.get(normalize(candidate.name));
             if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
-            if (result.primaryGenre) found += 1;
             return { ...candidate, genre: result.primaryGenre || "", genreChecked: true };
           }),
         }));

@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
       new Set(
         body.titles
           .filter((title): title is string => typeof title === "string")
-          .map((title) => title.trim().replace(/\\s+/g, " "))
+          .map((title) => title.trim().replace(/\s+/g, " "))
           .filter(Boolean)
       )
     ).slice(0, 6);
