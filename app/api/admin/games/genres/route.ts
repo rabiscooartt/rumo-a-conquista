@@ -1,5 +1,6 @@
 import { after } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { inferPrimaryGenre } from "@/lib/gameGenres";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 type GameRow = {
@@ -275,6 +276,74 @@ export async function GET() {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Não foi possível identificar os gêneros." },
       { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json()) as { titles?: unknown };
+    if (!Array.isArray(body.titles)) {
+      return NextResponse.json(
+        { error: "Envie uma lista de títulos para identificar os gêneros." },
+        { status: 400, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    const titles = Array.from(
+      new Set(
+        body.titles
+          .filter((title): title is string => typeof title === "string")
+          .map((title) => title.trim().replace(/\\s+/g, " "))
+          .filter(Boolean)
+      )
+    ).slice(0, 6);
+
+    if (titles.length === 0) {
+      return NextResponse.json(
+        { error: "Informe pelo menos um título válido." },
+        { status: 400, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    const results: Array<{
+      title: string;
+      genres: string[];
+      primaryGenre: string;
+      source: GenreResult["source"];
+    }> = [];
+
+    // Mantém o número de buscas externas concorrentes baixo para evitar limites
+    // da IGDB/Steam ao classificar lotes maiores no navegador.
+    for (let index = 0; index < titles.length; index += 3) {
+      const batch = titles.slice(index, index + 3);
+      const detected = await Promise.all(
+        batch.map(async (title) => {
+          const result = await detectGenres(title);
+          return {
+            title,
+            genres: result.genres,
+            primaryGenre: inferPrimaryGenre(result.genres),
+            source: result.source,
+          };
+        })
+      );
+      results.push(...detected);
+    }
+
+    return NextResponse.json(
+      { ok: true, results },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  } catch (error) {
+    console.error("[Genres] Lookup em lote falhou:", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error
+          ? error.message
+          : "Não foi possível buscar os gêneros neste momento.",
+      },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

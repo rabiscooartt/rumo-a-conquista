@@ -5,7 +5,8 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
 type CandidateCategory = "Na fila" | "Rejogar";
-type Candidate = { name: string; category: CandidateCategory };
+type Candidate = { name: string; category: CandidateCategory; genre?: string; genreChecked?: boolean };
+type GenreLookupResult = { title: string; genres: string[]; primaryGenre: string; source: string };
 type GamePickerState = {
   bank: Candidate[];
   manualNames: string[];
@@ -14,6 +15,26 @@ type GamePickerState = {
 };
 
 const STORAGE_KEY = "rumo-a-conquista-game-picker-v1";
+async function requestGameGenres(titles: string[]): Promise<GenreLookupResult[]> {
+  const response = await fetch("/api/admin/games/genres", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ titles }),
+    cache: "no-store",
+  });
+  const payload = (await response.json()) as {
+    results?: GenreLookupResult[];
+    error?: string;
+  };
+  if (!response.ok) {
+    throw new Error(payload.error || "Não foi possível buscar os gêneros.");
+  }
+  return Array.isArray(payload.results) ? payload.results : [];
+}
+
+const GENRE_PENDING_FILTER = "__genre_pending__";
+const GENRE_UNKNOWN_FILTER = "__genre_unknown__";
+
 const EMPTY_STATE: GamePickerState = {
   bank: [],
   manualNames: [],
@@ -84,6 +105,8 @@ function cleanCandidates(rows: string[][]): Candidate[] {
   const headers = rows[0].map(normalize);
   const nameColumn = headers.findIndex((header) => header === "jogo" || header === "nome" || header.includes("nome do jogo"));
   const categoryColumn = headers.findIndex((header) => header === "categoria" || header === "status");
+  const genreColumn = headers.findIndex((header) => header === "genero" || header === "genero predominante");
+  const checkedColumn = headers.findIndex((header) => header === "genero verificado" || header === "genero conferido");
   const hasHeader = nameColumn >= 0 && categoryColumn >= 0;
   const gameColumn = hasHeader ? nameColumn : 0;
   const statusColumn = hasHeader ? categoryColumn : 1;
@@ -93,6 +116,9 @@ function cleanCandidates(rows: string[][]): Candidate[] {
   for (const row of sourceRows) {
     const name = (row[gameColumn] || "").replace(/\s+/g, " ").trim();
     const status = normalize(row[statusColumn] || "");
+    const genre = genreColumn >= 0 ? (row[genreColumn] || "").trim() : "";
+    const checkedValue = checkedColumn >= 0 ? normalize(row[checkedColumn] || "") : "";
+    const genreChecked = Boolean(genre) || ["true", "sim", "yes", "1"].includes(checkedValue);
 
     if (!name || /^https?:\/\//i.test(name)) continue;
     let category: CandidateCategory;
@@ -105,13 +131,15 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
     const previous = editionMap.get(key);
     if (!previous) {
-      editionMap.set(key, { name, category });
+      editionMap.set(key, { name, category, genre, genreChecked });
       continue;
     }
 
     const chosenName = isDeluxe(name) && !isDeluxe(previous.name) ? name : previous.name;
     const chosenCategory = previous.category === "Rejogar" || category === "Rejogar" ? "Rejogar" : "Na fila";
-    editionMap.set(key, { name: chosenName, category: chosenCategory });
+    const chosenGenre = previous.genre || genre;
+    const chosenGenreChecked = previous.genreChecked === true || genreChecked;
+    editionMap.set(key, { name: chosenName, category: chosenCategory, genre: chosenGenre, genreChecked: chosenGenreChecked });
   }
 
   return [...editionMap.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
@@ -137,6 +165,8 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
           ...parsed.bank.map((candidate) => [
             String(candidate?.name || ""),
             String(candidate?.category || ""),
+            String(candidate?.genre || ""),
+            candidate?.genreChecked ? "true" : "false",
           ]),
         ])
       : [];
@@ -169,6 +199,9 @@ export default function GamePickerAdminPage() {
   const [state, setState] = useState<GamePickerState>(EMPTY_STATE);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"Todos" | CandidateCategory>("Todos");
+  const [genreFilter, setGenreFilter] = useState("Todos");
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [genreProgress, setGenreProgress] = useState({ done: 0, total: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [message, setMessage] = useState("");
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
@@ -194,17 +227,28 @@ export default function GamePickerAdminPage() {
   }, [state]);
 
   const selectedSet = useMemo(() => new Set(state.manualNames), [state.manualNames]);
+  const availableGenres = useMemo(
+    () => [...new Set(state.bank.map((candidate) => candidate.genre).filter((genre): genre is string => Boolean(genre)))].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [state.bank]
+  );
   const filteredBank = useMemo(() => {
     const term = normalize(search);
     return state.bank.filter((candidate) => {
       const matchesSearch = !term || normalize(candidate.name).includes(term);
       const matchesCategory = categoryFilter === "Todos" || candidate.category === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const matchesGenre =
+        genreFilter === "Todos" ||
+        (genreFilter === GENRE_PENDING_FILTER && !candidate.genre && !candidate.genreChecked) ||
+        (genreFilter === GENRE_UNKNOWN_FILTER && !candidate.genre && candidate.genreChecked) ||
+        candidate.genre === genreFilter;
+      return matchesSearch && matchesCategory && matchesGenre;
     });
-  }, [state.bank, search, categoryFilter]);
+  }, [state.bank, search, categoryFilter, genreFilter]);
 
   const queueCount = state.bank.filter((candidate) => candidate.category === "Na fila").length;
   const replayCount = state.bank.filter((candidate) => candidate.category === "Rejogar").length;
+  const genrePendingCount = state.bank.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
+  const genreUnknownCount = state.bank.filter((candidate) => !candidate.genre && candidate.genreChecked).length;
   const remainingCount = state.bank.length - state.manualNames.length;
 
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
@@ -226,12 +270,37 @@ export default function GamePickerAdminPage() {
         manualNames: [],
         randomNames: [],
       }));
-      setMessage("Banco importado: " + imported.length + " jogos prontos para a seleção.");
+      const pendingGenres = imported.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
+      setMessage("Banco importado: " + imported.length + " jogos prontos. " + pendingGenres + " precisam de busca de gênero; clique em Identificar gêneros para classificar o banco.");
     } catch {
       setMessage("Não foi possível ler esse arquivo. Tente importar o CSV novamente.");
     } finally {
       input.value = "";
     }
+  }
+
+  function lookupGenreForAddedGame(name: string, successPrefix: string) {
+    void requestGameGenres([name])
+      .then((results) => {
+        const result = results.find((item) => normalize(item.title) === normalize(name));
+        const genre = result?.primaryGenre || "";
+        setState((current) => ({
+          ...current,
+          bank: current.bank.map((candidate) =>
+            candidate.name === name
+              ? { ...candidate, genre, genreChecked: true }
+              : candidate
+          ),
+        }));
+        setMessage(
+          genre
+            ? successPrefix + " Gênero predominante: " + genre + "."
+            : successPrefix + " Não encontrei um gênero confiável para esse título. Você pode tentar novamente em Identificar gêneros."
+        );
+      })
+      .catch(() => {
+        setMessage(successPrefix + " O jogo foi salvo, mas a busca de gênero falhou. Você pode tentar novamente em Identificar gêneros.");
+      });
   }
 
   function addGame() {
@@ -271,9 +340,8 @@ export default function GamePickerAdminPage() {
           ),
         }));
         setNewGameName("");
-        setMessage(
-          "A versão normal foi substituída pela Deluxe. O jogo continua aparecendo apenas uma vez no banco."
-        );
+        setMessage("A versão normal foi substituída pela Deluxe. Buscando o gênero da edição mantida...");
+        lookupGenreForAddedGame(name, "A versão normal foi substituída pela Deluxe.");
         return;
       }
 
@@ -292,7 +360,59 @@ export default function GamePickerAdminPage() {
       ),
     }));
     setNewGameName("");
-    setMessage('"' + name + '" foi adicionado ao banco como "' + newGameCategory + '".');
+    setMessage('"' + name + '" foi adicionado. Buscando o gênero predominante...');
+    lookupGenreForAddedGame(name, '"' + name + '" foi adicionado ao banco como "' + newGameCategory + '".');
+  }
+
+  async function classifyPendingGenres() {
+    if (isClassifying) return;
+
+    const titles = state.bank
+      .filter((candidate) => !candidate.genre && !candidate.genreChecked)
+      .map((candidate) => candidate.name);
+
+    if (titles.length === 0) {
+      setMessage("Todos os jogos já tiveram a busca de gênero realizada. Os que não tiverem gênero confiável aparecem como Sem gênero identificado.");
+      return;
+    }
+
+    setIsClassifying(true);
+    setGenreProgress({ done: 0, total: titles.length });
+    setMessage("Iniciando busca automática dos gêneros para " + titles.length + " jogos...");
+
+    let processed = 0;
+    let found = 0;
+    try {
+      // The API accepts up to six titles and limits its upstream concurrency.
+      for (let index = 0; index < titles.length; index += 6) {
+        const batch = titles.slice(index, index + 6);
+        const results = await requestGameGenres(batch);
+        const resultsByTitle = new Map(results.map((result) => [normalize(result.title), result]));
+
+        setState((current) => ({
+          ...current,
+          bank: current.bank.map((candidate) => {
+            const result = resultsByTitle.get(normalize(candidate.name));
+            if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
+            if (result.primaryGenre) found += 1;
+            return { ...candidate, genre: result.primaryGenre || "", genreChecked: true };
+          }),
+        }));
+
+        processed += batch.length;
+        setGenreProgress({ done: processed, total: titles.length });
+        setMessage("Buscando gêneros: " + processed + "/" + titles.length + " verificados · " + found + " identificados.");
+      }
+
+      setMessage("Busca concluída: " + found + " gêneros predominantes identificados de " + titles.length + " jogos. Sem gênero confiável: " + (titles.length - found) + ".");
+    } catch (error) {
+      setMessage(
+        "A busca foi interrompida em " + processed + "/" + titles.length + " jogos. " +
+        (error instanceof Error ? error.message : "Tente novamente para continuar.")
+      );
+    } finally {
+      setIsClassifying(false);
+    }
   }
 
   function removeGame(name: string) {
@@ -383,10 +503,16 @@ export default function GamePickerAdminPage() {
 
   function downloadBackup() {
     if (state.bank.length === 0) return;
-    const csv = ["Jogo,Categoria", ...state.bank.map((candidate) => {
-      const name = '"' + candidate.name.replace(/"/g, '""') + '"';
-      return name + "," + candidate.category;
-    })].join("\r\n");
+    const escapeCsv = (value: string) => '"' + value.replace(/"/g, '""') + '"';
+    const csv = [
+      ["Jogo", "Categoria", "Gênero", "Gênero verificado"].map(escapeCsv).join(","),
+      ...state.bank.map((candidate) => [
+        candidate.name,
+        candidate.category,
+        candidate.genre || "",
+        candidate.genreChecked ? "true" : "false",
+      ].map(escapeCsv).join(",")),
+    ].join("\r\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -414,6 +540,19 @@ export default function GamePickerAdminPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void classifyPendingGenres()}
+              disabled={isClassifying || genrePendingCount === 0 || state.bank.length === 0}
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-3 text-sm font-black text-cyan-100 transition hover:bg-cyan-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <span>{isClassifying ? "↻" : "◎"}</span>
+              {isClassifying
+                ? "Buscando " + genreProgress.done + "/" + genreProgress.total
+                : genrePendingCount > 0
+                  ? "Identificar gêneros (" + genrePendingCount + ")"
+                  : "Gêneros verificados"}
+            </button>
             <button
               type="button"
               onClick={() => setIsAddFormOpen((open) => !open)}
@@ -490,11 +629,12 @@ export default function GamePickerAdminPage() {
           </section>
         )}
 
-        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
           {[
             { label: "Banco total", value: state.bank.length, tone: "text-white" },
             { label: "Na fila", value: queueCount, tone: "text-red-300" },
             { label: "Rejogar", value: replayCount, tone: "text-amber-200" },
+            { label: "Gêneros pendentes", value: genrePendingCount, tone: "text-cyan-200" },
             { label: "Jogos livres p/ sorteio", value: remainingCount, tone: "text-emerald-300" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4">
@@ -539,6 +679,12 @@ export default function GamePickerAdminPage() {
                   <option value="Na fila">Na fila</option>
                   <option value="Rejogar">Rejogar</option>
                 </select>
+                <select value={genreFilter} onChange={(event) => setGenreFilter(event.target.value)} className="rounded-xl border border-white/10 bg-[#101319] px-3 py-3 text-sm text-white/80 outline-none focus:border-cyan-400/50">
+                  <option value="Todos">Todos os gêneros</option>
+                  {genrePendingCount > 0 && <option value={GENRE_PENDING_FILTER}>Gênero pendente ({genrePendingCount})</option>}
+                  {genreUnknownCount > 0 && <option value={GENRE_UNKNOWN_FILTER}>Sem gênero identificado ({genreUnknownCount})</option>}
+                  {availableGenres.map((genre) => <option key={genre} value={genre}>{genre}</option>)}
+                </select>
               </div>
 
               <div className="mb-3 flex items-center justify-between text-xs text-white/40">
@@ -565,7 +711,12 @@ export default function GamePickerAdminPage() {
                         <span className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-black " + (checked ? "border-red-400 bg-red-500 text-white" : "border-white/20 text-transparent")}>✓</span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-bold text-white/90">{candidate.name}</span>
-                          <span className={"mt-1 block text-[10px] font-black uppercase tracking-[0.16em] " + (candidate.category === "Rejogar" ? "text-amber-200/70" : "text-white/35")}>{candidate.category}</span>
+                          <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className={"rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] " + (candidate.category === "Rejogar" ? "bg-amber-200/[0.08] text-amber-200/75" : "bg-white/[0.04] text-white/45")}>{candidate.category}</span>
+                            <span className="rounded-md border border-cyan-400/15 bg-cyan-400/[0.04] px-1.5 py-0.5 text-[10px] font-semibold text-cyan-100/70">
+                              {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
+                            </span>
+                          </span>
                         </span>
                         {checked && <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-red-300">Escolhido</span>}
                       </button>

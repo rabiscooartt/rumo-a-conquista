@@ -21,11 +21,10 @@ export async function proxy(request: NextRequest) {
     pathname === "/api/admin/auth/logout" ||
     pathname === "/api/admin/auth/status";
 
-  // A Biblioteca é uma área pública. Esta rota fornece apenas os gêneros
-  // já salvos/detectados dos jogos e não expõe credenciais administrativas.
-  // Mantemos todas as outras APIs administrativas protegidas.
+  // A Biblioteca pode ler o mapa de gêneros via GET. A busca de títulos
+  // arbitrários via POST permanece protegida pela sessão administrativa.
   const isPublicGenreEndpoint =
-    pathname === "/api/admin/games/genres";
+    pathname === "/api/admin/games/genres" && request.method === "GET";
 
   if (isAuthEndpoint || isPublicGenreEndpoint) {
     return NextResponse.next();
