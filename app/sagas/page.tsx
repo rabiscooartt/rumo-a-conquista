@@ -514,19 +514,21 @@ function BadgeImage({
   // The panel hugs the visible artwork with a small, consistent inner gap.
   // Its width changes with the art's visible aspect ratio.
   const artPadding = 6;
-  const scale = hasLayout
+  const fitScale = hasLayout
     ? Math.min(
         Math.max(1, boxSize.width - artPadding * 2) / visibleWidth,
         Math.max(1, boxSize.height - artPadding * 2) / visibleHeight
       )
     : 1;
+  // Enlarge only the artwork, not its reserved layout area.
+  const scale = fitScale * (hasLayout ? 1.06 : 1);
 
   const renderedWidth = naturalWidth * scale;
   const renderedHeight = naturalHeight * scale;
   const panelWidth = visibleWidth * scale + artPadding * 2;
   const panelHeight = visibleHeight * scale + artPadding * 2;
   const offsetX = artPadding - contentBounds.left * renderedWidth;
-  const offsetY = artPadding - contentBounds.top * renderedHeight;
+  const offsetY = artPadding - contentBounds.top * renderedHeight - (hasLayout ? 16 : 0);
 
   return (
     <div
@@ -694,7 +696,7 @@ function EmblemCard({
           : "border-red-900/55 bg-[linear-gradient(180deg,rgba(48,8,14,0.82)_0%,rgba(14,4,7,0.94)_100%)] shadow-[inset_0_0_30px_rgba(127,29,29,0.07)] hover:border-red-800/70 hover:bg-[linear-gradient(180deg,rgba(58,9,16,0.86)_0%,rgba(18,4,7,0.96)_100%)] hover:shadow-[0_0_24px_rgba(127,29,29,0.12)]"
       } ${isLarge ? "max-w-[380px]" : ""}`}
     >
-      <div className="flex h-6 shrink-0 items-center justify-end pb-0">
+      <div className="relative z-20 flex h-6 shrink-0 items-center justify-end pb-0">
         <span
           className={`inline-flex h-5 shrink-0 items-center justify-center gap-1 rounded-full border px-2 text-[7px] font-black uppercase tracking-[0.08em] ${
             isLocked
@@ -717,7 +719,7 @@ function EmblemCard({
       </div>
 
       <div
-        className={`relative mx-auto mt-1 flex w-full shrink-0 items-center justify-center overflow-hidden ${
+        className={`relative mx-auto mt-1 flex w-full shrink-0 items-center justify-center overflow-visible ${
           isLarge ? "h-[300px]" : "h-[270px] sm:h-[285px] lg:h-[300px]"
         }`}
       >
