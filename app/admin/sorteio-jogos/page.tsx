@@ -211,6 +211,9 @@ export default function GamePickerAdminPage() {
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [newGameName, setNewGameName] = useState("");
   const [newGameCategory, setNewGameCategory] = useState<CandidateCategory>("Na fila");
+  const [editingGameName, setEditingGameName] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editCategory, setEditCategory] = useState<CandidateCategory>("Na fila");
 
   useEffect(() => {
     const stored = readSavedState();
@@ -416,6 +419,73 @@ export default function GamePickerAdminPage() {
       );
     } finally {
       setIsClassifying(false);
+    }
+  }
+
+  function beginEdit(candidate: Candidate) {
+    setEditingGameName(candidate.name);
+    setEditTitle(candidate.name);
+    setEditCategory(candidate.category);
+    setMessage("");
+  }
+
+  function cancelEdit() {
+    setEditingGameName(null);
+    setEditTitle("");
+  }
+
+  function saveGameEdit(originalName: string) {
+    const name = editTitle.trim().replace(/\s+/g, " ");
+
+    if (!name) {
+      setMessage("Digite um nome válido para o jogo.");
+      return;
+    }
+
+    const duplicate = state.bank.find(
+      (candidate) =>
+        candidate.name !== originalName &&
+        normalize(candidate.name) === normalize(name)
+    );
+
+    if (duplicate) {
+      setMessage('Já existe um jogo chamado "' + duplicate.name + '". Para evitar duplicatas, o nome não foi alterado.');
+      return;
+    }
+
+    const titleChanged = name !== originalName;
+    const previous = state.bank.find((candidate) => candidate.name === originalName);
+    if (!previous) {
+      cancelEdit();
+      return;
+    }
+
+    setState((current) => ({
+      ...current,
+      bank: current.bank.map((candidate) =>
+        candidate.name !== originalName
+          ? candidate
+          : {
+              ...candidate,
+              name,
+              category: editCategory,
+              ...(titleChanged
+                ? { genre: "", genreChecked: false, genreSource: "" }
+                : {}),
+            }
+      ).sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+      manualNames: current.manualNames.map((item) => item === originalName ? name : item),
+      randomNames: current.randomNames.map((item) => item === originalName ? name : item),
+    }));
+
+    setEditingGameName(null);
+    setEditTitle("");
+
+    if (titleChanged) {
+      setMessage('Nome atualizado para "' + name + '". Buscando novamente o gênero predominante...');
+      lookupGenreForAddedGame(name, 'Nome atualizado para "' + name + '".');
+    } else {
+      setMessage('Alterações salvas para "' + name + '".');
     }
   }
 
@@ -703,9 +773,10 @@ export default function GamePickerAdminPage() {
                 {filteredBank.map((candidate) => {
                   const checked = selectedSet.has(candidate.name);
                   const locked = !checked && state.manualNames.length >= 5;
+                  const isEditing = editingGameName === candidate.name;
                   return (
+                    <div key={candidate.name} className="space-y-2">
                     <div
-                      key={candidate.name}
                       className={"flex w-full items-center gap-2 rounded-xl border px-2 py-2 transition " + (checked ? "border-red-500/40 bg-red-500/10" : "border-white/[0.07] bg-black/20 hover:border-white/20 hover:bg-white/[0.04]")}
                     >
                       <button
@@ -734,6 +805,16 @@ export default function GamePickerAdminPage() {
                       </button>
                       <button
                         type="button"
+                        title={"Editar " + candidate.name}
+                        aria-label={"Editar " + candidate.name}
+                        disabled={isDrawing || isClassifying}
+                        onClick={() => isEditing ? cancelEdit() : beginEdit(candidate)}
+                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/55 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.07] hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs"
+                      >
+                        {isEditing ? "Cancelar" : "Editar"}
+                      </button>
+                      <button
+                        type="button"
                         title={"Remover " + candidate.name + " do banco"}
                         aria-label={"Remover " + candidate.name + " do banco"}
                         disabled={isDrawing}
@@ -742,6 +823,48 @@ export default function GamePickerAdminPage() {
                       >
                         Remover
                       </button>
+                    </div>
+                    {isEditing && (
+                      <form
+                        className="grid gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.035] p-3 sm:grid-cols-[minmax(0,1fr)_180px_auto_auto]"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          saveGameEdit(candidate.name);
+                        }}
+                      >
+                        <input
+                          aria-label={"Editar nome de " + candidate.name}
+                          value={editTitle}
+                          onChange={(event) => setEditTitle(event.target.value)}
+                          maxLength={140}
+                          required
+                          className="min-w-0 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50"
+                        />
+                        <select
+                          aria-label={"Editar categoria de " + candidate.name}
+                          value={editCategory}
+                          onChange={(event) => setEditCategory(event.target.value as CandidateCategory)}
+                          className="rounded-lg border border-white/10 bg-[#101319] px-3 py-2.5 text-sm text-white/85 outline-none focus:border-cyan-400/50"
+                        >
+                          <option value="Na fila">Na fila</option>
+                          <option value="Rejogar">Rejogar</option>
+                        </select>
+                        <button
+                          type="submit"
+                          disabled={!editTitle.trim() || isDrawing}
+                          className="rounded-lg bg-cyan-500/90 px-3 py-2.5 text-xs font-black text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Salvar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEdit}
+                          className="rounded-lg border border-white/10 px-3 py-2.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.05]"
+                        >
+                          Cancelar
+                        </button>
+                      </form>
+                    )}
                     </div>
                   );
                 })}
