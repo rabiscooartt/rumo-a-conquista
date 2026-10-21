@@ -521,14 +521,14 @@ function BadgeImage({
       )
     : 1;
   // Enlarge only the artwork, not its reserved layout area.
-  const scale = hasLayout ? fitScale * 1.10 + 3 / Math.max(visibleWidth, visibleHeight) : 1;
+  const scale = hasLayout ? fitScale * 1.16 + 3 / Math.max(visibleWidth, visibleHeight) : 1;
 
   const renderedWidth = naturalWidth * scale;
   const renderedHeight = naturalHeight * scale;
   const panelWidth = visibleWidth * scale + artPadding * 2;
   const panelHeight = visibleHeight * scale + artPadding * 2;
   const offsetX = artPadding - contentBounds.left * renderedWidth;
-  const offsetY = artPadding - contentBounds.top * renderedHeight - (hasLayout ? 16 : 0);
+  const offsetY = artPadding - contentBounds.top * renderedHeight - (hasLayout ? 22 : 0);
 
   return (
     <div
@@ -746,7 +746,7 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
+        className={`relative top-[3px] mt-[7px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
         } ${isLocked ? "text-white/75" : "text-white"}`}
       >
