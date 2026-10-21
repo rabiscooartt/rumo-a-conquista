@@ -521,7 +521,7 @@ function BadgeImage({
       )
     : 1;
   // Enlarge only the artwork, not its reserved layout area.
-  const scale = fitScale * (hasLayout ? 1.06 : 1);
+  const scale = hasLayout ? fitScale * 1.06 + 3 / Math.max(visibleWidth, visibleHeight) : 1;
 
   const renderedWidth = naturalWidth * scale;
   const renderedHeight = naturalHeight * scale;
@@ -698,7 +698,7 @@ function EmblemCard({
     >
       <div className="relative z-20 flex h-6 shrink-0 items-center justify-end pb-0">
         <span
-          className={`inline-flex h-5 shrink-0 items-center justify-center gap-1 rounded-full border px-2 text-[7px] font-black uppercase tracking-[0.08em] ${
+          className={`inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 text-[8px] font-black uppercase tracking-[0.06em] ${
             isLocked
               ? "border-white/20 bg-black/25 text-white/55"
               : "border-emerald-400/35 bg-emerald-950/35 text-emerald-300/90"
@@ -753,15 +753,31 @@ function EmblemCard({
         {emblem.title}
       </h3>
 
-      <div className="mt-0.5 flex shrink-0 items-center justify-center gap-2" aria-hidden="true">
-        <span className={`h-px w-8 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
-        <span className={`text-[9px] ${isLocked ? "text-white/35" : "text-amber-400/75"}`}>◆</span>
-        <span className={`h-px w-8 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
+      <div className="mt-0.5 flex shrink-0 items-center justify-center gap-1.5" aria-hidden="true">
+        <span className={`h-px w-5 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
+        <svg
+          viewBox="0 0 32 16"
+          aria-hidden="true"
+          className={`h-4 w-8 shrink-0 ${isLocked ? "text-white/35" : "text-amber-400/85"}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M16 2.2 19.2 6 16 8.3 12.8 6 16 2.2Z" fill="currentColor" fillOpacity="0.18" />
+          <path d="M16 8.2c-2.8 0-3.1-4.4-6.6-4.4-2.4 0-2.4 3-5.6 3M16 8.2c-2.8 0-3.1 4.4-6.6 4.4-2.4 0-2.4-3-5.6-3" />
+          <path d="M16 8.2c2.8 0 3.1-4.4 6.6-4.4 2.4 0 2.4 3 5.6 3M16 8.2c2.8 0 3.1 4.4 6.6 4.4 2.4 0 2.4-3 5.6-3" />
+          <path d="M3.8 8.2h5M23.2 8.2h5" />
+          <circle cx="2" cy="8.2" r="0.7" fill="currentColor" stroke="none" />
+          <circle cx="30" cy="8.2" r="0.7" fill="currentColor" stroke="none" />
+        </svg>
+        <span className={`h-px w-5 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
       </div>
 
       <p
-        className={`mt-0.5 w-full truncate text-[11px] font-semibold ${
-          isLocked ? "text-white/50" : theme.text
+        className={`mt-0.5 w-full truncate text-[12px] font-bold tracking-[0.01em] ${
+          isLocked ? "text-white/70" : theme.text
         }`}
       >
         {emblem.gameTitle}
@@ -771,7 +787,7 @@ function EmblemCard({
         {emblem.isCompleted && unlockedDate ? (
           <time
             dateTime={normalizeDate(emblem.unlockedAt)}
-            className="mx-auto inline-flex h-8 w-fit max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-emerald-500/45 bg-emerald-950/45 px-3 text-[11px] font-black tracking-[0.02em] text-cyan-300"
+            className="mx-auto inline-flex h-8 w-fit max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/65 bg-emerald-950/65 px-3 text-[12px] font-black tracking-[0.025em] text-cyan-200 shadow-[0_0_12px_rgba(16,185,129,0.08)]"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="16" rx="2" />
