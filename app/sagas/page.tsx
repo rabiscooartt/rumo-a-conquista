@@ -521,7 +521,7 @@ function BadgeImage({
       )
     : 1;
   // Enlarge only the artwork, not its reserved layout area.
-  const scale = hasLayout ? fitScale * 1.06 + 3 / Math.max(visibleWidth, visibleHeight) : 1;
+  const scale = hasLayout ? fitScale * 1.10 + 3 / Math.max(visibleWidth, visibleHeight) : 1;
 
   const renderedWidth = naturalWidth * scale;
   const renderedHeight = naturalHeight * scale;
@@ -756,21 +756,19 @@ function EmblemCard({
       <div className="mt-0.5 flex shrink-0 items-center justify-center gap-1.5" aria-hidden="true">
         <span className={`h-px w-5 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
         <svg
-          viewBox="0 0 32 16"
+          viewBox="0 0 24 12"
           aria-hidden="true"
-          className={`h-4 w-8 shrink-0 ${isLocked ? "text-white/35" : "text-amber-400/85"}`}
+          className={`h-3 w-6 shrink-0 ${isLocked ? "text-white/35" : "text-amber-400/85"}`}
           fill="none"
           stroke="currentColor"
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path d="M16 2.2 19.2 6 16 8.3 12.8 6 16 2.2Z" fill="currentColor" fillOpacity="0.18" />
-          <path d="M16 8.2c-2.8 0-3.1-4.4-6.6-4.4-2.4 0-2.4 3-5.6 3M16 8.2c-2.8 0-3.1 4.4-6.6 4.4-2.4 0-2.4-3-5.6-3" />
-          <path d="M16 8.2c2.8 0 3.1-4.4 6.6-4.4 2.4 0 2.4 3 5.6 3M16 8.2c2.8 0 3.1 4.4 6.6 4.4 2.4 0 2.4-3 5.6-3" />
-          <path d="M3.8 8.2h5M23.2 8.2h5" />
-          <circle cx="2" cy="8.2" r="0.7" fill="currentColor" stroke="none" />
-          <circle cx="30" cy="8.2" r="0.7" fill="currentColor" stroke="none" />
+          <path d="M12 1 17 6 12 11 7 6 12 1Z" />
+          <path d="M2 6h3M19 6h3" />
+          <path d="M4 4.5 5.5 6 4 7.5M20 4.5 18.5 6 20 7.5" strokeOpacity="0.7" />
+          <path d="M12 3.6 14.4 6 12 8.4 9.6 6 12 3.6Z" className={isLocked ? "fill-white/40 stroke-white/40" : "fill-red-500 stroke-red-400"} strokeWidth="0.7" />
         </svg>
         <span className={`h-px w-5 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
       </div>
@@ -787,16 +785,16 @@ function EmblemCard({
         {emblem.isCompleted && unlockedDate ? (
           <time
             dateTime={normalizeDate(emblem.unlockedAt)}
-            className="mx-auto inline-flex h-8 w-fit max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/65 bg-emerald-950/65 px-3 text-[12px] font-black tracking-[0.025em] text-cyan-200 shadow-[0_0_12px_rgba(16,185,129,0.08)]"
+            className="mx-auto inline-flex h-7 w-fit max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-emerald-500/50 bg-emerald-950/55 px-2.5 text-[10px] font-extrabold tracking-[0.02em] text-cyan-200"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="16" rx="2" />
               <path d="M16 3v4M8 3v4M3 10h18" />
             </svg>
             {unlockedDate}
           </time>
         ) : (
-          <div className="mx-auto inline-flex h-8 w-fit max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/[0.10] bg-white/[0.035] px-3 text-[10px] font-semibold text-white/45">
+          <div className="mx-auto inline-flex h-7 w-fit max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-white/[0.10] bg-white/[0.035] px-2.5 text-[10px] font-semibold text-white/45">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="10" width="14" height="11" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
