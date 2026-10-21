@@ -235,7 +235,7 @@ export default function GamePickerAdminPage() {
   }
 
   function addGame() {
-    const name = newGameName.trim().replace(/\\s+/g, " ");
+    const name = newGameName.trim().replace(/\s+/g, " ");
 
     if (!name) {
       setMessage("Digite o nome do jogo antes de adicionar.");
