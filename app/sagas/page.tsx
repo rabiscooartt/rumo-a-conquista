@@ -748,12 +748,12 @@ function EmblemCard({
       <h3
         className={`relative top-[10px] mt-[11px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
-        } ${isLocked ? "text-white/75" : "text-white"}`}
+        } ${isLocked ? "text-white/45 blur-[2px]" : "text-white"}`}
       >
         {emblem.title}
       </h3>
 
-      <div className="mt-0.5 flex shrink-0 items-center justify-center gap-1.5" aria-hidden="true">
+      <div className={`mt-0.5 flex shrink-0 items-center justify-center gap-1.5 ${isLocked ? "opacity-40 blur-[1.5px]" : ""}`} aria-hidden="true">
         <span className={`h-px w-4 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
         <svg
           viewBox="0 0 24 12"
@@ -775,7 +775,7 @@ function EmblemCard({
 
       <p
         className={`mt-0.5 w-full truncate text-[12px] font-bold tracking-[0.01em] ${
-          isLocked ? "text-white/70" : theme.text
+          isLocked ? "text-white/40 blur-[1.5px]" : theme.text
         }`}
       >
         {emblem.gameTitle}
