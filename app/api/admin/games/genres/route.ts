@@ -226,11 +226,51 @@ async function detectWithIgdb(title: string): Promise<string[] | null> {
   return [];
 }
 
+function decodeSteamHtml(value: string) {
+  return value
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0*39;/gi, "'")
+    .replace(/&#x0*27;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+}
+
+async function getSteamGenresByAppId(appId: number): Promise<string[]> {
+  const detailsResponse = await fetch(
+    "https://store.steampowered.com/api/appdetails?appids=" +
+      appId +
+      "&cc=US&l=english",
+    {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(4000),
+    }
+  );
+  if (!detailsResponse.ok) return [];
+
+  const detailsPayload = (await detailsResponse.json()) as Record<
+    string,
+    {
+      success?: boolean;
+      data?: { genres?: Array<{ description?: string }> };
+    }
+  >;
+  const details = detailsPayload[String(appId)];
+  if (!details?.success) return [];
+
+  return cleanGenres(
+    (details.data?.genres ?? []).map((genre) => genre.description ?? "")
+  );
+}
+
 async function detectWithSteam(title: string): Promise<string[] | null> {
   let receivedResponse = false;
+  const variants = getTitleSearchVariants(title);
   const itemsById = new Map<number, { id?: number; name?: string; type?: number }>();
 
-  for (const searchTerm of getTitleSearchVariants(title)) {
+  // Fast Steam Store search first.
+  for (const searchTerm of variants) {
     try {
       const searchUrl =
         "https://store.steampowered.com/api/storesearch/?term=" +
@@ -239,61 +279,87 @@ async function detectWithSteam(title: string): Promise<string[] | null> {
       const searchResponse = await fetch(searchUrl, {
         cache: "no-store",
         headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(4500),
+        signal: AbortSignal.timeout(3500),
       });
-
       if (!searchResponse.ok) continue;
       receivedResponse = true;
 
-      const searchPayload = (await searchResponse.json()) as {
+      const payload = (await searchResponse.json()) as {
         items?: Array<{ id?: number; name?: string; type?: number }>;
       };
-
-      for (const item of searchPayload.items ?? []) {
+      for (const item of payload.items ?? []) {
         if (item.id && (item.type === undefined || item.type === 0)) {
           itemsById.set(item.id, item);
         }
       }
 
-      const matchingItem = [...itemsById.values()].find((item) =>
+      const match = [...itemsById.values()].find((item) =>
         matchesGameTitle(title, item.name)
       );
-      if (!matchingItem?.id) continue;
-
-      const detailsResponse = await fetch(
-        "https://store.steampowered.com/api/appdetails?appids=" +
-          matchingItem.id +
-          "&cc=US&l=english",
-        {
-          cache: "no-store",
-          headers: { Accept: "application/json" },
-          signal: AbortSignal.timeout(4500),
-        }
-      );
-
-      if (!detailsResponse.ok) continue;
-
-      const detailsPayload = (await detailsResponse.json()) as Record<
-        string,
-        {
-          success?: boolean;
-          data?: { genres?: Array<{ description?: string }> };
-        }
-      >;
-      const details = detailsPayload[String(matchingItem.id)];
-      if (!details?.success) continue;
-
-      const genres = cleanGenres(
-        (details.data?.genres ?? []).map((genre) => genre.description ?? "")
-      );
-      if (genres.length > 0) return genres;
+      if (match?.id) {
+        const genres = await getSteamGenresByAppId(match.id);
+        if (genres.length > 0) return genres;
+      }
     } catch (error) {
-      console.warn("[Genres] Consulta de título na Steam falhou:", error);
+      console.warn("[Genres] Steam storesearch falhou:", error);
     }
   }
 
-  if (!receivedResponse) return null;
-  return [];
+  // storesearch has a small result cap. Its public search/results endpoint can
+  // return a larger list, which helps locate games hidden behind other matches.
+  for (const searchTerm of variants) {
+    try {
+      const params = new URLSearchParams({
+        json: "1",
+        term: searchTerm,
+        count: "50",
+        start: "0",
+        category1: "998",
+        cc: "US",
+        l: "english",
+      });
+      const response = await fetch(
+        "https://store.steampowered.com/search/results/?" + params.toString(),
+        {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(4000),
+        }
+      );
+      if (!response.ok) continue;
+      receivedResponse = true;
+
+      const payload = (await response.json()) as {
+        results_html?: string;
+        total_count?: number;
+        success?: number;
+      };
+      const html = payload.results_html || "";
+      const cards = html.match(/<a\b[^>]*class="[^"]*\bsearch_result_row\b[^"]*"[^>]*>[\s\S]*?<\/a>/gi) || [];
+      const matches: Array<{ id: number; name: string }> = [];
+
+      for (const card of cards) {
+        const idMatch = card.match(/\bdata-ds-appid="(\d+)"/i) ||
+          card.match(/\/app\/(\d+)\//i);
+        const titleMatch = card.match(/<span[^>]*class="[^"]*\btitle\b[^"]*"[^>]*>([\s\S]*?)<\/span>/i);
+        if (!idMatch?.[1] || !titleMatch?.[1]) continue;
+        const name = decodeSteamHtml(titleMatch[1].replace(/<[^>]+>/g, "").trim());
+        if (name && matchesGameTitle(title, name)) {
+          matches.push({ id: Number(idMatch[1]), name });
+        }
+      }
+
+      for (const match of matches.slice(0, 2)) {
+        if (!Number.isFinite(match.id)) continue;
+        const genres = await getSteamGenresByAppId(match.id);
+        if (genres.length > 0) return genres;
+      }
+    } catch (error) {
+      console.warn("[Genres] Steam search/results falhou:", error);
+    }
+  }
+
+  return receivedResponse ? [] : null;
 }
 
 type WikidataSearchItem = {
@@ -301,6 +367,8 @@ type WikidataSearchItem = {
   label?: string;
   title?: string;
   description?: string;
+  match?: { type?: string; text?: string; language?: string };
+  aliases?: Array<{ value?: string; language?: string }>;
 };
 
 type WikidataEntity = {
@@ -318,62 +386,86 @@ type WikidataEntity = {
 
 function looksLikeGameDescription(value: string) {
   const description = normalizeText(value);
-  return /(video game|computer game|arcade game|game franchise|game series|interactive entertainment)/.test(description);
+  if (/(film|movie|television|tv series|album|soundtrack|song|novel|manga|comic book|book|board game|card game|tabletop game|software company|game developer|game publisher|video game series|game franchise)/.test(description)) {
+    return false;
+  }
+  return /(video game|computer game|arcade game|action rpg|role playing game|platform game|rpg|videogame|videojogo|jogo eletronico|jogo de computador|jogo digital|jeu video|videogioco)/.test(description);
+}
+
+function wikidataItemMatchesTitle(title: string, item: WikidataSearchItem) {
+  const label = item.label || item.title || "";
+  if (matchesGameTitle(title, label)) return true;
+  if (item.match?.text && matchesGameTitle(title, item.match.text)) return true;
+  return (item.aliases ?? []).some((alias) =>
+    typeof alias.value === "string" && matchesGameTitle(title, alias.value)
+  );
 }
 
 async function detectWithWikidata(title: string): Promise<string[] | null> {
   let receivedResponse = false;
-  const matches = new Map<string, WikidataSearchItem>();
+  const candidates = new Map<string, { item: WikidataSearchItem; score: number }>();
+  const variants = getTitleSearchVariants(title);
+  const searches = variants.flatMap((searchTerm) =>
+    ["en", "pt"].map((language) => ({ searchTerm, language }))
+  );
 
-  for (const searchTerm of getTitleSearchVariants(title)) {
-    try {
-      const searchUrl = new URL("https://www.wikidata.org/w/api.php");
-      searchUrl.search = new URLSearchParams({
-        action: "wbsearchentities",
-        search: searchTerm,
-        language: "en",
-        uselang: "en",
-        type: "item",
-        limit: "8",
-        format: "json",
-      }).toString();
+  // Search labels and aliases in both languages concurrently to make retries faster.
+  const responses = await Promise.all(
+    searches.map(async ({ searchTerm, language }) => {
+      try {
+        const url = new URL("https://www.wikidata.org/w/api.php");
+        url.search = new URLSearchParams({
+          action: "wbsearchentities",
+          search: searchTerm,
+          language,
+          uselang: language,
+          type: "item",
+          limit: "10",
+          format: "json",
+        }).toString();
 
-      const response = await fetch(searchUrl, {
-        cache: "no-store",
-        headers: {
-          Accept: "application/json",
-          "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
-        },
-        signal: AbortSignal.timeout(4500),
-      });
-      if (!response.ok) continue;
-      receivedResponse = true;
-
-      const payload = (await response.json()) as { search?: WikidataSearchItem[] };
-      for (const item of payload.search ?? []) {
-        const label = item.label || item.title || "";
-        if (!item.id || !matchesGameTitle(title, label)) continue;
-        if (item.description && !looksLikeGameDescription(item.description)) continue;
-        matches.set(item.id, { ...item, label });
+        const response = await fetch(url, {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
+          },
+          signal: AbortSignal.timeout(3500),
+        });
+        if (!response.ok) return null;
+        return await response.json() as { search?: WikidataSearchItem[] };
+      } catch (error) {
+        console.warn("[Genres] Consulta no Wikidata falhou:", error);
+        return null;
       }
-    } catch (error) {
-      console.warn("[Genres] Consulta no Wikidata falhou:", error);
+    })
+  );
+
+  for (const payload of responses) {
+    if (!payload) continue;
+    receivedResponse = true;
+    for (const item of payload.search ?? []) {
+      if (!item.id || !wikidataItemMatchesTitle(title, item)) continue;
+      if (item.description && !looksLikeGameDescription(item.description)) continue;
+
+      const label = item.label || item.title || "";
+      const aliasHit = Boolean(
+        item.match?.text && matchesGameTitle(title, item.match.text)
+      );
+      const score =
+        (normalizeText(label) === normalizeText(title) ? 100 : 0) +
+        (aliasHit ? 40 : 0) +
+        (item.description && looksLikeGameDescription(item.description) ? 25 : 0);
+      const previous = candidates.get(item.id);
+      if (!previous || score > previous.score) candidates.set(item.id, { item, score });
     }
   }
 
-  if (matches.size === 0) return receivedResponse ? [] : null;
+  if (candidates.size === 0) return receivedResponse ? [] : null;
 
-  const orderedMatches = [...matches.values()].sort((a, b) => {
-    const aExact = normalizeText(a.label || a.title) === normalizeText(title) ? 1 : 0;
-    const bExact = normalizeText(b.label || b.title) === normalizeText(title) ? 1 : 0;
-    const aDescribed = a.description && looksLikeGameDescription(a.description) ? 1 : 0;
-    const bDescribed = b.description && looksLikeGameDescription(b.description) ? 1 : 0;
-    return bExact - aExact || Number(bDescribed) - Number(aDescribed);
-  });
-
-  for (const item of orderedMatches.slice(0, 3)) {
+  const ordered = [...candidates.values()].sort((a, b) => b.score - a.score);
+  for (const { item } of ordered.slice(0, 3)) {
     if (!item.id) continue;
-
     try {
       const entityUrl = new URL("https://www.wikidata.org/w/api.php");
       entityUrl.search = new URLSearchParams({
@@ -382,32 +474,29 @@ async function detectWithWikidata(title: string): Promise<string[] | null> {
         props: "claims",
         format: "json",
       }).toString();
-
       const entityResponse = await fetch(entityUrl, {
         cache: "no-store",
         headers: {
           Accept: "application/json",
           "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
         },
-        signal: AbortSignal.timeout(4500),
+        signal: AbortSignal.timeout(3500),
       });
       if (!entityResponse.ok) continue;
 
-      const entityPayload = (await entityResponse.json()) as {
+      const entityPayload = await entityResponse.json() as {
         entities?: Record<string, WikidataEntity>;
       };
       const claims = entityPayload.entities?.[item.id]?.claims?.P136 ?? [];
       const genreIds = [...new Set(
-        claims
-          .map((claim) => {
-            const value = claim.mainsnak?.datavalue?.value;
-            if (value?.id) return value.id;
-            if (typeof value?.["numeric-id"] === "number") return "Q" + value["numeric-id"];
-            return "";
-          })
-          .filter((id) => /^Q\d+$/.test(id))
+        claims.map((claim) => {
+          const value = claim.mainsnak?.datavalue?.value;
+          if (value?.id) return value.id;
+          if (typeof value?.["numeric-id"] === "number") return "Q" + value["numeric-id"];
+          return "";
+        }).filter((id) => /^Q\d+$/.test(id))
       )];
-      if (genreIds.length === 0) continue;
+      if (!genreIds.length) continue;
 
       const labelsUrl = new URL("https://www.wikidata.org/w/api.php");
       labelsUrl.search = new URLSearchParams({
@@ -418,18 +507,17 @@ async function detectWithWikidata(title: string): Promise<string[] | null> {
         languagefallback: "1",
         format: "json",
       }).toString();
-
       const labelsResponse = await fetch(labelsUrl, {
         cache: "no-store",
         headers: {
           Accept: "application/json",
           "User-Agent": "RumoAConquista/1.0 (game genre lookup)",
         },
-        signal: AbortSignal.timeout(4500),
+        signal: AbortSignal.timeout(3500),
       });
       if (!labelsResponse.ok) continue;
 
-      const labelsPayload = (await labelsResponse.json()) as {
+      const labelsPayload = await labelsResponse.json() as {
         entities?: Record<string, { labels?: Record<string, { value?: string }> }>;
       };
       const genres = cleanGenres(
@@ -439,9 +527,9 @@ async function detectWithWikidata(title: string): Promise<string[] | null> {
           ""
         )
       );
-      if (genres.length > 0) return genres;
+      if (genres.length) return genres;
     } catch (error) {
-      console.warn("[Genres] Não foi possível ler gêneros do Wikidata:", error);
+      console.warn("[Genres] Consulta de gêneros do Wikidata falhou:", error);
     }
   }
 

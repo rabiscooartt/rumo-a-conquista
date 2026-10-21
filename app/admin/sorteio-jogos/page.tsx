@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
-type CandidateCategory = "Na fila" | "Rejogar";
+type CandidateCategory = "Em breve";
 type Candidate = { name: string; category: CandidateCategory; genre?: string; genreChecked?: boolean; genreSource?: string };
 type GenreLookupResult = { title: string; genres: string[]; primaryGenre: string; source: string };
 type GamePickerState = {
@@ -124,8 +124,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
     if (!name || /^https?:\/\//i.test(name)) continue;
     let category: CandidateCategory;
-    if (status.includes("rejogar")) category = "Rejogar";
-    else if (status.includes("na fila")) category = "Na fila";
+    if (status.includes("rejogar") || status.includes("na fila") || status.includes("em breve")) category = "Em breve";
     else continue;
 
     const key = baseEditionKey(name);
@@ -138,7 +137,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
     }
 
     const chosenName = isDeluxe(name) && !isDeluxe(previous.name) ? name : previous.name;
-    const chosenCategory = previous.category === "Rejogar" || category === "Rejogar" ? "Rejogar" : "Na fila";
+    const chosenCategory: CandidateCategory = "Em breve";
     const chosenGenre = previous.genre || genre;
     const chosenGenreChecked = previous.genreChecked === true || genreChecked;
     const chosenGenreSource = previous.genreSource || genreSource;
@@ -202,18 +201,15 @@ function SectionTitle({ eyebrow, title, detail }: { eyebrow: string; title: stri
 export default function GamePickerAdminPage() {
   const [state, setState] = useState<GamePickerState>(EMPTY_STATE);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<"Todos" | CandidateCategory>("Todos");
-  const [genreFilter, setGenreFilter] = useState("Todos");
+    const [genreFilter, setGenreFilter] = useState("Todos");
   const [isClassifying, setIsClassifying] = useState(false);
   const [genreProgress, setGenreProgress] = useState({ done: 0, total: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [message, setMessage] = useState("");
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [newGameName, setNewGameName] = useState("");
-  const [newGameCategory, setNewGameCategory] = useState<CandidateCategory>("Na fila");
   const [editingGameName, setEditingGameName] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editCategory, setEditCategory] = useState<CandidateCategory>("Na fila");
 
   useEffect(() => {
     const stored = readSavedState();
@@ -242,18 +238,16 @@ export default function GamePickerAdminPage() {
     const term = normalize(search);
     return state.bank.filter((candidate) => {
       const matchesSearch = !term || normalize(candidate.name).includes(term);
-      const matchesCategory = categoryFilter === "Todos" || candidate.category === categoryFilter;
       const matchesGenre =
         genreFilter === "Todos" ||
         (genreFilter === GENRE_PENDING_FILTER && !candidate.genre && !candidate.genreChecked) ||
         (genreFilter === GENRE_UNKNOWN_FILTER && !candidate.genre && candidate.genreChecked) ||
         candidate.genre === genreFilter;
-      return matchesSearch && matchesCategory && matchesGenre;
+      return matchesSearch && matchesGenre;
     });
-  }, [state.bank, search, categoryFilter, genreFilter]);
+  }, [state.bank, search, genreFilter]);
 
-  const queueCount = state.bank.filter((candidate) => candidate.category === "Na fila").length;
-  const replayCount = state.bank.filter((candidate) => candidate.category === "Rejogar").length;
+  const emBreveCount = state.bank.length;
   const genrePendingCount = state.bank.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
   const genreUnknownCount = state.bank.filter((candidate) => !candidate.genre && candidate.genreChecked).length;
   const remainingCount = state.bank.length - state.manualNames.length;
@@ -325,10 +319,7 @@ export default function GamePickerAdminPage() {
 
     if (existing) {
       if (isDeluxe(name) && !isDeluxe(existing.name)) {
-        const category: CandidateCategory =
-          existing.category === "Rejogar" || newGameCategory === "Rejogar"
-            ? "Rejogar"
-            : "Na fila";
+        const category: CandidateCategory = "Em breve";
 
         setState((current) => ({
           ...current,
@@ -362,13 +353,13 @@ export default function GamePickerAdminPage() {
 
     setState((current) => ({
       ...current,
-      bank: [...current.bank, { name, category: newGameCategory }].sort(
+      bank: [...current.bank, { name, category: "Em breve" }].sort(
         (a, b) => a.name.localeCompare(b.name, "pt-BR")
       ),
     }));
     setNewGameName("");
     setMessage('"' + name + '" foi adicionado. Buscando o gênero predominante...');
-    lookupGenreForAddedGame(name, '"' + name + '" foi adicionado ao banco como "' + newGameCategory + '".');
+    lookupGenreForAddedGame(name, '"' + name + '" foi adicionado à categoria Em breve.');
   }
 
   async function classifyPendingGenres(includeUnknown = false) {
@@ -425,7 +416,6 @@ export default function GamePickerAdminPage() {
   function beginEdit(candidate: Candidate) {
     setEditingGameName(candidate.name);
     setEditTitle(candidate.name);
-    setEditCategory(candidate.category);
     setMessage("");
   }
 
@@ -468,7 +458,7 @@ export default function GamePickerAdminPage() {
           : {
               ...candidate,
               name,
-              category: editCategory,
+              category: "Em breve",
               ...(titleChanged
                 ? { genre: "", genreChecked: false, genreSource: "" }
                 : {}),
@@ -611,7 +601,7 @@ export default function GamePickerAdminPage() {
             </div>
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Banco de Jogos <span className="text-red-500">&</span> Roleta</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50 sm:text-base">
-              Escolha 5 jogos para o próximo lote e deixe a roleta sortear outros 5, sem repetir nenhum título.
+              Guarde jogos que você tem vontade de experimentar em breve. Escolha 5 e deixe a roleta sortear outros 5, sem repetir títulos.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -659,7 +649,7 @@ export default function GamePickerAdminPage() {
                 <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-400">Cadastro manual</p>
                 <h2 className="mt-1 text-lg font-black text-white">Adicionar jogo ao banco</h2>
                 <p className="mt-1 text-sm leading-6 text-white/45">
-                  O jogo será salvo neste navegador e poderá participar dos próximos sorteios, sem alterar a fila oficial de Maestrias.
+                  O jogo será salvo na categoria Em breve e poderá participar dos próximos sorteios, sem alterar a fila oficial de Maestrias.
                 </p>
               </div>
               <span className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-white/45">
@@ -668,7 +658,7 @@ export default function GamePickerAdminPage() {
             </div>
 
             <form
-              className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_210px_auto]"
+              className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
               onSubmit={(event) => {
                 event.preventDefault();
                 addGame();
@@ -683,15 +673,6 @@ export default function GamePickerAdminPage() {
                 className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-red-500/50"
                 required
               />
-              <select
-                aria-label="Categoria do jogo"
-                value={newGameCategory}
-                onChange={(event) => setNewGameCategory(event.target.value as CandidateCategory)}
-                className="rounded-xl border border-white/10 bg-[#101319] px-3 py-3 text-sm text-white/85 outline-none focus:border-red-500/50"
-              >
-                <option value="Na fila">🎮 Na fila</option>
-                <option value="Rejogar">🔄 Rejogar</option>
-              </select>
               <button
                 type="submit"
                 disabled={!newGameName.trim() || isDrawing}
@@ -706,12 +687,11 @@ export default function GamePickerAdminPage() {
           </section>
         )}
 
-        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
-            { label: "Banco total", value: state.bank.length, tone: "text-white" },
-            { label: "Na fila", value: queueCount, tone: "text-red-300" },
-            { label: "Rejogar", value: replayCount, tone: "text-amber-200" },
+            { label: "Em breve", value: emBreveCount, tone: "text-red-300" },
             { label: "Gêneros pendentes", value: genrePendingCount, tone: "text-cyan-200" },
+            { label: "Sem gênero identificado", value: genreUnknownCount, tone: "text-amber-200" },
             { label: "Jogos livres p/ sorteio", value: remainingCount, tone: "text-emerald-300" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4">
@@ -732,7 +712,7 @@ export default function GamePickerAdminPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-3xl">🎲</div>
             <h2 className="mt-5 text-xl font-black">Vamos carregar seu banco de jogos</h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-white/50">
-              Importe o arquivo <strong className="text-white/80">jogos_fila_rejogar_limpos.csv</strong> que preparamos. O banco ficará salvo neste navegador e não altera a fila oficial de Próximas Maestrias.
+              Importe o arquivo <strong className="text-white/80">jogos_fila_rejogar_limpos.csv</strong>. Os antigos status “Na fila” e “Rejogar” serão convertidos para “Em breve” neste banco de candidatos; a fila oficial de Próximas Maestrias não será alterada.
             </p>
             <label className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-black text-white transition hover:bg-red-500">
               Importar lista limpa
@@ -751,11 +731,6 @@ export default function GamePickerAdminPage() {
 
               <div className="mb-4 flex flex-col gap-3 sm:flex-row">
                 <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar jogo pelo nome..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-red-500/50" />
-                <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as "Todos" | CandidateCategory)} className="rounded-xl border border-white/10 bg-[#101319] px-3 py-3 text-sm text-white/80 outline-none focus:border-red-500/50">
-                  <option value="Todos">Todas as categorias</option>
-                  <option value="Na fila">Na fila</option>
-                  <option value="Rejogar">Rejogar</option>
-                </select>
                 <select value={genreFilter} onChange={(event) => setGenreFilter(event.target.value)} className="rounded-xl border border-white/10 bg-[#101319] px-3 py-3 text-sm text-white/80 outline-none focus:border-cyan-400/50">
                   <option value="Todos">Todos os gêneros</option>
                   {genrePendingCount > 0 && <option value={GENRE_PENDING_FILTER}>Gênero pendente ({genrePendingCount})</option>}
@@ -790,7 +765,7 @@ export default function GamePickerAdminPage() {
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-bold text-white/90">{candidate.name}</span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <span className={"rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] " + (candidate.category === "Rejogar" ? "bg-amber-200/[0.08] text-amber-200/75" : "bg-white/[0.04] text-white/45")}>{candidate.category}</span>
+                            <span className="rounded-md bg-red-400/[0.08] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-red-200/80">Em breve</span>
                             <span className="rounded-md border border-cyan-400/15 bg-cyan-400/[0.04] px-1.5 py-0.5 text-[10px] font-semibold text-cyan-100/70">
                               {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
                             </span>
@@ -826,7 +801,7 @@ export default function GamePickerAdminPage() {
                     </div>
                     {isEditing && (
                       <form
-                        className="grid gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.035] p-3 sm:grid-cols-[minmax(0,1fr)_180px_auto_auto]"
+                        className="grid gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.035] p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
                         onSubmit={(event) => {
                           event.preventDefault();
                           saveGameEdit(candidate.name);
@@ -840,15 +815,6 @@ export default function GamePickerAdminPage() {
                           required
                           className="min-w-0 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50"
                         />
-                        <select
-                          aria-label={"Editar categoria de " + candidate.name}
-                          value={editCategory}
-                          onChange={(event) => setEditCategory(event.target.value as CandidateCategory)}
-                          className="rounded-lg border border-white/10 bg-[#101319] px-3 py-2.5 text-sm text-white/85 outline-none focus:border-cyan-400/50"
-                        >
-                          <option value="Na fila">Na fila</option>
-                          <option value="Rejogar">Rejogar</option>
-                        </select>
                         <button
                           type="submit"
                           disabled={!editTitle.trim() || isDrawing}
