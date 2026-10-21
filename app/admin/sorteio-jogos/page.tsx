@@ -5,8 +5,8 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
 type CandidateCategory = "Em breve";
-type Candidate = { name: string; category: CandidateCategory; genre?: string; genreChecked?: boolean; genreSource?: string };
-type GenreLookupResult = { title: string; genres: string[]; primaryGenre: string; source: string };
+type Candidate = { name: string; category: CandidateCategory; genre?: string; genreChecked?: boolean; genreSource?: string; genreSourceUrl?: string };
+type GenreLookupResult = { title: string; genres: string[]; primaryGenre: string; source: string; sourceUrl?: string };
 type GamePickerState = {
   bank: Candidate[];
   manualNames: string[];
@@ -15,11 +15,11 @@ type GamePickerState = {
 };
 
 const STORAGE_KEY = "rumo-a-conquista-game-picker-v1";
-async function requestGameGenres(titles: string[]): Promise<GenreLookupResult[]> {
+async function requestGameGenres(titles: string[], mode: "sources" | "web" = "sources"): Promise<GenreLookupResult[]> {
   const response = await fetch("/api/admin/games/genres", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ titles }),
+    body: JSON.stringify({ titles, mode }),
     cache: "no-store",
   });
   const payload = (await response.json()) as {
@@ -108,6 +108,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
   const genreColumn = headers.findIndex((header) => header === "genero" || header === "genero predominante");
   const checkedColumn = headers.findIndex((header) => header === "genero verificado" || header === "genero conferido");
   const sourceColumn = headers.findIndex((header) => header === "fonte do genero");
+  const sourceUrlColumn = headers.findIndex((header) => header === "url da fonte do genero");
   const hasHeader = nameColumn >= 0 && categoryColumn >= 0;
   const gameColumn = hasHeader ? nameColumn : 0;
   const statusColumn = hasHeader ? categoryColumn : 1;
@@ -120,6 +121,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
     const genre = genreColumn >= 0 ? (row[genreColumn] || "").trim() : "";
     const checkedValue = checkedColumn >= 0 ? normalize(row[checkedColumn] || "") : "";
     const genreSource = sourceColumn >= 0 ? (row[sourceColumn] || "").trim().toLowerCase() : "";
+    const genreSourceUrl = sourceUrlColumn >= 0 ? (row[sourceUrlColumn] || "").trim() : "";
     const genreChecked = Boolean(genre) || ["true", "sim", "yes", "1"].includes(checkedValue);
 
     if (!name || /^https?:\/\//i.test(name)) continue;
@@ -132,7 +134,7 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
     const previous = editionMap.get(key);
     if (!previous) {
-      editionMap.set(key, { name, category, genre, genreChecked });
+      editionMap.set(key, { name, category, genre, genreChecked, genreSource, genreSourceUrl });
       continue;
     }
 
@@ -141,7 +143,8 @@ function cleanCandidates(rows: string[][]): Candidate[] {
     const chosenGenre = previous.genre || genre;
     const chosenGenreChecked = previous.genreChecked === true || genreChecked;
     const chosenGenreSource = previous.genreSource || genreSource;
-    editionMap.set(key, { name: chosenName, category: chosenCategory, genre: chosenGenre, genreChecked: chosenGenreChecked, genreSource: chosenGenreSource });
+    const chosenGenreSourceUrl = previous.genreSourceUrl || genreSourceUrl;
+    editionMap.set(key, { name: chosenName, category: chosenCategory, genre: chosenGenre, genreChecked: chosenGenreChecked, genreSource: chosenGenreSource, genreSourceUrl: chosenGenreSourceUrl });
   }
 
   return [...editionMap.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
@@ -163,13 +166,14 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
     };
     const bank = Array.isArray(parsed.bank)
       ? cleanCandidates([
-          ["Jogo", "Categoria", "Gênero", "Gênero verificado", "Fonte do gênero"],
+          ["Jogo", "Categoria", "Gênero", "Gênero verificado", "Fonte do gênero", "URL da fonte do gênero"],
           ...parsed.bank.map((candidate) => [
             String(candidate?.name || ""),
             String(candidate?.category || ""),
             String(candidate?.genre || ""),
             candidate?.genreChecked ? "true" : "false",
             String(candidate?.genreSource || ""),
+            String(candidate?.genreSourceUrl || ""),
           ]),
         ])
       : [];
@@ -203,6 +207,7 @@ export default function GamePickerAdminPage() {
   const [search, setSearch] = useState("");
     const [genreFilter, setGenreFilter] = useState("Todos");
   const [isClassifying, setIsClassifying] = useState(false);
+  const [isWebResearching, setIsWebResearching] = useState(false);
   const [genreProgress, setGenreProgress] = useState({ done: 0, total: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
   const [message, setMessage] = useState("");
@@ -289,7 +294,7 @@ export default function GamePickerAdminPage() {
           ...current,
           bank: current.bank.map((candidate) =>
             candidate.name === name
-              ? { ...candidate, genre, genreChecked: true, genreSource: result?.source || "none" }
+              ? { ...candidate, genre, genreChecked: true, genreSource: result?.source || "none", genreSourceUrl: result?.sourceUrl || "" }
               : candidate
           ),
         }));
@@ -393,7 +398,7 @@ export default function GamePickerAdminPage() {
           bank: current.bank.map((candidate) => {
             const result = resultsByTitle.get(normalize(candidate.name));
             if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
-            return { ...candidate, genre: result.primaryGenre || "", genreChecked: true, genreSource: result.source || "none" };
+            return { ...candidate, genre: result.primaryGenre || "", genreChecked: true, genreSource: result.source || "none", genreSourceUrl: result.sourceUrl || "" };
           }),
         }));
 
@@ -410,6 +415,72 @@ export default function GamePickerAdminPage() {
       );
     } finally {
       setIsClassifying(false);
+    }
+  }
+
+  async function researchUnknownGenresWithAI() {
+    if (isClassifying || isWebResearching) return;
+
+    const titles = state.bank
+      .filter((candidate) => !candidate.genre && candidate.genreChecked)
+      .map((candidate) => candidate.name);
+
+    if (titles.length === 0) {
+      setMessage("Não há jogos sem gênero identificado para pesquisar com IA/web.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Pesquisar " + titles.length + " jogos usando a API OpenAI e pesquisa na web? " +
+      "Essa ação pode gerar cobrança de uso da API. Só os gêneros apoiados por uma fonte encontrada serão salvos."
+    );
+    if (!confirmed) return;
+
+    setIsWebResearching(true);
+    setGenreProgress({ done: 0, total: titles.length });
+    setMessage("Iniciando pesquisa com IA + web para " + titles.length + " jogos...");
+
+    let processed = 0;
+    let found = 0;
+    try {
+      for (let index = 0; index < titles.length; index += 3) {
+        const batch = titles.slice(index, index + 3);
+        const results = await requestGameGenres(batch, "web");
+        const resultsByTitle = new Map(results.map((result) => [normalize(result.title), result]));
+        found += results.filter((result) => Boolean(result.primaryGenre) && result.source === "openai_web" && Boolean(result.sourceUrl)).length;
+
+        setState((current) => ({
+          ...current,
+          bank: current.bank.map((candidate) => {
+            const result = resultsByTitle.get(normalize(candidate.name));
+            if (!result || !batch.some((title) => normalize(title) === normalize(candidate.name))) return candidate;
+            if (!result.primaryGenre || result.source !== "openai_web" || !result.sourceUrl) return candidate;
+            return {
+              ...candidate,
+              genre: result.primaryGenre,
+              genreChecked: true,
+              genreSource: result.source,
+              genreSourceUrl: result.sourceUrl,
+            };
+          }),
+        }));
+
+        processed += batch.length;
+        setGenreProgress({ done: processed, total: titles.length });
+        setMessage("Pesquisa IA + web: " + processed + "/" + titles.length + " verificados · " + found + " gêneros confirmados com fonte.");
+      }
+
+      setMessage(
+        "Pesquisa IA + web concluída: " + found + " gêneros confirmados de " + titles.length +
+        " jogos. Ainda sem fonte confiável: " + (titles.length - found) + "."
+      );
+    } catch (error) {
+      setMessage(
+        "A pesquisa IA + web foi interrompida em " + processed + "/" + titles.length + " jogos. " +
+        (error instanceof Error ? error.message : "Tente novamente para continuar.")
+      );
+    } finally {
+      setIsWebResearching(false);
     }
   }
 
@@ -569,13 +640,14 @@ export default function GamePickerAdminPage() {
     if (state.bank.length === 0) return;
     const escapeCsv = (value: string) => '"' + value.replace(/"/g, '""') + '"';
     const csv = [
-      ["Jogo", "Categoria", "Gênero", "Gênero verificado", "Fonte do gênero"].map(escapeCsv).join(","),
+      ["Jogo", "Categoria", "Gênero", "Gênero verificado", "Fonte do gênero", "URL da fonte do gênero"].map(escapeCsv).join(","),
       ...state.bank.map((candidate) => [
         candidate.name,
         candidate.category,
         candidate.genre || "",
         candidate.genreChecked ? "true" : "false",
         candidate.genreSource || "",
+        candidate.genreSourceUrl || "",
       ].map(escapeCsv).join(",")),
     ].join("\r\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -608,7 +680,7 @@ export default function GamePickerAdminPage() {
             <button
               type="button"
               onClick={() => void classifyPendingGenres(genrePendingCount === 0 && genreUnknownCount > 0)}
-              disabled={isClassifying || (genrePendingCount === 0 && genreUnknownCount === 0) || state.bank.length === 0}
+              disabled={isClassifying || isWebResearching || (genrePendingCount === 0 && genreUnknownCount === 0) || state.bank.length === 0}
               className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/[0.07] px-4 py-3 text-sm font-black text-cyan-100 transition hover:bg-cyan-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span>{isClassifying ? "↻" : "◎"}</span>
@@ -619,6 +691,18 @@ export default function GamePickerAdminPage() {
                   : genreUnknownCount > 0
                     ? "Tentar novamente (" + genreUnknownCount + ")"
                     : "Gêneros verificados"}
+            </button>
+            <button
+              type="button"
+              title="Usa a API OpenAI e pesquisa na web; pode gerar cobrança de API. Só executa após confirmação."
+              onClick={() => void researchUnknownGenresWithAI()}
+              disabled={isClassifying || isWebResearching || genreUnknownCount === 0 || state.bank.length === 0}
+              className="inline-flex items-center gap-2 rounded-xl border border-violet-400/25 bg-violet-400/[0.07] px-4 py-3 text-sm font-black text-violet-100 transition hover:bg-violet-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <span>{isWebResearching ? "↻" : "✦"}</span>
+              {isWebResearching
+                ? "IA + Web " + genreProgress.done + "/" + genreProgress.total
+                : "Pesquisa IA + Web (" + genreUnknownCount + ")"}
             </button>
             <button
               type="button"
@@ -770,9 +854,21 @@ export default function GamePickerAdminPage() {
                               {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
                             </span>
                             {candidate.genre && candidate.genreSource && candidate.genreSource !== "none" && (
-                              <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
-                                {candidate.genreSource}
-                              </span>
+                              candidate.genreSource === "openai_web" && candidate.genreSourceUrl ? (
+                                <a
+                                  href={candidate.genreSourceUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  title="Abrir a fonte consultada para este gênero"
+                                  className="text-[9px] font-bold uppercase tracking-wider text-violet-200/70 underline decoration-violet-200/25 underline-offset-2 hover:text-violet-100"
+                                >
+                                  IA + Web ↗
+                                </a>
+                              ) : (
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
+                                  {candidate.genreSource}
+                                </span>
+                              )
                             )}
                           </span>
                         </span>
