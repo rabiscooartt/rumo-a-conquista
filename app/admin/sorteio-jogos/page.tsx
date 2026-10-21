@@ -11,6 +11,7 @@ type GamePickerState = {
   bank: Candidate[];
   manualNames: string[];
   randomNames: string[];
+  drawnName: string | null;
   initialized: boolean;
 };
 
@@ -39,6 +40,7 @@ const EMPTY_STATE: GamePickerState = {
   bank: [],
   manualNames: [],
   randomNames: [],
+  drawnName: null,
   initialized: false,
 };
 
@@ -152,17 +154,18 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
 function readSavedState(): Omit<GamePickerState, "initialized"> {
   if (typeof window === "undefined") {
-    return { bank: [], manualNames: [], randomNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null };
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return { bank: [], manualNames: [], randomNames: [] };
+    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null };
 
     const parsed = JSON.parse(saved) as {
       bank?: Candidate[];
       manualNames?: string[];
       randomNames?: string[];
+      drawnName?: string | null;
     };
     const bank = Array.isArray(parsed.bank)
       ? cleanCandidates([
@@ -186,9 +189,13 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
       ? [...new Set(parsed.randomNames.filter((name) => validNames.has(name) && !manualSet.has(name)))].slice(0, 5)
       : [];
 
-    return { bank, manualNames, randomNames };
+    const drawnName = typeof parsed.drawnName === "string" && validNames.has(parsed.drawnName)
+      ? parsed.drawnName
+      : null;
+
+    return { bank, manualNames, randomNames, drawnName };
   } catch {
-    return { bank: [], manualNames: [], randomNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null };
   }
 }
 
@@ -229,11 +236,11 @@ export default function GamePickerAdminPage() {
         bank: state.bank,
         manualNames: state.manualNames,
         randomNames: state.randomNames,
+        drawnName: state.drawnName,
       })
     );
   }, [state]);
 
-  const selectedSet = useMemo(() => new Set(state.manualNames), [state.manualNames]);
   const availableGenres = useMemo(
     () => [...new Set(state.bank.map((candidate) => candidate.genre).filter((genre): genre is string => Boolean(genre)))].sort((a, b) => a.localeCompare(b, "pt-BR")),
     [state.bank]
@@ -251,10 +258,10 @@ export default function GamePickerAdminPage() {
     });
   }, [state.bank, search, genreFilter]);
 
-  const emBreveCount = state.bank.length;
+  const emBreveCount = state.bank.filter((candidate) => candidate.category === "Em breve").length;
   const genrePendingCount = state.bank.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
   const genreUnknownCount = state.bank.filter((candidate) => !candidate.genre && candidate.genreChecked).length;
-  const remainingCount = state.bank.length - state.manualNames.length;
+  const remainingCount = state.bank.filter((candidate) => candidate.category === "Em breve").length;
 
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
     const input = event.currentTarget;
@@ -274,6 +281,7 @@ export default function GamePickerAdminPage() {
         bank: imported,
         manualNames: [],
         randomNames: [],
+        drawnName: null,
       }));
       const pendingGenres = imported.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
       setMessage("Banco importado: " + imported.length + " jogos prontos. " + pendingGenres + " precisam de busca de gênero; clique em Identificar gêneros para classificar o banco.");
@@ -340,6 +348,7 @@ export default function GamePickerAdminPage() {
           randomNames: current.randomNames.map((item) =>
             item === existing.name ? name : item
           ),
+          drawnName: current.drawnName === existing.name ? name : current.drawnName,
         }));
         setNewGameName("");
         setMessage("A versão normal foi substituída pela Deluxe. Buscando o gênero da edição mantida...");
@@ -472,6 +481,7 @@ export default function GamePickerAdminPage() {
       ).sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
       manualNames: current.manualNames.map((item) => item === originalName ? name : item),
       randomNames: current.randomNames.map((item) => item === originalName ? name : item),
+      drawnName: current.drawnName === originalName ? name : current.drawnName,
     }));
 
     setEditingGameName(null);
@@ -498,8 +508,9 @@ export default function GamePickerAdminPage() {
       ...current,
       bank: current.bank.filter((candidate) => candidate.name !== name),
       manualNames: current.manualNames.filter((item) => item !== name),
-      // Qualquer alteração no banco invalida o resultado da roleta atual.
-      randomNames: [],
+      // Limpa o resultado apenas se o jogo sorteado for removido.
+      randomNames: current.randomNames.filter((item) => item !== name),
+      drawnName: current.drawnName === name ? null : current.drawnName,
     }));
     setMessage(
       '"' +
@@ -508,66 +519,46 @@ export default function GamePickerAdminPage() {
     );
   }
 
-  function toggleManual(name: string) {
-    setState((current) => {
-      const exists = current.manualNames.includes(name);
-      if (exists) {
-        return {
-          ...current,
-          manualNames: current.manualNames.filter((item) => item !== name),
-          randomNames: [],
-        };
-      }
-      if (current.manualNames.length >= 5) return current;
-      return { ...current, manualNames: [...current.manualNames, name], randomNames: [] };
-    });
-  }
+  function drawRandomGame() {
+    if (isDrawing) return;
 
-  function drawRandomGames() {
-    if (state.manualNames.length !== 5 || remainingCount < 5 || isDrawing) return;
-    setIsDrawing(true);
-    setMessage("A roleta está escolhendo os outros 5 jogos…");
-
-    const manualSet = new Set(state.manualNames);
-    const pool = state.bank.filter((candidate) => !manualSet.has(candidate.name));
-    for (let index = pool.length - 1; index > 0; index -= 1) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+    const pool = state.bank.filter((candidate) => candidate.category === "Em breve");
+    if (pool.length === 0) {
+      setMessage("Não há jogos na categoria Em breve para sortear.");
+      return;
     }
-    const winners = pool.slice(0, 5).map((candidate) => candidate.name);
+
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+    setIsDrawing(true);
+    setMessage("A roleta está sorteando um jogo da categoria Em breve…");
 
     window.setTimeout(() => {
-      setState((current) => ({ ...current, randomNames: winners }));
+      setState((current) => ({
+        ...current,
+        drawnName: current.bank.some(
+          (candidate) => candidate.category === "Em breve" && candidate.name === winner.name
+        ) ? winner.name : null,
+      }));
       setIsDrawing(false);
-      setMessage("Sorteio concluído. Os 10 jogos estão separados e sem repetição.");
+      setMessage("Sorteio concluído. Jogo escolhido: " + winner.name + ".");
     }, 900);
   }
 
-  function resetSelection() {
-    setState((current) => ({ ...current, manualNames: [], randomNames: [] }));
-    setMessage("Seleção limpa. O banco de jogos foi preservado.");
+  function clearDrawnGame() {
+    setState((current) => ({ ...current, drawnName: null }));
+    setMessage("Resultado limpo. O banco de jogos foi preservado.");
   }
 
-  async function copyBatch() {
-    if (state.manualNames.length !== 5 || state.randomNames.length !== 5) return;
-
-    const manualLines = state.manualNames.map((name, index) => (index + 1) + ". " + name).join("\n");
-    const randomLines = state.randomNames.map((name, index) => (index + 6) + ". " + name).join("\n");
-    const text = [
-      "🎮 RUMO À CONQUISTA | ESCOLHENDO OS PRÓXIMOS 10 JOGOS 🎲",
-      "",
-      "ESCOLHIDOS MANUALMENTE",
-      manualLines,
-      "",
-      "SORTEADOS NA ROLETA",
-      randomLines,
-    ].join("\n");
+  async function copyDrawnGame() {
+    if (!state.drawnName) return;
 
     try {
-      await navigator.clipboard.writeText(text);
-      setMessage("Título e lista dos 10 jogos copiados para usar no roteiro ou no YouTube.");
+      await navigator.clipboard.writeText(
+        "🎮 RUMO À CONQUISTA | JOGO SORTEADO\n\n" + state.drawnName
+      );
+      setMessage("Jogo sorteado copiado para a área de transferência.");
     } catch {
-      setMessage("O navegador bloqueou a cópia automática. Selecione os jogos abaixo e copie manualmente.");
+      setMessage("O navegador bloqueou a cópia automática. O nome sorteado continua visível para copiar manualmente.");
     }
   }
 
@@ -638,7 +629,7 @@ export default function GamePickerAdminPage() {
             </button>
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-500/20">
               <span>＋</span> Importar CSV
-              <input type="file" accept=".csv,text/csv" onChange={(event) => void handleImport(event)} className="hidden" />
+              <input type="file" accept=".csv,text/csv" onChange={(event) => void handleImport(event)} className="hidden" disabled={isDrawing} />
             </label>
             <button type="button" onClick={downloadBackup} disabled={state.bank.length === 0} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white/75 transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-40">
               Exportar banco
@@ -699,7 +690,7 @@ export default function GamePickerAdminPage() {
             { label: "Em breve", value: emBreveCount, tone: "text-red-300" },
             { label: "Gêneros pendentes", value: genrePendingCount, tone: "text-cyan-200" },
             { label: "Sem gênero identificado", value: genreUnknownCount, tone: "text-amber-200" },
-            { label: "Jogos livres p/ sorteio", value: remainingCount, tone: "text-emerald-300" },
+            { label: "Disponíveis na roleta", value: remainingCount, tone: "text-emerald-300" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">{stat.label}</p>
@@ -730,10 +721,7 @@ export default function GamePickerAdminPage() {
           <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
             <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-4 sm:p-6">
               <div className="mb-5 flex items-start justify-between gap-4">
-                <SectionTitle eyebrow="Etapa 01" title="Escolha 5 jogos" detail="Marque seus favoritos. Eles ficam protegidos contra o sorteio aleatório." />
-                <span className={"shrink-0 rounded-xl border px-3 py-2 text-sm font-black " + (state.manualNames.length === 5 ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200" : "border-white/10 bg-white/[0.04] text-white/70")}>
-                  {state.manualNames.length}/5
-                </span>
+                <SectionTitle eyebrow="Banco Em breve" title="Jogos candidatos" detail="Todos os títulos desta lista participam da roleta. O sorteio escolhe um jogo por vez." />
               </div>
 
               <div className="mb-4 flex flex-col gap-3 sm:flex-row">
@@ -748,108 +736,50 @@ export default function GamePickerAdminPage() {
 
               <div className="mb-3 flex items-center justify-between text-xs text-white/40">
                 <span>{filteredBank.length} jogos encontrados</span>
-                <span>Selecione até 5</span>
+                <span>Todos podem ser sorteados</span>
               </div>
 
               <div className="max-h-[500px] space-y-2 overflow-y-auto pr-1">
                 {filteredBank.map((candidate) => {
-                  const checked = selectedSet.has(candidate.name);
-                  const locked = !checked && state.manualNames.length >= 5;
                   const isEditing = editingGameName === candidate.name;
                   return (
                     <div key={candidate.name} className="space-y-2">
-                    <div
-                      className={"flex w-full items-center gap-2 rounded-xl border px-2 py-2 transition " + (checked ? "border-red-500/40 bg-red-500/10" : "border-white/[0.07] bg-black/20 hover:border-white/20 hover:bg-white/[0.04]")}
-                    >
-                      <button
-                        type="button"
-                        disabled={locked || isDrawing}
-                        aria-pressed={checked}
-                        onClick={() => toggleManual(candidate.name)}
-                        className={"flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1.5 text-left transition " + ((locked || isDrawing) ? "cursor-not-allowed opacity-45" : "")}
-                      >
-                        <span className={"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-black " + (checked ? "border-red-400 bg-red-500 text-white" : "border-white/20 text-transparent")}>✓</span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-bold text-white/90">{candidate.name}</span>
-                          <span className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <span className="rounded-md bg-red-400/[0.08] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-red-200/80">Em breve</span>
-                            <span className="rounded-md border border-cyan-400/15 bg-cyan-400/[0.04] px-1.5 py-0.5 text-[10px] font-semibold text-cyan-100/70">
-                              {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
+                      <div className="flex w-full items-center gap-2 rounded-xl border border-white/[0.07] bg-black/20 px-2 py-2 transition hover:border-white/20 hover:bg-white/[0.04]">
+                        <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1.5 text-left">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-400/20 bg-red-500/[0.08] text-base">🎮</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-bold text-white/90">{candidate.name}</span>
+                            <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                              <span className="rounded-md bg-red-400/[0.08] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-red-200/80">Em breve</span>
+                              <span className="rounded-md border border-cyan-400/15 bg-cyan-400/[0.04] px-1.5 py-0.5 text-[10px] font-semibold text-cyan-100/70">
+                                {candidate.genre || (candidate.genreChecked ? "Sem gênero identificado" : "Gênero pendente")}
+                              </span>
+                              {candidate.genre && candidate.genreSource && candidate.genreSource !== "none" && (
+                                candidate.genreSourceUrl ? (
+                                  <a href={candidate.genreSourceUrl} target="_blank" rel="noreferrer" title="Abrir a fonte consultada para este gênero" className="text-[9px] font-bold uppercase tracking-wider text-white/50 underline decoration-white/20 underline-offset-2 hover:text-white/80">
+                                    Fonte ↗
+                                  </a>
+                                ) : (
+                                  <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">{candidate.genreSource}</span>
+                                )
+                              )}
                             </span>
-                            {candidate.genre && candidate.genreSource && candidate.genreSource !== "none" && (
-                              candidate.genreSourceUrl ? (
-                                <a
-                                  href={candidate.genreSourceUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  title="Abrir a fonte consultada para este gênero"
-                                  className="text-[9px] font-bold uppercase tracking-wider text-white/50 underline decoration-white/20 underline-offset-2 hover:text-white/80"
-                                >
-                                  Fonte ↗
-                                </a>
-                              ) : (
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-white/30">
-                                  {candidate.genreSource}
-                                </span>
-                              )
-                            )}
                           </span>
-                        </span>
-                        {checked && <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-red-300">Escolhido</span>}
-                      </button>
-                      <button
-                        type="button"
-                        title={"Editar " + candidate.name}
-                        aria-label={"Editar " + candidate.name}
-                        disabled={isDrawing || isClassifying}
-                        onClick={() => isEditing ? cancelEdit() : beginEdit(candidate)}
-                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/55 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.07] hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs"
-                      >
-                        {isEditing ? "Cancelar" : "Editar"}
-                      </button>
-                      <button
-                        type="button"
-                        title={"Remover " + candidate.name + " do banco"}
-                        aria-label={"Remover " + candidate.name + " do banco"}
-                        disabled={isDrawing}
-                        onClick={() => removeGame(candidate.name)}
-                        className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/45 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs"
-                      >
-                        Remover
-                      </button>
-                    </div>
-                    {isEditing && (
-                      <form
-                        className="grid gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.035] p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          saveGameEdit(candidate.name);
-                        }}
-                      >
-                        <input
-                          aria-label={"Editar nome de " + candidate.name}
-                          value={editTitle}
-                          onChange={(event) => setEditTitle(event.target.value)}
-                          maxLength={140}
-                          required
-                          className="min-w-0 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50"
-                        />
-                        <button
-                          type="submit"
-                          disabled={!editTitle.trim() || isDrawing}
-                          className="rounded-lg bg-cyan-500/90 px-3 py-2.5 text-xs font-black text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          Salvar
+                        </div>
+                        <button type="button" title={"Editar " + candidate.name} aria-label={"Editar " + candidate.name} disabled={isDrawing || isClassifying} onClick={() => isEditing ? cancelEdit() : beginEdit(candidate)} className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/55 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.07] hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs">
+                          {isEditing ? "Cancelar" : "Editar"}
                         </button>
-                        <button
-                          type="button"
-                          onClick={cancelEdit}
-                          className="rounded-lg border border-white/10 px-3 py-2.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.05]"
-                        >
-                          Cancelar
+                        <button type="button" title={"Remover " + candidate.name + " do banco"} aria-label={"Remover " + candidate.name + " do banco"} disabled={isDrawing} onClick={() => removeGame(candidate.name)} className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/45 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs">
+                          Remover
                         </button>
-                      </form>
-                    )}
+                      </div>
+                      {isEditing && (
+                        <form className="grid gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.035] p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]" onSubmit={(event) => { event.preventDefault(); saveGameEdit(candidate.name); }}>
+                          <input aria-label={"Editar nome de " + candidate.name} value={editTitle} onChange={(event) => setEditTitle(event.target.value)} maxLength={140} required className="min-w-0 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50" />
+                          <button type="submit" disabled={!editTitle.trim() || isDrawing} className="rounded-lg bg-cyan-500/90 px-3 py-2.5 text-xs font-black text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40">Salvar</button>
+                          <button type="button" onClick={cancelEdit} className="rounded-lg border border-white/10 px-3 py-2.5 text-xs font-bold text-white/60 transition hover:bg-white/[0.05]">Cancelar</button>
+                        </form>
+                      )}
                     </div>
                   );
                 })}
@@ -859,51 +789,39 @@ export default function GamePickerAdminPage() {
 
             <div className="space-y-5">
               <section className="rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.09] via-white/[0.025] to-transparent p-5 sm:p-6">
-                <SectionTitle eyebrow="Etapa 02" title="Gire a roleta" detail="Os outros 5 jogos serão escolhidos aleatoriamente, excluindo os cinco que você marcou." />
+                <SectionTitle eyebrow="Roleta Em breve" title="Sortear o próximo jogo" detail="Um único título será escolhido aleatoriamente entre todos os jogos cadastrados como Em breve." />
                 <div className="mb-5 flex items-center gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
                   <div className={"flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-red-400/30 bg-red-500/10 text-3xl " + (isDrawing ? "animate-spin" : "")}>🎲</div>
                   <div>
-                    <p className="text-base font-black text-white">{isDrawing ? "Sorteando os jogos..." : state.randomNames.length === 5 ? "Sorteio concluído" : "Pronto para sortear"}</p>
-                    <p className="mt-1 text-sm text-white/45">{state.manualNames.length}/5 escolhidos manualmente · {remainingCount} disponíveis para a roleta</p>
+                    <p className="text-base font-black text-white">{isDrawing ? "Sorteando um jogo..." : state.drawnName ? "Jogo sorteado" : "Pronto para sortear"}</p>
+                    <p className="mt-1 text-sm text-white/45">{remainingCount} jogos disponíveis na categoria Em breve</p>
                   </div>
                 </div>
-                <button type="button" onClick={drawRandomGames} disabled={state.manualNames.length !== 5 || remainingCount < 5 || isDrawing} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
-                  {isDrawing ? "A roleta está girando..." : state.randomNames.length === 5 ? "Sortear novamente" : "Girar roleta e sortear 5"}
+                <button type="button" onClick={drawRandomGame} disabled={remainingCount === 0 || isDrawing} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
+                  {isDrawing ? "A roleta está girando..." : state.drawnName ? "Sortear outro jogo" : "Sortear um jogo"}
                 </button>
-                {state.manualNames.length !== 5 && <p className="mt-3 text-center text-xs text-white/40">Escolha exatamente 5 jogos para habilitar a roleta.</p>}
               </section>
 
               <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <SectionTitle eyebrow="Resultado" title="Seu lote de 10 jogos" detail="A lista fica guardada neste navegador enquanto você trabalha no lote." />
-                  <span className="rounded-lg border border-white/10 px-2 py-1 text-xs font-black text-white/55">{state.manualNames.length + state.randomNames.length}/10</span>
+                  <SectionTitle eyebrow="Resultado" title="Jogo sorteado" detail="O resultado fica salvo neste navegador até você sortear outro jogo ou limpar o resultado." />
+                  <span className="rounded-lg border border-white/10 px-2 py-1 text-xs font-black text-white/55">{state.drawnName ? "1/1" : "0/1"}</span>
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-red-300">Escolha manual · 5 jogos</p>
-                    {state.manualNames.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 px-3 py-4 text-sm text-white/30">Os jogos que você marcar aparecerão aqui.</p> : (
-                      <div className="space-y-2">
-                        {state.manualNames.map((name, index) => <div key={name} className="flex items-center gap-3 rounded-xl bg-red-500/[0.07] px-3 py-2.5"><span className="text-xs font-black text-red-300">{String(index + 1).padStart(2, "0")}</span><span className="text-sm font-semibold text-white/85">{name}</span></div>)}
-                      </div>
-                    )}
+                {state.drawnName ? (
+                  <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.07] px-4 py-5">
+                    <span className="text-2xl">🏆</span>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">Escolha da roleta</p>
+                      <p className="mt-1 break-words text-lg font-black text-white">{state.drawnName}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-200">Sorteio · 5 jogos</p>
-                    {state.randomNames.length === 0 ? <p className="rounded-xl border border-dashed border-white/10 px-3 py-4 text-sm text-white/30">Os sorteados aparecerão depois que a roleta girar.</p> : (
-                      <div className="space-y-2">
-                        {state.randomNames.map((name, index) => <div key={name} className="flex items-center gap-3 rounded-xl bg-amber-400/[0.06] px-3 py-2.5"><span className="text-xs font-black text-amber-200">{String(index + 6).padStart(2, "0")}</span><span className="text-sm font-semibold text-white/85">{name}</span></div>)}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                ) : (
+                  <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-white/30">O jogo sorteado aparecerá aqui.</p>
+                )}
 
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                  <button type="button" onClick={() => void copyBatch()} disabled={!hasCompleteBatch} className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30">
-                    Copiar lista + título
-                  </button>
-                  <button type="button" onClick={resetSelection} disabled={state.manualNames.length === 0 && state.randomNames.length === 0} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">
-                    Limpar seleção
-                  </button>
+                  <button type="button" onClick={() => void copyDrawnGame()} disabled={!state.drawnName} className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30">Copiar jogo sorteado</button>
+                  <button type="button" onClick={clearDrawnGame} disabled={!state.drawnName} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">Limpar resultado</button>
                 </div>
               </section>
             </div>
