@@ -312,12 +312,22 @@ function ReviewCard({ game }: { game: ReviewGame }) {
       ) : null}
       <div className="relative z-20 aspect-[3/4] w-full overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
         {image ? (
-          <img
-            src={image}
-            alt={`Capa de ${game.title}`}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
-          />
+          <>
+            <img
+              src={image}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-[5px]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#090b0f]/75 via-[#090b0f]/55 to-[#090b0f]/75" />
+            <img
+              src={image}
+              alt={`Capa de ${game.title}`}
+              loading="lazy"
+              className="relative z-10 h-full w-full object-contain p-1"
+            />
+          </>
         ) : (
           <div className="flex h-full items-center justify-center px-1 text-center text-[9px] font-black text-white/35">RC</div>
         )}
