@@ -201,32 +201,34 @@ export default function CompleteGameReviewPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent md:bg-gradient-to-r" />
                 </div>
 
-                <div className="p-6 sm:p-8">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-red-300">
-                      Review completa
-                    </span>
-                    {game.platform ? (
-                      <span className="rounded-full border border-white/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/45">
-                        {game.platform}
+                <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_180px] lg:items-center">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-red-300">
+                        Review completa
                       </span>
+                      {game.platform ? (
+                        <span className="rounded-full border border-white/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/45">
+                          {game.platform}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-red-400">
+                      {game.title}
+                    </p>
+                    <h1 className="mt-2 break-words text-3xl font-black leading-tight tracking-[-0.035em] sm:text-4xl">
+                      {reviewTitle}
+                    </h1>
+                    {reviewSummary && reviewSummary !== reviewText ? (
+                      <p className="mt-4 max-w-2xl line-clamp-3 break-words text-sm font-medium leading-relaxed text-white/60">
+                        {reviewSummary}
+                      </p>
                     ) : null}
                   </div>
 
-                  <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-red-400">
-                    {game.title}
-                  </p>
-                  <h1 className="mt-2 text-3xl font-black leading-tight tracking-[-0.035em] sm:text-4xl">
-                    {reviewTitle}
-                  </h1>
-                  {reviewSummary && reviewSummary !== reviewText ? (
-                    <p className="mt-4 max-w-2xl line-clamp-3 break-words text-sm font-medium leading-relaxed text-white/60">
-                      {reviewSummary}
-                    </p>
-                  ) : null}
-
-                  <div className="mt-6 flex flex-wrap items-end gap-x-5 gap-y-3 border-t border-white/[0.08] pt-5">
-                    {scoreValid ? (
+                  {scoreValid ? (
+                    <div className="flex items-center gap-4 border-t border-white/[0.08] pt-5 lg:flex-col lg:items-start lg:border-l lg:border-t-0 lg:pt-0 lg:pl-6">
                       <div>
                         <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/35">Nota final</p>
                         <div className="mt-1 flex items-baseline gap-1">
@@ -234,8 +236,6 @@ export default function CompleteGameReviewPage() {
                           <span className="text-sm font-black text-white/40">/10</span>
                         </div>
                       </div>
-                    ) : null}
-                    {scoreValid ? (
                       <div className="pb-0.5">
                         <div className="flex items-center gap-1" aria-label={`Nota ${scoreText} de 10`}>
                           {Array.from({ length: 5 }, (_, index) => {
@@ -260,8 +260,8 @@ export default function CompleteGameReviewPage() {
                           {scoreLabel(score)}
                         </p>
                       </div>
-                    ) : null}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </header>
