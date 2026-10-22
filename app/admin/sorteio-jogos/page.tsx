@@ -217,10 +217,10 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
         ? parsed.manualDrawnNames
         : [];
     const manualSelectedNames = [...new Set(rawManualSelectedNames.filter((name) => validNames.has(name)))].slice(0, 5);
-    const manualSet = new Set(manualSelectedNames);
+    const manualSelectedSet = new Set(manualSelectedNames);
     const drawnNames = (Array.isArray(parsed.manualSelectedNames)
       ? rawDrawnNames
-      : rawDrawnNames.filter((name) => !manualSet.has(name))).slice(0, 5);
+      : rawDrawnNames.filter((name) => !manualSelectedSet.has(name))).slice(0, 5);
     const drawnName = drawnNames[drawnNames.length - 1] || null;
     const skippedDrawNames = Array.isArray(parsed.skippedDrawNames)
       ? [...new Set(parsed.skippedDrawNames.filter((name) => validNames.has(name)))]
