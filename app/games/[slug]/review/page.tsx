@@ -188,15 +188,24 @@ export default function CompleteGameReviewPage() {
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
               <div className="grid gap-0 md:grid-cols-[230px_minmax(0,1fr)]">
-                <div className="flex min-h-[274px] items-center justify-center bg-[#070707] p-3 md:min-h-[294px] xl:min-h-[314px]">
+                <div className="flex items-center justify-center bg-[#070707] p-3">
                   {(game.cardImage || game.image) ? (
-                    <img
-                      src={game.cardImage || game.image}
-                      alt={`Capa de ${game.title || "jogo"}`}
-                      className="h-[250px] w-auto max-w-full object-contain md:h-[270px] xl:h-[290px]"
-                    />
+                    <div className="relative isolate aspect-[3/4] w-full max-w-[230px] overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
+                      <img
+                        src={game.cardImage || game.image}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-[5px]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#090b0f]/75 via-[#090b0f]/55 to-[#090b0f]/75" />
+                      <img
+                        src={game.cardImage || game.image}
+                        alt={`Capa de ${game.title || "jogo"}`}
+                        className="relative z-10 h-full w-full object-contain p-1"
+                      />
+                    </div>
                   ) : (
-                    <div className="flex h-[250px] w-full items-center justify-center bg-gradient-to-br from-red-950/40 to-black md:h-[270px] xl:h-[290px]" />
+                    <div className="flex aspect-[3/4] w-full max-w-[230px] items-center justify-center rounded-md border border-white/10 bg-gradient-to-br from-red-950/40 to-black" />
                   )}
                 </div>
 
