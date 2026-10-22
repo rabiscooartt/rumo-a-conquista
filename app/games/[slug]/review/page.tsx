@@ -157,7 +157,7 @@ export default function CompleteGameReviewPage() {
     <main className="min-h-screen bg-[#050505] text-white">
       <Navbar />
 
-      <div className="mx-auto w-full max-w-[1200px] px-5 py-7 sm:py-10 lg:px-10">
+      <div className="mx-auto w-full max-w-[1320px] px-5 py-7 sm:py-10 lg:px-10">
         <Link
           href={`/games/${slug}`}
           className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-red-400 transition hover:text-red-300"
@@ -274,7 +274,7 @@ export default function CompleteGameReviewPage() {
                     Atualizada em <time>{lastUpdatedLabel}</time>
                   </p>
                 </div>
-                <div className="mt-5 break-words whitespace-pre-line text-sm font-medium leading-8 text-white/75 sm:text-base">
+                <div className="mt-5 break-words whitespace-pre-line text-[15px] font-medium leading-[1.9] text-white/75 sm:text-[17px]">
                   {reviewText}
                 </div>
               </article>
