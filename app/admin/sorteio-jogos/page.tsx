@@ -13,6 +13,7 @@ type GamePickerState = {
   randomNames: string[];
   drawnName: string | null;
   drawnNames: string[];
+  manualDrawnNames: string[];
   skippedDrawNames: string[];
   initialized: boolean;
 };
@@ -48,6 +49,7 @@ const EMPTY_STATE: GamePickerState = {
   randomNames: [],
   drawnName: null,
   drawnNames: [],
+  manualDrawnNames: [],
   skippedDrawNames: [],
   initialized: false,
 };
@@ -162,12 +164,12 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
 function readSavedState(): Omit<GamePickerState, "initialized"> {
   if (typeof window === "undefined") {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], skippedDrawNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] };
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], skippedDrawNames: [] };
+    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] };
 
     const parsed = JSON.parse(saved) as {
       bank?: Candidate[];
@@ -175,6 +177,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
       randomNames?: string[];
       drawnName?: string | null;
       drawnNames?: string[];
+      manualDrawnNames?: string[];
       skippedDrawNames?: string[];
     };
     const bank = Array.isArray(parsed.bank)
@@ -208,13 +211,16 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
         ? [legacyDrawnName]
         : [];
     const drawnName = legacyDrawnName || drawnNames[drawnNames.length - 1] || null;
+    const manualDrawnNames = Array.isArray(parsed.manualDrawnNames)
+      ? [...new Set(parsed.manualDrawnNames.filter((name) => validNames.has(name) && drawnNames.includes(name)))]
+      : [];
     const skippedDrawNames = Array.isArray(parsed.skippedDrawNames)
       ? [...new Set(parsed.skippedDrawNames.filter((name) => validNames.has(name)))]
       : [];
 
-    return { bank, manualNames, randomNames, drawnName, drawnNames, skippedDrawNames };
+    return { bank, manualNames, randomNames, drawnName, drawnNames, manualDrawnNames, skippedDrawNames };
   } catch {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], skippedDrawNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] };
   }
 }
 
@@ -240,6 +246,7 @@ export default function GamePickerAdminPage() {
   const [isReelAnimating, setIsReelAnimating] = useState(false);
   const [showWinnerAlert, setShowWinnerAlert] = useState(false);
   const [activeWinnerName, setActiveWinnerName] = useState<string | null>(null);
+  const [activeWinnerIsManual, setActiveWinnerIsManual] = useState(false);
   const [currentDrawNumber, setCurrentDrawNumber] = useState(0);
   const drawStartTimer = useRef<number | null>(null);
   const drawFinishTimer = useRef<number | null>(null);
@@ -274,6 +281,7 @@ export default function GamePickerAdminPage() {
         randomNames: state.randomNames,
         drawnName: state.drawnName,
         drawnNames: state.drawnNames,
+        manualDrawnNames: state.manualDrawnNames,
         skippedDrawNames: state.skippedDrawNames,
       })
     );
@@ -321,6 +329,7 @@ export default function GamePickerAdminPage() {
         randomNames: [],
         drawnName: null,
         drawnNames: [],
+        manualDrawnNames: [],
         skippedDrawNames: [],
       }));
       const pendingGenres = imported.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
@@ -390,6 +399,7 @@ export default function GamePickerAdminPage() {
           ),
           drawnName: current.drawnName === existing.name ? name : current.drawnName,
           drawnNames: current.drawnNames.map((item) => item === existing.name ? name : item),
+          manualDrawnNames: current.manualDrawnNames.map((item) => item === existing.name ? name : item),
           skippedDrawNames: current.skippedDrawNames.map((item) => item === existing.name ? name : item),
         }));
         setNewGameName("");
@@ -525,6 +535,7 @@ export default function GamePickerAdminPage() {
       randomNames: current.randomNames.map((item) => item === originalName ? name : item),
       drawnName: current.drawnName === originalName ? name : current.drawnName,
       drawnNames: current.drawnNames.map((item) => item === originalName ? name : item),
+      manualDrawnNames: current.manualDrawnNames.map((item) => item === originalName ? name : item),
       skippedDrawNames: current.skippedDrawNames.map((item) => item === originalName ? name : item),
     }));
 
@@ -556,6 +567,7 @@ export default function GamePickerAdminPage() {
       randomNames: current.randomNames.filter((item) => item !== name),
       drawnName: current.drawnName === name ? null : current.drawnName,
       drawnNames: current.drawnNames.filter((item) => item !== name),
+      manualDrawnNames: current.manualDrawnNames.filter((item) => item !== name),
       skippedDrawNames: current.skippedDrawNames.filter((item) => item !== name),
     }));
     setMessage(
@@ -571,11 +583,12 @@ export default function GamePickerAdminPage() {
     setShowWinnerAlert(false);
     setWheelItems([]);
     setActiveWinnerName(null);
+    setActiveWinnerIsManual(false);
     setIsReelAnimating(false);
     setWheelPosition(-REEL_CARD_WIDTH / 2);
   }
 
-  function spinOneGame(winner: Candidate, pool: Candidate[], drawNumber: number) {
+  function spinOneGame(winner: Candidate, pool: Candidate[], drawNumber: number, manual = false) {
     const alternatives = pool.filter((candidate) => candidate.name !== winner.name);
     const strip: Candidate[] = Array.from({ length: REEL_WINNER_INDEX }, () => {
       const source = alternatives.length > 0 ? alternatives : pool;
@@ -585,6 +598,7 @@ export default function GamePickerAdminPage() {
 
     setCurrentDrawNumber(drawNumber);
     setActiveWinnerName(null);
+    setActiveWinnerIsManual(manual);
     setWheelItems(strip);
     setWheelPosition(-REEL_CARD_WIDTH / 2);
     setIsReelAnimating(false);
@@ -605,7 +619,10 @@ export default function GamePickerAdminPage() {
         ) && !current.drawnNames.includes(winner.name) && !current.skippedDrawNames.includes(winner.name);
         if (!stillEligible || current.drawnNames.length >= 5) return current;
         const drawnNames = [...current.drawnNames, winner.name];
-        return { ...current, drawnNames, drawnName: winner.name };
+        const manualDrawnNames = manual
+          ? [...current.manualDrawnNames.filter((name) => name !== winner.name), winner.name]
+          : current.manualDrawnNames.filter((name) => name !== winner.name);
+        return { ...current, drawnNames, drawnName: winner.name, manualDrawnNames };
       });
       setActiveWinnerName(winner.name);
       setIsDrawing(false);
@@ -618,6 +635,40 @@ export default function GamePickerAdminPage() {
         finishPresentation();
       }, 3800);
     }, REEL_DURATION_MS + 250);
+  }
+
+  function chooseCandidate(name: string) {
+    if (isDrawing || showWinnerAlert || isClassifying) return;
+    if (state.drawnNames.length >= 5) {
+      setMessage("Você já preencheu as cinco vagas. Retire um resultado para liberar espaço.");
+      return;
+    }
+
+    const candidate = state.bank.find((item) => item.name === name && item.category === "Em breve");
+    if (!candidate) {
+      setMessage("Esse jogo não está mais disponível na categoria Em breve.");
+      return;
+    }
+    if (state.drawnNames.includes(name)) {
+      setMessage('"' + name + '" já está nos resultados.');
+      return;
+    }
+    if (state.skippedDrawNames.includes(name)) {
+      setMessage('"' + name + '" foi retirado desta rodada. Limpe os resultados para escolher esse título novamente.');
+      return;
+    }
+
+    if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
+    if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
+    if (presentationCloseTimer.current !== null) window.clearTimeout(presentationCloseTimer.current);
+
+    const pool = state.bank.filter((item) =>
+      item.category === "Em breve" &&
+      !state.drawnNames.includes(item.name) &&
+      !state.skippedDrawNames.includes(item.name)
+    );
+    setMessage('Você escolheu "' + name + '". A roleta vai revelar sua escolha.');
+    spinOneGame(candidate, pool, state.drawnNames.length + 1, true);
   }
 
   function drawRandomGame() {
@@ -654,6 +705,7 @@ export default function GamePickerAdminPage() {
         ...current,
         drawnNames,
         drawnName: drawnNames[drawnNames.length - 1] || null,
+        manualDrawnNames: current.manualDrawnNames.filter((item) => item !== name),
         skippedDrawNames: current.skippedDrawNames.includes(name)
           ? current.skippedDrawNames
           : [...current.skippedDrawNames, name],
@@ -669,8 +721,9 @@ export default function GamePickerAdminPage() {
     setShowWinnerAlert(false);
     setWheelItems([]);
     setActiveWinnerName(null);
+    setActiveWinnerIsManual(false);
     setWheelPosition(-REEL_CARD_WIDTH / 2);
-    setState((current) => ({ ...current, drawnName: null, drawnNames: [], skippedDrawNames: [] }));
+    setState((current) => ({ ...current, drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] }));
     setMessage("Resultados limpos. O banco de jogos foi preservado; você pode iniciar uma nova rodada de até cinco sorteios.");
   }
 
@@ -724,7 +777,7 @@ export default function GamePickerAdminPage() {
             </div>
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Banco de Jogos <span className="text-red-500">&</span> Roleta</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50 sm:text-base">
-              Guarde os jogos que você quer experimentar. A roleta vai escolher um título aleatório e revelar o vencedor com uma animação.
+              Guarde os jogos que você quer experimentar. Clique em Escolher para definir seu próximo jogo ou use a roleta para sortear aleatoriamente.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -846,7 +899,7 @@ export default function GamePickerAdminPage() {
           <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
             <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-4 sm:p-6">
               <div className="mb-5 flex items-start justify-between gap-4">
-                <SectionTitle eyebrow="Banco Em breve" title="Jogos candidatos" detail="Todos os títulos desta lista participam da roleta. O sorteio escolhe um jogo por vez." />
+                <SectionTitle eyebrow="Banco Em breve" title="Jogos candidatos" detail="Clique em Escolher para selecionar um título específico e confirmar na roleta, ou sorteie aleatoriamente pelo painel ao lado." />
               </div>
 
               <div className="mb-4 flex flex-col gap-3 sm:flex-row">
@@ -867,6 +920,9 @@ export default function GamePickerAdminPage() {
               <div className="max-h-[500px] space-y-2 overflow-y-auto pr-1">
                 {filteredBank.map((candidate) => {
                   const isEditing = editingGameName === candidate.name;
+                  const isAlreadyDrawn = state.drawnNames.includes(candidate.name);
+                  const wasSkipped = state.skippedDrawNames.includes(candidate.name);
+                  const noResultsSpace = state.drawnNames.length >= 5;
                   return (
                     <div key={candidate.name} className="space-y-2">
                       <div className="flex w-full items-center gap-2 rounded-xl border border-white/[0.07] bg-black/20 px-2 py-2 transition hover:border-white/20 hover:bg-white/[0.04]">
@@ -891,6 +947,16 @@ export default function GamePickerAdminPage() {
                             </span>
                           </span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => chooseCandidate(candidate.name)}
+                          disabled={isDrawing || showWinnerAlert || isClassifying || isAlreadyDrawn || wasSkipped || noResultsSpace}
+                          title={isAlreadyDrawn ? "Esse jogo já está nos resultados" : wasSkipped ? "Esse jogo foi descartado nesta rodada" : noResultsSpace ? "Retire um resultado para liberar uma vaga" : "Escolher " + candidate.name}
+                          aria-label={"Escolher " + candidate.name}
+                          className={"shrink-0 rounded-lg border px-2.5 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs " + (isAlreadyDrawn ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200/70" : "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20") + " disabled:cursor-not-allowed disabled:opacity-40"}
+                        >
+                          {isAlreadyDrawn ? "Escolhido" : wasSkipped ? "Descartado" : noResultsSpace ? "Limite 5" : "Escolher"}
+                        </button>
                         <button type="button" title={"Editar " + candidate.name} aria-label={"Editar " + candidate.name} disabled={isDrawing || isClassifying} onClick={() => isEditing ? cancelEdit() : beginEdit(candidate)} className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/55 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.07] hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs">
                           {isEditing ? "Cancelar" : "Editar"}
                         </button>
@@ -975,7 +1041,7 @@ export default function GamePickerAdminPage() {
                       <div key={name} className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] px-3 py-3">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-red-400/25 bg-red-500/10 text-sm font-black text-red-200">{index + 1}</span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">Jogo sorteado {index + 1}</p>
+                          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">{state.manualDrawnNames.includes(name) ? "Escolha manual" : "Jogo sorteado " + (index + 1)}</p>
                           <p className="mt-1 break-words text-sm font-black text-white">{name}</p>
                         </div>
                         <span className="text-lg">🏆</span>
@@ -1058,7 +1124,7 @@ export default function GamePickerAdminPage() {
                   </>
                 ) : (
                   <>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">🎉 Jogo sorteado</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">🎉 {activeWinnerIsManual ? "Sua escolha" : "Jogo sorteado"}</p>
                     <p className="mt-2 break-words text-xl font-black text-white sm:text-2xl">{activeWinnerName}</p>
                     <p className="mt-1 text-xs text-white/40">Voltando ao painel automaticamente...</p>
                     <button type="button" onClick={finishPresentation} className="mt-4 rounded-xl bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/85">Voltar ao painel agora</button>
