@@ -187,25 +187,16 @@ export default function CompleteGameReviewPage() {
         ) : (
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
-              <div className="grid gap-0 md:grid-cols-[250px_minmax(0,1fr)]">
-                <div className="relative isolate overflow-hidden bg-black">
+              <div className="grid gap-0 md:grid-cols-[190px_minmax(0,1fr)]">
+                <div className="flex min-h-[250px] items-center justify-center bg-[#070707] p-3 md:min-h-[270px] xl:min-h-[280px]">
                   {(game.cardImage || game.image) ? (
-                    <>
-                      <img
-                        src={game.cardImage || game.image}
-                        alt=""
-                        aria-hidden="true"
-                        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-55 blur-xl"
-                      />
-                      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black/20 via-black/25 to-black/55" />
-                      <img
-                        src={game.cardImage || game.image}
-                        alt={`Capa de ${game.title || "jogo"}`}
-                        className="relative z-10 h-[250px] w-full object-contain px-2 py-2 md:h-[260px] xl:h-[270px]"
-                      />
-                    </>
+                    <img
+                      src={game.cardImage || game.image}
+                      alt={`Capa de ${game.title || "jogo"}`}
+                      className="h-[230px] w-auto max-w-full object-contain md:h-[250px] xl:h-[260px]"
+                    />
                   ) : (
-                    <div className="flex h-[250px] items-center justify-center bg-gradient-to-br from-red-950/40 to-black md:h-[260px] xl:h-[270px]" />
+                    <div className="flex h-[230px] w-full items-center justify-center bg-gradient-to-br from-red-950/40 to-black md:h-[250px] xl:h-[260px]" />
                   )}
                 </div>
 
