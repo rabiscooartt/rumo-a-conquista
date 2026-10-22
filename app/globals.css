@@ -292,6 +292,66 @@ aside.game-sidebar-text-contrast {
 }
 
 /* ============================= */
+/* PADRÃO GLOBAL DE LEGIBILIDADE E ÍCONES DAS SIDEBARS */
+/* ============================= */
+
+/*
+  Referência de cor fornecida para os ícones: #FB2C36.
+  O escopo é limitado a regiões semânticas aside; cards do conteúdo central
+  e a barra de navegação superior continuam com suas próprias cores.
+*/
+aside svg {
+  color: #fb2c36 !important;
+}
+
+aside svg [stroke="currentColor"] {
+  stroke: #fb2c36 !important;
+}
+
+aside svg [fill="currentColor"] {
+  fill: #fb2c36 !important;
+}
+
+/* Unifica tons vermelhos diferentes usados em ícones e pequenos acentos laterais. */
+aside :is(span, i, svg, [role="img"])[class*="text-red-"] {
+  color: #fb2c36 !important;
+}
+
+/* Textos secundários das laterais ficam mais claros sobre o BG, sem placas novas. */
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/30"] {
+  color: rgb(255 255 255 / 0.48) !important;
+}
+
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/35"] {
+  color: rgb(255 255 255 / 0.52) !important;
+}
+
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/40"] {
+  color: rgb(255 255 255 / 0.56) !important;
+}
+
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/45"] {
+  color: rgb(255 255 255 / 0.60) !important;
+}
+
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/50"] {
+  color: rgb(255 255 255 / 0.64) !important;
+}
+
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/55"] {
+  color: rgb(255 255 255 / 0.68) !important;
+}
+
+aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/60"] {
+  color: rgb(255 255 255 / 0.72) !important;
+}
+
+/* Leve sombra mantém os rótulos legíveis sobre áreas de BG texturizadas. */
+aside :is(p, span, a, small, strong, label, h1, h2, h3) {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.88);
+}
+
+/* ============================= */
 /* SELEÇÃO DE TEXTO */
 /* ============================= */
 
