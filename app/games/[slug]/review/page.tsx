@@ -140,6 +140,23 @@ export default function CompleteGameReviewPage() {
   const scoreText = cleanText(review?.nota);
   const score = Number(scoreText.replace(",", "."));
   const scoreValid = scoreText.length > 0 && Number.isFinite(score) && score >= 0 && score <= 10;
+  const displayReviewText = useMemo(() => {
+    if (!reviewText) return "";
+
+    // Remove only a trailing "Nota final: X/10" line when it repeats
+    // the score already displayed in the header. The stored review remains untouched.
+    const trailingScorePattern =
+      /(?:\r?\n){1,2}[ \t]*Nota\s+final\s*:\s*([0-9]+(?:[.,][0-9]+)?)\s*\/\s*10[ \t]*$/i;
+    const match = reviewText.match(trailingScorePattern);
+    if (!match || !scoreValid) return reviewText;
+
+    const trailingScore = Number(match[1].replace(",", "."));
+    if (!Number.isFinite(trailingScore) || Math.abs(trailingScore - score) > 0.001) {
+      return reviewText;
+    }
+
+    return reviewText.replace(trailingScorePattern, "").trimEnd();
+  }, [reviewText, score, scoreValid]);
 
   const reviewAvailable = useMemo(() => {
     if (!game || !review) return false;
@@ -278,7 +295,7 @@ export default function CompleteGameReviewPage() {
               </div>
             </header>
 
-            {reviewText ? (
+            {displayReviewText ? (
               <article className="mt-5 rounded-3xl border border-white/[0.09] bg-[#090909] p-6 sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <SectionHeading>Análise da jornada</SectionHeading>
@@ -287,7 +304,7 @@ export default function CompleteGameReviewPage() {
                   </p>
                 </div>
                 <div className="mt-5 break-words whitespace-pre-line text-[15px] font-medium leading-[1.9] text-white/75 sm:text-[17px]">
-                  {reviewText}
+                  {displayReviewText}
                 </div>
               </article>
             ) : null}
