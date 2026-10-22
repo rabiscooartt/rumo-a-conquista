@@ -304,7 +304,7 @@ export default function LandingHome() {
                       />
                     </div>
                     <p className="mt-3 line-clamp-2 text-xs leading-5 text-white/60">
-                      {game.currentObjective || game.objective || game.nextMission || "Continue avançando para a próxima conquista."}
+                      {String(game.currentObjective || game.objective || game.nextMission || "Continue avançando para a próxima conquista.")}
                     </p>
                   </div>
                 </Link>
