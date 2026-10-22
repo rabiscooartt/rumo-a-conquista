@@ -141,6 +141,7 @@ function removeQueuedGameFromPickerBank(title: string) {
       drawnNames,
       manualSelectedNames: cleanNameList(rawManualNames),
       skippedDrawNames: cleanNameList(data.skippedDrawNames),
+      archivedNames: cleanNameList(data.archivedNames),
       drawnName: drawnNames[drawnNames.length - 1] || null,
     };
     delete nextData.manualDrawnNames;
