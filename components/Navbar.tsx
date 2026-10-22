@@ -249,13 +249,6 @@ const navLinks = [
     icon: DiamondIcon,
   },
   {
-    label: "Banco de Jogos",
-    href: "/biblioteca",
-    adminHref: "/admin/sorteio-jogos",
-    adminOnly: true,
-    icon: GamepadIcon,
-  },
-  {
     label: "Emblemas",
     href: "/sagas",
     icon: ShieldIcon,
@@ -264,6 +257,13 @@ const navLinks = [
     label: "Review",
     href: "/reviews",
     icon: ReviewIcon,
+  },
+  {
+    label: "Banco de Jogos",
+    href: "/biblioteca",
+    adminHref: "/admin/sorteio-jogos",
+    adminOnly: true,
+    icon: GamepadIcon,
   },
 ];
 
