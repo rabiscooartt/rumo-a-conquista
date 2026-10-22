@@ -188,17 +188,17 @@ export default function CompleteGameReviewPage() {
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
               <div className="grid gap-0 md:grid-cols-[250px_minmax(0,1fr)]">
-                <div className="relative min-h-[280px] bg-black md:min-h-[300px] xl:min-h-[320px]">
+                <div className="relative min-h-[230px] bg-black">
                   {(game.cardImage || game.image) ? (
                     <img
                       src={game.cardImage || game.image}
                       alt={`Capa de ${game.title || "jogo"}`}
-                      className="absolute inset-0 h-full w-full object-contain p-2 opacity-95"
+                      className="absolute inset-0 h-full w-full object-cover opacity-90"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-red-950/40 to-black" />
                   )}
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/15 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent md:bg-gradient-to-r" />
                 </div>
 
                 <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_180px] lg:items-center">
