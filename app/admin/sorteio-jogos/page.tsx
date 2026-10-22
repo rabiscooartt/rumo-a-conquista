@@ -15,6 +15,7 @@ type GamePickerState = {
   drawnNames: string[];
   manualSelectedNames: string[];
   skippedDrawNames: string[];
+  archivedNames: string[];
   initialized: boolean;
 };
 
@@ -51,6 +52,7 @@ const EMPTY_STATE: GamePickerState = {
   drawnNames: [],
   manualSelectedNames: [],
   skippedDrawNames: [],
+  archivedNames: [],
   initialized: false,
 };
 
@@ -164,12 +166,12 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
 function readSavedState(): Omit<GamePickerState, "initialized"> {
   if (typeof window === "undefined") {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [], archivedNames: [] };
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] };
+    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [], archivedNames: [] };
 
     const parsed = JSON.parse(saved) as {
       bank?: Candidate[];
@@ -180,6 +182,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
       manualSelectedNames?: string[];
       manualDrawnNames?: string[];
       skippedDrawNames?: string[];
+      archivedNames?: string[];
     };
     const bank = Array.isArray(parsed.bank)
       ? cleanCandidates([
@@ -225,10 +228,14 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
     const skippedDrawNames = Array.isArray(parsed.skippedDrawNames)
       ? [...new Set(parsed.skippedDrawNames.filter((name) => validNames.has(name)))]
       : [];
+    const archivedNames = [...new Set([
+      ...(Array.isArray(parsed.archivedNames) ? parsed.archivedNames : []),
+      ...skippedDrawNames,
+    ].filter((name) => validNames.has(name)))];
 
-    return { bank, manualNames, randomNames, drawnName, drawnNames, manualSelectedNames, skippedDrawNames };
+    return { bank, manualNames, randomNames, drawnName, drawnNames, manualSelectedNames, skippedDrawNames, archivedNames };
   } catch {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [], archivedNames: [] };
   }
 }
 
@@ -303,6 +310,7 @@ export default function GamePickerAdminPage() {
         drawnNames: state.drawnNames,
         manualSelectedNames: state.manualSelectedNames,
         skippedDrawNames: state.skippedDrawNames,
+        archivedNames: state.archivedNames,
       })
     );
   }, [state]);
@@ -313,7 +321,13 @@ export default function GamePickerAdminPage() {
   );
   const filteredBank = useMemo(() => {
     const term = normalize(search);
+    const hiddenNames = new Set([
+      ...state.drawnNames,
+      ...state.manualSelectedNames,
+      ...state.archivedNames,
+    ]);
     return state.bank.filter((candidate) => {
+      if (candidate.category !== "Em breve" || hiddenNames.has(candidate.name)) return false;
       const matchesSearch = !term || normalize(candidate.name).includes(term);
       const matchesGenre =
         genreFilter === "Todos" ||
@@ -322,12 +336,18 @@ export default function GamePickerAdminPage() {
         candidate.genre === genreFilter;
       return matchesSearch && matchesGenre;
     });
-  }, [state.bank, search, genreFilter]);
+  }, [state.bank, state.drawnNames, state.manualSelectedNames, state.archivedNames, search, genreFilter]);
 
   const emBreveCount = state.bank.filter((candidate) => candidate.category === "Em breve").length;
   const genrePendingCount = state.bank.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
   const genreUnknownCount = state.bank.filter((candidate) => !candidate.genre && candidate.genreChecked).length;
-  const remainingCount = state.bank.filter((candidate) => candidate.category === "Em breve").length;
+  const remainingCount = state.bank.filter((candidate) =>
+    candidate.category === "Em breve" &&
+    !state.drawnNames.includes(candidate.name) &&
+    !state.manualSelectedNames.includes(candidate.name) &&
+    !state.archivedNames.includes(candidate.name) &&
+    !state.skippedDrawNames.includes(candidate.name)
+  ).length;
 
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
     const input = event.currentTarget;
@@ -351,6 +371,7 @@ export default function GamePickerAdminPage() {
         drawnNames: [],
         manualSelectedNames: [],
         skippedDrawNames: [],
+        archivedNames: [],
       }));
       const pendingGenres = imported.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
       setMessage("Banco importado: " + imported.length + " jogos prontos. " + pendingGenres + " precisam de busca de gênero; clique em Identificar gêneros para classificar o banco.");
@@ -557,6 +578,7 @@ export default function GamePickerAdminPage() {
       drawnNames: current.drawnNames.map((item) => item === originalName ? name : item),
       manualSelectedNames: current.manualSelectedNames.map((item) => item === originalName ? name : item),
       skippedDrawNames: current.skippedDrawNames.map((item) => item === originalName ? name : item),
+      archivedNames: current.archivedNames.map((item) => item === originalName ? name : item),
     }));
 
     setEditingGameName(null);
@@ -589,11 +611,12 @@ export default function GamePickerAdminPage() {
       drawnNames: current.drawnNames.filter((item) => item !== name),
       manualSelectedNames: current.manualSelectedNames.filter((item) => item !== name),
       skippedDrawNames: current.skippedDrawNames.filter((item) => item !== name),
+      archivedNames: current.archivedNames.filter((item) => item !== name),
     }));
     setMessage(
       '"' +
         name +
-        '" foi removido do banco. A seleção dos jogos restantes foi preservada; o resultado da roleta foi limpo para permitir um novo sorteio.'
+        '" foi removido definitivamente do Banco de Jogos local. Os outros títulos foram preservados.'
     );
   }
 
@@ -749,9 +772,49 @@ export default function GamePickerAdminPage() {
         skippedDrawNames: current.skippedDrawNames.includes(name)
           ? current.skippedDrawNames
           : [...current.skippedDrawNames, name],
+        archivedNames: current.archivedNames.includes(name)
+          ? current.archivedNames
+          : [...current.archivedNames, name],
       };
     });
-    setMessage('"' + name + '" foi retirado da lista correspondente e ficará fora dos sorteios desta rodada. Você pode preencher a vaga com outro título.');
+    setMessage('"' + name + '" foi movido para Jogos retirados. Você pode devolvê-lo aos candidatos ou apagá-lo definitivamente do Banco de Jogos.');
+  }
+
+  function restoreArchivedGame(name: string) {
+    if (isDrawing || showWinnerAlert) return;
+    setState((current) => ({
+      ...current,
+      archivedNames: current.archivedNames.filter((item) => item !== name),
+      skippedDrawNames: current.skippedDrawNames.filter((item) => item !== name),
+      drawnNames: current.drawnNames.filter((item) => item !== name),
+      manualSelectedNames: current.manualSelectedNames.filter((item) => item !== name),
+      drawnName: current.drawnNames.filter((item) => item !== name).slice(-1)[0] || null,
+    }));
+    setMessage('"' + name + '" voltou para Jogos candidatos e está disponível novamente.');
+  }
+
+  function deleteArchivedGamePermanently(name: string) {
+    if (isDrawing || showWinnerAlert) return;
+    const confirmed = window.confirm(
+      'Apagar definitivamente "' + name + '" do Banco de Jogos? Essa ação não poderá ser desfeita. Ela não remove registros do catálogo principal do site.'
+    );
+    if (!confirmed) return;
+
+    setState((current) => {
+      const drawnNames = current.drawnNames.filter((item) => item !== name);
+      return {
+        ...current,
+        bank: current.bank.filter((candidate) => candidate.name !== name),
+        manualNames: current.manualNames.filter((item) => item !== name),
+        randomNames: current.randomNames.filter((item) => item !== name),
+        drawnNames,
+        manualSelectedNames: current.manualSelectedNames.filter((item) => item !== name),
+        skippedDrawNames: current.skippedDrawNames.filter((item) => item !== name),
+        archivedNames: current.archivedNames.filter((item) => item !== name),
+        drawnName: drawnNames[drawnNames.length - 1] || null,
+      };
+    });
+    setMessage('"' + name + '" foi apagado definitivamente do Banco de Jogos local.');
   }
 
   function clearDrawnGame() {
@@ -1126,6 +1189,32 @@ export default function GamePickerAdminPage() {
                   <button type="button" onClick={() => void copyDrawnGame()} disabled={state.drawnNames.length === 0 && state.manualSelectedNames.length === 0} className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30">Copiar as duas listas</button>
                   <button type="button" onClick={clearDrawnGame} disabled={(state.drawnNames.length === 0 && state.manualSelectedNames.length === 0) || isDrawing || showWinnerAlert} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">Limpar as duas listas</button>
                 </div>
+              </section>
+
+              <section className="rounded-3xl border border-amber-400/20 bg-amber-400/[0.025] p-5 sm:p-6">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <SectionTitle eyebrow="Arquivo local" title="Jogos retirados" detail="Os títulos nesta área não aparecem entre os candidatos nem participam dos sorteios. Você pode devolvê-los ou apagá-los apenas deste Banco de Jogos." />
+                  <span className="rounded-lg border border-amber-400/20 px-2 py-1 text-xs font-black text-amber-100/70">{state.archivedNames.length}</span>
+                </div>
+                {state.archivedNames.length > 0 ? (
+                  <div className="space-y-2">
+                    {state.archivedNames.map((name, index) => (
+                      <div key={name} className="flex flex-col gap-3 rounded-xl border border-amber-400/15 bg-amber-400/[0.035] px-3 py-3 sm:flex-row sm:items-center">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-400/20 bg-amber-400/[0.08] text-sm font-black text-amber-100">{index + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-amber-200/70">Retirado dos candidatos</p>
+                          <p className="mt-1 break-words text-sm font-black text-white">{name}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button type="button" onClick={() => restoreArchivedGame(name)} disabled={isDrawing || showWinnerAlert} className="rounded-lg border border-emerald-400/20 px-3 py-2 text-[10px] font-black text-emerald-200 transition hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-30">Voltar aos candidatos</button>
+                          <button type="button" onClick={() => deleteArchivedGamePermanently(name)} disabled={isDrawing || showWinnerAlert} className="rounded-lg border border-red-400/20 px-3 py-2 text-[10px] font-black text-red-200/80 transition hover:bg-red-400/10 disabled:cursor-not-allowed disabled:opacity-30">Apagar definitivamente</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="rounded-xl border border-dashed border-amber-400/15 px-4 py-6 text-center text-sm text-white/35">Nenhum jogo retirado. Quando você retirar um resultado, ele ficará guardado aqui.</p>
+                )}
               </section>
             </div>
           </div>
