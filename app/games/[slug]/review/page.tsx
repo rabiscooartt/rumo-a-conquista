@@ -86,7 +86,6 @@ export default function CompleteGameReviewPage() {
   const [game, setGame] = useState<PublicGame | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [shareMessage, setShareMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -131,11 +130,6 @@ export default function CompleteGameReviewPage() {
   const reviewTitle = cleanText(review?.titulo) || `Review de ${game?.title || "jogo"}`;
   const reviewText = cleanText(review?.texto) || cleanText(review?.resumo);
   const reviewSummary = cleanText(review?.resumo);
-  const reviewWordCount = useMemo(
-    () => (reviewText ? reviewText.split(/\s+/).filter(Boolean).length : 0),
-    [reviewText]
-  );
-  const readingTimeMinutes = Math.max(1, Math.ceil(reviewWordCount / 200));
   const lastUpdatedLabel = useMemo(() => {
     const value = cleanText(game?.updatedAt);
     if (!value) return "Não registrada";
@@ -158,15 +152,6 @@ export default function CompleteGameReviewPage() {
   }, [game, review]);
 
   const hasReviewContent = Boolean(reviewText || reviewSummary || scoreValid);
-
-  async function copyReviewLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setShareMessage("Link copiado para compartilhar.");
-    } catch {
-      setShareMessage("Não foi possível copiar automaticamente. Copie o endereço da barra do navegador.");
-    }
-  }
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -281,58 +266,19 @@ export default function CompleteGameReviewPage() {
               </div>
             </header>
 
-            <div className="mt-5 grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
-              {reviewText ? (
-                <article className="min-w-0 rounded-3xl border border-white/[0.09] bg-[#090909] p-6 sm:p-8">
+            {reviewText ? (
+              <article className="mt-5 rounded-3xl border border-white/[0.09] bg-[#090909] p-6 sm:p-8">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <SectionHeading>Análise da jornada</SectionHeading>
-                  <div className="mt-5 break-words whitespace-pre-line text-sm font-medium leading-8 text-white/75 sm:text-base">
-                    {reviewText}
-                  </div>
-                </article>
-              ) : null}
-
-              <aside className="min-w-0 rounded-3xl border border-white/[0.09] bg-[#090909] p-5 lg:sticky lg:top-24" aria-label="Sobre esta review">
-                <SectionHeading>Sobre esta review</SectionHeading>
-
-                <dl className="mt-5 divide-y divide-white/[0.07]">
-                  <div className="flex items-start justify-between gap-3 py-3 first:pt-0">
-                    <dt className="text-xs text-white/45">Tempo de leitura</dt>
-                    <dd className="shrink-0 text-right text-xs font-bold text-white">{readingTimeMinutes} min</dd>
-                  </div>
-                  <div className="flex items-start justify-between gap-3 py-3">
-                    <dt className="text-xs text-white/45">Palavras</dt>
-                    <dd className="shrink-0 text-right text-xs font-bold tabular-nums text-white">{reviewWordCount.toLocaleString("pt-BR")}</dd>
-                  </div>
-                  <div className="flex items-start justify-between gap-3 py-3">
-                    <dt className="text-xs text-white/45">Situação</dt>
-                    <dd className="shrink-0 text-right text-xs font-bold text-emerald-300">Publicada</dd>
-                  </div>
-                  <div className="flex items-start justify-between gap-3 py-3 last:pb-0">
-                    <dt className="text-xs text-white/45">Registro atualizado</dt>
-                    <dd className="max-w-[125px] text-right text-xs font-bold leading-5 text-white">{lastUpdatedLabel}</dd>
-                  </div>
-                </dl>
-
-                <button
-                  type="button"
-                  onClick={() => void copyReviewLink()}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/[0.08] px-4 py-3 text-xs font-black text-red-100 transition hover:border-red-400/50 hover:bg-red-500/[0.14]"
-                >
-                  <span aria-hidden="true">↗</span>
-                  Compartilhar review
-                </button>
-                <p aria-live="polite" className="mt-2 min-h-4 text-center text-[10px] leading-4 text-white/45">
-                  {shareMessage}
-                </p>
-
-                <Link
-                  href={`/games/${slug}`}
-                  className="mt-2 flex w-full items-center justify-center rounded-xl border border-white/[0.08] px-4 py-3 text-xs font-bold text-white/65 transition hover:bg-white/[0.04] hover:text-white"
-                >
-                  Ver página do jogo
-                </Link>
-              </aside>
-            </div>
+                  <p className="text-[10px] font-semibold text-white/40">
+                    Atualizada em <time>{lastUpdatedLabel}</time>
+                  </p>
+                </div>
+                <div className="mt-5 break-words whitespace-pre-line text-sm font-medium leading-8 text-white/75 sm:text-base">
+                  {reviewText}
+                </div>
+              </article>
+            ) : null}
 
             <div className="mt-6">
               <Link
