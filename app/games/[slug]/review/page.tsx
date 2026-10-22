@@ -188,17 +188,25 @@ export default function CompleteGameReviewPage() {
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
               <div className="grid gap-0 md:grid-cols-[250px_minmax(0,1fr)]">
-                <div className="relative min-h-[230px] bg-black">
+                <div className="relative isolate overflow-hidden bg-black">
                   {(game.cardImage || game.image) ? (
-                    <img
-                      src={game.cardImage || game.image}
-                      alt={`Capa de ${game.title || "jogo"}`}
-                      className="absolute inset-0 h-full w-full object-cover opacity-90"
-                    />
+                    <>
+                      <img
+                        src={game.cardImage || game.image}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-55 blur-xl"
+                      />
+                      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black/20 via-black/25 to-black/55" />
+                      <img
+                        src={game.cardImage || game.image}
+                        alt={`Capa de ${game.title || "jogo"}`}
+                        className="relative z-10 h-[250px] w-full object-contain px-2 py-2 md:h-[260px] xl:h-[270px]"
+                      />
+                    </>
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-950/40 to-black" />
+                    <div className="flex h-[250px] items-center justify-center bg-gradient-to-br from-red-950/40 to-black md:h-[260px] xl:h-[270px]" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent md:bg-gradient-to-r" />
                 </div>
 
                 <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_180px] lg:items-center">
