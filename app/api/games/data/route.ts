@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
       client
         .from("games")
         .select(
-          "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted"
+          "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, created_at, updated_at, is_hidden, is_deleted"
         )
         .eq("slug", slug)
         .eq("is_deleted", false)
@@ -311,6 +311,8 @@ export async function GET(request: NextRequest) {
           image: game.image ?? "",
           cardImage: game.card_image ?? "",
           platform: game.platform ?? "Steam",
+          createdAt: game.created_at ?? undefined,
+          updatedAt: game.updated_at ?? undefined,
           finalBadge: game.final_badge ?? undefined,
           emblem: game.emblem ?? undefined,
           trophies: game.trophies ?? undefined,
