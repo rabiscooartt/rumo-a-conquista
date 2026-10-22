@@ -84,6 +84,74 @@ function reviewFieldTone(value: unknown): string {
     : "border border-white/10 bg-black/30 focus:border-sky-500/55 focus:bg-sky-500/[0.04]";
 }
 
+const GAME_PICKER_STORAGE_KEY = "rumo-a-conquista-game-picker-v1";
+
+function normalizePickerGameTitle(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\\bdeluxe(?:\\s+edition)?\\b/g, " ")
+    .replace(/\\bedition\\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\\s+/g, " ")
+    .trim();
+}
+
+/** Removes a game from the local candidate bank once it is saved to Próxima Maestria. */
+function removeQueuedGameFromPickerBank(title: string) {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const saved = localStorage.getItem(GAME_PICKER_STORAGE_KEY);
+    if (!saved) return false;
+
+    const data = JSON.parse(saved) as Record<string, unknown>;
+    if (!Array.isArray(data.bank)) return false;
+
+    const targetTitle = normalizePickerGameTitle(title);
+    if (!targetTitle) return false;
+
+    const bank = data.bank as Array<{ name?: unknown; [key: string]: unknown }>;
+    const nextBank = bank.filter((candidate) =>
+      !candidate || typeof candidate.name !== "string" ||
+      normalizePickerGameTitle(candidate.name) !== targetTitle
+    );
+    if (nextBank.length === bank.length) return false;
+
+    const remainingNames = new Set(
+      nextBank
+        .map((candidate) => candidate?.name)
+        .filter((name): name is string => typeof name === "string")
+    );
+    const cleanNameList = (value: unknown) =>
+      Array.isArray(value)
+        ? [...new Set(value.filter((name): name is string => typeof name === "string" && remainingNames.has(name)))]
+        : [];
+    const drawnNames = cleanNameList(data.drawnNames);
+    const rawManualNames = Array.isArray(data.manualSelectedNames)
+      ? data.manualSelectedNames
+      : data.manualDrawnNames;
+
+    const nextData: Record<string, unknown> = {
+      ...data,
+      bank: nextBank,
+      manualNames: cleanNameList(data.manualNames),
+      randomNames: cleanNameList(data.randomNames),
+      drawnNames,
+      manualSelectedNames: cleanNameList(rawManualNames),
+      skippedDrawNames: cleanNameList(data.skippedDrawNames),
+      drawnName: drawnNames[drawnNames.length - 1] || null,
+    };
+    delete nextData.manualDrawnNames;
+    localStorage.setItem(GAME_PICKER_STORAGE_KEY, JSON.stringify(nextData));
+    return true;
+  } catch (error) {
+    console.error("[GamePicker] Não foi possível sincronizar jogo enviado à fila:", error);
+    return false;
+  }
+}
+
 export default function NewGamesAdminPage() {
   const { isLoaded, gamesList, updateGame, updateFinalMastery, updateEmblem } = useSiteGames();
   const [selectedSlug, setSelectedSlug] = useState("");
@@ -514,7 +582,7 @@ export default function NewGamesAdminPage() {
     if (!selectedGame || !values) return;
     setSaving(true);
     try {
-      await updateGame(selectedGame.slug, {
+      const saved = await updateGame(selectedGame.slug, {
         title: formatGameTitle(values.title) || selectedGame.title,
         subtitle: values.subtitle.trim(),
         status: values.status,
@@ -555,6 +623,9 @@ export default function NewGamesAdminPage() {
           return Object.keys(review).length > 0 ? review : null;
         })(),
       });
+      if (saved && String(values.status).trim().toLowerCase() === "planned") {
+        removeQueuedGameFromPickerBank(formatGameTitle(values.title) || selectedGame.title);
+      }
     } finally {
       setSaving(false);
     }
