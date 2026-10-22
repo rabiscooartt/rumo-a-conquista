@@ -201,7 +201,7 @@ export default function CompleteGameReviewPage() {
                       <img
                         src={game.cardImage || game.image}
                         alt={`Capa de ${game.title || "jogo"}`}
-                        className="relative z-10 h-full w-full object-contain p-1"
+                        className="relative z-10 h-full w-full object-contain"
                       />
                     </div>
                   ) : (
