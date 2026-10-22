@@ -186,26 +186,30 @@ export default function CompleteGameReviewPage() {
           </section>
         ) : (
           <>
-            <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
-              <div className="grid gap-0 md:grid-cols-[230px_minmax(0,1fr)]">
-                <div className="flex items-center justify-center bg-[#070707] p-3">
+            <header className="group relative isolate mt-6 overflow-hidden rounded-3xl border border-white/[0.10] bg-[#090b0f]">
+              {(game.cardImage || game.image) ? (
+                <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+                  <img
+                    src={game.cardImage || game.image}
+                    alt=""
+                    className="h-full w-full scale-110 object-cover opacity-30 blur-[5px]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#090b0f] via-[#090b0f]/90 to-[#090b0f]/65" />
+                  <div className="absolute inset-0 bg-[#050608]/30" />
+                </div>
+              ) : null}
+              <div className="relative z-20 grid gap-0 md:grid-cols-[190px_minmax(0,1fr)]">
+                <div className="flex items-center justify-center p-3 sm:p-4">
                   {(game.cardImage || game.image) ? (
-                    <div className="relative isolate aspect-[3/4] w-full max-w-[230px] overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
-                      <img
-                        src={game.cardImage || game.image}
-                        alt=""
-                        aria-hidden="true"
-                        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-[5px]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#090b0f]/75 via-[#090b0f]/55 to-[#090b0f]/75" />
+                    <div className="relative aspect-[3/4] w-full max-w-[190px] overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
                       <img
                         src={game.cardImage || game.image}
                         alt={`Capa de ${game.title || "jogo"}`}
-                        className="relative z-10 h-full w-full object-contain"
+                        className="h-full w-full object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="flex aspect-[3/4] w-full max-w-[230px] items-center justify-center rounded-md border border-white/10 bg-gradient-to-br from-red-950/40 to-black" />
+                    <div className="flex aspect-[3/4] w-full max-w-[190px] items-center justify-center rounded-md border border-white/10 bg-gradient-to-br from-red-950/40 to-black" />
                   )}
                 </div>
 
