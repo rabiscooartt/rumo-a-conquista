@@ -690,18 +690,23 @@ export default function GamePickerAdminPage() {
       return;
     }
 
-    if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
-    if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
-    if (presentationCloseTimer.current !== null) window.clearTimeout(presentationCloseTimer.current);
-
-    const pool = state.bank.filter((item) =>
-      item.category === "Em breve" &&
-      !state.drawnNames.includes(item.name) &&
-      !state.manualSelectedNames.includes(item.name) &&
-      !state.skippedDrawNames.includes(item.name)
-    );
-    setMessage('Você escolheu "' + name + '". A roleta vai revelar sua escolha.');
-    spinOneGame(candidate, pool, state.manualSelectedNames.length + 1, true);
+    // A seleção manual é direta: não abre nem anima a roleta.
+    setState((current) => {
+      if (
+        current.manualSelectedNames.length >= 5 ||
+        current.manualSelectedNames.includes(name) ||
+        current.drawnNames.includes(name) ||
+        current.skippedDrawNames.includes(name) ||
+        !current.bank.some((item) => item.name === name && item.category === "Em breve")
+      ) {
+        return current;
+      }
+      return {
+        ...current,
+        manualSelectedNames: [...current.manualSelectedNames, name],
+      };
+    });
+    setMessage('Escolha manual concluída: "' + name + '" foi adicionado à lista de jogos escolhidos.');
   }
 
   function drawRandomGame() {
