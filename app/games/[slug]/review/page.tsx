@@ -187,16 +187,16 @@ export default function CompleteGameReviewPage() {
         ) : (
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
-              <div className="grid gap-0 md:grid-cols-[190px_minmax(0,1fr)]">
-                <div className="flex min-h-[250px] items-center justify-center bg-[#070707] p-3 md:min-h-[270px] xl:min-h-[280px]">
+              <div className="grid gap-0 md:grid-cols-[230px_minmax(0,1fr)]">
+                <div className="flex min-h-[274px] items-center justify-center bg-[#070707] p-3 md:min-h-[294px] xl:min-h-[314px]">
                   {(game.cardImage || game.image) ? (
                     <img
                       src={game.cardImage || game.image}
                       alt={`Capa de ${game.title || "jogo"}`}
-                      className="h-[230px] w-auto max-w-full object-contain md:h-[250px] xl:h-[260px]"
+                      className="h-[250px] w-auto max-w-full object-contain md:h-[270px] xl:h-[290px]"
                     />
                   ) : (
-                    <div className="flex h-[230px] w-full items-center justify-center bg-gradient-to-br from-red-950/40 to-black md:h-[250px] xl:h-[260px]" />
+                    <div className="flex h-[250px] w-full items-center justify-center bg-gradient-to-br from-red-950/40 to-black md:h-[270px] xl:h-[290px]" />
                   )}
                 </div>
 
