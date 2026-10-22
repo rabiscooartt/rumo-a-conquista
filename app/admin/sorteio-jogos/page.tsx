@@ -13,6 +13,7 @@ type GamePickerState = {
   randomNames: string[];
   drawnName: string | null;
   drawnNames: string[];
+  skippedDrawNames: string[];
   initialized: boolean;
 };
 
@@ -47,6 +48,7 @@ const EMPTY_STATE: GamePickerState = {
   randomNames: [],
   drawnName: null,
   drawnNames: [],
+  skippedDrawNames: [],
   initialized: false,
 };
 
@@ -160,12 +162,12 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
 function readSavedState(): Omit<GamePickerState, "initialized"> {
   if (typeof window === "undefined") {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], skippedDrawNames: [] };
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [] };
+    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], skippedDrawNames: [] };
 
     const parsed = JSON.parse(saved) as {
       bank?: Candidate[];
@@ -173,6 +175,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
       randomNames?: string[];
       drawnName?: string | null;
       drawnNames?: string[];
+      skippedDrawNames?: string[];
     };
     const bank = Array.isArray(parsed.bank)
       ? cleanCandidates([
@@ -205,10 +208,13 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
         ? [legacyDrawnName]
         : [];
     const drawnName = legacyDrawnName || drawnNames[drawnNames.length - 1] || null;
+    const skippedDrawNames = Array.isArray(parsed.skippedDrawNames)
+      ? [...new Set(parsed.skippedDrawNames.filter((name) => validNames.has(name)))]
+      : [];
 
-    return { bank, manualNames, randomNames, drawnName, drawnNames };
+    return { bank, manualNames, randomNames, drawnName, drawnNames, skippedDrawNames };
   } catch {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], skippedDrawNames: [] };
   }
 }
 
@@ -235,10 +241,9 @@ export default function GamePickerAdminPage() {
   const [showWinnerAlert, setShowWinnerAlert] = useState(false);
   const [activeWinnerName, setActiveWinnerName] = useState<string | null>(null);
   const [currentDrawNumber, setCurrentDrawNumber] = useState(0);
-  const [batchComplete, setBatchComplete] = useState(false);
   const drawStartTimer = useRef<number | null>(null);
   const drawFinishTimer = useRef<number | null>(null);
-  const batchCloseTimer = useRef<number | null>(null);
+  const presentationCloseTimer = useRef<number | null>(null);
   const [message, setMessage] = useState("");
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [newGameName, setNewGameName] = useState("");
@@ -255,7 +260,7 @@ export default function GamePickerAdminPage() {
     return () => {
       if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
       if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
-      if (batchCloseTimer.current !== null) window.clearTimeout(batchCloseTimer.current);
+      if (presentationCloseTimer.current !== null) window.clearTimeout(presentationCloseTimer.current);
     };
   }, []);
 
@@ -269,6 +274,7 @@ export default function GamePickerAdminPage() {
         randomNames: state.randomNames,
         drawnName: state.drawnName,
         drawnNames: state.drawnNames,
+        skippedDrawNames: state.skippedDrawNames,
       })
     );
   }, [state]);
@@ -315,6 +321,7 @@ export default function GamePickerAdminPage() {
         randomNames: [],
         drawnName: null,
         drawnNames: [],
+        skippedDrawNames: [],
       }));
       const pendingGenres = imported.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
       setMessage("Banco importado: " + imported.length + " jogos prontos. " + pendingGenres + " precisam de busca de gênero; clique em Identificar gêneros para classificar o banco.");
@@ -383,6 +390,7 @@ export default function GamePickerAdminPage() {
           ),
           drawnName: current.drawnName === existing.name ? name : current.drawnName,
           drawnNames: current.drawnNames.map((item) => item === existing.name ? name : item),
+          skippedDrawNames: current.skippedDrawNames.map((item) => item === existing.name ? name : item),
         }));
         setNewGameName("");
         setMessage("A versão normal foi substituída pela Deluxe. Buscando o gênero da edição mantida...");
@@ -517,6 +525,7 @@ export default function GamePickerAdminPage() {
       randomNames: current.randomNames.map((item) => item === originalName ? name : item),
       drawnName: current.drawnName === originalName ? name : current.drawnName,
       drawnNames: current.drawnNames.map((item) => item === originalName ? name : item),
+      skippedDrawNames: current.skippedDrawNames.map((item) => item === originalName ? name : item),
     }));
 
     setEditingGameName(null);
@@ -547,6 +556,7 @@ export default function GamePickerAdminPage() {
       randomNames: current.randomNames.filter((item) => item !== name),
       drawnName: current.drawnName === name ? null : current.drawnName,
       drawnNames: current.drawnNames.filter((item) => item !== name),
+      skippedDrawNames: current.skippedDrawNames.filter((item) => item !== name),
     }));
     setMessage(
       '"' +
@@ -555,25 +565,32 @@ export default function GamePickerAdminPage() {
     );
   }
 
-  function runBatchSpin(winners: Candidate[], candidates: Candidate[], index: number) {
-    const winner = winners[index];
-    if (!winner) return;
+  function finishPresentation() {
+    if (presentationCloseTimer.current !== null) window.clearTimeout(presentationCloseTimer.current);
+    presentationCloseTimer.current = null;
+    setShowWinnerAlert(false);
+    setWheelItems([]);
+    setActiveWinnerName(null);
+    setIsReelAnimating(false);
+    setWheelPosition(-REEL_CARD_WIDTH / 2);
+  }
 
-    const alternatives = candidates.filter((candidate) => candidate.name !== winner.name);
+  function spinOneGame(winner: Candidate, pool: Candidate[], drawNumber: number) {
+    const alternatives = pool.filter((candidate) => candidate.name !== winner.name);
     const strip: Candidate[] = Array.from({ length: REEL_WINNER_INDEX }, () => {
-      const source = alternatives.length > 0 ? alternatives : candidates;
+      const source = alternatives.length > 0 ? alternatives : pool;
       return source[Math.floor(Math.random() * source.length)];
     });
     strip.push(winner);
 
-    setCurrentDrawNumber(index + 1);
+    setCurrentDrawNumber(drawNumber);
     setActiveWinnerName(null);
     setWheelItems(strip);
     setWheelPosition(-REEL_CARD_WIDTH / 2);
     setIsReelAnimating(false);
     setIsDrawing(true);
-    setBatchComplete(false);
-    setMessage("Sorteio " + (index + 1) + " de " + winners.length + ": a roleta está girando...");
+    setShowWinnerAlert(true);
+    setMessage("Sorteio " + drawNumber + " de 5: a roleta está girando...");
 
     drawStartTimer.current = window.setTimeout(() => {
       setIsReelAnimating(true);
@@ -583,100 +600,78 @@ export default function GamePickerAdminPage() {
 
     drawFinishTimer.current = window.setTimeout(() => {
       setState((current) => {
-        const confirmedWinners = winners
-          .slice(0, index + 1)
-          .filter((picked) => current.bank.some((candidate) => candidate.category === "Em breve" && candidate.name === picked.name))
-          .map((picked) => picked.name);
-        return {
-          ...current,
-          drawnNames: confirmedWinners,
-          drawnName: confirmedWinners[confirmedWinners.length - 1] || null,
-        };
+        const stillEligible = current.bank.some(
+          (candidate) => candidate.category === "Em breve" && candidate.name === winner.name
+        ) && !current.drawnNames.includes(winner.name) && !current.skippedDrawNames.includes(winner.name);
+        if (!stillEligible || current.drawnNames.length >= 5) return current;
+        const drawnNames = [...current.drawnNames, winner.name];
+        return { ...current, drawnNames, drawnName: winner.name };
       });
       setActiveWinnerName(winner.name);
       setIsDrawing(false);
       setIsReelAnimating(false);
-      setMessage("Sorteio " + (index + 1) + " de " + winners.length + ": " + winner.name + ".");
-      drawStartTimer.current = null;
+      setMessage("Sorteio " + drawNumber + " concluído: " + winner.name + ".");
+      drawFinishTimer.current = null;
 
-      if (index + 1 < winners.length) {
-        drawFinishTimer.current = window.setTimeout(() => runBatchSpin(winners, candidates, index + 1), 1900);
-      } else {
-        setBatchComplete(true);
-        setMessage("Os " + winners.length + " jogos foram sorteados sem repetição.");
-        drawFinishTimer.current = null;
-        batchCloseTimer.current = window.setTimeout(() => {
-          setShowWinnerAlert(false);
-          setWheelItems([]);
-          setActiveWinnerName(null);
-          setBatchComplete(false);
-          batchCloseTimer.current = null;
-        }, 7500);
-      }
+      // Mantém o vencedor em destaque antes de devolver a tela ao painel.
+      presentationCloseTimer.current = window.setTimeout(() => {
+        finishPresentation();
+      }, 3800);
     }, REEL_DURATION_MS + 250);
   }
 
   function drawRandomGame() {
     if (isDrawing || showWinnerAlert) return;
 
-    const pool = state.bank.filter((candidate) => candidate.category === "Em breve");
-    if (pool.length === 0) {
-      setMessage("Não há jogos na categoria Em breve para sortear.");
+    if (state.drawnNames.length >= 5) {
+      setMessage("Você já tem cinco resultados. Retire um deles para sortear um substituto.");
       return;
     }
-    if (pool.length < 5) {
-      setMessage("Para fazer os cinco sorteios, são necessários pelo menos 5 jogos. Há apenas " + pool.length + " disponíveis.");
+
+    const pool = state.bank.filter((candidate) =>
+      candidate.category === "Em breve" &&
+      !state.drawnNames.includes(candidate.name) &&
+      !state.skippedDrawNames.includes(candidate.name)
+    );
+    if (pool.length === 0) {
+      setMessage("Não há outros jogos disponíveis. Retire um resultado ou limpe a rodada para começar novamente.");
       return;
     }
 
     if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
     if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
-    if (batchCloseTimer.current !== null) window.clearTimeout(batchCloseTimer.current);
+    if (presentationCloseTimer.current !== null) window.clearTimeout(presentationCloseTimer.current);
 
-    const candidates = [...pool];
-    const winners: Candidate[] = [];
-    for (let index = 0; index < 5; index += 1) {
-      const selectedIndex = Math.floor(Math.random() * candidates.length);
-      winners.push(candidates.splice(selectedIndex, 1)[0]);
-    }
-
-    setState((current) => ({ ...current, drawnName: null, drawnNames: [] }));
-    setShowWinnerAlert(true);
-    setActiveWinnerName(null);
-    setCurrentDrawNumber(0);
-    setBatchComplete(false);
-    setWheelItems([]);
-    setWheelPosition(-REEL_CARD_WIDTH / 2);
-    setMessage("Sorteio iniciado: serão revelados cinco jogos diferentes.");
-    runBatchSpin(winners, pool, 0);
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+    spinOneGame(winner, pool, state.drawnNames.length + 1);
   }
 
-  function cancelBatchPresentation() {
-    if (drawStartTimer.current !== null) window.clearTimeout(drawStartTimer.current);
-    if (drawFinishTimer.current !== null) window.clearTimeout(drawFinishTimer.current);
-    if (batchCloseTimer.current !== null) window.clearTimeout(batchCloseTimer.current);
-    drawStartTimer.current = null;
-    drawFinishTimer.current = null;
-    batchCloseTimer.current = null;
-    setIsDrawing(false);
-    setIsReelAnimating(false);
-    setShowWinnerAlert(false);
-    setWheelItems([]);
-    setActiveWinnerName(null);
-    setBatchComplete(false);
-    setMessage("Apresentação encerrada. Os jogos já revelados continuam salvos.");
+  function removeDrawnResult(name: string) {
+    if (isDrawing || showWinnerAlert) return;
+    setState((current) => {
+      const drawnNames = current.drawnNames.filter((item) => item !== name);
+      return {
+        ...current,
+        drawnNames,
+        drawnName: drawnNames[drawnNames.length - 1] || null,
+        skippedDrawNames: current.skippedDrawNames.includes(name)
+          ? current.skippedDrawNames
+          : [...current.skippedDrawNames, name],
+      };
+    });
+    setMessage('"' + name + '" foi retirado dos resultados e não será sorteado novamente nesta rodada. Agora você pode sortear um substituto.');
   }
 
   function clearDrawnGame() {
-    if (isDrawing) return;
-    if (batchCloseTimer.current !== null) window.clearTimeout(batchCloseTimer.current);
+    if (isDrawing || showWinnerAlert) return;
+    if (presentationCloseTimer.current !== null) window.clearTimeout(presentationCloseTimer.current);
+    presentationCloseTimer.current = null;
     setShowWinnerAlert(false);
     setWheelItems([]);
     setActiveWinnerName(null);
-    setBatchComplete(false);
     setWheelPosition(-REEL_CARD_WIDTH / 2);
-    setState((current) => ({ ...current, drawnName: null, drawnNames: [] }));
-    setMessage("Resultados limpos. O banco de jogos foi preservado.");
+    setState((current) => ({ ...current, drawnName: null, drawnNames: [], skippedDrawNames: [] }));
+    setMessage("Resultados limpos. O banco de jogos foi preservado; você pode iniciar uma nova rodada de até cinco sorteios.");
   }
 
   async function copyDrawnGame() {
@@ -919,10 +914,10 @@ export default function GamePickerAdminPage() {
 
             <div className="space-y-5">
               <section className="rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.09] via-white/[0.025] to-transparent p-5 sm:p-6">
-                <SectionTitle eyebrow="Roleta Em breve" title="Sortear o próximo jogo" detail="Cinco jogos diferentes serão escolhidos aleatoriamente. A roleta vai ao centro da tela durante a apresentação e volta ao painel ao terminar." />
+                <SectionTitle eyebrow="Roleta Em breve" title="Sortear o próximo jogo" detail="Sorteie um jogo por vez, até preencher cinco resultados. Cada título sorteado fica registrado e pode ser retirado individualmente." />
                 <div className="mb-3 flex items-center justify-between gap-3 text-xs text-white/45">
-                  <span>{isDrawing ? "A sorte está lançada..." : state.drawnName ? "Último jogo sorteado" : "Todos os jogos estão na disputa"}</span>
-                  <span>{remainingCount} jogos</span>
+                  <span>{isDrawing ? "A sorte está lançada..." : state.drawnNames.length + " de 5 resultados preenchidos"}</span>
+                  <span>{state.bank.filter((candidate) => candidate.category === "Em breve" && !state.drawnNames.includes(candidate.name) && !state.skippedDrawNames.includes(candidate.name)).length} disponíveis</span>
                 </div>
                 <div className="relative mb-5 h-[164px] overflow-hidden rounded-2xl border border-white/10 bg-[#08090c] before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-10 before:bg-gradient-to-r before:from-[#08090c] before:to-transparent after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-10 after:bg-gradient-to-l after:from-[#08090c] after:to-transparent" aria-label="Roleta animada de jogos">
                   <div className="absolute left-1/2 top-0 z-20 h-full w-0.5 -translate-x-1/2 bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.85)]" />
@@ -964,31 +959,32 @@ export default function GamePickerAdminPage() {
                     <p className="mt-1 break-words text-xs text-white/45">{isDrawing ? "O marcador vermelho vai indicar o jogo vencedor." : state.drawnName || (remainingCount + " jogos aguardando o sorteio")}</p>
                   </div>
                 </div>
-                <button type="button" onClick={drawRandomGame} disabled={remainingCount < 5 || isDrawing || showWinnerAlert} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
-                  {showWinnerAlert ? "Apresentação em andamento..." : state.drawnNames.length === 5 ? "Sortear outros 5 jogos" : "Sortear 5 jogos"}
+                <button type="button" onClick={drawRandomGame} disabled={state.drawnNames.length >= 5 || isDrawing || showWinnerAlert || state.bank.every((candidate) => candidate.category !== "Em breve" || state.drawnNames.includes(candidate.name) || state.skippedDrawNames.includes(candidate.name))} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
+                  {isDrawing ? "A roleta está girando..." : state.drawnNames.length >= 5 ? "Retire um resultado para sortear outro" : state.drawnNames.length > 0 ? "Sortear mais 1 jogo" : "Sortear 1 jogo"}
                 </button>
               </section>
 
               <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <SectionTitle eyebrow="Resultado" title="Jogo sorteado" detail="O resultado fica salvo neste navegador até você sortear outro jogo ou limpar o resultado." />
+                  <SectionTitle eyebrow="Resultados" title="Jogos sorteados" detail="Mantenha até cinco jogos. Use Retirar para descartar um título e liberar uma vaga para outro sorteio." />
                   <span className="rounded-lg border border-white/10 px-2 py-1 text-xs font-black text-white/55">{state.drawnNames.length}/5</span>
                 </div>
                 {state.drawnNames.length > 0 ? (
                   <div className="space-y-2">
                     {state.drawnNames.map((name, index) => (
-                      <div key={name} className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] px-4 py-3">
+                      <div key={name} className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] px-3 py-3">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-red-400/25 bg-red-500/10 text-sm font-black text-red-200">{index + 1}</span>
                         <div className="min-w-0 flex-1">
                           <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">Jogo sorteado {index + 1}</p>
                           <p className="mt-1 break-words text-sm font-black text-white">{name}</p>
                         </div>
                         <span className="text-lg">🏆</span>
+                        <button type="button" onClick={() => removeDrawnResult(name)} disabled={isDrawing || showWinnerAlert} title={"Retirar " + name + " dos resultados"} aria-label={"Retirar " + name + " dos resultados"} className="shrink-0 rounded-lg border border-amber-400/20 px-2 py-1.5 text-[10px] font-black text-amber-200/80 transition hover:border-amber-300/50 hover:bg-amber-400/10 disabled:cursor-not-allowed disabled:opacity-30">Retirar</button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-white/30">Os cinco jogos vencedores aparecerão aqui após o sorteio.</p>
+                  <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-white/30">Nenhum resultado ainda. Clique em “Sortear 1 jogo” para começar.</p>
                 )}
 
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
@@ -1006,15 +1002,15 @@ export default function GamePickerAdminPage() {
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-600 via-amber-300 to-emerald-300" />
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-400/25 bg-red-500/10 text-2xl">🏆</div>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-400/25 bg-red-500/10 text-2xl">🎰</div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.24em] text-red-300">Rumo à Conquista · Roleta em breve</p>
-                    <h2 id="roulette-winner-title" className="mt-1 text-xl font-black text-white sm:text-2xl">{batchComplete ? "Os 5 jogos foram escolhidos!" : "Sorteio de 5 jogos"}</h2>
-                    <p className="mt-1 text-xs text-white/45">{batchComplete ? "Confira os vencedores desta rodada." : "A roleta está no centro da tela para a gravação."}</p>
+                    <h2 id="roulette-winner-title" className="mt-1 text-xl font-black text-white sm:text-2xl">{isDrawing ? "Sorteando o jogo " + currentDrawNumber + " de 5" : "Jogo escolhido!"}</h2>
+                    <p className="mt-1 text-xs text-white/45">A roleta ocupa o centro da tela durante a animação e retorna ao painel após revelar o resultado.</p>
                   </div>
                 </div>
                 <div className="shrink-0 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2 text-center">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/40">Progresso</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/40">Resultados</p>
                   <p className="mt-0.5 text-lg font-black text-white">{state.drawnNames.length}/5</p>
                 </div>
               </div>
@@ -1023,81 +1019,52 @@ export default function GamePickerAdminPage() {
                   <div key={index} className={"h-1.5 flex-1 rounded-full transition-colors " + (state.drawnNames.length > index ? "bg-emerald-400" : currentDrawNumber > index ? "bg-red-500" : "bg-white/10")} />
                 ))}
               </div>
-              {!batchComplete && (
-                <>
-                  <div className="mt-6 flex items-center justify-between gap-3 text-xs font-semibold text-white/45">
-                    <span>{isDrawing ? "A sorte está lançada..." : activeWinnerName ? "Vencedor do sorteio " + currentDrawNumber : "Preparando roleta..."}</span>
-                    <span>Sorteio {Math.max(currentDrawNumber, 1)} de 5</span>
-                  </div>
-                  <div className="relative mt-3 h-[176px] overflow-hidden rounded-2xl border border-white/10 bg-[#07080b] sm:h-[210px] before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-12 before:bg-gradient-to-r before:from-[#07080b] before:to-transparent after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-12 after:bg-gradient-to-l after:from-[#07080b] after:to-transparent">
-                    <div className="absolute left-1/2 top-0 z-20 h-full w-0.5 -translate-x-1/2 bg-red-500 shadow-[0_0_18px_rgba(239,68,68,0.95)]" />
-                    <div className="absolute left-1/2 top-0 z-20 h-0 w-0 -translate-x-1/2 border-x-[10px] border-t-[13px] border-x-transparent border-t-red-500" />
-                    {wheelItems.length > 0 ? (
-                      <div
-                        className="absolute left-1/2 top-0 flex h-full items-center gap-[10px] will-change-transform"
-                        style={{
-                          transform: "translateX(" + wheelPosition + "px)",
-                          transition: isReelAnimating ? "transform " + REEL_DURATION_MS + "ms cubic-bezier(0.08, 0.65, 0.04, 1)" : "none",
-                        }}
-                      >
-                        {wheelItems.map((candidate, index) => (
-                          <div key={index + "-" + candidate.name} className={"flex h-[124px] w-[170px] shrink-0 flex-col items-center justify-center rounded-xl border px-3 text-center " + (index === REEL_WINNER_INDEX && !isDrawing ? "border-emerald-300/80 bg-emerald-400/15 shadow-[0_0_30px_rgba(52,211,153,0.22)]" : "border-white/10 bg-white/[0.035]")}>
-                            <span className="mb-2 text-2xl">{index === REEL_WINNER_INDEX && !isDrawing ? "🏆" : "🎮"}</span>
-                            <span className="line-clamp-2 text-xs font-black leading-4 text-white/90">{candidate.name}</span>
-                            {index === REEL_WINNER_INDEX && !isDrawing && <span className="mt-1 text-[9px] font-black uppercase tracking-widest text-emerald-300">Vencedor</span>}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
-                        <span className="text-4xl">🎰</span>
-                        <span className="text-sm font-bold text-white/60">Preparando o primeiro sorteio...</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-center sm:px-6">
-                    {isDrawing ? (
-                      <>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">A roleta está girando</p>
-                        <p className="mt-2 text-xl font-black text-white sm:text-2xl">Qual será o jogo escolhido?</p>
-                        <p className="mt-1 text-xs text-white/40">A animação vai parar no título selecionado pelo sorteio aleatório.</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">🎉 Jogo escolhido</p>
-                        <p className="mt-2 break-words text-xl font-black text-white sm:text-2xl">{activeWinnerName}</p>
-                        <p className="mt-1 text-xs text-white/40">Preparando o próximo sorteio...</p>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-              {batchComplete && (
-                <div className="mt-6">
-                  <div className="mb-4 text-center">
-                    <div className="mb-2 text-4xl">🎉 🏆 🎉</div>
-                    <p className="text-lg font-black text-emerald-300">Resultado final da roleta</p>
-                    <p className="mt-1 text-sm text-white/45">Cinco jogos diferentes, sem repetição nesta rodada.</p>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {state.drawnNames.map((name, index) => (
-                      <div key={name} className="flex items-center gap-3 rounded-xl border border-emerald-300/20 bg-emerald-400/[0.06] px-3 py-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-sm font-black text-emerald-200">{index + 1}</span>
-                        <p className="break-words text-sm font-black text-white">{name}</p>
+              <div className="mt-6 flex items-center justify-between gap-3 text-xs font-semibold text-white/45">
+                <span>{isDrawing ? "A sorte está lançada..." : "Vencedor confirmado"}</span>
+                <span>Sorteio {currentDrawNumber} de 5</span>
+              </div>
+              <div className="relative mt-3 h-[176px] overflow-hidden rounded-2xl border border-white/10 bg-[#07080b] sm:h-[210px] before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-12 before:bg-gradient-to-r before:from-[#07080b] before:to-transparent after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-12 after:bg-gradient-to-l after:from-[#07080b] after:to-transparent">
+                <div className="absolute left-1/2 top-0 z-20 h-full w-0.5 -translate-x-1/2 bg-red-500 shadow-[0_0_18px_rgba(239,68,68,0.95)]" />
+                <div className="absolute left-1/2 top-0 z-20 h-0 w-0 -translate-x-1/2 border-x-[10px] border-t-[13px] border-x-transparent border-t-red-500" />
+                {wheelItems.length > 0 ? (
+                  <div
+                    className="absolute left-1/2 top-0 flex h-full items-center gap-[10px] will-change-transform"
+                    style={{
+                      transform: "translateX(" + wheelPosition + "px)",
+                      transition: isReelAnimating ? "transform " + REEL_DURATION_MS + "ms cubic-bezier(0.08, 0.65, 0.04, 1)" : "none",
+                    }}
+                  >
+                    {wheelItems.map((candidate, index) => (
+                      <div key={index + "-" + candidate.name} className={"flex h-[124px] w-[170px] shrink-0 flex-col items-center justify-center rounded-xl border px-3 text-center " + (index === REEL_WINNER_INDEX && !isDrawing ? "border-emerald-300/80 bg-emerald-400/15 shadow-[0_0_30px_rgba(52,211,153,0.22)]" : "border-white/10 bg-white/[0.035]")}>
+                        <span className="mb-2 text-2xl">{index === REEL_WINNER_INDEX && !isDrawing ? "🏆" : "🎮"}</span>
+                        <span className="line-clamp-2 text-xs font-black leading-4 text-white/90">{candidate.name}</span>
+                        {index === REEL_WINNER_INDEX && !isDrawing && <span className="mt-1 text-[9px] font-black uppercase tracking-widest text-emerald-300">Vencedor</span>}
                       </div>
                     ))}
                   </div>
-                  <p className="mt-4 text-center text-xs text-white/40">A tela voltará ao painel automaticamente em alguns segundos.</p>
-                  <div className="mt-5 flex justify-center">
-                    <button type="button" onClick={cancelBatchPresentation} className="rounded-xl bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/85">Voltar ao painel agora</button>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
+                    <span className="text-4xl">🎰</span>
+                    <span className="text-sm font-bold text-white/60">Preparando a roleta...</span>
                   </div>
-                </div>
-              )}
-              {!batchComplete && (
-                <div className="mt-5 flex justify-center">
-                  <button type="button" onClick={cancelBatchPresentation} className="rounded-xl border border-white/10 px-5 py-2.5 text-xs font-bold text-white/50 transition hover:bg-white/[0.05] hover:text-white/80">Cancelar apresentação</button>
-                </div>
-              )}
+                )}
+              </div>
+              <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-5 text-center sm:px-6">
+                {isDrawing ? (
+                  <>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300">A roleta está girando</p>
+                    <p className="mt-2 text-xl font-black text-white sm:text-2xl">Qual será o jogo escolhido?</p>
+                    <p className="mt-1 text-xs text-white/40">O nome é escolhido aleatoriamente antes de a animação começar.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">🎉 Jogo sorteado</p>
+                    <p className="mt-2 break-words text-xl font-black text-white sm:text-2xl">{activeWinnerName}</p>
+                    <p className="mt-1 text-xs text-white/40">Voltando ao painel automaticamente...</p>
+                    <button type="button" onClick={finishPresentation} className="mt-4 rounded-xl bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/85">Voltar ao painel agora</button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
