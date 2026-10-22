@@ -30,7 +30,7 @@ function LogoTrophyIcon({ className = "" }: IconProps) {
   );
 }
 
-function ProfileIcon({ className = "" }: IconProps) {
+function HomeIcon({ className = "" }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -42,8 +42,9 @@ function ProfileIcon({ className = "" }: IconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M20 21a8 8 0 0 0-16 0" />
-      <circle cx="12" cy="8" r="4" />
+      <path d="m3 10 9-7 9 7" />
+      <path d="M5 9v11h14V9" />
+      <path d="M9 20v-6h6v6" />
     </svg>
   );
 }
@@ -217,9 +218,9 @@ function TwitchIcon({ className = "" }: IconProps) {
 
 const navLinks = [
   {
-    label: "Perfil",
-    href: "/perfil",
-    icon: ProfileIcon,
+    label: "Início",
+    href: "/",
+    icon: HomeIcon,
   },
   {
     label: "Jogos",
