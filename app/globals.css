@@ -205,34 +205,17 @@ body {
   background: transparent;
 }
 
-/* Os fundos sólidos das páginas-raiz ficam transparentes para revelar só o fundo. */
+/* 
+  Padroniza o BG global nas páginas públicas e administrativas.
+  Os shells da página ficam transparentes para mostrar a mesma imagem gótica
+  e a mesma camada de textura do html, sem tocar nas superfícies dos cartões.
+*/
 main.min-h-screen[class~="bg-[#050505]"],
-main.min-h-screen[class~="bg-[#050608]"] {
-  background-color: transparent !important;
-}
-
-/* Páginas com gradiente preservam sua identidade, incorporando a textura ao próprio fundo. */
+main.min-h-screen[class~="bg-[#050608]"],
+main.min-h-screen[class~="bg-[#07090d]"],
 main.min-h-screen[class*="bg-[radial-gradient"] {
-  background-image:
-    radial-gradient(
-      rgba(255, 255, 255, 0.0399) 0.65px,
-      transparent 0.65px
-    ),
-    repeating-linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.00798) 0px,
-      rgba(255, 255, 255, 0.00798) 1px,
-      transparent 1px,
-      transparent 7px
-    ),
-    radial-gradient(
-      ellipse at 50% 0%,
-      rgba(255, 255, 255, 0.029925) 0%,
-      transparent 58%
-    ),
-    radial-gradient(circle at top, #0b1624 0%, #050505 45%, #020202 100%) !important;
-  background-size: 5px 5px, auto, auto, auto;
-  background-attachment: fixed;
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 /* Realce de leitura aplicado ao próprio texto, sem placas ou fundos atrás dele. */
