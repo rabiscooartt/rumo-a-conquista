@@ -13,7 +13,7 @@ type GamePickerState = {
   randomNames: string[];
   drawnName: string | null;
   drawnNames: string[];
-  manualDrawnNames: string[];
+  manualSelectedNames: string[];
   skippedDrawNames: string[];
   initialized: boolean;
 };
@@ -49,7 +49,7 @@ const EMPTY_STATE: GamePickerState = {
   randomNames: [],
   drawnName: null,
   drawnNames: [],
-  manualDrawnNames: [],
+  manualSelectedNames: [],
   skippedDrawNames: [],
   initialized: false,
 };
@@ -164,12 +164,12 @@ function cleanCandidates(rows: string[][]): Candidate[] {
 
 function readSavedState(): Omit<GamePickerState, "initialized"> {
   if (typeof window === "undefined") {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] };
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] };
+    if (!saved) return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] };
 
     const parsed = JSON.parse(saved) as {
       bank?: Candidate[];
@@ -177,6 +177,7 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
       randomNames?: string[];
       drawnName?: string | null;
       drawnNames?: string[];
+      manualSelectedNames?: string[];
       manualDrawnNames?: string[];
       skippedDrawNames?: string[];
     };
@@ -205,22 +206,29 @@ function readSavedState(): Omit<GamePickerState, "initialized"> {
     const legacyDrawnName = typeof parsed.drawnName === "string" && validNames.has(parsed.drawnName)
       ? parsed.drawnName
       : null;
-    const drawnNames = Array.isArray(parsed.drawnNames)
-      ? [...new Set(parsed.drawnNames.filter((name) => validNames.has(name)))].slice(0, 5)
+    const rawDrawnNames = Array.isArray(parsed.drawnNames)
+      ? [...new Set(parsed.drawnNames.filter((name) => validNames.has(name)))]
       : legacyDrawnName
         ? [legacyDrawnName]
         : [];
-    const drawnName = legacyDrawnName || drawnNames[drawnNames.length - 1] || null;
-    const manualDrawnNames = Array.isArray(parsed.manualDrawnNames)
-      ? [...new Set(parsed.manualDrawnNames.filter((name) => validNames.has(name) && drawnNames.includes(name)))]
-      : [];
+    const rawManualSelectedNames = Array.isArray(parsed.manualSelectedNames)
+      ? parsed.manualSelectedNames
+      : Array.isArray(parsed.manualDrawnNames)
+        ? parsed.manualDrawnNames
+        : [];
+    const manualSelectedNames = [...new Set(rawManualSelectedNames.filter((name) => validNames.has(name)))].slice(0, 5);
+    const manualSet = new Set(manualSelectedNames);
+    const drawnNames = (Array.isArray(parsed.manualSelectedNames)
+      ? rawDrawnNames
+      : rawDrawnNames.filter((name) => !manualSet.has(name))).slice(0, 5);
+    const drawnName = drawnNames[drawnNames.length - 1] || null;
     const skippedDrawNames = Array.isArray(parsed.skippedDrawNames)
       ? [...new Set(parsed.skippedDrawNames.filter((name) => validNames.has(name)))]
       : [];
 
-    return { bank, manualNames, randomNames, drawnName, drawnNames, manualDrawnNames, skippedDrawNames };
+    return { bank, manualNames, randomNames, drawnName, drawnNames, manualSelectedNames, skippedDrawNames };
   } catch {
-    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] };
+    return { bank: [], manualNames: [], randomNames: [], drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] };
   }
 }
 
@@ -272,6 +280,18 @@ export default function GamePickerAdminPage() {
   }, []);
 
   useEffect(() => {
+    function syncPickerStorage(event: StorageEvent) {
+      if (event.key !== STORAGE_KEY || !event.newValue) return;
+      const saved = readSavedState();
+      setState({ ...saved, initialized: true });
+      setMessage("Banco de Jogos sincronizado com as alterações da fila oficial.");
+    }
+
+    window.addEventListener("storage", syncPickerStorage);
+    return () => window.removeEventListener("storage", syncPickerStorage);
+  }, []);
+
+  useEffect(() => {
     if (!state.initialized) return;
     localStorage.setItem(
       STORAGE_KEY,
@@ -281,7 +301,7 @@ export default function GamePickerAdminPage() {
         randomNames: state.randomNames,
         drawnName: state.drawnName,
         drawnNames: state.drawnNames,
-        manualDrawnNames: state.manualDrawnNames,
+        manualSelectedNames: state.manualSelectedNames,
         skippedDrawNames: state.skippedDrawNames,
       })
     );
@@ -329,7 +349,7 @@ export default function GamePickerAdminPage() {
         randomNames: [],
         drawnName: null,
         drawnNames: [],
-        manualDrawnNames: [],
+        manualSelectedNames: [],
         skippedDrawNames: [],
       }));
       const pendingGenres = imported.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
@@ -399,7 +419,7 @@ export default function GamePickerAdminPage() {
           ),
           drawnName: current.drawnName === existing.name ? name : current.drawnName,
           drawnNames: current.drawnNames.map((item) => item === existing.name ? name : item),
-          manualDrawnNames: current.manualDrawnNames.map((item) => item === existing.name ? name : item),
+          manualSelectedNames: current.manualSelectedNames.map((item) => item === existing.name ? name : item),
           skippedDrawNames: current.skippedDrawNames.map((item) => item === existing.name ? name : item),
         }));
         setNewGameName("");
@@ -535,7 +555,7 @@ export default function GamePickerAdminPage() {
       randomNames: current.randomNames.map((item) => item === originalName ? name : item),
       drawnName: current.drawnName === originalName ? name : current.drawnName,
       drawnNames: current.drawnNames.map((item) => item === originalName ? name : item),
-      manualDrawnNames: current.manualDrawnNames.map((item) => item === originalName ? name : item),
+      manualSelectedNames: current.manualSelectedNames.map((item) => item === originalName ? name : item),
       skippedDrawNames: current.skippedDrawNames.map((item) => item === originalName ? name : item),
     }));
 
@@ -567,7 +587,7 @@ export default function GamePickerAdminPage() {
       randomNames: current.randomNames.filter((item) => item !== name),
       drawnName: current.drawnName === name ? null : current.drawnName,
       drawnNames: current.drawnNames.filter((item) => item !== name),
-      manualDrawnNames: current.manualDrawnNames.filter((item) => item !== name),
+      manualSelectedNames: current.manualSelectedNames.filter((item) => item !== name),
       skippedDrawNames: current.skippedDrawNames.filter((item) => item !== name),
     }));
     setMessage(
@@ -604,7 +624,9 @@ export default function GamePickerAdminPage() {
     setIsReelAnimating(false);
     setIsDrawing(true);
     setShowWinnerAlert(true);
-    setMessage("Sorteio " + drawNumber + " de 5: a roleta está girando...");
+    setMessage(manual
+      ? "Escolha manual " + drawNumber + " de 5: a roleta está revelando o jogo escolhido."
+      : "Sorteio aleatório " + drawNumber + " de 5: a roleta está girando...");
 
     drawStartTimer.current = window.setTimeout(() => {
       setIsReelAnimating(true);
@@ -616,18 +638,24 @@ export default function GamePickerAdminPage() {
       setState((current) => {
         const stillEligible = current.bank.some(
           (candidate) => candidate.category === "Em breve" && candidate.name === winner.name
-        ) && !current.drawnNames.includes(winner.name) && !current.skippedDrawNames.includes(winner.name);
-        if (!stillEligible || current.drawnNames.length >= 5) return current;
+        ) &&
+          !current.drawnNames.includes(winner.name) &&
+          !current.manualSelectedNames.includes(winner.name) &&
+          !current.skippedDrawNames.includes(winner.name);
+        if (!stillEligible) return current;
+
+        if (manual) {
+          if (current.manualSelectedNames.length >= 5) return current;
+          return { ...current, manualSelectedNames: [...current.manualSelectedNames, winner.name] };
+        }
+        if (current.drawnNames.length >= 5) return current;
         const drawnNames = [...current.drawnNames, winner.name];
-        const manualDrawnNames = manual
-          ? [...current.manualDrawnNames.filter((name) => name !== winner.name), winner.name]
-          : current.manualDrawnNames.filter((name) => name !== winner.name);
-        return { ...current, drawnNames, drawnName: winner.name, manualDrawnNames };
+        return { ...current, drawnNames, drawnName: winner.name };
       });
       setActiveWinnerName(winner.name);
       setIsDrawing(false);
       setIsReelAnimating(false);
-      setMessage("Sorteio " + drawNumber + " concluído: " + winner.name + ".");
+      setMessage((manual ? "Escolha manual " : "Sorteio aleatório ") + drawNumber + " concluído: " + winner.name + ".");
       drawFinishTimer.current = null;
 
       // Mantém o vencedor em destaque antes de devolver a tela ao painel.
@@ -639,8 +667,8 @@ export default function GamePickerAdminPage() {
 
   function chooseCandidate(name: string) {
     if (isDrawing || showWinnerAlert || isClassifying) return;
-    if (state.drawnNames.length >= 5) {
-      setMessage("Você já preencheu as cinco vagas. Retire um resultado para liberar espaço.");
+    if (state.manualSelectedNames.length >= 5) {
+      setMessage("Você já escolheu cinco jogos manualmente. Retire um deles para liberar espaço.");
       return;
     }
 
@@ -650,7 +678,11 @@ export default function GamePickerAdminPage() {
       return;
     }
     if (state.drawnNames.includes(name)) {
-      setMessage('"' + name + '" já está nos resultados.');
+      setMessage('"' + name + '" já está na lista de sorteados aleatoriamente.');
+      return;
+    }
+    if (state.manualSelectedNames.includes(name)) {
+      setMessage('"' + name + '" já está na lista de escolhidos manualmente.');
       return;
     }
     if (state.skippedDrawNames.includes(name)) {
@@ -665,23 +697,25 @@ export default function GamePickerAdminPage() {
     const pool = state.bank.filter((item) =>
       item.category === "Em breve" &&
       !state.drawnNames.includes(item.name) &&
+      !state.manualSelectedNames.includes(item.name) &&
       !state.skippedDrawNames.includes(item.name)
     );
     setMessage('Você escolheu "' + name + '". A roleta vai revelar sua escolha.');
-    spinOneGame(candidate, pool, state.drawnNames.length + 1, true);
+    spinOneGame(candidate, pool, state.manualSelectedNames.length + 1, true);
   }
 
   function drawRandomGame() {
     if (isDrawing || showWinnerAlert) return;
 
     if (state.drawnNames.length >= 5) {
-      setMessage("Você já tem cinco resultados. Retire um deles para sortear um substituto.");
+      setMessage("Você já sorteou cinco jogos aleatórios. Retire um para liberar uma vaga.");
       return;
     }
 
     const pool = state.bank.filter((candidate) =>
       candidate.category === "Em breve" &&
       !state.drawnNames.includes(candidate.name) &&
+      !state.manualSelectedNames.includes(candidate.name) &&
       !state.skippedDrawNames.includes(candidate.name)
     );
     if (pool.length === 0) {
@@ -701,17 +735,18 @@ export default function GamePickerAdminPage() {
     if (isDrawing || showWinnerAlert) return;
     setState((current) => {
       const drawnNames = current.drawnNames.filter((item) => item !== name);
+      const manualSelectedNames = current.manualSelectedNames.filter((item) => item !== name);
       return {
         ...current,
         drawnNames,
+        manualSelectedNames,
         drawnName: drawnNames[drawnNames.length - 1] || null,
-        manualDrawnNames: current.manualDrawnNames.filter((item) => item !== name),
         skippedDrawNames: current.skippedDrawNames.includes(name)
           ? current.skippedDrawNames
           : [...current.skippedDrawNames, name],
       };
     });
-    setMessage('"' + name + '" foi retirado dos resultados e não será sorteado novamente nesta rodada. Agora você pode sortear um substituto.');
+    setMessage('"' + name + '" foi retirado da lista correspondente e ficará fora dos sorteios desta rodada. Você pode preencher a vaga com outro título.');
   }
 
   function clearDrawnGame() {
@@ -723,20 +758,25 @@ export default function GamePickerAdminPage() {
     setActiveWinnerName(null);
     setActiveWinnerIsManual(false);
     setWheelPosition(-REEL_CARD_WIDTH / 2);
-    setState((current) => ({ ...current, drawnName: null, drawnNames: [], manualDrawnNames: [], skippedDrawNames: [] }));
-    setMessage("Resultados limpos. O banco de jogos foi preservado; você pode iniciar uma nova rodada de até cinco sorteios.");
+    setState((current) => ({ ...current, drawnName: null, drawnNames: [], manualSelectedNames: [], skippedDrawNames: [] }));
+    setMessage("As duas listas foram limpas. O banco de jogos foi preservado para uma nova rodada.");
   }
 
   async function copyDrawnGame() {
-    if (state.drawnNames.length === 0 && !state.drawnName) return;
-    const titles = state.drawnNames.length > 0 ? state.drawnNames : state.drawnName ? [state.drawnName] : [];
+    if (state.drawnNames.length === 0 && state.manualSelectedNames.length === 0 && !state.drawnName) return;
+    const titles = [
+      "SORTEADOS ALEATORIAMENTE (" + state.drawnNames.length + "/5)",
+      ...(state.drawnNames.length ? state.drawnNames.map((name, index) => (index + 1) + ". " + name) : ["(nenhum)"]),
+      "",
+      "ESCOLHIDOS MANUALMENTE (" + state.manualSelectedNames.length + "/5)",
+      ...(state.manualSelectedNames.length ? state.manualSelectedNames.map((name, index) => (index + 1) + ". " + name) : ["(nenhum)"]),
+    ];
 
     try {
       await navigator.clipboard.writeText(
-        "🏆 RUMO À CONQUISTA | JOGOS SORTEADOS\n\n" +
-        titles.map((name, index) => (index + 1) + ". " + name).join("\n")
+        "🏆 RUMO À CONQUISTA | DUAS LISTAS DE JOGOS\n\n" + titles.join("\n")
       );
-      setMessage(titles.length + " jogo(s) sorteado(s) copiado(s) para a área de transferência.");
+      setMessage("As listas de sorteados e escolhidos manualmente foram copiadas.");
     } catch {
       setMessage("O navegador bloqueou a cópia automática. Os jogos sorteados continuam visíveis no painel.");
     }
@@ -777,7 +817,7 @@ export default function GamePickerAdminPage() {
             </div>
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Banco de Jogos <span className="text-red-500">&</span> Roleta</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50 sm:text-base">
-              Guarde os jogos que você quer experimentar. Clique em Escolher para definir seu próximo jogo ou use a roleta para sortear aleatoriamente.
+              Mantenha duas listas independentes: cinco jogos sorteados aleatoriamente e cinco jogos que você escolhe manualmente.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -899,7 +939,7 @@ export default function GamePickerAdminPage() {
           <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
             <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-4 sm:p-6">
               <div className="mb-5 flex items-start justify-between gap-4">
-                <SectionTitle eyebrow="Banco Em breve" title="Jogos candidatos" detail="Clique em Escolher para selecionar um título específico e confirmar na roleta, ou sorteie aleatoriamente pelo painel ao lado." />
+                <SectionTitle eyebrow="Banco Em breve" title="Jogos candidatos" detail="Clique em Escolher para colocar um título na lista manual. Esses títulos ficam fora do sorteio aleatório." />
               </div>
 
               <div className="mb-4 flex flex-col gap-3 sm:flex-row">
@@ -921,8 +961,9 @@ export default function GamePickerAdminPage() {
                 {filteredBank.map((candidate) => {
                   const isEditing = editingGameName === candidate.name;
                   const isAlreadyDrawn = state.drawnNames.includes(candidate.name);
+                  const isManuallySelected = state.manualSelectedNames.includes(candidate.name);
                   const wasSkipped = state.skippedDrawNames.includes(candidate.name);
-                  const noResultsSpace = state.drawnNames.length >= 5;
+                  const noManualSpace = state.manualSelectedNames.length >= 5;
                   return (
                     <div key={candidate.name} className="space-y-2">
                       <div className="flex w-full items-center gap-2 rounded-xl border border-white/[0.07] bg-black/20 px-2 py-2 transition hover:border-white/20 hover:bg-white/[0.04]">
@@ -950,12 +991,12 @@ export default function GamePickerAdminPage() {
                         <button
                           type="button"
                           onClick={() => chooseCandidate(candidate.name)}
-                          disabled={isDrawing || showWinnerAlert || isClassifying || isAlreadyDrawn || wasSkipped || noResultsSpace}
-                          title={isAlreadyDrawn ? "Esse jogo já está nos resultados" : wasSkipped ? "Esse jogo foi descartado nesta rodada" : noResultsSpace ? "Retire um resultado para liberar uma vaga" : "Escolher " + candidate.name}
+                          disabled={isDrawing || showWinnerAlert || isClassifying || isAlreadyDrawn || isManuallySelected || wasSkipped || noManualSpace}
+                          title={isAlreadyDrawn ? "Esse jogo já foi sorteado" : isManuallySelected ? "Esse jogo já foi escolhido manualmente" : wasSkipped ? "Esse jogo foi retirado nesta rodada" : noManualSpace ? "Você já escolheu cinco jogos manualmente" : "Escolher " + candidate.name}
                           aria-label={"Escolher " + candidate.name}
-                          className={"shrink-0 rounded-lg border px-2.5 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs " + (isAlreadyDrawn ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200/70" : "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20") + " disabled:cursor-not-allowed disabled:opacity-40"}
+                          className={"shrink-0 rounded-lg border px-2.5 py-2 text-[11px] font-black transition sm:px-3 sm:text-xs " + (isAlreadyDrawn || isManuallySelected ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200/70" : "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20") + " disabled:cursor-not-allowed disabled:opacity-40"}
                         >
-                          {isAlreadyDrawn ? "Escolhido" : wasSkipped ? "Descartado" : noResultsSpace ? "Limite 5" : "Escolher"}
+                          {isAlreadyDrawn ? "Sorteado" : isManuallySelected ? "Escolhido" : wasSkipped ? "Retirado" : noManualSpace ? "Limite 5" : "Escolher"}
                         </button>
                         <button type="button" title={"Editar " + candidate.name} aria-label={"Editar " + candidate.name} disabled={isDrawing || isClassifying} onClick={() => isEditing ? cancelEdit() : beginEdit(candidate)} className="shrink-0 rounded-lg border border-white/10 px-2.5 py-2 text-[11px] font-bold text-white/55 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.07] hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3 sm:text-xs">
                           {isEditing ? "Cancelar" : "Editar"}
@@ -980,10 +1021,10 @@ export default function GamePickerAdminPage() {
 
             <div className="space-y-5">
               <section className="rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.09] via-white/[0.025] to-transparent p-5 sm:p-6">
-                <SectionTitle eyebrow="Roleta Em breve" title="Sortear o próximo jogo" detail="Sorteie um jogo por vez, até preencher cinco resultados. Cada título sorteado fica registrado e pode ser retirado individualmente." />
+                <SectionTitle eyebrow="Sorteio aleatório" title="Sortear até 5 jogos" detail="Esta lista é independente das escolhas manuais. Os jogos escolhidos por você não participam do sorteio aleatório." />
                 <div className="mb-3 flex items-center justify-between gap-3 text-xs text-white/45">
-                  <span>{isDrawing ? "A sorte está lançada..." : state.drawnNames.length + " de 5 resultados preenchidos"}</span>
-                  <span>{state.bank.filter((candidate) => candidate.category === "Em breve" && !state.drawnNames.includes(candidate.name) && !state.skippedDrawNames.includes(candidate.name)).length} disponíveis</span>
+                  <span>{isDrawing ? "A sorte está lançada..." : state.drawnNames.length + " de 5 sorteados"}</span>
+                  <span>{state.bank.filter((candidate) => candidate.category === "Em breve" && !state.drawnNames.includes(candidate.name) && !state.manualSelectedNames.includes(candidate.name) && !state.skippedDrawNames.includes(candidate.name)).length} no sorteio</span>
                 </div>
                 <div className="relative mb-5 h-[164px] overflow-hidden rounded-2xl border border-white/10 bg-[#08090c] before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10 before:w-10 before:bg-gradient-to-r before:from-[#08090c] before:to-transparent after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10 after:w-10 after:bg-gradient-to-l after:from-[#08090c] after:to-transparent" aria-label="Roleta animada de jogos">
                   <div className="absolute left-1/2 top-0 z-20 h-full w-0.5 -translate-x-1/2 bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.85)]" />
@@ -1019,20 +1060,20 @@ export default function GamePickerAdminPage() {
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-8 bg-gradient-to-t from-[#08090c] to-transparent" />
                 </div>
                 <div className="mb-5 flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3">
-                  <span className="text-xl">{isDrawing ? "🎰" : state.drawnName ? "🏆" : "🎲"}</span>
+                  <span className="text-xl">{isDrawing ? "🎰" : activeWinnerIsManual ? "🎯" : state.drawnName ? "🏆" : "🎲"}</span>
                   <div className="min-w-0">
-                    <p className="text-sm font-black text-white">{isDrawing ? "A roleta está girando!" : state.drawnName ? "Resultado definido" : "Pronto para sortear"}</p>
-                    <p className="mt-1 break-words text-xs text-white/45">{isDrawing ? "O marcador vermelho vai indicar o jogo vencedor." : state.drawnName || (remainingCount + " jogos aguardando o sorteio")}</p>
+                    <p className="text-sm font-black text-white">{isDrawing ? "A roleta está girando!" : activeWinnerName ? (activeWinnerIsManual ? "Sua escolha confirmada" : "Sorteio confirmado") : "Pronto para sortear"}</p>
+                    <p className="mt-1 break-words text-xs text-white/45">{isDrawing ? "O marcador vermelho vai indicar o título escolhido." : activeWinnerName || (remainingCount + " jogos disponíveis no banco")}</p>
                   </div>
                 </div>
-                <button type="button" onClick={drawRandomGame} disabled={state.drawnNames.length >= 5 || isDrawing || showWinnerAlert || state.bank.every((candidate) => candidate.category !== "Em breve" || state.drawnNames.includes(candidate.name) || state.skippedDrawNames.includes(candidate.name))} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
-                  {isDrawing ? "A roleta está girando..." : state.drawnNames.length >= 5 ? "Retire um resultado para sortear outro" : state.drawnNames.length > 0 ? "Sortear mais 1 jogo" : "Sortear 1 jogo"}
+                <button type="button" onClick={drawRandomGame} disabled={state.drawnNames.length >= 5 || isDrawing || showWinnerAlert || state.bank.every((candidate) => candidate.category !== "Em breve" || state.drawnNames.includes(candidate.name) || state.manualSelectedNames.includes(candidate.name) || state.skippedDrawNames.includes(candidate.name))} className="w-full rounded-xl bg-red-600 px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white shadow-[0_12px_35px_rgba(220,38,38,0.16)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none">
+                  {isDrawing ? "A roleta está girando..." : state.drawnNames.length >= 5 ? "Limite de 5 sorteios atingido" : state.drawnNames.length > 0 ? "Sortear mais 1 jogo" : "Sortear 1 jogo"}
                 </button>
               </section>
 
               <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <SectionTitle eyebrow="Resultados" title="Jogos sorteados" detail="Mantenha até cinco jogos. Use Retirar para descartar um título e liberar uma vaga para outro sorteio." />
+                  <SectionTitle eyebrow="Resultados aleatórios" title="Jogos sorteados" detail="Até cinco títulos escolhidos pela roleta. Estes ficam separados das escolhas manuais." />
                   <span className="rounded-lg border border-white/10 px-2 py-1 text-xs font-black text-white/55">{state.drawnNames.length}/5</span>
                 </div>
                 {state.drawnNames.length > 0 ? (
@@ -1041,21 +1082,44 @@ export default function GamePickerAdminPage() {
                       <div key={name} className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] px-3 py-3">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-red-400/25 bg-red-500/10 text-sm font-black text-red-200">{index + 1}</span>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">{state.manualDrawnNames.includes(name) ? "Escolha manual" : "Jogo sorteado " + (index + 1)}</p>
+                          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-300">Sorteio aleatório {index + 1}</p>
                           <p className="mt-1 break-words text-sm font-black text-white">{name}</p>
                         </div>
-                        <span className="text-lg">🏆</span>
-                        <button type="button" onClick={() => removeDrawnResult(name)} disabled={isDrawing || showWinnerAlert} title={"Retirar " + name + " dos resultados"} aria-label={"Retirar " + name + " dos resultados"} className="shrink-0 rounded-lg border border-amber-400/20 px-2 py-1.5 text-[10px] font-black text-amber-200/80 transition hover:border-amber-300/50 hover:bg-amber-400/10 disabled:cursor-not-allowed disabled:opacity-30">Retirar</button>
+                        <span className="text-lg">🎲</span>
+                        <button type="button" onClick={() => removeDrawnResult(name)} disabled={isDrawing || showWinnerAlert} title={"Retirar " + name + " dos sorteios"} aria-label={"Retirar " + name + " dos sorteios"} className="shrink-0 rounded-lg border border-amber-400/20 px-2 py-1.5 text-[10px] font-black text-amber-200/80 transition hover:border-amber-300/50 hover:bg-amber-400/10 disabled:cursor-not-allowed disabled:opacity-30">Retirar</button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-white/30">Nenhum resultado ainda. Clique em “Sortear 1 jogo” para começar.</p>
+                  <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-white/30">Nenhum jogo sorteado. Clique em “Sortear 1 jogo” para começar.</p>
                 )}
+              </section>
 
+              <section className="rounded-3xl border border-cyan-400/15 bg-cyan-400/[0.025] p-5 sm:p-6">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <SectionTitle eyebrow="Escolhas manuais" title="Jogos escolhidos por você" detail="Clique em Escolher na lista de candidatos para guardar até cinco títulos. Eles ficam fora do sorteio aleatório." />
+                  <span className="rounded-lg border border-cyan-400/15 px-2 py-1 text-xs font-black text-cyan-100/60">{state.manualSelectedNames.length}/5</span>
+                </div>
+                {state.manualSelectedNames.length > 0 ? (
+                  <div className="space-y-2">
+                    {state.manualSelectedNames.map((name, index) => (
+                      <div key={name} className="flex items-start gap-3 rounded-xl border border-cyan-400/15 bg-cyan-400/[0.04] px-3 py-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan-400/25 bg-cyan-400/[0.08] text-sm font-black text-cyan-100">{index + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-200">Escolha manual {index + 1}</p>
+                          <p className="mt-1 break-words text-sm font-black text-white">{name}</p>
+                        </div>
+                        <span className="text-lg">🎯</span>
+                        <button type="button" onClick={() => removeDrawnResult(name)} disabled={isDrawing || showWinnerAlert} title={"Retirar " + name + " das escolhas manuais"} aria-label={"Retirar " + name + " das escolhas manuais"} className="shrink-0 rounded-lg border border-amber-400/20 px-2 py-1.5 text-[10px] font-black text-amber-200/80 transition hover:border-amber-300/50 hover:bg-amber-400/10 disabled:cursor-not-allowed disabled:opacity-30">Retirar</button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="rounded-xl border border-dashed border-cyan-400/15 px-3 py-6 text-center text-sm text-white/30">Nenhuma escolha manual. Clique em “Escolher” ao lado de um candidato.</p>
+                )}
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                  <button type="button" onClick={() => void copyDrawnGame()} disabled={state.drawnNames.length === 0 && !state.drawnName} className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30">Copiar jogos sorteados</button>
-                  <button type="button" onClick={clearDrawnGame} disabled={(state.drawnNames.length === 0 && !state.drawnName) || isDrawing || showWinnerAlert} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">Limpar resultados</button>
+                  <button type="button" onClick={() => void copyDrawnGame()} disabled={state.drawnNames.length === 0 && state.manualSelectedNames.length === 0} className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30">Copiar as duas listas</button>
+                  <button type="button" onClick={clearDrawnGame} disabled={(state.drawnNames.length === 0 && state.manualSelectedNames.length === 0) || isDrawing || showWinnerAlert} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-bold text-white/65 transition hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-30">Limpar as duas listas</button>
                 </div>
               </section>
             </div>
@@ -1071,7 +1135,7 @@ export default function GamePickerAdminPage() {
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-400/25 bg-red-500/10 text-2xl">🎰</div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.24em] text-red-300">Rumo à Conquista · Roleta em breve</p>
-                    <h2 id="roulette-winner-title" className="mt-1 text-xl font-black text-white sm:text-2xl">{isDrawing ? "Sorteando o jogo " + currentDrawNumber + " de 5" : "Jogo escolhido!"}</h2>
+                    <h2 id="roulette-winner-title" className="mt-1 text-xl font-black text-white sm:text-2xl">{isDrawing ? (activeWinnerIsManual ? "Revelando sua escolha " + currentDrawNumber + " de 5" : "Sorteando jogo " + currentDrawNumber + " de 5") : (activeWinnerIsManual ? "Sua escolha foi confirmada!" : "Jogo sorteado!")}</h2>
                     <p className="mt-1 text-xs text-white/45">A roleta ocupa o centro da tela durante a animação e retorna ao painel após revelar o resultado.</p>
                   </div>
                 </div>
@@ -1124,7 +1188,7 @@ export default function GamePickerAdminPage() {
                   </>
                 ) : (
                   <>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">🎉 {activeWinnerIsManual ? "Sua escolha" : "Jogo sorteado"}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">🎉 {activeWinnerIsManual ? "Sua escolha manual" : "Sorteio aleatório"}</p>
                     <p className="mt-2 break-words text-xl font-black text-white sm:text-2xl">{activeWinnerName}</p>
                     <p className="mt-1 text-xs text-white/40">Voltando ao painel automaticamente...</p>
                     <button type="button" onClick={finishPresentation} className="mt-4 rounded-xl bg-white px-6 py-3 text-sm font-black text-black transition hover:bg-white/85">Voltar ao painel agora</button>
