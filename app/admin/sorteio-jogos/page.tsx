@@ -914,7 +914,7 @@ export default function GamePickerAdminPage() {
 
               <div className="mb-3 flex items-center justify-between text-xs text-white/40">
                 <span>{filteredBank.length} jogos encontrados</span>
-                <span>Todos podem ser sorteados</span>
+                <span>Clique em Escolher ou sorteie</span>
               </div>
 
               <div className="max-h-[500px] space-y-2 overflow-y-auto pr-1">
