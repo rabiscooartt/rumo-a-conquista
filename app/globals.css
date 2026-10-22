@@ -167,13 +167,29 @@ html {
     radial-gradient(
       rgba(255, 255, 255, 0.0399) 0.65px,
       transparent 0.65px
-    );
+    ),
+    url("/images/backgrounds/rabiisco-global-bg.webp");
   background-size:
     auto,
     auto,
     auto,
     auto,
-    5px 5px;
+    5px 5px,
+    cover;
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    center center;
+  background-repeat:
+    repeat,
+    repeat,
+    repeat,
+    repeat,
+    repeat,
+    no-repeat;
   background-attachment: fixed;
 }
 
