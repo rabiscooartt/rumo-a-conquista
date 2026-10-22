@@ -1426,38 +1426,7 @@ export default function SagasPage() {
             <EmptyMessage activeFilter={activeFilter} />
           ) : (
             <div className="relative isolate mx-auto w-full max-w-[1600px] overflow-visible py-3 sm:py-4">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
-                style={{
-                  background:
-                    "radial-gradient(circle, rgba(255, 255, 255, 0.0399) 0.65px, transparent 0.65px), repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.00798) 0px, rgba(255, 255, 255, 0.00798) 1px, transparent 1px, transparent 7px), radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.022) 0%, transparent 58%), radial-gradient(ellipse 72% 58% at 50% 14%, rgba(74, 74, 74, 0.04) 0%, rgba(46, 46, 46, 0.022) 26%, rgba(24, 24, 24, 0.01) 48%, transparent 72%), radial-gradient(ellipse 30% 62% at 18% 24%, rgba(84, 89, 94, 0.015) 0%, transparent 74%), radial-gradient(ellipse 32% 68% at 83% 38%, rgba(86, 81, 76, 0.012) 0%, transparent 74%), linear-gradient(180deg, #080808 0%, #060606 52%, #020202 100%)",
-                    backgroundSize: "5px 5px, auto, auto, auto, auto, auto, auto",
-                  maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
-                }}
-              />
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(110deg, transparent 9%, rgba(205, 205, 205, 0.003) 15%, rgba(225, 225, 225, 0.009) 21%, rgba(205, 205, 205, 0.003) 28%, transparent 36%), linear-gradient(76deg, transparent 27%, rgba(195, 195, 195, 0.003) 33%, rgba(220, 220, 220, 0.007) 39%, rgba(195, 195, 195, 0.002) 45%, transparent 52%), linear-gradient(103deg, transparent 51%, rgba(195, 195, 195, 0.002) 56%, rgba(220, 220, 220, 0.006) 61%, transparent 69%), radial-gradient(circle at 12% 39%, rgba(220, 220, 220, 0.035) 0.7px, transparent 1.4px), radial-gradient(circle at 34% 14%, rgba(220, 220, 220, 0.045) 0.7px, transparent 1.4px), radial-gradient(circle at 56% 71%, rgba(195, 195, 195, 0.035) 0.7px, transparent 1.4px), radial-gradient(circle at 78% 76%, rgba(195, 195, 195, 0.03) 0.7px, transparent 1.4px)",
-                  maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
-                }}
-              />
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-[-48px] z-0 h-[calc(100%+72px)] w-screen -translate-x-1/2"
-                style={{
-                  background:
-                    "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.015) 10%, transparent 24%, transparent 76%, rgba(0,0,0,0.34) 100%)",
-                  maskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, rgba(0,0,0,0.15) 28px, black 88px, black 84%, transparent 100%)",
-                }}
-              />
-            <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
+              <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-x-3 gap-y-6 min-[520px]:grid-cols-2 lg:grid-cols-4 2xl:gap-x-4 2xl:gap-y-7">
               {filteredEmblems.map(({ emblem, theme }) => (
                 <EmblemCard
                   key={emblem.id}
