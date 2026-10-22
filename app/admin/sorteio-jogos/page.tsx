@@ -1140,13 +1140,13 @@ export default function GamePickerAdminPage() {
                   </div>
                 </div>
                 <div className="shrink-0 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2 text-center">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/40">Resultados</p>
-                  <p className="mt-0.5 text-lg font-black text-white">{state.drawnNames.length}/5</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/40">Sorteados · Manuais</p>
+                  <p className="mt-0.5 text-xs font-black text-white sm:text-sm">🎲 {state.drawnNames.length}/5 · 🎯 {state.manualSelectedNames.length}/5</p>
                 </div>
               </div>
               <div className="mt-6 flex gap-2" aria-label="Progresso dos cinco sorteios">
                 {Array.from({ length: 5 }, (_, index) => (
-                  <div key={index} className={"h-1.5 flex-1 rounded-full transition-colors " + (state.drawnNames.length > index ? "bg-emerald-400" : currentDrawNumber > index ? "bg-red-500" : "bg-white/10")} />
+                  <div key={index} className={"h-1.5 flex-1 rounded-full transition-colors " + ((activeWinnerIsManual ? state.manualSelectedNames.length : state.drawnNames.length) > index ? "bg-emerald-400" : currentDrawNumber > index ? "bg-red-500" : "bg-white/10")} />
                 ))}
               </div>
               <div className="mt-6 flex items-center justify-between gap-3 text-xs font-semibold text-white/45">
