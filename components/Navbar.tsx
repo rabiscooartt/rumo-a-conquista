@@ -218,7 +218,7 @@ function TwitchIcon({ className = "" }: IconProps) {
 const navLinks = [
   {
     label: "Perfil",
-    href: "/",
+    href: "/perfil",
     icon: ProfileIcon,
   },
   {
