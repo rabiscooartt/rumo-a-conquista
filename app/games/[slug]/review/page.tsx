@@ -132,7 +132,7 @@ export default function CompleteGameReviewPage() {
   const reviewText = cleanText(review?.texto) || cleanText(review?.resumo);
   const reviewSummary = cleanText(review?.resumo);
   const reviewWordCount = useMemo(
-    () => (reviewText ? reviewText.split(/\\s+/).filter(Boolean).length : 0),
+    () => (reviewText ? reviewText.split(/\s+/).filter(Boolean).length : 0),
     [reviewText]
   );
   const readingTimeMinutes = Math.max(1, Math.ceil(reviewWordCount / 200));
@@ -141,7 +141,7 @@ export default function CompleteGameReviewPage() {
     if (!value) return "Não registrada";
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) return "Não registrada";
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(/\\.$/, "");
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(/\.$/, "");
   }, [game?.updatedAt]);
   const scoreText = cleanText(review?.nota);
   const score = Number(scoreText.replace(",", "."));
