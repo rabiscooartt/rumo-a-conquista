@@ -178,21 +178,9 @@ export default function CompleteGameReviewPage() {
         ) : (
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
-              <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
-                <div className="relative min-h-[230px] bg-black">
-                  {(game.cardImage || game.image) ? (
-                    <img
-                      src={game.cardImage || game.image}
-                      alt={`Capa de ${game.title || "jogo"}`}
-                      className="absolute inset-0 h-full w-full object-cover opacity-80"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-950/40 to-black" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:bg-gradient-to-r" />
-                </div>
-
+              <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
                 <div className="p-6 sm:p-8">
+
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-red-300">
                       Review completa
@@ -254,6 +242,21 @@ export default function CompleteGameReviewPage() {
                     ) : null}
                   </div>
                 </div>
+
+                <aside className="relative min-h-[340px] overflow-hidden border-t border-white/[0.08] bg-[radial-gradient(ellipse_at_center,rgba(127,29,29,0.24),transparent_68%),#050505] sm:min-h-[420px] md:min-h-[520px] md:border-l md:border-t-0" aria-label={`Capa do jogo ${game.title || ""}`}>
+                  {(game.cardImage || game.image) ? (
+                    <img
+                      src={game.cardImage || game.image}
+                      alt={`Capa de ${game.title || "jogo"}`}
+                      className="absolute inset-0 h-full w-full object-contain p-4 sm:p-5"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-red-950/40 to-black p-6 text-center">
+                      <span className="text-xs font-black uppercase tracking-[0.18em] text-white/35">Capa indisponível</span>
+                    </div>
+                  )}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
+                </aside>
               </div>
             </header>
 
