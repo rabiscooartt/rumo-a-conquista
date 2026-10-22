@@ -286,6 +286,26 @@ main.min-h-screen[class*="bg-[radial-gradient"] {
 }
 
 /* ============================= */
+/* CONTRASTE LOCAL DAS SIDEBARS SOBRE O BG GLOBAL */
+/* ============================= */
+
+/*
+  Escurece somente as áreas de navegação lateral que ficam diretamente sobre
+  o BG global. O gradiente é mais forte junto ao texto e se dissolve na borda,
+  preservando o fundo gótico sem competir com os itens da sidebar.
+  Cartões, banners e conteúdo central não são afetados.
+*/
+aside[class*="border-r"][class*="px-4"][class*="py-5"],
+aside.game-sidebar-text-contrast {
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.34) 0%,
+    rgba(0, 0, 0, 0.27) 72%,
+    rgba(0, 0, 0, 0.16) 100%
+  );
+}
+
+/* ============================= */
 /* SELEÇÃO DE TEXTO */
 /* ============================= */
 
