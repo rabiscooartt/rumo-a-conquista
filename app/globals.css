@@ -168,6 +168,10 @@ html {
       rgba(255, 255, 255, 0.0399) 0.65px,
       transparent 0.65px
     ),
+    linear-gradient(
+      rgba(0, 0, 0, 0.70),
+      rgba(0, 0, 0, 0.70)
+    ),
     url("/images/backgrounds/rabiisco-global-bg.webp");
   background-size:
     auto,
@@ -175,6 +179,7 @@ html {
     auto,
     auto,
     5px 5px,
+    cover,
     cover;
   background-position:
     0 0,
@@ -182,6 +187,7 @@ html {
     0 0,
     0 0,
     0 0,
+    center center,
     center center;
   background-repeat:
     repeat,
@@ -189,6 +195,7 @@ html {
     repeat,
     repeat,
     repeat,
+    no-repeat,
     no-repeat;
   background-attachment: fixed;
 }
