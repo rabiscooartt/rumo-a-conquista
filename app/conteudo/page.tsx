@@ -1351,7 +1351,7 @@ export default function ConteudoPage() {
         </aside>
 
         {/* CONTEÚDO CENTRAL */}
-        <div className="min-w-0 border-r border-white/[0.10] px-4 py-5 md:px-5 lg:px-6">
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-6">
           <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
             <BannerBackground bannerKey="conteudo" imageUrl="/images/content-banner-bg.png" adminButtonClassName="" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.96)_34%,rgba(5,6,9,0.70)_58%,rgba(5,6,9,0.42)_78%,rgba(5,6,9,0.74)_100%)]" />
