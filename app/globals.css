@@ -215,6 +215,12 @@ main.min-h-screen {
   background-image: none !important;
 }
 
+/* A aba Emblemas recebe um escurecimento local muito leve no fundo global.
+   Atua só no plano de fundo dessa página; banners e cartões permanecem intactos. */
+main#topo-emblemas.min-h-screen {
+  background-color: rgba(0, 0, 0, 0.16) !important;
+}
+
 /* Realce de leitura aplicado ao próprio texto, sem placas ou fundos atrás dele. */
 .game-sidebar-text-contrast p,
 .game-sidebar-text-contrast a,
