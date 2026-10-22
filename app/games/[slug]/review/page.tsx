@@ -178,18 +178,18 @@ export default function CompleteGameReviewPage() {
         ) : (
           <>
             <header className="mt-6 overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090909]">
-              <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
+              <div className="grid gap-0 md:grid-cols-[250px_minmax(0,1fr)]">
                 <div className="relative min-h-[230px] bg-black">
                   {(game.cardImage || game.image) ? (
                     <img
                       src={game.cardImage || game.image}
                       alt={`Capa de ${game.title || "jogo"}`}
-                      className="absolute inset-0 h-full w-full object-cover opacity-80"
+                      className="absolute inset-0 h-full w-full object-cover opacity-90"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-red-950/40 to-black" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:bg-gradient-to-r" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent md:bg-gradient-to-r" />
                 </div>
 
                 <div className="p-6 sm:p-8">
@@ -211,7 +211,7 @@ export default function CompleteGameReviewPage() {
                     {reviewTitle}
                   </h1>
                   {reviewSummary && reviewSummary !== reviewText ? (
-                    <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-white/60">
+                    <p className="mt-4 max-w-2xl line-clamp-3 break-words text-sm font-medium leading-relaxed text-white/60">
                       {reviewSummary}
                     </p>
                   ) : null}
@@ -260,7 +260,7 @@ export default function CompleteGameReviewPage() {
             {reviewText ? (
               <article className="mt-5 rounded-3xl border border-white/[0.09] bg-[#090909] p-6 sm:p-8">
                 <SectionHeading>Análise da jornada</SectionHeading>
-                <div className="mt-5 whitespace-pre-line text-sm font-medium leading-8 text-white/75 sm:text-base">
+                <div className="mt-5 break-words whitespace-pre-line text-sm font-medium leading-8 text-white/75 sm:text-base">
                   {reviewText}
                 </div>
               </article>
