@@ -338,7 +338,6 @@ export default function GamePickerAdminPage() {
     });
   }, [state.bank, state.drawnNames, state.manualSelectedNames, state.archivedNames, search, genreFilter]);
 
-  const emBreveCount = state.bank.filter((candidate) => candidate.category === "Em breve").length;
   const genrePendingCount = state.bank.filter((candidate) => !candidate.genre && !candidate.genreChecked).length;
   const genreUnknownCount = state.bank.filter((candidate) => !candidate.genre && candidate.genreChecked).length;
   const remainingCount = state.bank.filter((candidate) =>
@@ -971,18 +970,12 @@ export default function GamePickerAdminPage() {
           </section>
         )}
 
-        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[
-            { label: "Em breve", value: emBreveCount, tone: "text-red-300" },
-            { label: "Gêneros pendentes", value: genrePendingCount, tone: "text-cyan-200" },
-            { label: "Sem gênero identificado", value: genreUnknownCount, tone: "text-amber-200" },
-            { label: "Disponíveis na roleta", value: remainingCount, tone: "text-emerald-300" },
-          ].map((stat) => (
-            <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">{stat.label}</p>
-              <p className={"mt-2 text-3xl font-black " + stat.tone}>{stat.value}</p>
-            </div>
-          ))}
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200/70">Disponíveis na roleta</p>
+            <p className="mt-1 text-xs leading-5 text-white/45">Jogos que ainda podem ser sorteados ou escolhidos manualmente.</p>
+          </div>
+          <p className="shrink-0 text-3xl font-black tabular-nums text-emerald-300">{remainingCount}</p>
         </div>
 
         {message && (
