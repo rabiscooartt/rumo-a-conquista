@@ -370,31 +370,39 @@ export default function LandingHome() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 pb-12 pt-5 sm:px-6 lg:px-8 lg:pt-6">
-      {/* Banner de perfil — primeira etapa do redesenho */}
+      {/* Banner inspirado na referência: perfil real à esquerda, cenário cinematográfico à direita */}
       <section
         aria-labelledby="home-profile-title"
-        className="relative isolate overflow-hidden rounded-2xl border border-red-500/20 bg-[#050608] shadow-[0_18px_48px_rgba(0,0,0,0.24)]"
+        className="relative isolate min-h-[190px] overflow-hidden rounded-2xl border border-red-500/20 bg-[#050608] shadow-[0_18px_48px_rgba(0,0,0,0.24)] md:min-h-[250px]"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center"
+          className="pointer-events-none absolute inset-0 z-0 md:hidden"
           style={{
             backgroundImage:
-              'linear-gradient(90deg, rgba(5,6,8,0.96) 0%, rgba(5,6,8,0.88) 48%, rgba(5,6,8,0.57) 100%), linear-gradient(0deg, rgba(3,3,5,0.55), rgba(3,3,5,0.12)), url("/images/backgrounds/rabiisco-global-bg.webp")',
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse at 88% 18%, rgba(251,44,54,0.16), transparent 36%), linear-gradient(90deg, transparent 0%, transparent 65%, rgba(0,0,0,0.12) 100%)",
+              "radial-gradient(ellipse at 86% 22%, rgba(251,44,54,0.17), transparent 42%), linear-gradient(135deg, #08090d 0%, #10080b 100%)",
           }}
         />
 
-        <div className="relative grid gap-5 p-4 sm:p-5 md:grid-cols-[minmax(0,1fr)_minmax(210px,0.52fr)] md:items-center md:gap-7 lg:px-7 lg:py-6">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[62%] md:block">
+          <img
+            src="/images/home-profile-banner-art.webp"
+            alt=""
+            className="h-full w-full object-cover"
+            style={{ objectPosition: "center bottom" }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, rgba(5,6,8,0.98) 0%, rgba(5,6,8,0.84) 18%, rgba(5,6,8,0.35) 43%, rgba(5,6,8,0.03) 75%), linear-gradient(0deg, rgba(2,3,5,0.18), transparent 55%)",
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 flex min-h-[190px] items-center p-4 sm:p-5 md:min-h-[250px] md:w-[68%] md:pr-0 lg:px-7 lg:py-6">
           <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-            <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl border border-red-500/50 bg-black/65 p-1 shadow-[0_0_24px_rgba(251,44,54,0.13)] sm:h-[92px] sm:w-[92px]">
+            <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl border border-red-500/55 bg-black/75 p-1 shadow-[0_0_24px_rgba(251,44,54,0.20)] sm:h-[90px] sm:w-[90px] md:h-[96px] md:w-[96px]">
               <img
                 src="/images/avatar.jpg"
                 alt="Avatar do Rabiisco"
@@ -407,13 +415,13 @@ export default function LandingHome() {
             </div>
 
             <div className="min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FB2C36] sm:text-[10px]">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FB2C36] sm:text-[10px]">
                 Criador do Rumo à Conquista
               </p>
               <h1 id="home-profile-title" className="mt-1 text-2xl font-black leading-none tracking-tight text-white sm:text-3xl">
                 Rabiisco
               </h1>
-              <p className="mt-2 max-w-[600px] text-xs leading-relaxed text-white/70 sm:text-sm">
+              <p className="mt-2 max-w-[560px] text-xs leading-relaxed text-white/75 sm:text-sm">
                 Jogando, explorando e registrando cada jornada. Um lugar para acompanhar conquistas, maestrias e as histórias por trás de cada jogo.
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -421,7 +429,7 @@ export default function LandingHome() {
                   href="https://www.youtube.com/@orabiisco"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-white/[0.12] bg-black/35 px-3 py-1.5 text-[10px] font-black text-white/80 transition hover:border-red-400/35 hover:bg-red-500/[0.08] hover:text-white"
+                  className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-white/[0.14] bg-black/55 px-3 py-1.5 text-[10px] font-black text-white/90 transition hover:border-red-400/45 hover:text-white"
                 >
                   <span aria-hidden="true" className="text-[#FB2C36]">▶</span> YouTube
                 </a>
@@ -429,30 +437,21 @@ export default function LandingHome() {
                   href="https://www.twitch.tv/orabiisco"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-white/[0.12] bg-black/35 px-3 py-1.5 text-[10px] font-black text-white/80 transition hover:border-purple-400/35 hover:bg-purple-500/[0.08] hover:text-white"
+                  className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-white/[0.14] bg-black/55 px-3 py-1.5 text-[10px] font-black text-white/90 transition hover:border-purple-400/45 hover:text-white"
                 >
                   <span aria-hidden="true" className="text-purple-300">▣</span> Twitch
                 </a>
                 <Link
                   href="/perfil"
-                  className="ml-1 text-[10px] font-bold text-white/50 transition hover:text-white"
+                  className="ml-1 text-[10px] font-bold text-white/65 transition hover:text-white"
                 >
                   Perfil completo <span className="text-[#FB2C36]">→</span>
                 </Link>
               </div>
             </div>
           </div>
-
-          <div className="hidden min-w-0 border-l border-white/[0.13] pl-5 md:block lg:pl-7">
-            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-white/40">
-              A essência da jornada
-            </span>
-            <p className="mt-2 max-w-[320px] text-lg font-semibold italic leading-snug text-white/85 lg:text-xl">
-              Mais que jogos,
-              <span className="mt-1 block text-[#FB2C36]">são histórias que ficam.</span>
-            </p>
-          </div>
         </div>
+        <span className="sr-only">Mais que jogos, são histórias que ficam.</span>
       </section>
 
       {/* Estatísticas em uma faixa única e discreta */}
