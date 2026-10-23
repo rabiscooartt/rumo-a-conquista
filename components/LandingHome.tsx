@@ -140,7 +140,7 @@ function readBacklogEntries(): BacklogEntry[] {
     id: item.id,
     slug: readText(item.slug, "").trim(),
     order: Number(item.order ?? index + 1),
-    status: item.status === "next" || item.status === "waiting" ? item.status : "future",
+    status: (item.status === "next" || item.status === "waiting" ? item.status : "future") as BacklogEntry["status"],
   })).filter((item) => item.slug).sort((a, b) => a.order - b.order);
 }
 function buildRecentActivity(games: HomeGame[]): HomeActivity[] {
