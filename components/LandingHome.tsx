@@ -370,24 +370,87 @@ export default function LandingHome() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 pb-12 pt-5 sm:px-6 lg:px-8 lg:pt-6">
-      {/* Identidade: perfil compacto, sem um cartão grande competindo com o conteúdo */}
-      <section className="relative border-b border-white/[0.10] pb-5">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-6 h-40 w-64 rounded-full bg-red-600/[0.07] blur-[75px]" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl border border-red-500/40 bg-black/50 sm:h-[78px] sm:w-[78px]">
-            <img src="/images/avatar.jpg" alt="Avatar do Rabiisco" className="h-full w-full object-cover" />
+      {/* Banner de perfil — primeira etapa do redesenho */}
+      <section
+        aria-labelledby="home-profile-title"
+        className="relative isolate overflow-hidden rounded-2xl border border-red-500/20 bg-[#050608] shadow-[0_18px_48px_rgba(0,0,0,0.24)]"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-20 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              'linear-gradient(90deg, rgba(5,6,8,0.96) 0%, rgba(5,6,8,0.88) 48%, rgba(5,6,8,0.57) 100%), linear-gradient(0deg, rgba(3,3,5,0.55), rgba(3,3,5,0.12)), url("/images/backgrounds/rabiisco-global-bg.webp")',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse at 88% 18%, rgba(251,44,54,0.16), transparent 36%), linear-gradient(90deg, transparent 0%, transparent 65%, rgba(0,0,0,0.12) 100%)",
+          }}
+        />
+
+        <div className="relative grid gap-5 p-4 sm:p-5 md:grid-cols-[minmax(0,1fr)_minmax(210px,0.52fr)] md:items-center md:gap-7 lg:px-7 lg:py-6">
+          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+            <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl border border-red-500/50 bg-black/65 p-1 shadow-[0_0_24px_rgba(251,44,54,0.13)] sm:h-[92px] sm:w-[92px]">
+              <img
+                src="/images/avatar.jpg"
+                alt="Avatar do Rabiisco"
+                className="h-full w-full rounded-lg object-cover"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute bottom-1 right-1 h-2.5 w-2.5 rounded-full border-2 border-[#09090b] bg-[#FB2C36]"
+              />
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FB2C36] sm:text-[10px]">
+                Criador do Rumo à Conquista
+              </p>
+              <h1 id="home-profile-title" className="mt-1 text-2xl font-black leading-none tracking-tight text-white sm:text-3xl">
+                Rabiisco
+              </h1>
+              <p className="mt-2 max-w-[600px] text-xs leading-relaxed text-white/70 sm:text-sm">
+                Jogando, explorando e registrando cada jornada. Um lugar para acompanhar conquistas, maestrias e as histórias por trás de cada jogo.
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <a
+                  href="https://www.youtube.com/@orabiisco"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-white/[0.12] bg-black/35 px-3 py-1.5 text-[10px] font-black text-white/80 transition hover:border-red-400/35 hover:bg-red-500/[0.08] hover:text-white"
+                >
+                  <span aria-hidden="true" className="text-[#FB2C36]">▶</span> YouTube
+                </a>
+                <a
+                  href="https://www.twitch.tv/orabiisco"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-8 items-center gap-2 rounded-lg border border-white/[0.12] bg-black/35 px-3 py-1.5 text-[10px] font-black text-white/80 transition hover:border-purple-400/35 hover:bg-purple-500/[0.08] hover:text-white"
+                >
+                  <span aria-hidden="true" className="text-purple-300">▣</span> Twitch
+                </a>
+                <Link
+                  href="/perfil"
+                  className="ml-1 text-[10px] font-bold text-white/50 transition hover:text-white"
+                >
+                  Perfil completo <span className="text-[#FB2C36]">→</span>
+                </Link>
+              </div>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#FB2C36]">Criador do Rumo à Conquista</p>
-            <h1 className="mt-1 text-2xl font-black leading-none text-white sm:text-3xl">Rabiisco</h1>
-            <p className="mt-2 max-w-[740px] text-xs leading-relaxed text-white/60 sm:text-sm">
-              Cada jogo é uma jornada. Aqui ficam as conquistas, as maestrias e as histórias do caminho.
+
+          <div className="hidden min-w-0 border-l border-white/[0.13] pl-5 md:block lg:pl-7">
+            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-white/40">
+              A essência da jornada
+            </span>
+            <p className="mt-2 max-w-[320px] text-lg font-semibold italic leading-snug text-white/85 lg:text-xl">
+              Mais que jogos,
+              <span className="mt-1 block text-[#FB2C36]">são histórias que ficam.</span>
             </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-4 pl-0 text-[11px] font-bold sm:pl-4">
-            <a href="https://www.youtube.com/@orabiisco" target="_blank" rel="noreferrer" className="text-white/65 transition hover:text-red-300">▶ YouTube</a>
-            <a href="https://www.twitch.tv/orabiisco" target="_blank" rel="noreferrer" className="text-white/65 transition hover:text-red-300">▣ Twitch</a>
-            <Link href="/perfil" className="hidden text-white/45 transition hover:text-white sm:inline">Perfil completo →</Link>
           </div>
         </div>
       </section>
