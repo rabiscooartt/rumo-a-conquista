@@ -408,12 +408,12 @@ export default function LandingHome() {
           }}
         />
         <div className="relative z-10 w-full max-w-[560px]">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300 sm:text-xs">Cada jogo conta</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300 sm:text-xs">Sua jornada, do seu jeito</p>
           <h1 id="home-journey-title" className="mt-1 font-serif text-[27px] font-semibold uppercase leading-[1.04] tracking-[0.01em] text-white sm:text-[34px] lg:text-[38px]">
-            Rumo à <span className="text-[#FB2C36]">Conquista</span>
+            Cada desafio conta.
           </h1>
           <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[13px]">
-            Registre suas jornadas, celebre cada conquista e descubra sua próxima maestria.
+            Acompanhe seu progresso, celebre cada vitória e avance passo a passo rumo à maestria.
           </p>
           <Link
             href="/biblioteca"
