@@ -104,6 +104,24 @@ function getAchievementCounts(game: HomeGame) {
   ).length;
   return { unlocked, total: achievements.length };
 }
+function getGameEmblemImage(game: HomeGame | null | undefined) {
+  if (!game) return "";
+  const configured = readText(game.emblem?.image, "") || readText(game.finalBadge?.image, "");
+  if (configured) return configured;
+  const fallbackBySlug: Record<string, string> = {
+    "crisol-theater-of-idols": "/images/games/crisol-theater-of-idols/emblem.png",
+    "hades": "/images/games/hades/emblem.png",
+    "hollow-knight": "/images/games/hollow-knight/emblem.png",
+    "howgarts-legacy": "/images/games/howgarts-legacy/emblem.png",
+    "metro-last-light": "/images/games/metro-last-light/emblem.png",
+    "monster-hunter-world-iceborne": "/images/games/monster-hunter-world-iceborne/emblem.png",
+    "mouse-p-i-for-hire": "/images/games/mouse-p-i-for-hire/emblem.png",
+    "song-of-nunu": "/images/games/song-of-nunu/emblem.png",
+    "the-surge": "/images/games/the-surge/emblem.png",
+    "tom-clancy-s-the-division": "/images/games/tom-clancy-s-the-division/emblem.png",
+  };
+  return fallbackBySlug[game.slug] || "";
+}
 function getUnlockedAchievements(game: HomeGame) {
   const list = Array.isArray(game.achievementsList) ? game.achievementsList as AchievementLike[] : [];
   return list.filter((item) =>
@@ -254,6 +272,10 @@ export default function LandingHome() {
     () => gamesByUpdated.find((game) => getGameStatus(game) === "progress") ?? null,
     [gamesByUpdated]
   );
+  const latestCompletedGame = useMemo(
+    () => gamesByUpdated.find((game) => getGameStatus(game) === "completed") ?? null,
+    [gamesByUpdated]
+  );
   const nextMastery = useMemo(() => {
     const bySlug = new Map(allGames.map((game) => [game.slug, game]));
     const eligibleQueue = backlogEntries
@@ -299,7 +321,70 @@ export default function LandingHome() {
   const visibleCurrentAchievements = currentAchievementList.slice(0, 8);
 
   return (
-    <div className="mx-auto w-full max-w-[1560px] px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:pt-5">
+    <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block" aria-label="Resumo lateral da Home">
+        <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
+          <div className="border-y border-white/[0.08] py-5">
+            <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+              <span aria-hidden="true" className="text-red-400">⌂</span> Início
+            </div>
+          </div>
+          <div className="mt-6 border-b border-white/[0.08] pb-6">
+            <div className="flex items-center gap-2">
+              <span aria-hidden="true" className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
+              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Último emblema</h2>
+            </div>
+            {latestCompletedGame ? (
+              <Link href={"/games/" + latestCompletedGame.slug} className="group block">
+                <div className="mt-3 flex h-[142px] items-center justify-center overflow-hidden">
+                  {getGameEmblemImage(latestCompletedGame) ? (
+                    <img src={getGameEmblemImage(latestCompletedGame)} alt={"Emblema de " + latestCompletedGame.title} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.03]" />
+                  ) : (
+                    <span aria-hidden="true" className="text-5xl text-white/25">♜</span>
+                  )}
+                </div>
+                <p className="mt-2 truncate text-center text-[11px] font-black leading-tight text-white" title={latestCompletedGame.title}>{latestCompletedGame.title}</p>
+                <div className="mt-1.5 flex items-center justify-center">
+                  <span className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">Finalizado</span>
+                </div>
+              </Link>
+            ) : (
+              <p className="mt-3 text-[10px] leading-relaxed text-white/40">Seu primeiro emblema aparecerá aqui quando uma jornada for concluída.</p>
+            )}
+          </div>
+          <div className="mt-6">
+            <div className="flex items-center gap-2">
+              <span aria-hidden="true" className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
+              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Setup</h2>
+            </div>
+            <div className="mt-3 divide-y divide-white/[0.06]">
+              {[
+                { name: "RTX 3060 12GB", type: "GPU", icon: "▣" },
+                { name: "i5-12400F", type: "CPU", icon: "▦" },
+                { name: "32 GB", type: "RAM", icon: "▤" },
+                { name: '27" · 75Hz', type: "Monitor", icon: "▭" },
+              ].map((item) => (
+                <div key={item.type} className="flex items-center gap-3 py-2.5">
+                  <span aria-hidden="true" className="flex w-5 shrink-0 justify-center text-[15px] text-red-500">{item.icon}</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[10px] font-bold text-white/80">{item.name}</p>
+                    <p className="mt-0.5 text-[9px] text-white/35">{item.type}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-auto pt-8">
+            <Link href="/configuracoes" className="flex items-center gap-3 px-2 py-2 text-[11px] font-bold text-white/50 transition hover:text-white">
+              <span aria-hidden="true" className="text-red-400">⚙</span> Configurações
+            </Link>
+          </div>
+        </div>
+      </aside>
+
+      <div className="min-w-0 px-4 pb-12 pt-4 sm:px-5 lg:px-5 lg:pt-5">
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 space-y-4">
       {/* Cabeçalho de perfil compacto inspirado no YourGamerProfile */}
       <section
         aria-labelledby="home-profile-title"
@@ -376,9 +461,6 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* Conteúdo principal à esquerda e sidebar contextual à direita */}
-      <div className="mt-4 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_330px]">
-        <div className="min-w-0 space-y-5">
       {/* Jogo atual com a faixa de conquistas integrada */}
       <section className="overflow-hidden rounded-xl border border-red-500/25 bg-[#05070a]" aria-labelledby="current-game-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
@@ -483,20 +565,7 @@ export default function LandingHome() {
               const counts = getAchievementCounts(game);
               const progress = Math.max(0, Math.min(100, Number(game.progress) || 0));
               const completed = getGameStatus(game) === "completed";
-              const emblem = readText(game.emblem?.image, "") ||
-                readText(game.finalBadge?.image, "") ||
-                ({
-                  "crisol-theater-of-idols": "/images/games/crisol-theater-of-idols/emblem.png",
-                  "hades": "/images/games/hades/emblem.png",
-                  "hollow-knight": "/images/games/hollow-knight/emblem.png",
-                  "howgarts-legacy": "/images/games/howgarts-legacy/emblem.png",
-                  "metro-last-light": "/images/games/metro-last-light/emblem.png",
-                  "monster-hunter-world-iceborne": "/images/games/monster-hunter-world-iceborne/emblem.png",
-                  "mouse-p-i-for-hire": "/images/games/mouse-p-i-for-hire/emblem.png",
-                  "song-of-nunu": "/images/games/song-of-nunu/emblem.png",
-                  "the-surge": "/images/games/the-surge/emblem.png",
-                  "tom-clancy-s-the-division": "/images/games/tom-clancy-s-the-division/emblem.png"
-                } as Record<string, string>)[game.slug] || "";
+              const emblem = getGameEmblemImage(game);
               const updatedAt = formatPublishedDate(readText(game.updatedAt, "") || readText(game.createdAt, ""));
               return (
                 <Link key={game.slug} href={"/games/" + game.slug} className="group grid grid-cols-[64px_minmax(0,1fr)_42px] items-center gap-3 px-3 py-3 transition hover:bg-white/[0.025] sm:grid-cols-[78px_minmax(0,1fr)_72px] sm:gap-4 sm:px-4 sm:py-3.5">
@@ -541,9 +610,9 @@ export default function LandingHome() {
         )}
       </section>
 
-        </div>
+          </div>
 
-        <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
+          <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
           <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="next-mastery-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="next-mastery-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
@@ -606,12 +675,13 @@ export default function LandingHome() {
               </div>
             )}
           </section>
-        </aside>
-      </div>
+          </aside>
+        </div>
 
-      <footer className="mt-8 border-t border-white/[0.08] py-4 text-center text-[9px] font-semibold tracking-[0.16em] text-white/30">
-        RUMO À CONQUISTA · CADA JOGO CONTA. CADA CONQUISTA FICA.
-      </footer>
+        <footer className="mt-8 border-t border-white/[0.08] py-4 text-center text-[9px] font-semibold tracking-[0.16em] text-white/30">
+          RUMO À CONQUISTA · CADA JOGO CONTA. CADA CONQUISTA FICA.
+        </footer>
+      </div>
     </div>
   );
 }
