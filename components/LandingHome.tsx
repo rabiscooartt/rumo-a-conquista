@@ -408,17 +408,17 @@ export default function LandingHome() {
           }}
         />
         <div className="relative z-10 w-full max-w-[560px]">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300 sm:text-xs">Sua jornada, do seu jeito</p>
+          <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]"><span aria-hidden="true" className="text-[10px] leading-none">✣</span>Minha jornada, minhas conquistas</p>
           <h1 id="home-journey-title" className="mt-1 text-[27px] font-black uppercase leading-[1.04] tracking-tight text-white sm:text-[34px] lg:text-[38px]">
             Cada desafio conta.
           </h1>
           <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[14px]">
-            Acompanhe seu progresso, celebre cada vitória e avance passo a passo rumo à maestria.
+            Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
           </p>
           <Link
             href="/biblioteca"
             aria-label="Explorar os jogos do Rumo à Conquista"
-            className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-[10px] font-black text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:min-h-10 sm:px-5 sm:text-xs"
+            className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-xs font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:min-h-10 sm:px-5 sm:text-sm"
           >
             Explorar jogos <span aria-hidden="true">→</span>
           </Link>
