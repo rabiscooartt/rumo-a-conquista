@@ -323,8 +323,8 @@ export default function LandingHome() {
         <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
           <div className="border-b border-white/[0.08] pb-5 pt-2">
             <div className="flex flex-col items-center text-center">
-              <div className="h-[76px] w-[76px] overflow-hidden rounded-full border-2 border-red-500/70 bg-black/60 p-[2px] shadow-[0_0_20px_rgba(251,44,54,0.20)]">
-                <img src="/images/avatar.jpg" alt="Avatar do Rabiisco" className="h-full w-full rounded-full object-cover" />
+              <div className="h-[76px] w-[76px] overflow-hidden rounded-xl border-2 border-red-500/70 bg-black/60 p-[2px] shadow-[0_0_20px_rgba(251,44,54,0.20)]">
+                <img src="/images/avatar.jpg" alt="Avatar do Rabiisco" className="h-full w-full rounded-lg object-cover" />
               </div>
               <h2 className="mt-3 text-lg font-black leading-tight text-white">Rabiisco</h2>
               <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
