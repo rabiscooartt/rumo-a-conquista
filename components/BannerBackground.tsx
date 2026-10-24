@@ -280,7 +280,7 @@ export default function BannerBackground({
           style={{
             width: `${visibleSettings.zoom * 100}%`,
             left: `${50 + visibleSettings.x}%`,
-            top: `${50 + visibleSettings.y}%`,
+            top: `${50 + visibleSettings.y + (bannerKey === "home" ? 3.5 : 0)}%`,
             transform: "translate(-50%, -50%)",
           }}
         />
@@ -411,7 +411,7 @@ export default function BannerBackground({
                 style={{
                   width: `${draft.zoom * 100}%`,
                   left: `${50 + draft.x}%`,
-                  top: `${50 + draft.y}%`,
+                  top: `${50 + draft.y + (bannerKey === "home" ? 3.5 : 0)}%`,
                   transform: "translate(-50%, -50%)",
                 }}
               />
