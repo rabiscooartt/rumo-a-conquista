@@ -185,37 +185,6 @@ function ReviewIcon({ className = "" }: IconProps) {
   );
 }
 
-function YouTubeIcon({ className = "" }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="none"
-    >
-      <path
-        d="M21.58 7.19a2.76 2.76 0 0 0-1.94-1.95C17.92 4.78 12 4.78 12 4.78s-5.92 0-7.64.46a2.76 2.76 0 0 0-1.94 1.95A28.7 28.7 0 0 0 1.96 12a28.7 28.7 0 0 0 .46 4.81 2.76 2.76 0 0 0 1.94 1.95c1.72.46 7.64.46 7.64.46s5.92 0 7.64-.46a2.76 2.76 0 0 0 1.94-1.95A28.7 28.7 0 0 0 22.04 12a28.7 28.7 0 0 0-.46-4.81Z"
-        fill="currentColor"
-      />
-      <path d="M10.1 15.25V8.75L15.75 12l-5.65 3.25Z" fill="black" />
-    </svg>
-  );
-}
-
-function TwitchIcon({ className = "" }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="currentColor"
-    >
-      <path d="M4.5 3 3 7.1v12.4h4.7V22h2.7l2.5-2.5h3.8L21 15.2V3H4.5Zm14.6 11.3-2.7 2.7h-4.2l-2.5 2.5V17H6.2V4.9h12.9v9.4Z" />
-      <path d="M15.3 8.1h1.6v4.7h-1.6V8.1Zm-4.4 0h1.6v4.7h-1.6V8.1Z" />
-    </svg>
-  );
-}
-
 const navLinks = [
   {
     label: "Início",
@@ -353,28 +322,8 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
+        <div className="hidden items-center gap-2.5 lg:flex">
           <AdminAvatarLogin showLabel />
-
-          <a
-            href="https://www.youtube.com/@orabiisco"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 text-sm font-black text-red-400 transition hover:text-red-300"
-          >
-            <YouTubeIcon className="h-5 w-5" />
-            <span>YouTube</span>
-          </a>
-
-          <a
-            href="https://www.twitch.tv/orabiisco"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 text-sm font-black text-purple-400 transition hover:text-purple-300"
-          >
-            <TwitchIcon className="h-5 w-5" />
-            <span>Twitch</span>
-          </a>
         </div>
 
         <div className="flex items-center gap-3 lg:hidden">
