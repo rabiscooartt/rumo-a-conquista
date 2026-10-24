@@ -388,66 +388,32 @@ export default function LandingHome() {
       {/* Cabeçalho de perfil compacto inspirado no YourGamerProfile */}
       <section
         aria-labelledby="home-profile-title"
-        className="relative isolate flex min-h-[145px] items-center overflow-hidden rounded-xl border border-red-500/20 bg-[#06070a] px-4 py-4 sm:min-h-[164px] sm:px-6 lg:px-8"
+        className="relative isolate flex min-h-[205px] items-center overflow-hidden rounded-xl border border-red-500/20 bg-[#06070a] px-5 py-6 sm:min-h-[220px] sm:px-7 lg:px-8"
       >
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20">
           <img src="/images/home-profile-banner-art.webp" alt="" className="h-full w-full object-cover object-center" />
         </div>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" style={{
-          backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.97) 0%, rgba(4,5,8,0.86) 32%, rgba(4,5,8,0.55) 66%, rgba(4,5,8,0.60) 100%), linear-gradient(0deg, rgba(2,3,5,0.35), rgba(2,3,5,0.10))"
+          backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.97) 0%, rgba(4,5,8,0.86) 38%, rgba(4,5,8,0.56) 70%, rgba(4,5,8,0.42) 100%), linear-gradient(0deg, rgba(2,3,5,0.48), rgba(2,3,5,0.12))"
         }} />
 
-        <div className="flex w-full min-w-0 items-center gap-4 sm:gap-5">
-          <div className="h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border border-white/[0.14] bg-black/55 p-0.5 sm:h-[76px] sm:w-[76px]">
-            <img
-              src="/images/avatar.jpg"
-              alt="Avatar do Rabiisco"
-              className="h-full w-full rounded-md object-cover"
-            />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h1 id="home-profile-title" className="text-2xl font-bold leading-tight tracking-tight text-white sm:text-[28px]">
-              Rabiisco
-            </h1>
-            <p className="mt-1 text-xs leading-relaxed text-white/65 sm:text-[13px]">
-              Jogos, conquistas e histórias de cada jornada.
-            </p>
-
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <a
-                href="https://www.youtube.com/@orabiisco"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="YouTube do Rabiisco"
-                title="YouTube"
-                className="inline-flex h-6 items-center justify-center text-[#FB2C36]/90 transition hover:text-[#ff737a]"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="currentColor">
-                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
-                </svg>
-              </a>
-              <a
-                href="https://www.twitch.tv/orabiisco"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Twitch do Rabiisco"
-                title="Twitch"
-                className="inline-flex h-6 items-center justify-center text-white/55 transition hover:text-[#bf94ff]"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="currentColor">
-                  <path d="M4.3 2 1 5.3v14.1h5.4V22h3.3l2.6-2.6h4.1L23 12.7V2H4.3Zm16.4 9.6-3.3 3.3h-4.1l-2.6 2.6v-2.6H6.4V4.1h14.3v7.5ZM16 6.8h2.1v6.1H16V6.8Zm-5.7 0h2.1v6.1h-2.1V6.8Z" />
-                </svg>
-              </a>
-              <span aria-hidden="true" className="h-3.5 w-px bg-white/15" />
-              <Link
-                href="/perfil"
-                className="text-[10px] font-medium text-white/50 transition hover:text-white/85 sm:text-[11px]"
-              >
-                Ver perfil completo <span className="text-[#FB2C36]/90">→</span>
-              </Link>
-            </div>
-          </div>
+        <div className="relative z-10 w-full max-w-[540px] py-1 sm:py-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-300 sm:text-xs">
+            Bem-vindo ao
+          </p>
+          <h1 id="home-profile-title" className="mt-1 font-serif text-[27px] font-semibold uppercase leading-[1.04] tracking-[0.01em] text-white sm:text-[34px] lg:text-[38px]">
+            Rumo à <span className="text-[#FB2C36]">Conquista</span>
+          </h1>
+          <p className="mt-3 max-w-[430px] text-[11px] font-medium leading-relaxed text-white/75 sm:text-[13px]">
+            Um lugar para acompanhar jornadas, celebrar conquistas e compartilhar as histórias por trás de cada jogo.
+          </p>
+          <Link
+            href="/biblioteca"
+            aria-label="Explorar minha jornada na biblioteca de jogos"
+            className="mt-4 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-[10px] font-black text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:min-h-10 sm:px-5 sm:text-xs"
+          >
+            Explorar minha jornada <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
 
