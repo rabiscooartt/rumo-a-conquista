@@ -26,6 +26,7 @@ export default function BannerBackground({
   adminButtonClassName = "",
 }: Props) {
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const backgroundRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
@@ -40,10 +41,38 @@ export default function BannerBackground({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [previewAspectRatio, setPreviewAspectRatio] = useState(5);
 
   useEffect(() => {
     setPortalTarget(document.body);
   }, []);
+
+  // Match the editor crop to the actual banner dimensions, so saved X/Y/zoom
+  // render the same way in the preview and on the page.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const target = backgroundRef.current;
+    if (!target) return;
+
+    const updateAspectRatio = () => {
+      const rect = target.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setPreviewAspectRatio(rect.width / rect.height);
+      }
+    };
+
+    updateAspectRatio();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateAspectRatio);
+      return () => window.removeEventListener("resize", updateAspectRatio);
+    }
+
+    const observer = new ResizeObserver(updateAspectRatio);
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [isOpen]);
 
   useEffect(() => {
     if (!selectedImageFile) {
@@ -221,7 +250,12 @@ export default function BannerBackground({
   }
 
   function reset() {
-    setDraft(initialSettings);
+    setDraft((current) => ({
+      ...current,
+      x: 0,
+      y: 0,
+      zoom: 1,
+    }));
     setError("");
   }
 
@@ -232,6 +266,7 @@ export default function BannerBackground({
   return (
     <>
       <div
+        ref={backgroundRef}
         className={`absolute inset-0 overflow-hidden ${className}`}
         aria-hidden="true"
       >
@@ -351,7 +386,8 @@ export default function BannerBackground({
 
             <div
               ref={editorRef}
-              className="relative mt-4 aspect-[4/1] cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
+              className="relative mt-4 w-full cursor-grab overflow-hidden rounded-lg border border-white/10 bg-black active:cursor-grabbing"
+              style={{ aspectRatio: previewAspectRatio }}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 startDrag(event.clientX, event.clientY);
