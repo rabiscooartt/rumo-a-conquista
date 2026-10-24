@@ -370,75 +370,70 @@ export default function LandingHome() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 pb-12 pt-5 sm:px-6 lg:px-8 lg:pt-6">
-      {/* Banner compacto inspirado no cabeçalho de perfil do YourGamerProfile */}
+      {/* Cabeçalho de perfil compacto inspirado no YourGamerProfile */}
       <section
         aria-labelledby="home-profile-title"
-        className="relative isolate min-h-[148px] overflow-hidden rounded-xl border border-white/[0.10] bg-[#07080b] shadow-[0_14px_36px_rgba(0,0,0,0.22)] sm:min-h-[166px]"
+        className="relative isolate flex min-h-[124px] items-center overflow-hidden rounded-xl border border-white/[0.08] bg-[#07080b] px-4 py-4 sm:min-h-[142px] sm:px-6 lg:px-7"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20">
-          <img
-            src="/images/home-profile-banner-art.webp"
-            alt=""
-            className="h-full w-full object-cover object-center"
-          />
-        </div>
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             backgroundImage:
-              "linear-gradient(90deg, rgba(5,6,9,0.94) 0%, rgba(5,6,9,0.88) 34%, rgba(5,6,9,0.76) 62%, rgba(5,6,9,0.66) 100%), linear-gradient(0deg, rgba(5,6,9,0.22), rgba(5,6,9,0.10))",
+              "radial-gradient(ellipse at 82% 50%, rgba(142,16,29,0.10), transparent 35%), linear-gradient(90deg, rgba(5,6,9,0.96) 0%, rgba(5,6,9,0.91) 100%), url('/images/backgrounds/rabiisco-global-bg.webp')",
+            backgroundPosition: "center, center, center 46%",
+            backgroundSize: "cover, cover, cover",
           }}
         />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[38%] bg-gradient-to-l from-red-950/20 to-transparent sm:block" />
 
-        <div className="relative flex min-h-[148px] items-center gap-4 px-4 py-4 sm:min-h-[166px] sm:gap-5 sm:px-6 lg:px-7">
-          <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl border border-red-500/45 bg-black/70 p-1 shadow-[0_0_20px_rgba(251,44,54,0.12)] sm:h-[84px] sm:w-[84px]">
+        <div className="flex w-full min-w-0 items-center gap-4 sm:gap-5">
+          <div className="h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border border-white/[0.14] bg-black/55 p-0.5 sm:h-[76px] sm:w-[76px]">
             <img
               src="/images/avatar.jpg"
               alt="Avatar do Rabiisco"
-              className="h-full w-full rounded-lg object-cover"
-            />
-            <span
-              aria-hidden="true"
-              className="absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#08090c] bg-[#FB2C36]"
+              className="h-full w-full rounded-md object-cover"
             />
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.17em] text-red-300/90 sm:text-[10px] sm:tracking-[0.2em]">
-              Criador do Rumo à Conquista
-            </p>
-            <h1 id="home-profile-title" className="mt-1 text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl">
+            <h1 id="home-profile-title" className="text-2xl font-bold leading-tight tracking-tight text-white sm:text-[28px]">
               Rabiisco
             </h1>
-            <p className="mt-1 max-w-[610px] text-xs leading-relaxed text-white/65 sm:text-sm">
+            <p className="mt-1 text-xs leading-relaxed text-white/65 sm:text-[13px]">
               Jogos, conquistas e histórias de cada jornada.
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <a
                 href="https://www.youtube.com/@orabiisco"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="YouTube do Rabiisco"
-                className="inline-flex h-8 items-center gap-2 rounded-md border border-white/[0.12] bg-black/35 px-2.5 text-[10px] font-bold text-white/75 transition hover:border-red-400/40 hover:text-white"
+                title="YouTube"
+                className="inline-flex h-6 items-center justify-center text-[#FB2C36]/90 transition hover:text-[#ff737a]"
               >
-                <span aria-hidden="true" className="text-[#FB2C36]">▶</span> YouTube
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="currentColor">
+                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
+                </svg>
               </a>
               <a
                 href="https://www.twitch.tv/orabiisco"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Twitch do Rabiisco"
-                className="inline-flex h-8 items-center gap-2 rounded-md border border-white/[0.12] bg-black/35 px-2.5 text-[10px] font-bold text-white/75 transition hover:border-purple-400/40 hover:text-white"
+                title="Twitch"
+                className="inline-flex h-6 items-center justify-center text-white/55 transition hover:text-[#bf94ff]"
               >
-                <span aria-hidden="true" className="text-purple-300">▣</span> Twitch
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="currentColor">
+                  <path d="M4.3 2 1 5.3v14.1h5.4V22h3.3l2.6-2.6h4.1L23 12.7V2H4.3Zm16.4 9.6-3.3 3.3h-4.1l-2.6 2.6v-2.6H6.4V4.1h14.3v7.5ZM16 6.8h2.1v6.1H16V6.8Zm-5.7 0h2.1v6.1h-2.1V6.8Z" />
+                </svg>
               </a>
+              <span aria-hidden="true" className="h-3.5 w-px bg-white/15" />
               <Link
                 href="/perfil"
-                className="px-1.5 py-2 text-[10px] font-semibold text-white/45 transition hover:text-white sm:text-[11px]"
+                className="text-[10px] font-medium text-white/50 transition hover:text-white/85 sm:text-[11px]"
               >
-                Ver perfil completo <span className="text-[#FB2C36]">→</span>
+                Ver perfil completo <span className="text-[#FB2C36]/90">→</span>
               </Link>
             </div>
           </div>
