@@ -341,7 +341,7 @@ export default function LandingHome() {
               </div>
               <h2 className="mt-3 text-lg font-black leading-tight text-white">Rabiisco</h2>
               <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
-              <p className="mt-2 max-w-[180px] text-[11px] italic leading-relaxed text-white/50">Mais que jogos: histórias que ficam.</p>
+              <p className="mt-2 max-w-[180px] text-[11px] italic leading-relaxed text-white/50">Jogador por paixão. Conquistas por propósito.</p>
 
               <div className="mt-4 flex items-center justify-center gap-4" role="group" aria-label="Redes sociais do Rabiisco">
                 <a href="https://www.youtube.com/@orabiisco" target="_blank" rel="noreferrer" aria-label="YouTube do Rabiisco" title="YouTube" className="text-[#FB2C36] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
