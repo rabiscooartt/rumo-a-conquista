@@ -371,26 +371,54 @@ export default function LandingHome() {
           </div>
           <div className="mt-6">
             <div className="flex items-center gap-2">
-              <span aria-hidden="true" className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Meu setup</h2>
+              <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+              <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">SETUP</h2>
             </div>
-            <div className="mt-3 divide-y divide-white/[0.06]">
+
+            <div className="mt-3">
               {[
-                { name: "RTX 3060 12GB", type: "GPU", icon: "▣" },
-                { name: "i5-12400F", type: "CPU", icon: "▦" },
-                { name: "32 GB", type: "RAM", icon: "▤" },
-                { name: '27" · 75Hz', type: "Monitor", icon: "▭" },
-              ].map((item) => (
-                <div key={item.type} className="flex items-center gap-3 py-2.5">
-                  <span aria-hidden="true" className="flex w-5 shrink-0 justify-center text-[15px] text-red-500">{item.icon}</span>
+                { name: "RTX 3060 12GB", type: "GPU", icon: "gpu" },
+                { name: "i5-12400F", type: "CPU", icon: "chip" },
+                { name: "32 GB", type: "RAM", icon: "ram" },
+                { name: '27" 75Hz', type: "Monitor", icon: "monitor" },
+              ].map((item, index) => (
+                <div
+                  key={item.name}
+                  className={`flex items-center gap-3 py-2.5 ${
+                    index > 0 ? "border-t border-white/[0.05]" : ""
+                  }`}
+                >
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center text-red-500">
+                    {item.icon === "gpu" ? (
+                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="3.5" y="5" width="17" height="14" rx="2" />
+                        <path d="M7 15.5l3-3 2.2 2.2 2.3-2.3 2.5 2.6M7 8.5h.01M10 8.5h.01" />
+                      </svg>
+                    ) : item.icon === "chip" ? (
+                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
+                        <path d="M9 1.8v3M12 1.8v3M15 1.8v3M9 19.2v3M12 19.2v3M15 19.2v3M1.8 9h3M1.8 12h3M1.8 15h3M19.2 9h3M19.2 12h3M19.2 15h3" />
+                      </svg>
+                    ) : item.icon === "ram" ? (
+                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="3.5" y="7" width="17" height="10" rx="1.5" />
+                        <path d="M7 10v4M10 10v4M13 10v4M16 10v4M6 17v2M9 17v2M12 17v2M15 17v2M18 17v2" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="3.5" y="5" width="17" height="12" rx="2" />
+                        <path d="M8 20h8M12 17v3" />
+                      </svg>
+                    )}
+                  </div>
+
                   <div className="min-w-0">
-                    <p className="truncate text-[10px] font-bold text-white/80">{item.name}</p>
-                    <p className="mt-0.5 text-[9px] text-white/35">{item.type}</p>
+                    <p className="truncate text-[11px] font-black leading-tight text-white">{item.name}</p>
+                    <p className="mt-0.5 text-[9px] font-medium leading-tight text-white/35">{item.type}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <Link href="/perfil" className="mt-3 inline-flex px-1 text-[10px] font-bold text-red-400 transition hover:text-white">Ver setup completo <span className="ml-1">→</span></Link>
           </div>
           <div className="mt-auto pt-8">
             <Link href="/configuracoes" className="flex items-center gap-3 px-2 py-2 text-[11px] font-bold text-white/50 transition hover:text-white">
