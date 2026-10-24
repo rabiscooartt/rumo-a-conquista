@@ -124,6 +124,14 @@ function parseDateValue(value: unknown) {
   const parsed = Date.parse(text);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+function formatPublishedDate(value: string | undefined) {
+  if (!value) return "";
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return value;
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+    .format(new Date(timestamp))
+    .replace(".", "");
+}
 function formatShortDate(timestamp: number) {
   if (!timestamp) return "";
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(timestamp)).replace(".", "");
@@ -285,7 +293,10 @@ export default function LandingHome() {
   const nextCounts = nextMastery ? getAchievementCounts(nextMastery) : null;
   const nextProgress = nextMastery ? Math.min(100, Math.max(0, Number(nextMastery.progress) || 0)) : 0;
   const currentUnlockedAchievements = currentGame ? getUnlockedAchievements(currentGame) : [];
-  const visibleCurrentAchievements = currentUnlockedAchievements.slice(0, 8);
+  const currentAchievementList = currentGame && Array.isArray(currentGame.achievementsList)
+    ? currentGame.achievementsList as AchievementLike[]
+    : [];
+  const visibleCurrentAchievements = currentAchievementList.slice(0, 8);
 
   return (
     <div className="mx-auto w-full max-w-[1560px] px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:pt-5">
@@ -379,8 +390,8 @@ export default function LandingHome() {
 
         {currentGame ? (
           <>
-            <div className="grid gap-4 p-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-5 sm:p-4 lg:grid-cols-[192px_minmax(0,1fr)] lg:gap-6 lg:p-5">
-              <Link href={"/games/" + currentGame.slug} className="mx-auto flex aspect-[3/4] w-[136px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/45 p-1.5 transition hover:border-red-500/40 sm:mx-0 sm:w-full">
+            <div className="grid gap-4 p-3 sm:grid-cols-[148px_minmax(0,1fr)] sm:gap-5 sm:p-4 lg:grid-cols-[156px_minmax(0,1fr)] lg:gap-6 lg:p-5">
+              <Link href={"/games/" + currentGame.slug} className="mx-auto flex h-[136px] w-[136px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/45 p-1.5 transition hover:border-red-500/40 sm:mx-0 sm:h-[148px] sm:w-[148px]">
                 <img src={currentGame.cardImage || currentGame.image || ""} alt={currentGame.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
               </Link>
 
@@ -410,34 +421,32 @@ export default function LandingHome() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-4 text-[10px] text-white/60 sm:gap-6 sm:text-[11px]">
-                  <span className="inline-flex items-center gap-2"><span className="text-lg text-[#FB2C36]">🏆</span> {currentCounts?.unlocked ?? 0} desbloqueadas</span>
-                  {currentCounts ? <span className="inline-flex items-center gap-2"><span className="text-lg text-[#FB2C36]">◈</span> {currentCounts.total} no total</span> : null}
-                </div>
               </div>
             </div>
 
             <div className="border-t border-white/[0.09] px-3 py-3 sm:px-4 sm:py-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h3 className="flex items-center gap-2 text-xs font-bold text-white/85 sm:text-sm">
-                  <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conquistas recentes
+                  <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conquistas do jogo
                 </h3>
                 <Link href={"/games/" + currentGame.slug} className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todas <span aria-hidden="true">→</span></Link>
               </div>
               {visibleCurrentAchievements.length ? (
                 <div className="flex gap-2 overflow-x-auto pb-1 sm:gap-3">
                   {visibleCurrentAchievements.map((achievement, index) => {
-                    const image = readText(achievement.image, "") || readText(achievement.officialImage, "");
+                    const image = readText(achievement.image, "") || readText(achievement.officialImage, "") || readText(achievement.icon, "");
                     const title = getAchievementTitle(achievement, index);
+                    const unlocked = ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(normalizeKey(achievement.status));
                     return (
-                      <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title} aria-label={title} className="group flex h-[58px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/[0.14] bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[66px] sm:w-[66px]">
+                      <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title + (unlocked ? " — desbloqueada" : " — bloqueada")} aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")} className={"group relative flex h-[58px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[66px] sm:w-[66px] " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}>
                         {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-contain" /> : <span className="text-2xl">{getAchievementSymbol(achievement)}</span>}
+                        {!unlocked ? <span aria-hidden="true" className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-[8px] text-white/70">🔒</span> : null}
                       </Link>
                     );
                   })}
-                  {currentUnlockedAchievements.length > visibleCurrentAchievements.length ? (
+                  {currentAchievementList.length > visibleCurrentAchievements.length ? (
                     <Link href={"/games/" + currentGame.slug} className="flex h-[58px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] text-[10px] font-bold text-white/70 transition hover:border-red-500/40 hover:text-white sm:h-[66px] sm:min-w-[82px]">
-                      +{currentUnlockedAchievements.length - visibleCurrentAchievements.length}
+                      +{currentAchievementList.length - visibleCurrentAchievements.length}
                       <span className="mt-0.5 text-[9px] text-white/45">conquistas</span>
                     </Link>
                   ) : null}
@@ -467,13 +476,13 @@ export default function LandingHome() {
         </div>
 
         {recentGames.length ? (
-          <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 sm:p-4 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 sm:p-4 lg:grid-cols-3">
             {recentGames.map((game) => {
               const counts = getAchievementCounts(game);
               const progress = Math.max(0, Math.min(100, Number(game.progress) || 0));
               return (
                 <Link key={game.slug} href={"/games/" + game.slug} className="group min-w-0 overflow-hidden rounded-lg border border-white/[0.10] bg-black/30 transition hover:border-red-500/40 hover:bg-black/50">
-                  <div className="flex aspect-[3/4] items-center justify-center overflow-hidden bg-black/35 p-1.5 sm:p-2">
+                  <div className="flex h-[150px] items-center justify-center overflow-hidden bg-black/35 p-2 sm:h-[172px] sm:p-3">
                     <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.02]" />
                   </div>
                   <div className="p-2 sm:p-2.5">
@@ -506,19 +515,19 @@ export default function LandingHome() {
             </div>
             {nextMastery ? (
               <>
-                <Link href={"/games/" + nextMastery.slug} className="group block p-3 pb-0">
-                  <div className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/45 p-2">
-                    <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.02]" />
+                <div className="grid grid-cols-[86px_minmax(0,1fr)] items-center gap-3 p-3">
+                  <Link href={"/games/" + nextMastery.slug} className="flex h-[112px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/45 p-1.5 transition hover:border-red-500/40">
+                    <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
+                  </Link>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-black leading-snug text-white sm:text-sm">{nextMastery.title}</h3>
+                    <p className="mt-1 text-[10px] text-white/55">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
+                      <span className="text-[10px] font-black text-white">{nextProgress}%</span>
+                    </div>
+                    <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
                   </div>
-                </Link>
-                <div className="p-3.5">
-                  <h3 className="text-sm font-black leading-snug text-white">{nextMastery.title}</h3>
-                  <p className="mt-1 text-[10px] text-white/55">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
-                    <span className="text-[10px] font-black text-white">{nextProgress}%</span>
-                  </div>
-                  <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
                 </div>
               </>
             ) : (
@@ -548,7 +557,7 @@ export default function LandingHome() {
                       </div>
                       <div className="min-w-0 flex-1 self-center">
                         <h3 className="line-clamp-3 text-[10px] font-bold leading-snug text-white/85 transition group-hover:text-white">{video.title}</h3>
-                        <p className="mt-1.5 line-clamp-1 text-[9px] text-white/40">{video.publishedAt || "Canal Rabiisco"}</p>
+                        <p className="mt-1.5 line-clamp-1 text-[9px] text-white/40">{formatPublishedDate(video.publishedAt) || "Canal Rabiisco"}</p>
                       </div>
                     </a>
                   );
