@@ -393,7 +393,7 @@ export default function LandingHome() {
       {/* Banner principal: identidade do Rumo à Conquista */}
       <section
         aria-labelledby="home-journey-title"
-        className="relative isolate flex min-h-[150px] items-center overflow-hidden rounded-xl border border-red-500/25 bg-[#06070a] px-4 py-5 sm:min-h-[170px] sm:px-6 sm:py-6 lg:px-7"
+        className="relative isolate flex min-h-[150px] items-center overflow-hidden rounded-xl border border-red-500/30 bg-[#06070a] px-4 py-5 sm:min-h-[170px] sm:px-6 sm:py-6 lg:px-7"
       >
         <BannerBackground
           bannerKey="home"
@@ -404,7 +404,7 @@ export default function LandingHome() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
-            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.88) 0%, rgba(4,5,8,0.74) 35%, rgba(4,5,8,0.45) 55%, rgba(4,5,8,0.18) 76%, rgba(4,5,8,0.24) 100%), linear-gradient(0deg, rgba(2,3,5,0.26), rgba(2,3,5,0.08))"
+            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.92) 0%, rgba(4,5,8,0.80) 30%, rgba(4,5,8,0.50) 43%, rgba(4,5,8,0.20) 62%, rgba(4,5,8,0.08) 82%, rgba(4,5,8,0.14) 100%), linear-gradient(0deg, rgba(2,3,5,0.18) 0%, rgba(2,3,5,0.02) 70%, rgba(2,3,5,0.08) 100%), radial-gradient(ellipse at 78% 42%, rgba(248,45,65,0.08) 0%, transparent 42%)"
           }}
         />
         <div className="relative z-10 w-full max-w-[560px]">
@@ -412,7 +412,7 @@ export default function LandingHome() {
           <h1 id="home-journey-title" className="mt-1 font-serif text-[27px] font-semibold uppercase leading-[1.04] tracking-[0.01em] text-white sm:text-[34px] lg:text-[38px]">
             Rumo à <span className="text-[#FB2C36]">Conquista</span>
           </h1>
-          <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/75 sm:text-[13px]">
+          <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[13px]">
             Registre suas jornadas, celebre cada conquista e descubra sua próxima maestria.
           </p>
           <Link
