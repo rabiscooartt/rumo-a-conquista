@@ -412,7 +412,7 @@ export default function LandingHome() {
           <h1 id="home-journey-title" className="mt-1 text-[27px] font-black uppercase leading-[1.04] tracking-tight text-white sm:text-[34px] lg:text-[38px]">
             Cada desafio conta.
           </h1>
-          <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[13px]">
+          <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[14px]">
             Acompanhe seu progresso, celebre cada vitória e avance passo a passo rumo à maestria.
           </p>
           <Link
