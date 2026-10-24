@@ -129,6 +129,166 @@ function getUnlockedAchievements(game: HomeGame) {
     ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(normalizeKey(item.status))
   );
 }
+
+type HomeTrophyTier = "bronze" | "prata" | "ouro" | "maestria";
+type HomeTrophyCounter = { unlocked: number; total: number };
+type HomeTrophySummary = Record<HomeTrophyTier, HomeTrophyCounter>;
+
+const HOME_TROPHY_TIERS: Array<{
+  key: HomeTrophyTier;
+  label: string;
+  image: string;
+  border: string;
+  background: string;
+}> = [
+  {
+    key: "bronze",
+    label: "Bronze",
+    image: "/images/trophies/bronze.png",
+    border: "border-[#8B5A35]/55",
+    background: "bg-[#120D09]",
+  },
+  {
+    key: "prata",
+    label: "Prata",
+    image: "/images/trophies/prata.png",
+    border: "border-[#8C95A1]/55",
+    background: "bg-[#0D1014]",
+  },
+  {
+    key: "ouro",
+    label: "Ouro",
+    image: "/images/trophies/ouro.png",
+    border: "border-[#C6A038]/55",
+    background: "bg-[#151106]",
+  },
+  {
+    key: "maestria",
+    label: "Maestria",
+    image: "/images/trophies/maestria.png",
+    border: "border-[#FB2C36]/60",
+    background: "bg-[#16080A]",
+  },
+];
+
+function isMasteryAchievement(achievement: AchievementLike) {
+  const title = normalizeKey(achievement.title);
+  const difficulty = normalizeKey(
+    readText(achievement.difficulty, "") || readText(achievement.rank, "")
+  );
+  const trophy = readText(achievement.trophy, "") || readText(achievement.icon, "");
+
+  return (
+    achievement.isEmblem === true ||
+    title.includes("maestria") ||
+    title.includes("mastery") ||
+    difficulty === "diamante" ||
+    difficulty === "extrema" ||
+    trophy.includes("💎")
+  );
+}
+
+function getNormalTrophyTier(achievement: AchievementLike): Exclude<HomeTrophyTier, "maestria"> {
+  const difficulty = normalizeKey(
+    readText(achievement.difficulty, "") || readText(achievement.rank, "")
+  );
+  const trophy = readText(achievement.trophy, "") || readText(achievement.icon, "");
+
+  if (
+    difficulty === "ouro" ||
+    difficulty === "dificil" ||
+    trophy.includes("🥇") ||
+    trophy.includes("🏆")
+  ) {
+    return "ouro";
+  }
+
+  if (
+    difficulty === "prata" ||
+    difficulty === "media" ||
+    trophy.includes("🥈")
+  ) {
+    return "prata";
+  }
+
+  return "bronze";
+}
+
+function isHomeAchievementUnlocked(game: HomeGame, achievement: AchievementLike) {
+  const status = normalizeKey(achievement.status);
+  if (["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(status)) {
+    return true;
+  }
+
+  // Keep completed First Journey selections in sync with the achievement panel.
+  if (game.firstJourney?.status !== "completed") return false;
+
+  const titleKey = normalizeKey(achievement.title);
+  const achievementId = readText(achievement.id, "").trim();
+  const journeyIds = Array.isArray(game.firstJourney.achievementIds)
+    ? game.firstJourney.achievementIds
+    : [];
+
+  return journeyIds.some((journeyId) => {
+    const rawJourneyId = String(journeyId ?? "").trim();
+    const normalizedJourneyId = normalizeKey(rawJourneyId);
+    return (
+      Boolean(achievementId && rawJourneyId === achievementId) ||
+      Boolean(titleKey && (
+        normalizedJourneyId === titleKey ||
+        normalizedJourneyId.endsWith(titleKey)
+      ))
+    );
+  });
+}
+
+function getHomeTrophySummary(games: HomeGame[]): HomeTrophySummary {
+  const summary: HomeTrophySummary = {
+    bronze: { unlocked: 0, total: 0 },
+    prata: { unlocked: 0, total: 0 },
+    ouro: { unlocked: 0, total: 0 },
+    maestria: { unlocked: 0, total: 0 },
+  };
+
+  for (const game of games) {
+    const achievements = (Array.isArray(game.achievementsList) ? game.achievementsList : [])
+      .filter((achievement) =>
+        Boolean(readText(achievement.title, "").trim()) &&
+        achievement.isHidden !== true &&
+        achievement.hidden !== true
+      ) as AchievementLike[];
+
+    const normalAchievements = achievements.filter((achievement) => !isMasteryAchievement(achievement));
+
+    for (const achievement of normalAchievements) {
+      const tier = getNormalTrophyTier(achievement);
+      summary[tier].total += 1;
+      if (isHomeAchievementUnlocked(game, achievement)) {
+        summary[tier].unlocked += 1;
+      }
+    }
+
+    const masteryConfigured =
+      typeof game.finalBadgeConfigured === "boolean"
+        ? game.finalBadgeConfigured
+        : Boolean(game.finalBadge?.title || game.finalBadge?.image || game.finalBadge?.description);
+    const hasMasteryEntry = achievements.some(isMasteryAchievement);
+
+    // A game's final mastery is represented once, even if its legacy achievement
+    // list also contains a mastery record.
+    if (masteryConfigured || hasMasteryEntry) {
+      summary.maestria.total += 1;
+      const normalCompleted = normalAchievements.filter((achievement) =>
+        isHomeAchievementUnlocked(game, achievement)
+      ).length;
+      if (normalAchievements.length > 0 && normalCompleted === normalAchievements.length) {
+        summary.maestria.unlocked += 1;
+      }
+    }
+  }
+
+  return summary;
+}
 function getAchievementTitle(achievement: AchievementLike, index: number) {
   return readText(achievement.title, "Conquista " + (index + 1)).trim();
 }
@@ -316,6 +476,7 @@ export default function LandingHome() {
     ? currentGame.achievementsList as AchievementLike[]
     : [];
   const visibleCurrentAchievements = currentAchievementList.slice(0, 8);
+  const trophySummary = useMemo(() => getHomeTrophySummary(allGames), [allGames]);
 
   return (
     <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -369,6 +530,42 @@ export default function LandingHome() {
               </div>
             </div>
           </div>
+          <div className="mt-5 border-b border-white/[0.08] pb-5">
+            <div className="flex items-center gap-2">
+              <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Conquistas</h2>
+            </div>
+
+            <div className="mt-3 grid grid-cols-4 gap-1.5">
+              {HOME_TROPHY_TIERS.map((tier) => {
+                const count = trophySummary[tier.key];
+                const countLabel = isLoaded ? `${count.unlocked}/${count.total}` : "—/—";
+                const countDescription = isLoaded
+                  ? `${tier.label}: ${count.unlocked} desbloqueadas de ${count.total}`
+                  : `${tier.label}: carregando contagens`;
+
+                return (
+                  <div
+                    key={tier.key}
+                    title={countDescription}
+                    aria-label={countDescription}
+                    className={`flex min-w-0 flex-col items-center justify-center rounded-md border px-0.5 py-1.5 ${tier.border} ${tier.background}`}
+                  >
+                    <img
+                      src={tier.image}
+                      alt={tier.label}
+                      loading="eager"
+                      className="h-8 w-8 max-w-full object-contain"
+                    />
+                    <p className="mt-1 whitespace-nowrap text-[11px] font-black leading-none text-white">
+                      {countLabel}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="mt-6">
             <div className="flex items-center gap-2">
               <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
