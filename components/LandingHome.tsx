@@ -465,36 +465,72 @@ export default function LandingHome() {
         )}
       </section>
 
-      {/* Jogos recentes em galeria horizontal, sem cartões repetidos */}
-      <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="recent-games-title">
+      {/* Jogos recentes em linhas horizontais, seguindo a lista de jornadas já existente */}
+      <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="recent-games-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <div>
-            <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos recentes</h2>
-            <p className="mt-1 text-[10px] text-white/45 sm:text-xs">Continue de onde parou ou reveja suas jornadas concluídas.</p>
+            <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos recentes
+            </h2>
+            <p className="mt-1 text-[10px] text-white/45 sm:text-xs">Suas jornadas mais recentes, com progresso e emblema.</p>
           </div>
           <Link href="/biblioteca" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todos <span aria-hidden="true">→</span></Link>
         </div>
 
         {recentGames.length ? (
-          <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 sm:p-4 lg:grid-cols-3">
-            {recentGames.map((game) => {
+          <div className="divide-y divide-white/[0.09]">
+            {recentGames.slice(0, 3).map((game) => {
               const counts = getAchievementCounts(game);
               const progress = Math.max(0, Math.min(100, Number(game.progress) || 0));
+              const completed = getGameStatus(game) === "completed";
+              const emblem = readText(game.emblem?.image, "") ||
+                readText(game.finalBadge?.image, "") ||
+                ({
+                  "crisol-theater-of-idols": "/images/games/crisol-theater-of-idols/emblem.png",
+                  "hades": "/images/games/hades/emblem.png",
+                  "hollow-knight": "/images/games/hollow-knight/emblem.png",
+                  "howgarts-legacy": "/images/games/howgarts-legacy/emblem.png",
+                  "metro-last-light": "/images/games/metro-last-light/emblem.png",
+                  "monster-hunter-world-iceborne": "/images/games/monster-hunter-world-iceborne/emblem.png",
+                  "mouse-p-i-for-hire": "/images/games/mouse-p-i-for-hire/emblem.png",
+                  "song-of-nunu": "/images/games/song-of-nunu/emblem.png",
+                  "the-surge": "/images/games/the-surge/emblem.png",
+                  "tom-clancy-s-the-division": "/images/games/tom-clancy-s-the-division/emblem.png"
+                } as Record<string, string>)[game.slug] || "";
+              const updatedAt = formatPublishedDate(readText(game.updatedAt, "") || readText(game.createdAt, ""));
               return (
-                <Link key={game.slug} href={"/games/" + game.slug} className="group min-w-0 overflow-hidden rounded-lg border border-white/[0.10] bg-black/30 transition hover:border-red-500/40 hover:bg-black/50">
-                  <div className="flex h-[150px] items-center justify-center overflow-hidden bg-black/35 p-2 sm:h-[172px] sm:p-3">
-                    <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.02]" />
+                <Link key={game.slug} href={"/games/" + game.slug} className="group grid grid-cols-[64px_minmax(0,1fr)_42px] items-center gap-3 px-3 py-3 transition hover:bg-white/[0.025] sm:grid-cols-[78px_minmax(0,1fr)_72px] sm:gap-4 sm:px-4 sm:py-3.5">
+                  <div className="flex h-[82px] w-[64px] items-center justify-center overflow-hidden rounded-md border border-white/[0.12] bg-black/40 p-1 sm:h-[96px] sm:w-[78px] sm:p-1.5">
+                    <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.03]" />
                   </div>
-                  <div className="p-2 sm:p-2.5">
-                    <h3 className="line-clamp-2 min-h-[2.4em] text-[10px] font-black leading-snug text-white/90 transition group-hover:text-white sm:text-xs">{game.title}</h3>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[9px] text-white/50 sm:text-[10px]">
-                      {game.platform ? <span className="truncate rounded bg-white/[0.06] px-1.5 py-0.5 font-bold text-white/70">{game.platform}</span> : <span>Jornada</span>}
-                      <span className="shrink-0 font-black text-white/80">{progress}%</span>
+
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <h3 className="min-w-0 text-xs font-black leading-snug text-white transition group-hover:text-white sm:text-base">{game.title}</h3>
+                      <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-wide sm:text-[9px] " + (completed ? "border-emerald-400/25 bg-emerald-400/[0.07] text-emerald-300" : "border-red-400/25 bg-red-500/[0.07] text-red-300")}>{completed ? "Finalizado" : "Em andamento"}</span>
                     </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.10]">
-                      <div className={"h-full rounded-full " + (progress >= 100 ? "bg-emerald-400" : "bg-[#FB2C36]")} style={{ width: progress + "%" }} />
+
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[9px] text-white/60 sm:gap-x-4 sm:text-[11px]">
+                      {game.platform ? <span className="inline-flex items-center gap-1.5 border-r border-white/[0.12] pr-3 sm:pr-4"><span aria-hidden="true" className="text-blue-300">◈</span>{game.platform}</span> : null}
+                      <span className="inline-flex items-center gap-1.5 border-r border-white/[0.12] pr-3 sm:pr-4"><span aria-hidden="true" className="text-amber-400">🏆</span>{counts.unlocked}/{counts.total}</span>
+                      {hasUsefulTimeValue(game.hours) ? <span className="inline-flex items-center gap-1.5 border-r border-white/[0.12] pr-3 sm:pr-4"><span aria-hidden="true" className="text-cyan-300">◷</span>{readText(game.hours, "")}</span> : null}
+                      {updatedAt ? <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="text-violet-300">▦</span>{updatedAt}</span> : null}
                     </div>
-                    <p className="mt-1.5 text-[9px] text-white/45">{counts.unlocked}/{counts.total} conquistas</p>
+
+                    <div className="mt-3 flex items-center gap-2.5 sm:mt-3.5 sm:gap-3">
+                      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.10] sm:h-[5px]">
+                        <div className={"h-full rounded-full " + (completed ? "bg-emerald-400" : "bg-[#FB2C36]")} style={{ width: progress + "%" }} />
+                      </div>
+                      <span className={"shrink-0 text-[10px] font-black sm:text-xs " + (completed ? "text-emerald-300" : "text-[#FB2C36]")}>{progress}%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex h-[68px] w-[42px] items-center justify-center sm:h-[86px] sm:w-[72px]">
+                    {emblem ? (
+                      <img src={emblem} alt="" loading="lazy" className="max-h-full max-w-full object-contain opacity-90 transition group-hover:opacity-100" />
+                    ) : (
+                      <span aria-hidden="true" className="text-2xl text-white/20 sm:text-3xl">♜</span>
+                    )}
                   </div>
                 </Link>
               );
