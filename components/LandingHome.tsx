@@ -28,13 +28,8 @@ type SavedAchievementState = { status?: string; rank?: string; date?: string; im
 type BacklogEntry = { id?: string; slug: string; order: number; status: "next" | "waiting" | "future" };
 type YoutubeItem = { id: string; title: string; description?: string; publishedAt?: string; thumbnail: string; url: string };
 type YoutubePayload = { videos?: YoutubeItem[]; liveNow?: YoutubeItem | null; error?: string };
-type HomeActivity = {
-  key: string; slug: string; gameTitle: string; title: string;
-  dateLabel: string; timestamp: number; image?: string; symbol: string; kind: string;
-};
 
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
-const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
 const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
 const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
 
@@ -149,54 +144,6 @@ function readBacklogEntries(): BacklogEntry[] {
     status: (item.status === "next" || item.status === "waiting" ? item.status : "future") as BacklogEntry["status"],
   })).filter((item) => item.slug).sort((a, b) => a.order - b.order);
 }
-function buildRecentActivity(games: HomeGame[]): HomeActivity[] {
-  const events: HomeActivity[] = [];
-  const seen = new Set<string>();
-  for (const game of games) {
-    const slug = readText(game.slug, "");
-    if (!slug) continue;
-    const base = Array.isArray(game.achievementsList) ? game.achievementsList as AchievementLike[] : [];
-    const custom = readLocalJson<AchievementLike[]>("rumo-a-conquista-custom-achievements-" + slug, []);
-    const hidden = new Set(readLocalJson<string[]>("rumo-a-conquista-hidden-achievements-" + slug, []));
-    const savedStates = readLocalJson<Record<string, SavedAchievementState>>("rumo-a-conquista-achievements-" + slug, {});
-    [...base, ...custom].forEach((achievement, index) => {
-      const title = getAchievementTitle(achievement, index);
-      if (!title || hidden.has(title)) return;
-      const saved = savedStates[title];
-      const status = normalizeKey(saved?.status || achievement.status);
-      const timestamp = parseDateValue(saved?.date || achievement.earnedDate);
-      if (
-        !timestamp ||
-        !["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(status)
-      ) return;
-      const key = [slug, title, timestamp].join(":");
-      if (seen.has(key)) return;
-      seen.add(key);
-      events.push({
-        key, slug, gameTitle: game.title, title,
-        dateLabel: formatShortDate(timestamp), timestamp,
-        image: readText(saved?.image, "") || readText(achievement.image, "") || readText(achievement.officialImage, ""),
-        symbol: getAchievementSymbol(achievement), kind: "Conquista desbloqueada",
-      });
-    });
-    const emblem = game.emblem;
-    const emblemDate = parseDateValue(emblem?.unlockedAt);
-    const emblemTitle = readText(emblem?.title, "").trim();
-    if (emblemDate && emblemTitle) {
-      const key = [slug, "emblem", emblemTitle, emblemDate].join(":");
-      if (!seen.has(key)) {
-        seen.add(key);
-        events.push({
-          key, slug, gameTitle: game.title, title: emblemTitle,
-          dateLabel: formatShortDate(emblemDate), timestamp: emblemDate,
-          image: readText(emblem?.image, ""), symbol: "🏅", kind: "Emblema registrado",
-        });
-      }
-    }
-  }
-  return events.sort((a, b) => b.timestamp - a.timestamp).slice(0, 4);
-}
-
 function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string; href?: string; linkLabel?: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
@@ -206,9 +153,20 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   );
 }
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
+  const icon = symbol === "gamepad" ? (
+    <><path d="M6 9h12a4 4 0 0 1 3.8 5.2l-1 3.1a2.4 2.4 0 0 1-4 .9L14.6 16H9.4l-2.2 2.2a2.4 2.4 0 0 1-4-.9l-1-3.1A4 4 0 0 1 6 9Z" /><path d="M7 11v4m-2-2h4m7-1h.01M18 14h.01" /></>
+  ) : symbol === "check" ? (
+    <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16.5 9" /></>
+  ) : symbol === "trophy" ? (
+    <><path d="M8 21h8m-4-4v4m-5-18h10v5a5 5 0 0 1-10 0V3Z" /><path d="M7 5H3v2a5 5 0 0 0 5 5M17 5h4v2a5 5 0 0 1-5 5" /></>
+  ) : (
+    <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></>
+  );
   return (
-    <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:px-4">
-      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-black/25 text-lg" style={{ color: accent }}>{symbol}</span>
+    <div className="flex min-w-0 items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-4">
+      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center text-[#FB2C36] sm:h-10 sm:w-10" style={{ color: accent }}>
+        <svg viewBox="0 0 24 24" className="h-7 w-7 sm:h-8 sm:w-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
+      </span>
       <div className="min-w-0">
         <p className="truncate text-lg font-black leading-none text-white sm:text-xl">{value}</p>
         <p className="mt-1 text-[10px] leading-tight text-white/55 sm:text-[11px]">{label}</p>
@@ -229,9 +187,9 @@ export default function LandingHome() {
   const { gamesList, isLoaded } = useSiteGames();
   const [backlogEntries, setBacklogEntries] = useState<BacklogEntry[]>([]);
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
+  const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
   const [isLive, setIsLive] = useState(false);
   const [youtubeLoaded, setYoutubeLoaded] = useState(false);
-  const [recentActivity, setRecentActivity] = useState<HomeActivity[]>([]);
 
   const allGames = useMemo(
     () => (gamesList || []).filter((game) => Boolean(game.slug && game.title)) as HomeGame[],
@@ -262,10 +220,16 @@ export default function LandingHome() {
         const payload = await response.json() as YoutubePayload;
         if (!response.ok) throw new Error(payload.error || "Não foi possível buscar o conteúdo.");
         const live = payload.liveNow ?? null;
-        setFeaturedVideo(live || payload.videos?.[0] || null);
+        const videos = Array.isArray(payload.videos) ? payload.videos : [];
+        const uniqueVideos = new Map<string, YoutubeItem>();
+        [...(live ? [live] : []), ...videos].forEach((video) => {
+          if (video?.id && !uniqueVideos.has(video.id)) uniqueVideos.set(video.id, video);
+        });
+        setRecentVideos(Array.from(uniqueVideos.values()).slice(0, 4));
+        setFeaturedVideo(live || videos[0] || null);
         setIsLive(Boolean(live));
       } catch {
-        if (!controller.signal.aborted) { setFeaturedVideo(null); setIsLive(false); }
+        if (!controller.signal.aborted) { setFeaturedVideo(null); setRecentVideos([]); setIsLive(false); }
       } finally {
         if (!controller.signal.aborted) setYoutubeLoaded(true);
       }
@@ -273,19 +237,6 @@ export default function LandingHome() {
     loadFeaturedContent();
     return () => controller.abort();
   }, []);
-
-  useEffect(() => {
-    function refreshActivity() { setRecentActivity(buildRecentActivity(allGames)); }
-    if (isLoaded) refreshActivity();
-    window.addEventListener("storage", refreshActivity);
-    window.addEventListener(GAMES_UPDATED_EVENT, refreshActivity);
-    window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshActivity);
-    return () => {
-      window.removeEventListener("storage", refreshActivity);
-      window.removeEventListener(GAMES_UPDATED_EVENT, refreshActivity);
-      window.removeEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshActivity);
-    };
-  }, [allGames, isLoaded]);
 
   const gamesByUpdated = useMemo(
     () => [...allGames].sort((a, b) => getGameTimestamp(b) - getGameTimestamp(a)),
@@ -314,42 +265,8 @@ export default function LandingHome() {
     return gamesByUpdated.filter((game) => {
       const status = getGameStatus(game);
       return !reserved.has(game.slug) && (status === "progress" || status === "completed");
-    }).slice(0, 3);
+    }).slice(0, 6);
   }, [gamesByUpdated, currentGame, nextMastery]);
-
-  const recentAchievementKeys = useMemo(() => {
-    const keys = new Set<string>();
-    for (const game of recentGames) {
-      getUnlockedAchievements(game).slice(0, 6).forEach((achievement, index) => {
-        keys.add(game.slug + ":" + getAchievementTitle(achievement, index));
-      });
-    }
-    return keys;
-  }, [recentGames]);
-
-  const recentActivityKeys = useMemo(
-    () => new Set(recentActivity.map((item) => item.slug + ":" + item.title)),
-    [recentActivity]
-  );
-
-  const featuredAchievements = useMemo(() => {
-    const excludedSlugs = new Set(
-      [currentGame?.slug, nextMastery?.slug, ...recentGames.map((game) => game.slug)]
-        .filter((slug): slug is string => Boolean(slug))
-    );
-    const candidates: Array<{ game: HomeGame; achievement: AchievementLike; key: string; timestamp: number }> = [];
-    for (const game of allGames) {
-      if (excludedSlugs.has(game.slug)) continue;
-      getUnlockedAchievements(game).forEach((achievement, index) => {
-        const title = getAchievementTitle(achievement, index);
-        const key = game.slug + ":" + title;
-        if (!title || recentAchievementKeys.has(key) || recentActivityKeys.has(key)) return;
-        candidates.push({ game, achievement, key, timestamp: parseDateValue(achievement.earnedDate) });
-      });
-    }
-    candidates.sort((a, b) => b.timestamp - a.timestamp);
-    return candidates.slice(0, 6);
-  }, [allGames, currentGame, nextMastery, recentAchievementKeys, recentGames, recentActivityKeys]);
 
   const summary = useMemo(() => {
     const completed = allGames.filter((game) => getGameStatus(game) === "completed").length;
@@ -367,24 +284,22 @@ export default function LandingHome() {
   const currentProgress = currentGame ? Math.min(100, Math.max(0, Number(currentGame.progress) || 0)) : 0;
   const nextCounts = nextMastery ? getAchievementCounts(nextMastery) : null;
   const nextProgress = nextMastery ? Math.min(100, Math.max(0, Number(nextMastery.progress) || 0)) : 0;
+  const currentUnlockedAchievements = currentGame ? getUnlockedAchievements(currentGame) : [];
+  const visibleCurrentAchievements = currentUnlockedAchievements.slice(0, 8);
 
   return (
-    <div className="mx-auto w-full max-w-[1380px] px-4 pb-12 pt-5 sm:px-6 lg:px-8 lg:pt-6">
+    <div className="mx-auto w-full max-w-[1560px] px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:pt-5">
       {/* Cabeçalho de perfil compacto inspirado no YourGamerProfile */}
       <section
         aria-labelledby="home-profile-title"
-        className="relative isolate flex min-h-[124px] items-center overflow-hidden rounded-xl border border-white/[0.08] bg-[#07080b] px-4 py-4 sm:min-h-[142px] sm:px-6 lg:px-7"
+        className="relative isolate flex min-h-[145px] items-center overflow-hidden rounded-xl border border-red-500/20 bg-[#06070a] px-4 py-4 sm:min-h-[164px] sm:px-6 lg:px-8"
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse at 82% 50%, rgba(142,16,29,0.10), transparent 35%), linear-gradient(90deg, rgba(5,6,9,0.96) 0%, rgba(5,6,9,0.91) 100%), url('/images/backgrounds/rabiisco-global-bg.webp')",
-            backgroundPosition: "center, center, center 46%",
-            backgroundSize: "cover, cover, cover",
-          }}
-        />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20">
+          <img src="/images/home-profile-banner-art.webp" alt="" className="h-full w-full object-cover object-center" />
+        </div>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" style={{
+          backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.97) 0%, rgba(4,5,8,0.86) 32%, rgba(4,5,8,0.55) 66%, rgba(4,5,8,0.60) 100%), linear-gradient(0deg, rgba(2,3,5,0.35), rgba(2,3,5,0.10))"
+        }} />
 
         <div className="flex w-full min-w-0 items-center gap-4 sm:gap-5">
           <div className="h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border border-white/[0.14] bg-black/55 p-0.5 sm:h-[76px] sm:w-[76px]">
@@ -441,244 +356,206 @@ export default function LandingHome() {
       </section>
 
       {/* Estatísticas em uma faixa única e discreta */}
-      <section aria-label="Resumo da jornada" className="border-b border-white/[0.10]">
+      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95">
         <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
-          <Stat symbol="🎮" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
-          <Stat symbol="✓" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#38d9a9" />
-          <Stat symbol="🏆" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" accent="#f5b83d" />
-          <Stat symbol="◷" value={isLoaded ? summary.hours : "—"} label="Tempo registrado" accent="#60a5fa" />
+          <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
+          <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
+          <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" accent="#FB2C36" />
+          <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" accent="#FB2C36" />
         </div>
       </section>
 
-      {/* Foco atual e próximo objetivo em uma composição contínua */}
-      <section className="mt-7" aria-labelledby="journey-focus-title">
-        <div className="flex items-end justify-between gap-3 border-b border-white/[0.10] pb-3">
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FB2C36]">Em andamento</p>
-            <h2 id="journey-focus-title" className="mt-1 text-lg font-black text-white sm:text-xl">Foco da jornada</h2>
-          </div>
-          <Link href="/biblioteca" className="shrink-0 text-[11px] font-bold text-white/50 transition hover:text-white">Biblioteca completa <span className="text-[#FB2C36]">→</span></Link>
+      {/* Jogo atual com a faixa de conquistas integrada */}
+      <section className="mt-4 overflow-hidden rounded-xl border border-red-500/25 bg-[#05070a]" aria-labelledby="current-game-title">
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
+          <h2 id="current-game-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
+            <span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogo atual
+          </h2>
+          {currentGame ? <Link href={"/games/" + currentGame.slug} className="text-[10px] font-bold text-white/45 transition hover:text-white sm:text-xs">Abrir jogo <span className="text-[#FB2C36]">→</span></Link> : null}
         </div>
 
-        <div className="mt-4">
-          {currentGame ? (
-            <article className="grid gap-4 border-b border-white/[0.10] pb-5 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-5 lg:grid-cols-[132px_minmax(0,1fr)_190px] lg:items-center">
-              <div className="flex h-[138px] w-[112px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/35 p-1.5 sm:h-[150px] sm:w-[112px] lg:h-[158px] lg:w-[132px]">
+        {currentGame ? (
+          <>
+            <div className="grid gap-4 p-3 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-5 sm:p-4 lg:grid-cols-[192px_minmax(0,1fr)] lg:gap-6 lg:p-5">
+              <Link href={"/games/" + currentGame.slug} className="mx-auto flex aspect-[3/4] w-[136px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/45 p-1.5 transition hover:border-red-500/40 sm:mx-0 sm:w-full">
                 <img src={currentGame.cardImage || currentGame.image || ""} alt={currentGame.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
-              </div>
+              </Link>
 
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded border border-red-400/25 bg-red-500/[0.07] px-2 py-1 text-[9px] font-black uppercase tracking-wide text-red-200">Jogo atual</span>
-                  {currentGame.firstJourney?.status === "in_progress" ? <span className="rounded border border-emerald-400/25 px-2 py-1 text-[9px] font-bold text-emerald-200">Jornada de Estreia</span> : null}
+              <div className="min-w-0 flex flex-col justify-center">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    {currentGame.firstJourney?.status === "in_progress" ? <span className="inline-flex rounded border border-emerald-400/25 bg-emerald-400/[0.06] px-2 py-1 text-[9px] font-bold text-emerald-200">Jornada de Estreia</span> : null}
+                    <h3 className="mt-1 text-lg font-black leading-snug text-white sm:text-2xl">{currentGame.title}</h3>
+                    <p className="mt-1 text-xs text-white/55">{currentGame.subtitle || "Sua jornada em andamento"}</p>
+                  </div>
+                  {getGameTimestamp(currentGame) ? <span className="shrink-0 text-[10px] text-white/45">{formatShortDate(getGameTimestamp(currentGame))}</span> : null}
                 </div>
-                <h3 className="mt-2 text-lg font-black leading-snug text-white sm:text-xl">{currentGame.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-white/55">{currentGame.subtitle || "Jornada em andamento"}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-white/55">
-                  {currentGame.platform ? <span className="rounded border border-white/[0.10] px-2 py-1 font-bold text-white/75">{currentGame.platform}</span> : null}
-                  {hasUsefulTimeValue(currentGame.hours) ? <span>◷ <span className="font-bold text-white/80">{readText(currentGame.hours, "")}</span></span> : null}
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-white/65 sm:text-xs">
+                  {currentGame.platform ? <span className="inline-flex items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><span aria-hidden="true">▰</span>{currentGame.platform}</span> : null}
+                  {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
                   {readText(currentGame.currentObjective || currentGame.objective, "") ? <span className="max-w-full truncate">{readText(currentGame.currentObjective || currentGame.objective, "")}</span> : null}
                 </div>
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-3 text-[11px]">
-                    <span className="font-bold text-white/85">{currentCounts?.unlocked ?? 0} de {currentCounts?.total ?? 0} conquistas</span>
+
+                <div className="mt-4 max-w-[820px]">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                    <span className="font-black text-white">{currentCounts?.unlocked ?? 0} / {currentCounts?.total ?? 0} conquistas</span>
+                    <div className="h-2 min-w-[100px] flex-1 overflow-hidden rounded-full bg-white/[0.10]">
+                      <div className="h-full rounded-full bg-[#FB2C36]" style={{ width: currentProgress + "%" }} />
+                    </div>
                     <span className="font-black text-white">{currentProgress}%</span>
                   </div>
-                  <div className="mt-1.5 h-1.5 max-w-[620px] overflow-hidden rounded-full bg-white/[0.10]">
-                    <div className="h-full rounded-full bg-[#FB2C36]" style={{ width: currentProgress + "%" }} />
-                  </div>
                 </div>
-                <Link href={"/games/" + currentGame.slug} className="mt-3 inline-flex items-center gap-2 text-[11px] font-black text-red-300 transition hover:text-white">Abrir jogo <span>→</span></Link>
-              </div>
 
-              <div className="hidden border-l border-white/[0.10] pl-5 lg:block">
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/40">Progresso atual</p>
-                <p className="mt-2 text-3xl font-black leading-none text-white">{currentProgress}<span className="ml-1 text-sm text-white/40">%</span></p>
-                <p className="mt-2 text-[11px] leading-relaxed text-white/50">{currentCounts?.unlocked ?? 0} de {currentCounts?.total ?? 0} conquistas desbloqueadas</p>
-                {hasUsefulTimeValue(currentGame.hours) ? <p className="mt-3 text-[11px] text-white/50">Tempo jogado <span className="font-bold text-white/80">{readText(currentGame.hours, "")}</span></p> : null}
+                <div className="mt-4 flex flex-wrap items-center gap-4 text-[10px] text-white/60 sm:gap-6 sm:text-[11px]">
+                  <span className="inline-flex items-center gap-2"><span className="text-lg text-[#FB2C36]">🏆</span> {currentCounts?.unlocked ?? 0} desbloqueadas</span>
+                  {currentCounts ? <span className="inline-flex items-center gap-2"><span className="text-lg text-[#FB2C36]">◈</span> {currentCounts.total} no total</span> : null}
+                </div>
               </div>
-            </article>
-          ) : (
-            <article className="border-b border-white/[0.10] py-6">
-              <h3 className="text-base font-black text-white">Nenhum jogo em andamento</h3>
-              <p className="mt-2 text-sm text-white/55">Selecione uma jornada na Biblioteca para definir o jogo atual.</p>
-              <Link href="/biblioteca" className="mt-3 inline-flex text-xs font-bold text-red-300 hover:text-white">Abrir biblioteca →</Link>
-            </article>
-          )}
+            </div>
 
-          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] text-xl text-[#FB2C36]">◇</div>
-            {nextMastery ? (
-              <>
-                <div className="flex h-[58px] w-[46px] shrink-0 items-center justify-center overflow-hidden rounded border border-white/[0.10] bg-black/30 p-1">
-                  <img src={nextMastery.cardImage || nextMastery.image || ""} alt="" loading="lazy" className="h-full w-full object-contain" />
+            <div className="border-t border-white/[0.09] px-3 py-3 sm:px-4 sm:py-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="flex items-center gap-2 text-xs font-bold text-white/85 sm:text-sm">
+                  <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conquistas recentes
+                </h3>
+                <Link href={"/games/" + currentGame.slug} className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todas <span aria-hidden="true">→</span></Link>
+              </div>
+              {visibleCurrentAchievements.length ? (
+                <div className="flex gap-2 overflow-x-auto pb-1 sm:gap-3">
+                  {visibleCurrentAchievements.map((achievement, index) => {
+                    const image = readText(achievement.image, "") || readText(achievement.officialImage, "");
+                    const title = getAchievementTitle(achievement, index);
+                    return (
+                      <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title} aria-label={title} className="group flex h-[58px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/[0.14] bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[66px] sm:w-[66px]">
+                        {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-contain" /> : <span className="text-2xl">{getAchievementSymbol(achievement)}</span>}
+                      </Link>
+                    );
+                  })}
+                  {currentUnlockedAchievements.length > visibleCurrentAchievements.length ? (
+                    <Link href={"/games/" + currentGame.slug} className="flex h-[58px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] text-[10px] font-bold text-white/70 transition hover:border-red-500/40 hover:text-white sm:h-[66px] sm:min-w-[82px]">
+                      +{currentUnlockedAchievements.length - visibleCurrentAchievements.length}
+                      <span className="mt-0.5 text-[9px] text-white/45">conquistas</span>
+                    </Link>
+                  ) : null}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#FB2C36]">Próxima maestria</p>
-                  <h3 className="mt-0.5 truncate text-sm font-black text-white">{nextMastery.title}</h3>
-                  <p className="mt-1 text-[10px] text-white/50">{nextCounts?.unlocked ?? 0}/{nextCounts?.total ?? 0} conquistas · {nextProgress}% de progresso</p>
-                </div>
-                <div className="hidden w-[150px] shrink-0 sm:block">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
-                </div>
-                <Link href={"/games/" + nextMastery.slug} className="shrink-0 text-[11px] font-black text-white/60 transition hover:text-red-300">Ver detalhes →</Link>
-              </>
-            ) : (
-              <>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#FB2C36]">Próxima maestria</p>
-                  <h3 className="mt-0.5 text-sm font-black text-white">Sua próxima jornada ainda não foi definida</h3>
-                  <p className="mt-1 text-[11px] text-white/50">Escolha um jogo na fila para destacá-lo aqui.</p>
-                </div>
-                <Link href="/backlog" className="shrink-0 text-[11px] font-black text-white/60 transition hover:text-red-300">Organizar fila →</Link>
-              </>
-            )}
+              ) : (
+                <p className="py-2 text-[11px] text-white/45">As conquistas desbloqueadas deste jogo aparecerão aqui.</p>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="p-5 sm:p-7">
+            <h3 className="text-base font-black text-white">Nenhum jogo em andamento</h3>
+            <p className="mt-2 text-sm text-white/55">Selecione uma jornada na Biblioteca para definir o jogo atual.</p>
+            <Link href="/biblioteca" className="mt-3 inline-flex text-xs font-bold text-red-300 hover:text-white">Abrir biblioteca →</Link>
           </div>
-        </div>
+        )}
       </section>
 
-      {/* Listagem ampla: capas inteiras e progresso em colunas consistentes */}
-      <section className="mt-8" aria-labelledby="recent-games-title">
-        <div className="flex items-end justify-between gap-3 border-b border-white/[0.10] pb-3">
+      {/* Jogos recentes em galeria horizontal, sem cartões repetidos */}
+      <section className="mt-5 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="recent-games-title">
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FB2C36]">Seu catálogo</p>
-            <h2 id="recent-games-title" className="mt-1 text-lg font-black text-white sm:text-xl">Jogos recentes</h2>
+            <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos recentes</h2>
+            <p className="mt-1 text-[10px] text-white/45 sm:text-xs">Continue de onde parou ou reveja suas jornadas concluídas.</p>
           </div>
-          <Link href="/biblioteca" className="shrink-0 text-[11px] font-bold text-white/50 transition hover:text-white">Ver biblioteca <span className="text-[#FB2C36]">→</span></Link>
+          <Link href="/biblioteca" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todos <span aria-hidden="true">→</span></Link>
         </div>
-        <p className="mt-2 text-xs text-white/45">Últimos jogos atualizados, com as conquistas agrupadas por jogo.</p>
 
         {recentGames.length ? (
-          <div className="mt-2 divide-y divide-white/[0.09]">
+          <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 sm:p-4 lg:grid-cols-6">
             {recentGames.map((game) => {
               const counts = getAchievementCounts(game);
               const progress = Math.max(0, Math.min(100, Number(game.progress) || 0));
-              const allUnlockedForGame = getUnlockedAchievements(game);
-              const achievements = allUnlockedForGame.slice(0, 4);
-              const remainingAchievementCount = Math.max(0, allUnlockedForGame.length - achievements.length);
-              const timestamp = getGameTimestamp(game);
-              const dateText = timestamp ? formatShortDate(timestamp) : "";
               return (
-                <Link key={game.slug} href={"/games/" + game.slug} className="group grid grid-cols-[78px_minmax(0,1fr)] gap-x-3 gap-y-2 py-4 transition hover:bg-white/[0.015] sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-x-4 md:grid-cols-[104px_minmax(0,1fr)_190px] md:items-center md:gap-x-5">
-                  <div className="row-span-2 flex h-[92px] w-[78px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/30 p-1 sm:h-[104px] sm:w-[96px] md:row-span-1 md:w-[104px]">
-                    <img src={game.cardImage || game.image || ""} alt="" loading="lazy" className="max-h-full max-w-full object-contain" />
+                <Link key={game.slug} href={"/games/" + game.slug} className="group min-w-0 overflow-hidden rounded-lg border border-white/[0.10] bg-black/30 transition hover:border-red-500/40 hover:bg-black/50">
+                  <div className="flex aspect-[3/4] items-center justify-center overflow-hidden bg-black/35 p-1.5 sm:p-2">
+                    <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.02]" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-black text-white transition group-hover:text-red-100 sm:text-base">{game.title}</h3>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-white/55 sm:text-[11px]">
-                      {game.platform ? <span className="rounded border border-white/[0.10] px-1.5 py-0.5 font-bold text-white/70">{game.platform}</span> : null}
-                      {hasUsefulTimeValue(game.hours) ? <span>◷ {readText(game.hours, "")}</span> : null}
-                      <span>{counts.unlocked}/{counts.total} conquistas</span>
-                      {dateText ? <span className="text-white/35">Atualizado {dateText}</span> : null}
-                    </div>
-                    <div className="mt-2.5 flex min-h-7 items-center gap-1.5">
-                      {achievements.length ? (
-                        <>
-                          {achievements.map((achievement, index) => <AchievementIcon key={game.slug + "-" + getAchievementTitle(achievement, index)} achievement={achievement} />)}
-                          {remainingAchievementCount > 0 ? <span className="flex h-7 min-w-7 items-center justify-center rounded-md border border-white/[0.10] bg-white/[0.035] px-1.5 text-[9px] font-bold text-white/55">+{remainingAchievementCount}</span> : null}
-                        </>
-                      ) : <span className="text-[10px] text-white/35">Ainda sem conquistas registradas</span>}
-                    </div>
-                  </div>
-                  <div className="col-start-2 min-w-0 pb-1 md:col-start-auto md:pb-0">
-                    <div className="flex items-center justify-between gap-2 text-[10px] text-white/55 sm:text-[11px]">
-                      <span>Progresso</span><span className="font-black text-white">{progress}%</span>
+                  <div className="p-2 sm:p-2.5">
+                    <h3 className="line-clamp-2 min-h-[2.4em] text-[10px] font-black leading-snug text-white/90 transition group-hover:text-white sm:text-xs">{game.title}</h3>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[9px] text-white/50 sm:text-[10px]">
+                      {game.platform ? <span className="truncate rounded bg-white/[0.06] px-1.5 py-0.5 font-bold text-white/70">{game.platform}</span> : <span>Jornada</span>}
+                      <span className="shrink-0 font-black text-white/80">{progress}%</span>
                     </div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.10]">
-                      <div className="h-full rounded-full bg-emerald-400" style={{ width: progress + "%" }} />
+                      <div className={"h-full rounded-full " + (progress >= 100 ? "bg-emerald-400" : "bg-[#FB2C36]")} style={{ width: progress + "%" }} />
                     </div>
+                    <p className="mt-1.5 text-[9px] text-white/45">{counts.unlocked}/{counts.total} conquistas</p>
                   </div>
                 </Link>
               );
             })}
           </div>
         ) : (
-          <p className="py-6 text-sm text-white/50">Os jogos recentes aparecerão aqui conforme o progresso for registrado.</p>
+          <p className="p-5 text-sm text-white/50">Os jogos recentes aparecerão aqui conforme o progresso for registrado.</p>
         )}
       </section>
 
-      {/* Conteúdo secundário no fim da página, sem sidebar permanente */}
-      <div className="mt-8 grid gap-7 border-t border-white/[0.10] pt-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-9">
-        <section className="min-w-0" aria-labelledby="featured-achievements-title">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FB2C36]">Marcos da jornada</p>
-              <h2 id="featured-achievements-title" className="mt-1 text-base font-black text-white sm:text-lg">Conquistas em destaque</h2>
-            </div>
-            <Link href="/historico" className="shrink-0 text-[10px] font-bold text-white/45 transition hover:text-white">Histórico →</Link>
+      {/* Blocos secundários horizontais, sem sidebars */}
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <section className="min-w-0 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="next-mastery-title">
+          <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3">
+            <h2 id="next-mastery-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
+            <Link href="/backlog" className="shrink-0 text-[10px] font-bold text-white/45 transition hover:text-white">Ver fila →</Link>
           </div>
-          {featuredAchievements.length ? (
-            <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-              {featuredAchievements.map(({ game, achievement, key }) => {
-                const image = readText(achievement.image, "") || readText(achievement.officialImage, "");
+          {nextMastery ? (
+            <div className="grid gap-3 p-3 sm:grid-cols-[132px_minmax(0,1fr)] sm:p-4">
+              <Link href={"/games/" + nextMastery.slug} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/40 p-2 sm:aspect-auto sm:min-h-[132px]">
+                <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
+              </Link>
+              <div className="flex min-w-0 flex-col justify-center">
+                <h3 className="text-base font-black leading-snug text-white">{nextMastery.title}</h3>
+                <p className="mt-1 text-[11px] text-white/55">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
+                  <span className="text-xs font-black text-white">{nextProgress}%</span>
+                </div>
+                <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[11px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4">
+              <p className="text-sm font-bold text-white">Sua próxima Maestria ainda não foi definida.</p>
+              <p className="mt-1 text-xs text-white/50">Escolha um jogo na fila para destacá-lo aqui.</p>
+              <Link href="/backlog" className="mt-3 inline-flex text-xs font-bold text-[#FB2C36] hover:text-white">Organizar fila →</Link>
+            </div>
+          )}
+        </section>
+
+        <section className="min-w-0 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="recent-content-title">
+          <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3">
+            <h2 id="recent-content-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Conteúdo recente</h2>
+            <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos <span aria-hidden="true">→</span></Link>
+          </div>
+          {recentVideos.length ? (
+            <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+              {recentVideos.slice(0, 4).map((video) => {
+                const liveItem = Boolean(isLive && featuredVideo?.id === video.id);
                 return (
-                  <Link key={key} href={"/games/" + game.slug} title={getAchievementTitle(achievement, 0) + " — " + game.title} className="group w-[88px] shrink-0 text-center sm:w-[100px]">
-                    <div className="mx-auto flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/35 p-1.5 transition group-hover:border-red-500/40 sm:h-[78px] sm:w-[78px]">
-                      {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-contain" /> : <span className="text-2xl">{getAchievementSymbol(achievement)}</span>}
+                  <a key={video.id} href={video.url} target="_blank" rel="noreferrer" className="group min-w-0 overflow-hidden rounded-lg border border-white/[0.08] bg-black/30 transition hover:border-red-500/35">
+                    <div className="relative aspect-video overflow-hidden bg-black/45">
+                      {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : null}
+                      <span className={"absolute left-1.5 top-1.5 rounded px-1.5 py-1 text-[8px] font-black uppercase text-white " + (liveItem ? "bg-[#FB2C36]" : "bg-black/75")}>{liveItem ? "Ao vivo" : "YouTube"}</span>
+                      <span className="absolute bottom-1.5 left-1.5 flex h-6 w-6 items-center justify-center rounded bg-[#FB2C36] text-xs text-white">▶</span>
                     </div>
-                    <p className="mt-2 line-clamp-2 text-[10px] font-bold leading-snug text-white/80">{getAchievementTitle(achievement, 0)}</p>
-                    <p className="mt-1 line-clamp-1 text-[9px] text-white/40">{game.title}</p>
-                  </Link>
+                    <div className="p-2">
+                      <h3 className="line-clamp-2 text-[10px] font-bold leading-snug text-white/90 sm:text-[11px]">{video.title}</h3>
+                      <p className="mt-1 line-clamp-1 text-[9px] text-white/40">{video.publishedAt || "Canal Rabiisco"}</p>
+                    </div>
+                  </a>
                 );
               })}
             </div>
           ) : (
-            <p className="mt-4 text-xs text-white/45">As conquistas especiais aparecerão aqui conforme os registros forem atualizados.</p>
-          )}
-        </section>
-
-        <section className="min-w-0" aria-labelledby="featured-content-title">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FB2C36]">Do canal</p>
-              <h2 id="featured-content-title" className="mt-1 text-base font-black text-white sm:text-lg">Conteúdo em destaque</h2>
-            </div>
-            <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-white/45 transition hover:text-white">Todos os vídeos →</Link>
-          </div>
-          {featuredVideo ? (
-            <a href={featuredVideo.url} target="_blank" rel="noreferrer" className="group mt-4 grid grid-cols-[124px_minmax(0,1fr)] gap-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4">
-              <div className="relative aspect-video overflow-hidden rounded-lg border border-white/[0.10] bg-black/40">
-                {featuredVideo.thumbnail ? <img src={featuredVideo.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /> : null}
-                <span className={"absolute left-1.5 top-1.5 rounded px-1.5 py-1 text-[8px] font-black uppercase text-white " + (isLive ? "bg-[#FB2C36]" : "border border-white/15 bg-black/80")}>{isLive ? "Ao vivo" : "YouTube"}</span>
-                <span className="absolute inset-0 flex items-center justify-center"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FB2C36] text-sm text-white">▶</span></span>
-              </div>
-              <div className="min-w-0 self-center">
-                <p className="line-clamp-3 text-xs font-black leading-snug text-white transition group-hover:text-red-100 sm:text-sm">{featuredVideo.title}</p>
-                <p className="mt-2 text-[10px] font-bold text-red-300">{isLive ? "Assistir ao vivo" : "Assistir no YouTube"} →</p>
-              </div>
-            </a>
-          ) : (
-            <div className="mt-4">
-              <p className="text-xs leading-relaxed text-white/50">{youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o último conteúdo do canal…"}</p>
-              <Link href="/conteudo" className="mt-2 inline-flex text-xs font-bold text-red-300 hover:text-white">Abrir Conteúdo →</Link>
+            <div className="p-4">
+              <p className="text-xs text-white/50">{youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o último conteúdo do canal…"}</p>
+              <Link href="/conteudo" className="mt-2 inline-flex text-xs font-bold text-[#FB2C36] hover:text-white">Abrir Conteúdo →</Link>
             </div>
           )}
         </section>
       </div>
-
-      {recentActivity.length ? (
-        <section className="mt-8 border-t border-white/[0.10] pt-6" aria-labelledby="recent-activity-title">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FB2C36]">Últimas atualizações</p>
-              <h2 id="recent-activity-title" className="mt-1 text-base font-black text-white sm:text-lg">Atividade recente</h2>
-            </div>
-            <Link href="/atividade" className="text-[10px] font-bold text-white/45 transition hover:text-white">Ver atividade →</Link>
-          </div>
-          <div className="mt-3 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-4">
-            {recentActivity.slice(0, 4).map((item) => (
-              <Link key={item.key} href={"/games/" + item.slug} className="flex min-w-0 items-center gap-2.5 border-b border-white/[0.07] py-3 transition hover:bg-white/[0.015]">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/35 text-lg">{item.image ? <img src={item.image} alt="" loading="lazy" className="h-full w-full object-contain" /> : item.symbol}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[9px] font-bold text-[#FB2C36]">{item.kind}</span>
-                  <span className="mt-0.5 block truncate text-[11px] font-bold text-white/85">{item.title}</span>
-                  <span className="mt-0.5 block truncate text-[10px] text-white/40">{item.gameTitle} · {item.dateLabel}</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <footer className="mt-8 border-t border-white/[0.08] py-4 text-center text-[9px] font-semibold tracking-[0.16em] text-white/30">
         RUMO À CONQUISTA · CADA JOGO CONTA. CADA CONQUISTA FICA.
