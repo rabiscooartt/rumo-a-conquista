@@ -323,8 +323,21 @@ export default function LandingHome() {
         <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
           <div className="border-b border-white/[0.08] pb-5 pt-2">
             <div className="flex flex-col items-center text-center">
-              <div className="h-[76px] w-[76px] overflow-hidden rounded-xl border-2 border-red-500/70 bg-black/60 p-[2px] shadow-[0_0_20px_rgba(251,44,54,0.20)]">
-                <img src="/images/avatar.jpg" alt="Avatar do Rabiisco" className="h-full w-full rounded-lg object-cover" />
+              <div className="relative mt-3 h-[76px] w-[76px] overflow-visible">
+                <div className="absolute inset-0 overflow-hidden rounded-xl border-2 border-red-500/70 bg-black/60 p-[2px] shadow-[0_0_20px_rgba(251,44,54,0.20)]">
+                  <img src="/images/avatar.jpg" alt="Avatar do Rabiisco" className="h-full w-full rounded-lg object-cover" />
+                </div>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 28 22"
+                  className="absolute -top-[11px] left-1/2 z-10 h-[20px] w-[24px] -translate-x-1/2 drop-shadow-[0_0_4px_rgba(251,44,54,0.8)]"
+                >
+                  <path d="M2.5 4.5 8 9.5 13.8 1.8 19.7 9.5 25.5 4.5 22.3 16.2H5.7L2.5 4.5Z" fill="#FB2C36" stroke="#FF737B" strokeWidth="0.8" strokeLinejoin="round" />
+                  <path d="M6.5 18.5H21.5" stroke="#FB2C36" strokeWidth="2.2" strokeLinecap="round" />
+                  <circle cx="2.5" cy="4.5" r="1.4" fill="#FF737B" />
+                  <circle cx="13.8" cy="1.8" r="1.4" fill="#FF737B" />
+                  <circle cx="25.5" cy="4.5" r="1.4" fill="#FF737B" />
+                </svg>
               </div>
               <h2 className="mt-3 text-lg font-black leading-tight text-white">Rabiisco</h2>
               <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
