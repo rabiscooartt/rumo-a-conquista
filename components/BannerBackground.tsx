@@ -15,6 +15,10 @@ type Props = {
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
+function getBannerEditorLabel(bannerKey: SiteBannerKey) {
+  return bannerKey === "home" ? "Página inicial" : bannerKey;
+}
+
 export default function BannerBackground({
   bannerKey,
   imageUrl,
@@ -272,7 +276,7 @@ export default function BannerBackground({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-red-400">
-                  Editor de BG · {bannerKey}
+                  Editor de BG · {getBannerEditorLabel(bannerKey)}
                 </p>
                 <p className="mt-1 text-[10px] text-white/40">
                   Carregue uma imagem, arraste na prévia e ajuste o zoom. A imagem e o enquadramento ficam salvos para as próximas visitas.

@@ -8,6 +8,7 @@ import type {
 
 const BUCKET = "site-banners";
 const BANNER_KEYS: SiteBannerKey[] = [
+  "home",
   "jogos",
   "atividade",
   "conteudo",
@@ -27,6 +28,7 @@ export const SITE_BANNER_DEFAULTS: Record<
   SiteBannerKey,
   SiteBannerSetting
 > = {
+  home: { ...DEFAULT_SETTINGS },
   jogos: { ...DEFAULT_SETTINGS },
   atividade: { ...DEFAULT_SETTINGS },
   conteudo: { ...DEFAULT_SETTINGS },
@@ -67,6 +69,7 @@ export async function loadSiteBannerSettings(): Promise<
   Record<SiteBannerKey, SiteBannerSetting>
 > {
   const settings: Record<SiteBannerKey, SiteBannerSetting> = {
+    home: { ...DEFAULT_SETTINGS },
     jogos: { ...DEFAULT_SETTINGS },
     atividade: { ...DEFAULT_SETTINGS },
     conteudo: { ...DEFAULT_SETTINGS },

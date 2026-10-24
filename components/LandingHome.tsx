@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import BannerBackground from "@/components/BannerBackground";
 import { useEffect, useMemo, useState } from "react";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 
@@ -394,9 +395,11 @@ export default function LandingHome() {
         aria-labelledby="home-journey-title"
         className="relative isolate flex min-h-[150px] items-center overflow-hidden rounded-xl border border-red-500/25 bg-[#06070a] px-4 py-5 sm:min-h-[170px] sm:px-6 sm:py-6 lg:px-7"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20">
-          <img src="/images/home-profile-banner-art.webp" alt="" className="h-full w-full object-cover object-[58%_34%]" />
-        </div>
+        <BannerBackground
+          bannerKey="home"
+          imageUrl="/images/home-profile-banner-art.webp"
+          className="pointer-events-none absolute inset-0 -z-20"
+        />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"

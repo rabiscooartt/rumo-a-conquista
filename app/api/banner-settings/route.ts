@@ -5,6 +5,7 @@ import type { SiteBannerKey } from "@/lib/banner-types";
 
 const BUCKET = "site-banners";
 const VALID_BANNERS = new Set<SiteBannerKey>([
+  "home",
   "jogos",
   "atividade",
   "conteudo",
