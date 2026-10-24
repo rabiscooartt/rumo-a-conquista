@@ -404,7 +404,7 @@ export default function LandingHome() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
-            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.88) 0%, rgba(4,5,8,0.72) 45%, rgba(4,5,8,0.42) 76%, rgba(4,5,8,0.50) 100%), linear-gradient(0deg, rgba(2,3,5,0.46), rgba(2,3,5,0.20))"
+            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.88) 0%, rgba(4,5,8,0.74) 35%, rgba(4,5,8,0.45) 55%, rgba(4,5,8,0.18) 76%, rgba(4,5,8,0.24) 100%), linear-gradient(0deg, rgba(2,3,5,0.26), rgba(2,3,5,0.08))"
           }}
         />
         <div className="relative z-10 w-full max-w-[560px]">
