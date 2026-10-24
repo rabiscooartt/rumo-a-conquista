@@ -539,7 +539,7 @@ export default function LandingHome() {
             <div className="mt-3 grid grid-cols-4 gap-1.5">
               {HOME_TROPHY_TIERS.map((tier) => {
                 const count = trophySummary[tier.key];
-                const countLabel = isLoaded ? `${count.unlocked}/${count.total}` : "—/—";
+                const countLabel = isLoaded ? String(count.unlocked) : "—";
                 const countDescription = isLoaded
                   ? `${tier.label}: ${count.unlocked} desbloqueadas de ${count.total}`
                   : `${tier.label}: carregando contagens`;
