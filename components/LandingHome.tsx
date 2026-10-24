@@ -365,8 +365,11 @@ export default function LandingHome() {
         </div>
       </section>
 
+      {/* Conteúdo principal à esquerda e sidebar contextual à direita */}
+      <div className="mt-4 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="min-w-0 space-y-5">
       {/* Jogo atual com a faixa de conquistas integrada */}
-      <section className="mt-4 overflow-hidden rounded-xl border border-red-500/25 bg-[#05070a]" aria-labelledby="current-game-title">
+      <section className="overflow-hidden rounded-xl border border-red-500/25 bg-[#05070a]" aria-labelledby="current-game-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <h2 id="current-game-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
             <span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogo atual
@@ -454,7 +457,7 @@ export default function LandingHome() {
       </section>
 
       {/* Jogos recentes em galeria horizontal, sem cartões repetidos */}
-      <section className="mt-5 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="recent-games-title">
+      <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="recent-games-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <div>
             <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos recentes</h2>
@@ -493,68 +496,72 @@ export default function LandingHome() {
         )}
       </section>
 
-      {/* Blocos secundários horizontais, sem sidebars */}
-      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="min-w-0 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="next-mastery-title">
-          <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3">
-            <h2 id="next-mastery-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
-            <Link href="/backlog" className="shrink-0 text-[10px] font-bold text-white/45 transition hover:text-white">Ver fila →</Link>
-          </div>
-          {nextMastery ? (
-            <div className="grid gap-3 p-3 sm:grid-cols-[132px_minmax(0,1fr)] sm:p-4">
-              <Link href={"/games/" + nextMastery.slug} className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/40 p-2 sm:aspect-auto sm:min-h-[132px]">
-                <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
-              </Link>
-              <div className="flex min-w-0 flex-col justify-center">
-                <h3 className="text-base font-black leading-snug text-white">{nextMastery.title}</h3>
-                <p className="mt-1 text-[11px] text-white/55">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
-                  <span className="text-xs font-black text-white">{nextProgress}%</span>
-                </div>
-                <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[11px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4">
-              <p className="text-sm font-bold text-white">Sua próxima Maestria ainda não foi definida.</p>
-              <p className="mt-1 text-xs text-white/50">Escolha um jogo na fila para destacá-lo aqui.</p>
-              <Link href="/backlog" className="mt-3 inline-flex text-xs font-bold text-[#FB2C36] hover:text-white">Organizar fila →</Link>
-            </div>
-          )}
-        </section>
+        </div>
 
-        <section className="min-w-0 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/90" aria-labelledby="recent-content-title">
-          <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3">
-            <h2 id="recent-content-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Conteúdo recente</h2>
-            <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos <span aria-hidden="true">→</span></Link>
-          </div>
-          {recentVideos.length ? (
-            <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-              {recentVideos.slice(0, 4).map((video) => {
-                const liveItem = Boolean(isLive && featuredVideo?.id === video.id);
-                return (
-                  <a key={video.id} href={video.url} target="_blank" rel="noreferrer" className="group min-w-0 overflow-hidden rounded-lg border border-white/[0.08] bg-black/30 transition hover:border-red-500/35">
-                    <div className="relative aspect-video overflow-hidden bg-black/45">
-                      {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : null}
-                      <span className={"absolute left-1.5 top-1.5 rounded px-1.5 py-1 text-[8px] font-black uppercase text-white " + (liveItem ? "bg-[#FB2C36]" : "bg-black/75")}>{liveItem ? "Ao vivo" : "YouTube"}</span>
-                      <span className="absolute bottom-1.5 left-1.5 flex h-6 w-6 items-center justify-center rounded bg-[#FB2C36] text-xs text-white">▶</span>
-                    </div>
-                    <div className="p-2">
-                      <h3 className="line-clamp-2 text-[10px] font-bold leading-snug text-white/90 sm:text-[11px]">{video.title}</h3>
-                      <p className="mt-1 line-clamp-1 text-[9px] text-white/40">{video.publishedAt || "Canal Rabiisco"}</p>
-                    </div>
-                  </a>
-                );
-              })}
+        <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
+          <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="next-mastery-title">
+            <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
+              <h2 id="next-mastery-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
+              <Link href="/backlog" className="shrink-0 text-[10px] font-bold text-white/45 transition hover:text-white">Fila →</Link>
             </div>
-          ) : (
-            <div className="p-4">
-              <p className="text-xs text-white/50">{youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o último conteúdo do canal…"}</p>
-              <Link href="/conteudo" className="mt-2 inline-flex text-xs font-bold text-[#FB2C36] hover:text-white">Abrir Conteúdo →</Link>
+            {nextMastery ? (
+              <>
+                <Link href={"/games/" + nextMastery.slug} className="group block p-3 pb-0">
+                  <div className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/45 p-2">
+                    <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.02]" />
+                  </div>
+                </Link>
+                <div className="p-3.5">
+                  <h3 className="text-sm font-black leading-snug text-white">{nextMastery.title}</h3>
+                  <p className="mt-1 text-[10px] text-white/55">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
+                    <span className="text-[10px] font-black text-white">{nextProgress}%</span>
+                  </div>
+                  <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
+                </div>
+              </>
+            ) : (
+              <div className="p-3.5">
+                <p className="text-xs font-bold text-white">Sua próxima Maestria ainda não foi definida.</p>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/50">Escolha um jogo na fila para destacá-lo aqui.</p>
+                <Link href="/backlog" className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white">Organizar fila →</Link>
+              </div>
+            )}
+          </section>
+
+          <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="recent-content-title">
+            <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
+              <h2 id="recent-content-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conteúdo recente</h2>
+              <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos →</Link>
             </div>
-          )}
-        </section>
+            {recentVideos.length ? (
+              <div className="divide-y divide-white/[0.08]">
+                {recentVideos.slice(0, 4).map((video) => {
+                  const liveItem = Boolean(isLive && featuredVideo?.id === video.id);
+                  return (
+                    <a key={video.id} href={video.url} target="_blank" rel="noreferrer" className="group flex min-w-0 gap-2.5 p-3 transition hover:bg-white/[0.025]">
+                      <div className="relative aspect-video w-[104px] shrink-0 overflow-hidden rounded-md border border-white/[0.08] bg-black/45">
+                        {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : null}
+                        <span className={"absolute left-1 top-1 rounded px-1 py-0.5 text-[7px] font-black uppercase text-white " + (liveItem ? "bg-[#FB2C36]" : "bg-black/75")}>{liveItem ? "Ao vivo" : "YouTube"}</span>
+                        <span className="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded bg-[#FB2C36] text-[10px] text-white">▶</span>
+                      </div>
+                      <div className="min-w-0 flex-1 self-center">
+                        <h3 className="line-clamp-3 text-[10px] font-bold leading-snug text-white/85 transition group-hover:text-white">{video.title}</h3>
+                        <p className="mt-1.5 line-clamp-1 text-[9px] text-white/40">{video.publishedAt || "Canal Rabiisco"}</p>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-3.5">
+                <p className="text-[10px] text-white/50">{youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o conteúdo do canal…"}</p>
+                <Link href="/conteudo" className="mt-2 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white">Abrir Conteúdo →</Link>
+              </div>
+            )}
+          </section>
+        </aside>
       </div>
 
       <footer className="mt-8 border-t border-white/[0.08] py-4 text-center text-[9px] font-semibold tracking-[0.16em] text-white/30">
