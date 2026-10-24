@@ -272,10 +272,6 @@ export default function LandingHome() {
     () => gamesByUpdated.find((game) => getGameStatus(game) === "progress") ?? null,
     [gamesByUpdated]
   );
-  const latestCompletedGame = useMemo(
-    () => gamesByUpdated.find((game) => getGameStatus(game) === "completed") ?? null,
-    [gamesByUpdated]
-  );
   const nextMastery = useMemo(() => {
     const bySlug = new Map(allGames.map((game) => [game.slug, game]));
     const eligibleQueue = backlogEntries
@@ -324,38 +320,45 @@ export default function LandingHome() {
     <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
       <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block" aria-label="Resumo lateral da Home">
         <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
-          <div className="border-y border-white/[0.08] py-5">
-            <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
-              <span aria-hidden="true" className="text-red-400">⌂</span> Início
+          <div className="border-b border-white/[0.08] pb-5 pt-2">
+            <div className="flex flex-col items-center text-center">
+              <div className="h-[76px] w-[76px] overflow-hidden rounded-full border-2 border-red-500/70 bg-black/60 p-[2px] shadow-[0_0_20px_rgba(251,44,54,0.20)]">
+                <img src="/images/avatar.jpg" alt="Avatar do Rabiisco" className="h-full w-full rounded-full object-cover" />
+              </div>
+              <h2 className="mt-3 text-lg font-black leading-tight text-white">Rabiisco</h2>
+              <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
+              <p className="mt-2 max-w-[180px] text-[11px] italic leading-relaxed text-white/50">Mais que jogos: histórias que ficam.</p>
+
+              <div className="mt-4 flex items-center justify-center gap-4" role="group" aria-label="Redes sociais do Rabiisco">
+                <a href="https://www.youtube.com/@orabiisco" target="_blank" rel="noreferrer" aria-label="YouTube do Rabiisco" title="YouTube" className="text-[#FB2C36] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
+                  </svg>
+                </a>
+                <a href="https://www.instagram.com/orabiisco/" target="_blank" rel="noreferrer" aria-label="Instagram do Rabiisco" title="Instagram" className="text-[#E879B9] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="5" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                  </svg>
+                </a>
+                <a href="https://www.twitch.tv/orabiisco" target="_blank" rel="noreferrer" aria-label="Twitch do Rabiisco" title="Twitch" className="text-[#BF94FF] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                    <path d="M4.3 2 1 5.3v14.1h5.4V22h3.3l2.6-2.6h4.1L23 12.7V2H4.3Zm16.4 9.6-3.3 3.3h-4.1l-2.6 2.6v-2.6H6.4V4.1h14.3v7.5ZM16 6.8h2.1v6.1H16V6.8Zm-5.7 0h2.1v6.1h-2.1V6.8Z" />
+                  </svg>
+                </a>
+                <a href="https://kick.com/orabiisco" target="_blank" rel="noreferrer" aria-label="Kick do Rabiisco" title="Kick" className="text-[#53E0A0] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                    <path d="M4 3h5v6l6-6h6l-7.2 8L21 21h-6l-4.5-6L9 17v4H4V3Z" />
+                  </svg>
+                </a>
+              </div>
             </div>
-          </div>
-          <div className="mt-6 border-b border-white/[0.08] pb-6">
-            <div className="flex items-center gap-2">
-              <span aria-hidden="true" className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Último emblema</h2>
-            </div>
-            {latestCompletedGame ? (
-              <Link href={"/games/" + latestCompletedGame.slug} className="group block">
-                <div className="mt-3 flex h-[142px] items-center justify-center overflow-hidden">
-                  {getGameEmblemImage(latestCompletedGame) ? (
-                    <img src={getGameEmblemImage(latestCompletedGame)} alt={"Emblema de " + latestCompletedGame.title} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.03]" />
-                  ) : (
-                    <span aria-hidden="true" className="text-5xl text-white/25">♜</span>
-                  )}
-                </div>
-                <p className="mt-2 truncate text-center text-[11px] font-black leading-tight text-white" title={latestCompletedGame.title}>{latestCompletedGame.title}</p>
-                <div className="mt-1.5 flex items-center justify-center">
-                  <span className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">Finalizado</span>
-                </div>
-              </Link>
-            ) : (
-              <p className="mt-3 text-[10px] leading-relaxed text-white/40">Seu primeiro emblema aparecerá aqui quando uma jornada for concluída.</p>
-            )}
           </div>
           <div className="mt-6">
             <div className="flex items-center gap-2">
               <span aria-hidden="true" className="h-5 w-0.5 shrink-0 rounded-full bg-red-500" />
-              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Setup</h2>
+              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Meu setup</h2>
             </div>
             <div className="mt-3 divide-y divide-white/[0.06]">
               {[
@@ -373,6 +376,7 @@ export default function LandingHome() {
                 </div>
               ))}
             </div>
+            <Link href="/perfil" className="mt-3 inline-flex px-1 text-[10px] font-bold text-red-400 transition hover:text-white">Ver setup completo <span className="ml-1">→</span></Link>
           </div>
           <div className="mt-auto pt-8">
             <Link href="/configuracoes" className="flex items-center gap-3 px-2 py-2 text-[11px] font-bold text-white/50 transition hover:text-white">
@@ -385,80 +389,36 @@ export default function LandingHome() {
       <div className="min-w-0 px-4 pb-12 pt-4 sm:px-5 lg:px-5 lg:pt-5">
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 space-y-4">
-      {/* Banner de identidade do perfil: compacto, com fundo gótico discreto */}
+      {/* Banner principal: identidade do Rumo à Conquista */}
       <section
-        aria-labelledby="home-profile-title"
-        className="relative isolate flex min-h-[118px] items-center overflow-hidden rounded-xl border border-red-500/20 bg-[#06070a] px-4 py-4 sm:min-h-[136px] sm:px-5 sm:py-5 lg:px-6"
+        aria-labelledby="home-journey-title"
+        className="relative isolate flex min-h-[150px] items-center overflow-hidden rounded-xl border border-red-500/25 bg-[#06070a] px-4 py-5 sm:min-h-[170px] sm:px-6 sm:py-6 lg:px-7"
       >
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20">
-          <img
-            src="/images/home-profile-banner-art.webp"
-            alt=""
-            className="h-full w-full object-cover object-[58%_34%]"
-          />
+          <img src="/images/home-profile-banner-art.webp" alt="" className="h-full w-full object-cover object-[58%_34%]" />
         </div>
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
-            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.80) 0%, rgba(4,5,8,0.68) 38%, rgba(4,5,8,0.78) 70%, rgba(4,5,8,0.90) 100%), linear-gradient(0deg, rgba(2,3,5,0.45), rgba(2,3,5,0.28))"
+            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.88) 0%, rgba(4,5,8,0.72) 45%, rgba(4,5,8,0.42) 76%, rgba(4,5,8,0.50) 100%), linear-gradient(0deg, rgba(2,3,5,0.46), rgba(2,3,5,0.20))"
           }}
         />
-
-        <div className="relative z-10 flex w-full min-w-0 items-center gap-3 sm:gap-4">
-          <div className="h-[66px] w-[66px] shrink-0 overflow-hidden rounded-full border-2 border-red-500/70 bg-black/60 p-[2px] shadow-[0_0_20px_rgba(251,44,54,0.20)] sm:h-[78px] sm:w-[78px]">
-            <img
-              src="/images/avatar.jpg"
-              alt="Avatar do Rabiisco"
-              className="h-full w-full rounded-full object-cover"
-            />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h1 id="home-profile-title" className="text-xl font-black leading-tight tracking-tight text-white sm:text-2xl">
-              Rabiisco
-            </h1>
-            <p className="mt-0.5 text-[10px] font-semibold text-white/65 sm:text-[11px]">
-              Gamer · Criador de Conteúdo
-            </p>
-            <p className="mt-1 text-[10px] leading-relaxed text-white/60 sm:text-xs">
-              Jogos, conquistas e histórias de cada jornada.
-            </p>
-
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <a
-                href="https://www.youtube.com/@orabiisco"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="YouTube do Rabiisco"
-                title="YouTube"
-                className="inline-flex h-5 items-center justify-center text-[#FB2C36] transition hover:text-white"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="currentColor">
-                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
-                </svg>
-              </a>
-              <a
-                href="https://www.twitch.tv/orabiisco"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Twitch do Rabiisco"
-                title="Twitch"
-                className="inline-flex h-5 items-center justify-center text-[#bf94ff] transition hover:text-white"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="currentColor">
-                  <path d="M4.3 2 1 5.3v14.1h5.4V22h3.3l2.6-2.6h4.1L23 12.7V2H4.3Zm16.4 9.6-3.3 3.3h-4.1l-2.6 2.6v-2.6H6.4V4.1h14.3v7.5ZM16 6.8h2.1v6.1H16V6.8Zm-5.7 0h2.1v6.1h-2.1V6.8Z" />
-                </svg>
-              </a>
-              <span aria-hidden="true" className="h-3.5 w-px bg-white/20" />
-              <Link
-                href="/perfil"
-                className="text-[10px] font-bold text-white/60 transition hover:text-white sm:text-[11px]"
-              >
-                Ver perfil completo <span className="text-[#FB2C36]">→</span>
-              </Link>
-            </div>
-          </div>
+        <div className="relative z-10 w-full max-w-[560px]">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-300 sm:text-xs">Cada jogo conta</p>
+          <h1 id="home-journey-title" className="mt-1 font-serif text-[27px] font-semibold uppercase leading-[1.04] tracking-[0.01em] text-white sm:text-[34px] lg:text-[38px]">
+            Rumo à <span className="text-[#FB2C36]">Conquista</span>
+          </h1>
+          <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/75 sm:text-[13px]">
+            Registre suas jornadas, celebre cada conquista e descubra sua próxima maestria.
+          </p>
+          <Link
+            href="/biblioteca"
+            aria-label="Explorar os jogos do Rumo à Conquista"
+            className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-[10px] font-black text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:min-h-10 sm:px-5 sm:text-xs"
+          >
+            Explorar jogos <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
 
