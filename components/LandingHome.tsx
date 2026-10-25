@@ -343,46 +343,41 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M7.2 7.1h9.6a4.4 4.4 0 0 1 4.3 3.6l.9 4.8a2.2 2.2 0 0 1-3.6 2.1l-3.1-2.6H8.7l-3.1 2.6A2.2 2.2 0 0 1 2 15.5l.9-4.8a4.4 4.4 0 0 1 4.3-3.6Z" fill="currentColor" fillOpacity=".08" />
-      <path d="M7.2 7.1h9.6a4.4 4.4 0 0 1 4.3 3.6l.9 4.8a2.2 2.2 0 0 1-3.6 2.1l-3.1-2.6H8.7l-3.1 2.6A2.2 2.2 0 0 1 2 15.5l.9-4.8a4.4 4.4 0 0 1 4.3-3.6Z" />
-      <path d="M7 10.1v4.4m-2.2-2.2h4.4" stroke="#FFFFFF" strokeWidth="1.7" />
-      <circle cx="15.8" cy="10.9" r=".9" fill="#FFFFFF" stroke="none" />
-      <circle cx="18.1" cy="13.1" r=".9" fill="#FFFFFF" stroke="none" />
+      <path d="M7 15h.01" />
+      <path d="M9 13h.01" />
+      <path d="M15 14h.01" />
+      <path d="M17 12h.01" />
+      <path d="M7.5 18h9a4.5 4.5 0 0 0 4.43-5.3l-.7-4A4 4 0 0 0 16.3 5.4H7.7a4 4 0 0 0-3.94 3.3l-.7 4A4.5 4.5 0 0 0 7.5 18Z" />
     </>
   ) : symbol === "check" ? (
     <>
-      <circle cx="12" cy="12" r="9.2" fill="currentColor" fillOpacity=".07" />
-      <circle cx="12" cy="12" r="9.2" />
-      <path d="m7.8 12.3 2.8 2.8 5.8-6" stroke="#FFFFFF" strokeWidth="2.2" />
-      <path d="M12 2.8v1.6" stroke="#FFFFFF" strokeOpacity=".55" strokeWidth="1.2" />
+      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
+      <path d="m9 12 2 2 4-5" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M7 4.7h10v5a5 5 0 0 1-10 0v-5Z" fill="currentColor" fillOpacity=".09" />
-      <path d="M7 4.7h10v5a5 5 0 0 1-10 0v-5Z" />
-      <path d="M7 6.6H4.5a1.7 1.7 0 0 0 0 3.4H7m10-3.4h2.5a1.7 1.7 0 0 1 0 3.4H17" />
-      <path d="M12 14.8v4.1m-3.2 0h6.4M7.9 21.5h8.2" />
-      <path d="m12 6.7.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2-1.45-1.4 2-.3.9-1.8Z" fill="#FFFFFF" stroke="none" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+      <path d="M17 6h2a2 2 0 0 1 0 4h-2" />
+      <path d="M7 6H5a2 2 0 0 0 0 4h2" />
     </>
   ) : (
     <>
-      <circle cx="12" cy="12" r="9.1" fill="currentColor" fillOpacity=".07" />
-      <circle cx="12" cy="12" r="9.1" />
-      <path d="M12 6.8v5.4l3.5 2.1" stroke="#FFFFFF" strokeWidth="2.1" />
-      <path d="M12 2.9v1.4m9.1 7.7h-1.4M12 21.1v-1.4m-9.1-7.7h1.4" stroke="#FFFFFF" strokeOpacity=".7" strokeWidth="1.2" />
-      <circle cx="12" cy="12" r="1.2" fill="#FFFFFF" stroke="none" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
     </>
   );
 
   return (
-    <div className="flex min-h-[78px] min-w-0 items-center gap-3.5 px-4 py-4 sm:min-h-[84px] sm:gap-4 sm:px-5 sm:py-[18px]">
-      <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center sm:h-12 sm:w-12" style={{ color: accent }}>
+    <div className="flex min-h-[68px] min-w-0 items-center gap-2.5 px-3 py-3 sm:min-h-[70px] sm:gap-3 sm:px-3.5 sm:py-3">
+      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center" style={{ color: accent }}>
         <svg
           viewBox="0 0 24 24"
-          className="h-9 w-9 sm:h-10 sm:w-10"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.9"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -390,8 +385,8 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
         </svg>
       </span>
       <div className="min-w-0">
-        <p className="truncate text-2xl font-black leading-none tracking-[-0.025em] tabular-nums text-white sm:text-[26px]">{value}</p>
-        <p className="mt-1.5 text-[11px] font-medium leading-snug text-white/75 sm:text-xs">{label}</p>
+        <p className="whitespace-nowrap text-[22px] font-black leading-none tracking-tight tabular-nums text-white sm:text-2xl">{value}</p>
+        <p className="mt-1 whitespace-nowrap text-[10px] font-medium leading-none text-white/65 sm:text-[11px]">{label}</p>
       </div>
     </div>
   );
@@ -688,9 +683,8 @@ export default function LandingHome() {
       </section>
 
       {/* Estatísticas em uma faixa única e discreta */}
-      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.10] bg-gradient-to-b from-[#0e1015] via-[#090b10] to-[#06070a] shadow-[0_8px_24px_rgba(0,0,0,0.22)]">
-        <div aria-hidden="true" className="h-px w-full bg-gradient-to-r from-transparent via-red-500/40 to-transparent" />
-        <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.09] sm:grid-cols-4 sm:divide-y-0">
+      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.10] bg-[#07090d]">
+        <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
           <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
           <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
           <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" accent="#FB2C36" />
