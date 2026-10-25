@@ -341,72 +341,45 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   );
 }
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
-  const uid = `stat-${symbol}`;
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M11 10.1h14c3 0 5.2 2.1 5.8 5.2l1 5.2c.5 2.4-2.2 4-4.1 2.5l-4.1-3.3H12.4l-4.1 3.3c-1.9 1.5-4.6-.1-4.1-2.5l1-5.2c.6-3.1 2.8-5.2 5.8-5.2Z" fill={`url(#${uid}-steel)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.25" strokeLinejoin="round" />
-      <path d="M11 13v5m-2.5-2.5h5" stroke={`url(#${uid}-silver)`} strokeWidth="2" strokeLinecap="round" />
-      <path d="M10 11.5h4.8" stroke={`url(#${uid}-ruby)`} strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="23.3" cy="14.5" r="1.45" fill={`url(#${uid}-ruby)`} stroke="#FFC6C9" strokeWidth=".5" />
-      <circle cx="26.4" cy="17.1" r="1.45" fill={`url(#${uid}-silver)`} stroke="#F9DADB" strokeWidth=".4" />
-      <path d="M16.3 12.1h4.1" stroke="#FFFFFF" strokeOpacity=".5" strokeWidth=".7" strokeLinecap="round" />
-      <path d="m7.9 20.8 3.5-2.8m16.6 2.8-3.5-2.8" stroke={`url(#${uid}-ruby)`} strokeWidth="1.1" strokeLinecap="round" />
+      <path d="M10.4 10.1h15.2a5.1 5.1 0 0 1 4.9 4.1l1.1 5.4c.5 2.5-2.3 4-4.2 2.5l-4-3.3H12.6l-4 3.3c-1.9 1.5-4.7 0-4.2-2.5l1.1-5.4a5.1 5.1 0 0 1 4.9-4.1Z" fill="#14171D" stroke="#D7D9E0" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M10.4 10.1h15.2" stroke={accent} strokeWidth="2.1" strokeLinecap="round" />
+      <path d="M11 13v5m-2.5-2.5h5" stroke="#F6F6F8" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="23.5" cy="14.3" r="1.45" fill={accent} />
+      <circle cx="26.3" cy="17" r="1.45" fill="#D7D9E0" />
+      <path d="M7.3 19.3 10 17.1m16 2.2-2.6-2.2" stroke={accent} strokeWidth="1.1" strokeLinecap="round" />
     </>
   ) : symbol === "check" ? (
     <>
-      <path d="M18 3.1 29 7.4v8.4c0 6.3-4.1 11.6-11 15.2C11.1 27.4 7 22.1 7 15.8V7.4L18 3.1Z" fill={`url(#${uid}-silver)`} stroke="#F1DADD" strokeWidth=".7" strokeLinejoin="round" />
-      <path d="M18 5.5 26.6 8.8v7c0 5-3.2 9.4-8.6 12.4-5.4-3-8.6-7.4-8.6-12.4v-7L18 5.5Z" fill={`url(#${uid}-ruby)`} stroke="#7D111E" strokeWidth="1" strokeLinejoin="round" />
-      <path d="m12.4 17.2 3.7 3.6 7.8-8" fill="none" stroke={`url(#${uid}-silver)`} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="m12.4 17.2 3.7 3.6 7.8-8" fill="none" stroke="#FFFFFF" strokeOpacity=".6" strokeWidth=".7" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="m18 3.1 2.1 3.5-2.1 2-2.1-2L18 3.1Z" fill="#FFE2E3" />
+      <path d="M18 3.5 29 7.7v8.1c0 6.1-4 11.2-11 14.7C11 27 7 21.9 7 15.8V7.7L18 3.5Z" fill="#211016" stroke={accent} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M18 6.8 25.7 9.7v6.1c0 4.7-3 8.6-7.7 11.3-4.7-2.7-7.7-6.6-7.7-11.3V9.7L18 6.8Z" fill="#3A1019" stroke="#8E202C" strokeWidth=".8" strokeLinejoin="round" />
+      <path d="m12.5 16.9 3.5 3.4 7.4-7.5" fill="none" stroke="#F4F2F3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m12.5 16.9 3.5 3.4 7.4-7.5" fill="none" stroke={accent} strokeOpacity=".75" strokeWidth=".75" strokeLinecap="round" strokeLinejoin="round" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M10 5.6h16v7c0 5.1-3.2 8.3-8 9.8-4.8-1.5-8-4.7-8-9.8v-7Z" fill={`url(#${uid}-ruby)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.35" strokeLinejoin="round" />
-      <path d="M10 8H4.9v3c0 4 2.3 6.6 6.3 7.1M26 8h4.9v3c0 4-2.3 6.6-6.3 7.1" fill="none" stroke={`url(#${uid}-silver)`} strokeWidth="1.6" strokeLinecap="round" />
-      <path d="m18 8.4 1.8 3.3 3.7.5-2.7 2.6.6 3.7-3.4-1.8-3.4 1.8.6-3.7-2.7-2.6 3.7-.5L18 8.4Z" fill={`url(#${uid}-silver)`} stroke="#7F1520" strokeWidth=".6" strokeLinejoin="round" />
-      <path d="M15.5 22.4h5M18 22.4v4.3m-5.1 2h10.2" fill="none" stroke={`url(#${uid}-silver)`} strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M12 6.8h12" stroke="#FFE5E6" strokeOpacity=".8" strokeWidth=".8" strokeLinecap="round" />
-      <path d="M14 27.4h8" stroke={`url(#${uid}-ruby)`} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M10 5.8h16v7c0 4.8-3.1 8-8 9.5-4.9-1.5-8-4.7-8-9.5v-7Z" fill="#8F1725" stroke="#E8DDE0" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M12 8h12v4.8c0 3.3-2.2 5.6-6 6.9-3.8-1.3-6-3.6-6-6.9V8Z" fill={accent} />
+      <path d="M10 8H5.2v2.8c0 3.7 2.2 6 6 6.6M26 8h4.8v2.8c0 3.7-2.2 6-6 6.6" fill="none" stroke="#C8CBD3" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="m18 9.1 1.3 2.5 2.8.4-2 1.9.5 2.8-2.6-1.3-2.6 1.3.5-2.8-2-1.9 2.8-.4L18 9.1Z" fill="#F1E5E6" />
+      <path d="M15.5 22.4h5M18 22.4v4m-5 2h10" fill="none" stroke="#D7D9E0" strokeWidth="1.8" strokeLinecap="round" />
     </>
   ) : (
     <>
-      <path d="M18 3.4 21.1 5l3.6-.2 1.4 3.1 3 2 .1 3.6 1.7 3.2-1.7 3.2-.1 3.6-3 2-1.4 3.1-3.6-.2-3.1 1.6-3.1-1.6-3.6.2-1.4-3.1-3-2-.1-3.6L5.1 16.7l1.7-3.2.1-3.6 3-2 1.4-3.1 3.6.2L18 3.4Z" fill={`url(#${uid}-steel)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.1" strokeLinejoin="round" />
-      <circle cx="18" cy="16.7" r="10.2" fill={`url(#${uid}-ruby)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.35" />
-      <circle cx="18" cy="16.7" r="8.1" fill="none" stroke="#FFB7BC" strokeOpacity=".65" strokeWidth=".7" />
-      {Array.from({ length: 12 }, (_, i) => (
-        <path key={i} d="M18 7.8v1.8" stroke={`url(#${uid}-silver)`} strokeWidth={i % 3 === 0 ? "1.4" : ".8"} strokeLinecap="round" transform={`rotate(${i * 30} 18 16.7)`} />
-      ))}
-      <path d="M18 16.7 24 11.9" stroke={`url(#${uid}-silver)`} strokeWidth="2" strokeLinecap="round" />
-      <path d="M18 16.7 14.6 12.2" stroke={`url(#${uid}-silver)`} strokeWidth="2.2" strokeLinecap="round" />
-      <circle cx="18" cy="16.7" r="1.8" fill="#F9E9E9" stroke="#7F1520" strokeWidth=".7" />
+      <circle cx="18" cy="17" r="12.1" fill="#16181E" stroke={accent} strokeWidth="2.4" />
+      <circle cx="18" cy="17" r="9.3" fill="none" stroke="#8B1D29" strokeWidth="1" />
+      <path d="M18 6.7v2m0 16.6v2M7.7 17h2m16.6 0h2" stroke="#D7D9E0" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M18 11.3V17l5 3" fill="none" stroke="#F2F0F1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="18" cy="17" r="1.9" fill={accent} stroke="#F7D9DC" strokeWidth=".7" />
+      <path d="M14.1 3.8h7.8" stroke={accent} strokeWidth="1.8" strokeLinecap="round" />
     </>
   );
 
   return (
     <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-5 sm:py-4">
       <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
-        <svg viewBox="0 0 36 36" className="h-9 w-9 sm:h-10 sm:w-10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ color: accent, filter: "drop-shadow(0 0 4px rgba(251, 44, 54, 0.22))" }}>
-          <defs>
-            <linearGradient id={`${uid}-ruby`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FF6671" />
-              <stop offset="38%" stopColor="#F6283B" />
-              <stop offset="72%" stopColor="#A80E21" />
-              <stop offset="100%" stopColor="#470812" />
-            </linearGradient>
-            <linearGradient id={`${uid}-silver`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FFF4F3" />
-              <stop offset="26%" stopColor="#C8B8B9" />
-              <stop offset="58%" stopColor="#727780" />
-              <stop offset="82%" stopColor="#E0D4D5" />
-              <stop offset="100%" stopColor="#5B4248" />
-            </linearGradient>
-            <linearGradient id={`${uid}-steel`} x1="0" y1="0" x2="0.9" y2="1">
-              <stop offset="0%" stopColor="#343943" />
-              <stop offset="45%" stopColor="#11151B" />
-              <stop offset="100%" stopColor="#050609" />
-            </linearGradient>
-          </defs>
+        <svg viewBox="0 0 36 36" className="h-9 w-9 sm:h-10 sm:w-10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ color: accent, filter: "drop-shadow(0 0 2px rgba(251, 44, 54, 0.12))" }}>
           {icon}
         </svg>
       </span>
