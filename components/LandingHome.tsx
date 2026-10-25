@@ -557,7 +557,7 @@ export default function LandingHome() {
                       loading="eager"
                       className="h-8 w-8 max-w-full object-contain"
                     />
-                    <p className="mt-1 whitespace-nowrap text-[11px] font-black leading-none text-white">
+                    <p className="mt-1 whitespace-nowrap text-[13px] font-black leading-none text-white">
                       {countLabel}
                     </p>
                   </div>
