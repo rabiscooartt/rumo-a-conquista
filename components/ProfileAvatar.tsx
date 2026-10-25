@@ -339,10 +339,20 @@ export default function ProfileAvatar() {
             onClick={openEditor}
             title="Editar foto do perfil"
             aria-label="Editar foto do perfil"
-            className="absolute -bottom-2 -right-2 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-red-300/70 bg-[#FB2C36] text-white shadow-lg transition hover:scale-105 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
+            className="absolute -bottom-1 -right-1 z-20 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#080a0e] bg-[#FB2C36] text-white shadow-[0_2px_8px_rgba(0,0,0,0.6)] transition hover:scale-105 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 5 4 4M4 20l4-.8L19.5 7.7a2.1 2.1 0 0 0-3-3L5 16.2 4 20Z" />
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-3.5 w-3.5 shrink-0"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
             </svg>
           </button>
         ) : null}
