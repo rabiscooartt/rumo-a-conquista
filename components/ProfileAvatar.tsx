@@ -355,7 +355,7 @@ export default function ProfileAvatar() {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="profile-avatar-editor-title"
-                className="my-auto w-full max-w-[760px] rounded-2xl border border-red-500/25 bg-[#080a0e]/[98] p-4 shadow-2xl sm:p-5"
+                className="my-auto w-full max-w-[760px] rounded-2xl border border-red-500/25 bg-[#080a0e]/95 p-4 shadow-2xl sm:p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
