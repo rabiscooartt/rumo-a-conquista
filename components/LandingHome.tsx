@@ -340,47 +340,28 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
     </div>
   );
 }
+const STAT_ICON_SOURCES: Record<string, string> = {
+  gamepad: "/images/stat-icons/gamepad-custom.svg",
+  check: "/images/stat-icons/shield-check-custom.svg",
+  trophy: "/images/stat-icons/trophy-custom.svg",
+  clock: "/images/stat-icons/clock-custom.svg",
+};
+
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
-  const icon = symbol === "gamepad" ? (
-    <>
-      <path d="M7.5 5.5h9a4.3 4.3 0 0 1 4.2 3.5l1.1 6.4a3 3 0 0 1-4.7 2.8L14 16H10l-3.1 2.2a3 3 0 0 1-4.7-2.8l1.1-6.4a4.3 4.3 0 0 1 4.2-3.5Z" />
-      <path d="M7.2 10v4.2m-2.1-2.1h4.2" />
-      <circle cx="15.6" cy="10.6" r=".85" fill="currentColor" stroke="none" />
-      <circle cx="18" cy="13" r=".85" fill="currentColor" stroke="none" />
-    </>
-  ) : symbol === "check" ? (
-    <>
-      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
-      <path d="m8.7 12.1 2.2 2.2 4.5-4.8" />
-    </>
-  ) : symbol === "trophy" ? (
-    <>
-      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
-      <path d="M8 6H5a2 2 0 0 0 0 4h3m8-4h3a2 2 0 0 1 0 4h-3" />
-      <path d="M12 13v5m-3 0h6m-7 3h8" />
-    </>
-  ) : (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 6.5v5.7l3.6 2.2" />
-      <path d="M12 2.5v1.5m9.5 8H20" strokeOpacity=".75" />
-    </>
-  );
+  const iconSrc = STAT_ICON_SOURCES[symbol] ?? STAT_ICON_SOURCES.gamepad;
 
   return (
     <div className="flex min-h-[68px] min-w-0 items-center gap-2.5 px-3 py-3 sm:min-h-[70px] sm:gap-3 sm:px-3.5 sm:py-3">
-      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center" style={{ color: accent }}>
-        <svg
-          viewBox="0 0 24 24"
-          className="h-7 w-7"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {icon}
-        </svg>
+      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center">
+        <img
+          src={iconSrc}
+          alt=""
+          aria-hidden="true"
+          width={36}
+          height={36}
+          className="h-9 w-9 shrink-0 object-contain"
+          style={{ color: accent }}
+        />
       </span>
       <div className="min-w-0">
         <p className="whitespace-nowrap text-[22px] font-black leading-none tracking-tight tabular-nums text-white sm:text-2xl">{value}</p>

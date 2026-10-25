@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="redMetal" x1="15" y1="10" x2="51" y2="54" gradientUnits="userSpaceOnUse"><stop stop-color="#FF737C"/><stop offset=".47" stop-color="#FB2C36"/><stop offset="1" stop-color="#891421"/></linearGradient>
+    <linearGradient id="steel" x1="18" y1="15" x2="44" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#282C34"/><stop offset=".5" stop-color="#11141A"/><stop offset="1" stop-color="#050609"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <path d="M32 3.5 35 7l-3 3.5L29 7l3-3.5Z" stroke="#FB2C36" stroke-width="1.1" opacity=".8"/>
+  <path d="M32 60.5 35 57l-3-3.5-3 3.5 3 3.5Z" stroke="#8D1420" stroke-width="1" opacity=".7"/>
+  <path d="M32 7 57 32 32 57 7 32 32 7Z" stroke="#7F1722" stroke-width="1.1" opacity=".45"/>
+  <path d="M32 12 52 32 32 52 12 32 32 12Z" stroke="#FB2C36" stroke-width=".7" opacity=".22"/>
+  <g filter="url(#glow)">
+    <circle cx="32" cy="32" r="20" fill="url(#steel)" stroke="url(#redMetal)" stroke-width="2.1"/>
+    <circle cx="32" cy="32" r="16.5" stroke="#9E202C" stroke-width=".8" opacity=".85"/>
+    <path d="M32 16v3m0 26v3M16 32h3m26 0h3" stroke="#FF9AA1" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M32 21v11l7 4.5" stroke="#F6E7E8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="32" cy="32" r="2" fill="#FB2C36" stroke="#FFE1E3" stroke-width=".7"/>
+  </g>
+</svg>
