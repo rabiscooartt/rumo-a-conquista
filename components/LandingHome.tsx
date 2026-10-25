@@ -533,7 +533,7 @@ export default function LandingHome() {
           <div className="mt-5 border-b border-white/[0.08] pb-5">
             <div className="flex items-center gap-2">
               <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Conquistas</h2>
+              <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Ranks conquistados</h2>
             </div>
 
             <div className="mt-3 grid grid-cols-4 gap-1.5">
