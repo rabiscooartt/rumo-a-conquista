@@ -343,26 +343,43 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M6.3 8.2h11.4a3.9 3.9 0 0 1 3.8 3.2l.7 4a2.7 2.7 0 0 1-4.3 2.5L15 15.8H9l-2.9 2.1a2.7 2.7 0 0 1-4.3-2.5l.7-4a3.9 3.9 0 0 1 3.8-3.2Z" />
-      <path d="M7.1 10.8v4m-2-2h4" />
-      <circle cx="15.8" cy="11.7" r=".8" fill="currentColor" stroke="none" />
-      <circle cx="18" cy="13.7" r=".8" fill="currentColor" stroke="none" />
+      <path
+        d="M7.1 6.2h9.8a4.7 4.7 0 0 1 4.6 3.9l1.1 5.5a2.9 2.9 0 0 1-4.7 2.7l-3-2.4H9.1l-3 2.4a2.9 2.9 0 0 1-4.7-2.7l1.1-5.5a4.7 4.7 0 0 1 4.6-3.9Z"
+        fill="currentColor"
+      />
+      <path d="M7.2 9.5v4.8m-2.4-2.4h4.8" stroke="#08090D" strokeWidth="1.9" strokeLinecap="round" />
+      <circle cx="15.8" cy="10.3" r="1.05" fill="#08090D" />
+      <circle cx="18.2" cy="12.8" r="1.05" fill="#08090D" />
+      <path d="M11 7.8h2.4" stroke="#FF9BA2" strokeWidth=".9" strokeLinecap="round" />
     </>
   ) : symbol === "check" ? (
     <>
-      <path d="M12 21.2s7.3-3.7 7.3-10.1V5.8L12 3 4.7 5.8v5.3c0 6.4 7.3 10.1 7.3 10.1Z" />
-      <path d="m8.9 12.1 2.1 2.1 4.2-4.5" />
+      <path
+        d="M12 2.1 20.5 5v6.1c0 5.5-3.4 9.2-8.5 11.7-5.1-2.5-8.5-6.2-8.5-11.7V5L12 2.1Z"
+        fill="currentColor"
+      />
+      <path d="m7.9 11.9 2.7 2.7 5.6-6" stroke="#08090D" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m7.9 11.9 2.7 2.7 5.6-6" stroke="#FFB3B8" strokeOpacity=".7" strokeWidth=".75" strokeLinecap="round" strokeLinejoin="round" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M12 3.2 14.4 5l3.1.2 1.1 2.9 2.4 2-1 3 1 2.9-2.4 2-1.1 2.9-3.1.2-2.4 1.8-2.4-1.8-3.1-.2-1.1-2.9-2.4-2 1-2.9-1-3 2.4-2 1.1-2.9 3.1-.2L12 3.2Z" />
-      <path d="m12 8.1 1.3 2.6 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4L12 8.1Z" />
+      <path
+        d="m12 2 2.5 2.1 3.3-.2 1.1 3.1 3 1.4-.7 3.3 1.8 2.7-2.5 2.2-.2 3.3-3.3.8-1.7 2.9-3.2-1-3.2 1-1.7-2.9-3.3-.8-.2-3.3-2.5-2.2 1.8-2.7-.7-3.3 3-1.4 1.1-3.1 3.3.2L12 2Z"
+        fill="currentColor"
+      />
+      <path
+        d="m12 6.7 1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5L12 6.7Z"
+        fill="#08090D"
+      />
+      <circle cx="12" cy="12" r="1.15" fill="#FFB3B8" />
     </>
   ) : (
     <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 6.8v5.3l3.5 2.1" />
-      <path d="M12 2v1.5" strokeOpacity=".7" />
+      <circle cx="12" cy="12" r="10.4" fill="currentColor" />
+      <circle cx="12" cy="12" r="7.3" fill="#08090D" />
+      <path d="M12 7.1v5.2l3.5 2.1" stroke="#FFFFFF" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 3.5v1.2" stroke="#08090D" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="1.15" fill="currentColor" />
     </>
   );
 
@@ -373,10 +390,8 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
           viewBox="0 0 24 24"
           className="h-8 w-8 sm:h-9 sm:w-9"
           fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          stroke="none"
+          aria-hidden="true"
         >
           {icon}
         </svg>
