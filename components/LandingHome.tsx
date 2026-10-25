@@ -345,8 +345,8 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
     <>
       <path d="M6.3 8.2h11.4a3.9 3.9 0 0 1 3.8 3.2l.7 4a2.7 2.7 0 0 1-4.3 2.5L15 15.8H9l-2.9 2.1a2.7 2.7 0 0 1-4.3-2.5l.7-4a3.9 3.9 0 0 1 3.8-3.2Z" />
       <path d="M7.1 10.8v4m-2-2h4" />
-      <circle cx="15.8" cy="11.7" r=".75" fill="currentColor" stroke="none" />
-      <circle cx="18" cy="13.7" r=".75" fill="currentColor" stroke="none" />
+      <circle cx="15.8" cy="11.7" r=".8" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="13.7" r=".8" fill="currentColor" stroke="none" />
     </>
   ) : symbol === "check" ? (
     <>
@@ -367,11 +367,11 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
   );
 
   return (
-    <div className="flex min-h-[64px] min-w-0 items-center gap-2 px-3 py-2.5 sm:min-h-[66px] sm:gap-2.5 sm:px-4 sm:py-3">
-      <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center sm:h-7 sm:w-7" style={{ color: accent }}>
+    <div className="flex min-h-[76px] min-w-0 items-center gap-3 px-3.5 py-3 sm:min-h-[82px] sm:gap-3.5 sm:px-4 sm:py-3.5">
+      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10" style={{ color: accent }}>
         <svg
           viewBox="0 0 24 24"
-          className="h-6 w-6"
+          className="h-8 w-8 sm:h-9 sm:w-9"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -382,8 +382,8 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
         </svg>
       </span>
       <div className="min-w-0">
-        <p className="whitespace-nowrap text-[21px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[23px]">{value}</p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-white/65 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
+        <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
+        <p className="mt-1 text-[10px] font-medium leading-tight text-white/70 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
       </div>
     </div>
   );
@@ -640,53 +640,57 @@ export default function LandingHome() {
       <div className="min-w-0 px-4 pb-12 pt-4 sm:px-5 lg:px-5 lg:pt-5">
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 space-y-4">
-      {/* Banner principal: identidade do Rumo à Conquista */}
+      {/* Banner e estatísticas integrados em um único painel */}
       <section
-        aria-labelledby="home-journey-title"
-        className="relative isolate flex min-h-[185px] items-center overflow-hidden border-b border-white/10 bg-[#050609] px-4 py-5 sm:px-7"
+        aria-label="Banner principal e resumo da jornada"
+        className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#050609] shadow-[0_6px_22px_rgba(0,0,0,0.16)]"
       >
-        <BannerBackground
-          bannerKey="home"
-          imageUrl="/images/home-profile-banner-art.webp"
-          className="pointer-events-none absolute inset-0 -z-20"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
-        />
-        <div className="relative z-10 w-full max-w-[470px]">
-          <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
-            <span className="text-[10px] leading-none">✣</span>
-            Minha jornada, minhas conquistas
-          </p>
-          <h1 id="home-journey-title" className="mt-2 text-[27px] font-black uppercase leading-none tracking-tight text-white sm:text-[38px] md:text-[40px]">
-            Cada desafio conta.
-          </h1>
-          <p className="mt-2 max-w-[430px] text-[11px] font-medium leading-[1.35] text-white/65">
-            Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
-          </p>
-          <Link
-            href="/biblioteca"
-            aria-label="Explorar os jogos do Rumo à Conquista"
-            className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-xs font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:min-h-10 sm:px-5 sm:text-sm"
-          >
-            Explorar jogos <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </section>
+        <section
+          aria-labelledby="home-journey-title"
+          className="relative isolate flex min-h-[220px] items-center overflow-hidden border-b border-white/[0.08] bg-[#050609] px-4 py-6 sm:px-7 sm:py-7"
+        >
+          <BannerBackground
+            bannerKey="home"
+            imageUrl="/images/home-profile-banner-art.webp"
+            className="pointer-events-none absolute inset-0 -z-20"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.96)_24%,rgba(5,6,9,0.76)_46%,rgba(5,6,9,0.20)_78%,rgba(5,6,9,0.04)_100%)]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.48)_48%,rgba(5,6,9,0.92)_100%)]"
+          />
+          <div className="relative z-10 w-full max-w-[500px]">
+            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
+              <span className="text-[10px] leading-none">✣</span>
+              Minha jornada, minhas conquistas
+            </p>
+            <h1 id="home-journey-title" className="mt-2 text-[28px] font-black uppercase leading-none tracking-tight text-white sm:text-[40px] md:text-[42px]">
+              Cada desafio conta.
+            </h1>
+            <p className="mt-2 max-w-[460px] text-[11px] font-medium leading-[1.4] text-white/70 sm:text-xs">
+              Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
+            </p>
+            <Link
+              href="/biblioteca"
+              aria-label="Explorar os jogos do Rumo à Conquista"
+              className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-sm font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-5"
+            >
+              Explorar jogos <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </section>
 
-      {/* Estatísticas em uma faixa única e discreta */}
-      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.10] bg-[#07090d]">
-        <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
-          <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
-          <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
-          <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" accent="#FB2C36" />
-          <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" accent="#FB2C36" />
-        </div>
+        <section aria-label="Resumo da jornada" className="bg-[#07090d]">
+          <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
+            <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
+            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
+            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" accent="#FB2C36" />
+            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" accent="#FB2C36" />
+          </div>
+        </section>
       </section>
 
       {/* Jogo atual com a faixa de conquistas integrada */}
