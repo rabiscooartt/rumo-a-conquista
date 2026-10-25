@@ -631,7 +631,7 @@ export default function LandingHome() {
       {/* Banner principal: identidade do Rumo à Conquista */}
       <section
         aria-labelledby="home-journey-title"
-        className="relative isolate flex min-h-[150px] items-center overflow-hidden rounded-xl border border-red-500/30 bg-[#06070a] px-4 py-5 sm:min-h-[170px] sm:px-6 sm:py-6 lg:px-7"
+        className="relative isolate flex min-h-[185px] items-center overflow-hidden border-b border-white/10 bg-[#050609] px-4 py-5 sm:px-7"
       >
         <BannerBackground
           bannerKey="home"
@@ -640,17 +640,21 @@ export default function LandingHome() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            backgroundImage: "linear-gradient(90deg, rgba(4,5,8,0.92) 0%, rgba(4,5,8,0.80) 30%, rgba(4,5,8,0.50) 43%, rgba(4,5,8,0.20) 62%, rgba(4,5,8,0.08) 82%, rgba(4,5,8,0.14) 100%), linear-gradient(0deg, rgba(2,3,5,0.18) 0%, rgba(2,3,5,0.02) 70%, rgba(2,3,5,0.08) 100%), radial-gradient(ellipse at 78% 42%, rgba(248,45,65,0.08) 0%, transparent 42%)"
-          }}
+          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]"
         />
-        <div className="relative z-10 w-full max-w-[560px]">
-          <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]"><span aria-hidden="true" className="text-[10px] leading-none">✣</span>Minha jornada, minhas conquistas</p>
-          <h1 id="home-journey-title" className="mt-1 text-[27px] font-black uppercase leading-[1.04] tracking-tight text-white sm:text-[34px] lg:text-[38px]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
+        />
+        <div className="relative z-10 w-full max-w-[470px]">
+          <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+            <span className="text-[10px] leading-none">✣</span>
+            Minha jornada, minhas conquistas
+          </p>
+          <h1 id="home-journey-title" className="mt-2 text-[27px] font-black uppercase leading-none tracking-tight text-white sm:text-[38px] md:text-[40px]">
             Cada desafio conta.
           </h1>
-          <p className="mt-2 max-w-[440px] text-xs font-medium leading-relaxed text-white/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[15px]">
+          <p className="mt-2 max-w-[430px] text-[11px] font-medium leading-[1.35] text-white/65">
             Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
           </p>
           <Link
