@@ -340,32 +340,50 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
     </div>
   );
 }
-const STAT_ICON_SOURCES: Record<string, string> = {
-  gamepad: "/images/stat-icons/gamepad-custom.svg",
-  check: "/images/stat-icons/shield-check-custom.svg",
-  trophy: "/images/stat-icons/trophy-custom.svg",
-  clock: "/images/stat-icons/clock-custom.svg",
-};
-
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
-  const iconSrc = STAT_ICON_SOURCES[symbol] ?? STAT_ICON_SOURCES.gamepad;
+  const icon = symbol === "gamepad" ? (
+    <>
+      <path d="M6.3 8.2h11.4a3.9 3.9 0 0 1 3.8 3.2l.7 4a2.7 2.7 0 0 1-4.3 2.5L15 15.8H9l-2.9 2.1a2.7 2.7 0 0 1-4.3-2.5l.7-4a3.9 3.9 0 0 1 3.8-3.2Z" />
+      <path d="M7.1 10.8v4m-2-2h4" />
+      <circle cx="15.8" cy="11.7" r=".75" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="13.7" r=".75" fill="currentColor" stroke="none" />
+    </>
+  ) : symbol === "check" ? (
+    <>
+      <path d="M12 21.2s7.3-3.7 7.3-10.1V5.8L12 3 4.7 5.8v5.3c0 6.4 7.3 10.1 7.3 10.1Z" />
+      <path d="m8.9 12.1 2.1 2.1 4.2-4.5" />
+    </>
+  ) : symbol === "trophy" ? (
+    <>
+      <path d="M12 3.2 14.4 5l3.1.2 1.1 2.9 2.4 2-1 3 1 2.9-2.4 2-1.1 2.9-3.1.2-2.4 1.8-2.4-1.8-3.1-.2-1.1-2.9-2.4-2 1-2.9-1-3 2.4-2 1.1-2.9 3.1-.2L12 3.2Z" />
+      <path d="m12 8.1 1.3 2.6 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4L12 8.1Z" />
+    </>
+  ) : (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 6.8v5.3l3.5 2.1" />
+      <path d="M12 2v1.5" strokeOpacity=".7" />
+    </>
+  );
 
   return (
-    <div className="flex min-h-[68px] min-w-0 items-center gap-2.5 px-3 py-3 sm:min-h-[70px] sm:gap-3 sm:px-3.5 sm:py-3">
-      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center">
-        <img
-          src={iconSrc}
-          alt=""
-          aria-hidden="true"
-          width={36}
-          height={36}
-          className="h-9 w-9 shrink-0 object-contain"
-          style={{ color: accent }}
-        />
+    <div className="flex min-h-[64px] min-w-0 items-center gap-2 px-3 py-2.5 sm:min-h-[66px] sm:gap-2.5 sm:px-4 sm:py-3">
+      <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center sm:h-7 sm:w-7" style={{ color: accent }}>
+        <svg
+          viewBox="0 0 24 24"
+          className="h-6 w-6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {icon}
+        </svg>
       </span>
       <div className="min-w-0">
-        <p className="whitespace-nowrap text-[22px] font-black leading-none tracking-tight tabular-nums text-white sm:text-2xl">{value}</p>
-        <p className="mt-1 whitespace-nowrap text-[10px] font-medium leading-none text-white/65 sm:text-[11px]">{label}</p>
+        <p className="whitespace-nowrap text-[21px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[23px]">{value}</p>
+        <p className="mt-1 text-[10px] font-medium leading-tight text-white/65 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
       </div>
     </div>
   );
