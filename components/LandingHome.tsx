@@ -351,13 +351,17 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
     <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></>
   );
   return (
-    <div className="flex min-w-0 items-center gap-3 px-3 py-3.5 sm:px-5 sm:py-4">
-      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center text-[#FB2C36] sm:h-10 sm:w-10" style={{ color: accent }}>
-        <svg viewBox="0 0 24 24" className="h-7 w-7 sm:h-8 sm:w-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
+    <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-5 sm:py-4">
+      <span
+        aria-hidden="true"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] text-[#FB2C36] sm:h-10 sm:w-10"
+        style={{ color: accent }}
+      >
+        <svg viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
       </span>
       <div className="min-w-0">
-        <p className="truncate text-lg font-black leading-none text-white sm:text-xl">{value}</p>
-        <p className="mt-1 text-[10px] leading-tight text-white/55 sm:text-[11px]">{label}</p>
+        <p className="truncate text-xl font-black leading-none tabular-nums text-white sm:text-2xl">{value}</p>
+        <p className="mt-1 text-[11px] font-medium leading-tight text-white/65 sm:text-xs">{label}</p>
       </div>
     </div>
   );
@@ -654,7 +658,7 @@ export default function LandingHome() {
       </section>
 
       {/* Estatísticas em uma faixa única e discreta */}
-      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95">
+      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.10] bg-gradient-to-b from-[#0d0f14] to-[#07090d] shadow-[0_6px_20px_rgba(0,0,0,0.18)]">
         <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
           <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
           <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
