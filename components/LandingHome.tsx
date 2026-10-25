@@ -340,61 +340,20 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
     </div>
   );
 }
-function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
-  const icon = symbol === "gamepad" ? (
-    <>
-      <path
-        d="M7.1 6.2h9.8a4.7 4.7 0 0 1 4.6 3.9l1.1 5.5a2.9 2.9 0 0 1-4.7 2.7l-3-2.4H9.1l-3 2.4a2.9 2.9 0 0 1-4.7-2.7l1.1-5.5a4.7 4.7 0 0 1 4.6-3.9Z"
-        fill="currentColor"
-      />
-      <path d="M7.2 9.5v4.8m-2.4-2.4h4.8" stroke="#08090D" strokeWidth="1.9" strokeLinecap="round" />
-      <circle cx="15.8" cy="10.3" r="1.05" fill="#08090D" />
-      <circle cx="18.2" cy="12.8" r="1.05" fill="#08090D" />
-      <path d="M11 7.8h2.4" stroke="#FF9BA2" strokeWidth=".9" strokeLinecap="round" />
-    </>
-  ) : symbol === "check" ? (
-    <>
-      <path
-        d="M12 2.1 20.5 5v6.1c0 5.5-3.4 9.2-8.5 11.7-5.1-2.5-8.5-6.2-8.5-11.7V5L12 2.1Z"
-        fill="currentColor"
-      />
-      <path d="m7.9 11.9 2.7 2.7 5.6-6" stroke="#08090D" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="m7.9 11.9 2.7 2.7 5.6-6" stroke="#FFB3B8" strokeOpacity=".7" strokeWidth=".75" strokeLinecap="round" strokeLinejoin="round" />
-    </>
-  ) : symbol === "trophy" ? (
-    <>
-      <path
-        d="m12 2 2.5 2.1 3.3-.2 1.1 3.1 3 1.4-.7 3.3 1.8 2.7-2.5 2.2-.2 3.3-3.3.8-1.7 2.9-3.2-1-3.2 1-1.7-2.9-3.3-.8-.2-3.3-2.5-2.2 1.8-2.7-.7-3.3 3-1.4 1.1-3.1 3.3.2L12 2Z"
-        fill="currentColor"
-      />
-      <path
-        d="m12 6.7 1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5L12 6.7Z"
-        fill="#08090D"
-      />
-      <circle cx="12" cy="12" r="1.15" fill="#FFB3B8" />
-    </>
-  ) : (
-    <>
-      <circle cx="12" cy="12" r="10.4" fill="currentColor" />
-      <circle cx="12" cy="12" r="7.3" fill="#08090D" />
-      <path d="M12 7.1v5.2l3.5 2.1" stroke="#FFFFFF" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 3.5v1.2" stroke="#08090D" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="12" cy="12" r="1.15" fill="currentColor" />
-    </>
-  );
+const STAT_ICON_SOURCES: Record<string, string> = {
+  gamepad: "/images/stat-icons/gamepad-refined.svg",
+  check: "/images/stat-icons/shield-check-refined.svg",
+  trophy: "/images/stat-icons/trophy-refined.svg",
+  clock: "/images/stat-icons/clock-refined.svg",
+};
+
+function Stat({ symbol, value, label }: { symbol: string; value: string | number; label: string }) {
+  const iconSrc = STAT_ICON_SOURCES[symbol] ?? STAT_ICON_SOURCES.gamepad;
 
   return (
     <div className="flex min-h-[76px] min-w-0 items-center gap-3 px-3.5 py-3 sm:min-h-[82px] sm:gap-3.5 sm:px-4 sm:py-3.5">
-      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10" style={{ color: accent }}>
-        <svg
-          viewBox="0 0 24 24"
-          className="h-8 w-8 sm:h-9 sm:w-9"
-          fill="none"
-          stroke="none"
-          aria-hidden="true"
-        >
-          {icon}
-        </svg>
+      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
+        <img src={iconSrc} alt="" aria-hidden="true" width={44} height={44} className="h-10 w-10 shrink-0 object-contain sm:h-11 sm:w-11" />
       </span>
       <div className="min-w-0">
         <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
@@ -700,10 +659,10 @@ export default function LandingHome() {
 
         <section aria-label="Resumo da jornada" className="bg-[#07090d]">
           <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
-            <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
-            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
-            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" accent="#FB2C36" />
-            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" accent="#FB2C36" />
+            <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
+            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" />
+            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" />
+            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" />
           </div>
         </section>
       </section>

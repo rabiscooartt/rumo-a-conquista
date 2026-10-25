@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="shield" x1="17" y1="9" x2="48" y2="53" gradientUnits="userSpaceOnUse"><stop stop-color="#FF6972"/><stop offset=".5" stop-color="#F42B38"/><stop offset="1" stop-color="#B71122"/></linearGradient>
+    <linearGradient id="shade" x1="32" y1="12" x2="32" y2="53" gradientUnits="userSpaceOnUse"><stop stop-color="#FB3542" stop-opacity="0"/><stop offset="1" stop-color="#710A16" stop-opacity=".55"/></linearGradient>
+  </defs>
+  <path d="M32 5 53 12.5v16c0 13-7.7 22.8-21 30-13.3-7.2-21-17-21-30v-16L32 5Z" fill="#07090D" stroke="#500D17" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M32 8 50 14.4v14.1c0 11.5-6.5 20-18 26.5-11.5-6.5-18-15-18-26.5V14.4L32 8Z" fill="url(#shield)" stroke="#FF767F" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M32 13 45.5 17.8v10.4c0 8.8-4.7 15.3-13.5 20.8-8.8-5.5-13.5-12-13.5-20.8V17.8L32 13Z" fill="url(#shade)" stroke="#A81422" stroke-width="1.1" stroke-linejoin="round"/>
+  <path d="m22 31.5 6.5 6.1 13.3-13.7" stroke="#7D0D1A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m22 30.5 6.5 6.1 13.3-13.7" stroke="#111116" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m22 29.9 6.5 6.1 13.3-13.7" stroke="#FFE2E4" stroke-opacity=".82" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M20 16.9 32 12.7l12 4.2" stroke="#FFB2B7" stroke-opacity=".72" stroke-width="1.1" stroke-linecap="round"/>
+</svg>
