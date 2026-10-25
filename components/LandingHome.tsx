@@ -343,25 +343,27 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M7 6.5h10a4.5 4.5 0 0 1 4.4 3.5l1 4.8a3 3 0 0 1-4.8 2.8L15 15.5H9l-2.6 2.1a3 3 0 0 1-4.8-2.8l1-4.8A4.5 4.5 0 0 1 7 6.5Z" />
-      <path d="M7 10v4m-2-2h4" />
-      <path d="M16 10.5h.01M18.5 13h.01" />
+      <path d="M7.5 5.5h9a4.3 4.3 0 0 1 4.2 3.5l1.1 6.4a3 3 0 0 1-4.7 2.8L14 16H10l-3.1 2.2a3 3 0 0 1-4.7-2.8l1.1-6.4a4.3 4.3 0 0 1 4.2-3.5Z" />
+      <path d="M7.2 10v4.2m-2.1-2.1h4.2" />
+      <circle cx="15.6" cy="10.6" r=".85" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="13" r=".85" fill="currentColor" stroke="none" />
     </>
   ) : symbol === "check" ? (
     <>
-      <circle cx="12" cy="12" r="9.5" />
-      <path d="m7.8 12.2 2.8 2.8 5.8-6" />
+      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
+      <path d="m8.7 12.1 2.2 2.2 4.5-4.8" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M6 3.5h12v5.8a6 6 0 0 1-12 0V3.5Z" />
-      <path d="M6 5.5H3.8A1.8 1.8 0 0 0 2 7.3v1A3.7 3.7 0 0 0 6 12m12-6.5h2.2A1.8 1.8 0 0 1 22 7.3v1a3.7 3.7 0 0 1-4 3.7" />
-      <path d="M12 15.3v4m-4 0h8m-9 2.8h10" />
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
+      <path d="M8 6H5a2 2 0 0 0 0 4h3m8-4h3a2 2 0 0 1 0 4h-3" />
+      <path d="M12 13v5m-3 0h6m-7 3h8" />
     </>
   ) : (
     <>
-      <circle cx="12" cy="12" r="9.5" />
+      <circle cx="12" cy="12" r="9" />
       <path d="M12 6.5v5.7l3.6 2.2" />
+      <path d="M12 2.5v1.5m9.5 8H20" strokeOpacity=".75" />
     </>
   );
 
@@ -373,7 +375,7 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
           className="h-7 w-7"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.1"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
