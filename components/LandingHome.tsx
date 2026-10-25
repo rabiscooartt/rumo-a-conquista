@@ -341,54 +341,72 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   );
 }
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
+  const uid = `stat-${symbol}`;
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M10.1 9.2h11.8a5.1 5.1 0 0 1 4.9 3.8l1.1 4.2c.5 2-1.8 3.5-3.4 2.2L20.7 16h-9.4l-3.8 3.4c-1.6 1.3-3.9-.2-3.4-2.2l1.1-4.2a5.1 5.1 0 0 1 4.9-3.8Z" fill="currentColor" fillOpacity="0.06" />
-      <path d="M10.1 9.2h11.8a5.1 5.1 0 0 1 4.9 3.8l1.1 4.2c.5 2-1.8 3.5-3.4 2.2L20.7 16h-9.4l-3.8 3.4c-1.6 1.3-3.9-.2-3.4-2.2l1.1-4.2a5.1 5.1 0 0 1 4.9-3.8Z" />
-      <path d="M10.5 11.7v5m-2.5-2.5h5" />
-      <circle cx="21.4" cy="12.8" r=".8" fill="currentColor" stroke="none" />
-      <circle cx="23.6" cy="15" r=".8" fill="currentColor" stroke="none" />
-      <path d="M13 7.1h6" strokeOpacity=".55" />
+      <path d="M11 10.1h14c3 0 5.2 2.1 5.8 5.2l1 5.2c.5 2.4-2.2 4-4.1 2.5l-4.1-3.3H12.4l-4.1 3.3c-1.9 1.5-4.6-.1-4.1-2.5l1-5.2c.6-3.1 2.8-5.2 5.8-5.2Z" fill={`url(#${uid}-steel)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.25" strokeLinejoin="round" />
+      <path d="M11 13v5m-2.5-2.5h5" stroke={`url(#${uid}-silver)`} strokeWidth="2" strokeLinecap="round" />
+      <path d="M10 11.5h4.8" stroke={`url(#${uid}-ruby)`} strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="23.3" cy="14.5" r="1.45" fill={`url(#${uid}-ruby)`} stroke="#FFC6C9" strokeWidth=".5" />
+      <circle cx="26.4" cy="17.1" r="1.45" fill={`url(#${uid}-silver)`} stroke="#F9DADB" strokeWidth=".4" />
+      <path d="M16.3 12.1h4.1" stroke="#FFFFFF" strokeOpacity=".5" strokeWidth=".7" strokeLinecap="round" />
+      <path d="m7.9 20.8 3.5-2.8m16.6 2.8-3.5-2.8" stroke={`url(#${uid}-ruby)`} strokeWidth="1.1" strokeLinecap="round" />
     </>
   ) : symbol === "check" ? (
     <>
-      <path d="M16 3.4 25.1 7v7.2c0 5.1-3.7 9.3-9.1 12.2C10.6 23.5 6.9 19.3 6.9 14.2V7L16 3.4Z" fill="currentColor" fillOpacity="0.06" />
-      <path d="M16 3.4 25.1 7v7.2c0 5.1-3.7 9.3-9.1 12.2C10.6 23.5 6.9 19.3 6.9 14.2V7L16 3.4Z" />
-      <path d="m11.5 14.9 3.1 3.1 6.4-7" />
-      <path d="M16 7.1v1.1" strokeOpacity=".55" />
+      <path d="M18 3.1 29 7.4v8.4c0 6.3-4.1 11.6-11 15.2C11.1 27.4 7 22.1 7 15.8V7.4L18 3.1Z" fill={`url(#${uid}-silver)`} stroke="#F1DADD" strokeWidth=".7" strokeLinejoin="round" />
+      <path d="M18 5.5 26.6 8.8v7c0 5-3.2 9.4-8.6 12.4-5.4-3-8.6-7.4-8.6-12.4v-7L18 5.5Z" fill={`url(#${uid}-ruby)`} stroke="#7D111E" strokeWidth="1" strokeLinejoin="round" />
+      <path d="m12.4 17.2 3.7 3.6 7.8-8" fill="none" stroke={`url(#${uid}-silver)`} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m12.4 17.2 3.7 3.6 7.8-8" fill="none" stroke="#FFFFFF" strokeOpacity=".6" strokeWidth=".7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m18 3.1 2.1 3.5-2.1 2-2.1-2L18 3.1Z" fill="#FFE2E3" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M9 5.4h14v6.3c0 4.4-2.8 7.5-7 8.7-4.2-1.2-7-4.3-7-8.7V5.4Z" fill="currentColor" fillOpacity="0.06" />
-      <path d="M9 5.4h14v6.3c0 4.4-2.8 7.5-7 8.7-4.2-1.2-7-4.3-7-8.7V5.4Z" />
-      <path d="M9 7.8H4.8v2.1c0 3.3 2.2 5.5 5.4 5.8m12.8-7.9h4.2v2.1c0 3.3-2.2 5.5-5.4 5.8" />
-      <path d="m16 8.2 1.3 2.5 2.8.4-2 2 .5 2.8-2.6-1.3-2.6 1.3.5-2.8-2-2 2.8-.4L16 8.2Z" fill="currentColor" stroke="none" />
-      <path d="M16 20.4v4.1m-4.4 2.1h8.8m-6.7-2.1h4.6" />
+      <path d="M10 5.6h16v7c0 5.1-3.2 8.3-8 9.8-4.8-1.5-8-4.7-8-9.8v-7Z" fill={`url(#${uid}-ruby)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.35" strokeLinejoin="round" />
+      <path d="M10 8H4.9v3c0 4 2.3 6.6 6.3 7.1M26 8h4.9v3c0 4-2.3 6.6-6.3 7.1" fill="none" stroke={`url(#${uid}-silver)`} strokeWidth="1.6" strokeLinecap="round" />
+      <path d="m18 8.4 1.8 3.3 3.7.5-2.7 2.6.6 3.7-3.4-1.8-3.4 1.8.6-3.7-2.7-2.6 3.7-.5L18 8.4Z" fill={`url(#${uid}-silver)`} stroke="#7F1520" strokeWidth=".6" strokeLinejoin="round" />
+      <path d="M15.5 22.4h5M18 22.4v4.3m-5.1 2h10.2" fill="none" stroke={`url(#${uid}-silver)`} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M12 6.8h12" stroke="#FFE5E6" strokeOpacity=".8" strokeWidth=".8" strokeLinecap="round" />
+      <path d="M14 27.4h8" stroke={`url(#${uid}-ruby)`} strokeWidth="1.4" strokeLinecap="round" />
     </>
   ) : (
     <>
-      <circle cx="16" cy="17" r="10.2" fill="currentColor" fillOpacity="0.04" />
-      <circle cx="16" cy="17" r="10.2" />
-      <path d="M13.1 3.6h5.8M16 3.6v2.8m5.9 1.1 1.8-1.8" />
-      <path d="M16 10.9V17l4.1 2.5" />
-      <path d="M16 6.8v1.3m10.2 8.9h-1.3M16 27.2v-1.3M5.8 17H7.1" strokeOpacity=".6" />
-      <circle cx="16" cy="17" r="1" fill="currentColor" stroke="none" />
+      <path d="M18 3.4 21.1 5l3.6-.2 1.4 3.1 3 2 .1 3.6 1.7 3.2-1.7 3.2-.1 3.6-3 2-1.4 3.1-3.6-.2-3.1 1.6-3.1-1.6-3.6.2-1.4-3.1-3-2-.1-3.6L5.1 16.7l1.7-3.2.1-3.6 3-2 1.4-3.1 3.6.2L18 3.4Z" fill={`url(#${uid}-steel)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.1" strokeLinejoin="round" />
+      <circle cx="18" cy="16.7" r="10.2" fill={`url(#${uid}-ruby)`} stroke={`url(#${uid}-silver)`} strokeWidth="1.35" />
+      <circle cx="18" cy="16.7" r="8.1" fill="none" stroke="#FFB7BC" strokeOpacity=".65" strokeWidth=".7" />
+      {Array.from({ length: 12 }, (_, i) => (
+        <path key={i} d="M18 7.8v1.8" stroke={`url(#${uid}-silver)`} strokeWidth={i % 3 === 0 ? "1.4" : ".8"} strokeLinecap="round" transform={`rotate(${i * 30} 18 16.7)`} />
+      ))}
+      <path d="M18 16.7 24 11.9" stroke={`url(#${uid}-silver)`} strokeWidth="2" strokeLinecap="round" />
+      <path d="M18 16.7 14.6 12.2" stroke={`url(#${uid}-silver)`} strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="18" cy="16.7" r="1.8" fill="#F9E9E9" stroke="#7F1520" strokeWidth=".7" />
     </>
   );
 
   return (
     <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-5 sm:py-4">
       <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
-        <svg
-          viewBox="0 0 32 32"
-          className="h-[30px] w-[30px] sm:h-[34px] sm:w-[34px]"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.65"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ color: accent, filter: "drop-shadow(0 0 4px rgba(251, 44, 54, 0.18))" }}
-        >
+        <svg viewBox="0 0 36 36" className="h-9 w-9 sm:h-10 sm:w-10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ color: accent, filter: "drop-shadow(0 0 4px rgba(251, 44, 54, 0.22))" }}>
+          <defs>
+            <linearGradient id={`${uid}-ruby`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FF6671" />
+              <stop offset="38%" stopColor="#F6283B" />
+              <stop offset="72%" stopColor="#A80E21" />
+              <stop offset="100%" stopColor="#470812" />
+            </linearGradient>
+            <linearGradient id={`${uid}-silver`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FFF4F3" />
+              <stop offset="26%" stopColor="#C8B8B9" />
+              <stop offset="58%" stopColor="#727780" />
+              <stop offset="82%" stopColor="#E0D4D5" />
+              <stop offset="100%" stopColor="#5B4248" />
+            </linearGradient>
+            <linearGradient id={`${uid}-steel`} x1="0" y1="0" x2="0.9" y2="1">
+              <stop offset="0%" stopColor="#343943" />
+              <stop offset="45%" stopColor="#11151B" />
+              <stop offset="100%" stopColor="#050609" />
+            </linearGradient>
+          </defs>
           {icon}
         </svg>
       </span>
