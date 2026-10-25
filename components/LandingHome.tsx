@@ -611,7 +611,7 @@ export default function LandingHome() {
 
                   <div className="min-w-0">
                     <p className="truncate text-[11px] font-black leading-tight text-white">{item.name}</p>
-                    <p className="mt-0.5 text-[9px] font-medium leading-tight text-white/35">{item.type}</p>
+                    <p className="mt-0.5 text-[10px] font-medium leading-tight text-white/50">{item.type}</p>
                   </div>
                 </div>
               ))}
@@ -650,7 +650,7 @@ export default function LandingHome() {
           <h1 id="home-journey-title" className="mt-1 text-[27px] font-black uppercase leading-[1.04] tracking-tight text-white sm:text-[34px] lg:text-[38px]">
             Cada desafio conta.
           </h1>
-          <p className="mt-2 max-w-[440px] text-[11px] font-medium leading-relaxed text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[14px]">
+          <p className="mt-2 max-w-[440px] text-xs font-medium leading-relaxed text-white/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] sm:text-[15px]">
             Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
           </p>
           <Link
