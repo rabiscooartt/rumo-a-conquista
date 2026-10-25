@@ -343,29 +343,25 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M7 15h.01" />
-      <path d="M9 13h.01" />
-      <path d="M15 14h.01" />
-      <path d="M17 12h.01" />
-      <path d="M7.5 18h9a4.5 4.5 0 0 0 4.43-5.3l-.7-4A4 4 0 0 0 16.3 5.4H7.7a4 4 0 0 0-3.94 3.3l-.7 4A4.5 4.5 0 0 0 7.5 18Z" />
+      <path d="M7 6.5h10a4.5 4.5 0 0 1 4.4 3.5l1 4.8a3 3 0 0 1-4.8 2.8L15 15.5H9l-2.6 2.1a3 3 0 0 1-4.8-2.8l1-4.8A4.5 4.5 0 0 1 7 6.5Z" />
+      <path d="M7 10v4m-2-2h4" />
+      <path d="M16 10.5h.01M18.5 13h.01" />
     </>
   ) : symbol === "check" ? (
     <>
-      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
-      <path d="m9 12 2 2 4-5" />
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="m7.8 12.2 2.8 2.8 5.8-6" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M8 21h8" />
-      <path d="M12 17v4" />
-      <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
-      <path d="M17 6h2a2 2 0 0 1 0 4h-2" />
-      <path d="M7 6H5a2 2 0 0 0 0 4h2" />
+      <path d="M6 3.5h12v5.8a6 6 0 0 1-12 0V3.5Z" />
+      <path d="M6 5.5H3.8A1.8 1.8 0 0 0 2 7.3v1A3.7 3.7 0 0 0 6 12m12-6.5h2.2A1.8 1.8 0 0 1 22 7.3v1a3.7 3.7 0 0 1-4 3.7" />
+      <path d="M12 15.3v4m-4 0h8m-9 2.8h10" />
     </>
   ) : (
     <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M12 6.5v5.7l3.6 2.2" />
     </>
   );
 
@@ -377,7 +373,7 @@ function Stat({ symbol, value, label, accent }: { symbol: string; value: string 
           className="h-7 w-7"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.2"
+          strokeWidth="2.1"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
