@@ -343,43 +343,48 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
     <>
-      <path d="M10.4 10.1h15.2a5.1 5.1 0 0 1 4.9 4.1l1.1 5.4c.5 2.5-2.3 4-4.2 2.5l-4-3.3H12.6l-4 3.3c-1.9 1.5-4.7 0-4.2-2.5l1.1-5.4a5.1 5.1 0 0 1 4.9-4.1Z" fill="#14171D" stroke="#D7D9E0" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M10.4 10.1h15.2" stroke={accent} strokeWidth="2.1" strokeLinecap="round" />
-      <path d="M11 13v5m-2.5-2.5h5" stroke="#F6F6F8" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="23.5" cy="14.3" r="1.45" fill={accent} />
-      <circle cx="26.3" cy="17" r="1.45" fill="#D7D9E0" />
-      <path d="M7.3 19.3 10 17.1m16 2.2-2.6-2.2" stroke={accent} strokeWidth="1.1" strokeLinecap="round" />
+      <path d="M7 15h.01" />
+      <path d="M9 13h.01" />
+      <path d="M15 14h.01" />
+      <path d="M17 12h.01" />
+      <path d="M7.5 18h9a4.5 4.5 0 0 0 4.43-5.3l-.7-4A4 4 0 0 0 16.3 5.4H7.7a4 4 0 0 0-3.94 3.3l-.7 4A4.5 4.5 0 0 0 7.5 18Z" />
     </>
   ) : symbol === "check" ? (
     <>
-      <path d="M18 3.5 29 7.7v8.1c0 6.1-4 11.2-11 14.7C11 27 7 21.9 7 15.8V7.7L18 3.5Z" fill="#211016" stroke={accent} strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M18 6.8 25.7 9.7v6.1c0 4.7-3 8.6-7.7 11.3-4.7-2.7-7.7-6.6-7.7-11.3V9.7L18 6.8Z" fill="#3A1019" stroke="#8E202C" strokeWidth=".8" strokeLinejoin="round" />
-      <path d="m12.5 16.9 3.5 3.4 7.4-7.5" fill="none" stroke="#F4F2F3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="m12.5 16.9 3.5 3.4 7.4-7.5" fill="none" stroke={accent} strokeOpacity=".75" strokeWidth=".75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
+      <path d="m9 12 2 2 4-5" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M10 5.8h16v7c0 4.8-3.1 8-8 9.5-4.9-1.5-8-4.7-8-9.5v-7Z" fill="#8F1725" stroke="#E8DDE0" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M12 8h12v4.8c0 3.3-2.2 5.6-6 6.9-3.8-1.3-6-3.6-6-6.9V8Z" fill={accent} />
-      <path d="M10 8H5.2v2.8c0 3.7 2.2 6 6 6.6M26 8h4.8v2.8c0 3.7-2.2 6-6 6.6" fill="none" stroke="#C8CBD3" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="m18 9.1 1.3 2.5 2.8.4-2 1.9.5 2.8-2.6-1.3-2.6 1.3.5-2.8-2-1.9 2.8-.4L18 9.1Z" fill="#F1E5E6" />
-      <path d="M15.5 22.4h5M18 22.4v4m-5 2h10" fill="none" stroke="#D7D9E0" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+      <path d="M17 6h2a2 2 0 0 1 0 4h-2" />
+      <path d="M7 6H5a2 2 0 0 0 0 4h2" />
     </>
   ) : (
     <>
-      <circle cx="18" cy="17" r="12.1" fill="#16181E" stroke={accent} strokeWidth="2.4" />
-      <circle cx="18" cy="17" r="9.3" fill="none" stroke="#8B1D29" strokeWidth="1" />
-      <path d="M18 6.7v2m0 16.6v2M7.7 17h2m16.6 0h2" stroke="#D7D9E0" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M18 11.3V17l5 3" fill="none" stroke="#F2F0F1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="18" cy="17" r="1.9" fill={accent} stroke="#F7D9DC" strokeWidth=".7" />
-      <path d="M14.1 3.8h7.8" stroke={accent} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
     </>
   );
 
   return (
     <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-5 sm:py-4">
-      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
-        <svg viewBox="0 0 36 36" className="h-9 w-9 sm:h-10 sm:w-10" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ color: accent, filter: "drop-shadow(0 0 2px rgba(251, 44, 54, 0.12))" }}>
+      <span
+        aria-hidden="true"
+        className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11"
+        style={{ color: accent }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          className="h-8 w-8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           {icon}
         </svg>
       </span>
