@@ -343,47 +343,51 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
     <>
+      <path d="M7 15h.01" />
+      <path d="M9 13h.01" />
+      <path d="M15 14h.01" />
+      <path d="M17 12h.01" />
       <path d="M7.5 18h9a4.5 4.5 0 0 0 4.43-5.3l-.7-4A4 4 0 0 0 16.3 5.4H7.7a4 4 0 0 0-3.94 3.3l-.7 4A4.5 4.5 0 0 0 7.5 18Z" />
-      <path d="M8 10.5v4m-2-2h4" />
-      <circle cx="15.5" cy="10.5" r=".65" fill="currentColor" stroke="none" />
-      <circle cx="17.7" cy="13" r=".65" fill="currentColor" stroke="none" />
     </>
   ) : symbol === "check" ? (
     <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8 12.2 2.6 2.6 5.5-5.6" />
+      <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" />
+      <path d="m9 12 2 2 4-5" />
     </>
   ) : symbol === "trophy" ? (
     <>
-      <path d="M8 4.5h8v4.8a4 4 0 0 1-8 0V4.5Z" />
-      <path d="M8 6.5H5.5a1.8 1.8 0 0 0 0 3.6H8m8-3.6h2.5a1.8 1.8 0 0 1 0 3.6H16" />
-      <path d="M12 13.5v4m-3 0h6m-7 3h8" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+      <path d="M17 6h2a2 2 0 0 1 0 4h-2" />
+      <path d="M7 6H5a2 2 0 0 0 0 4h2" />
     </>
   ) : (
     <>
       <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3.2 2" />
+      <path d="M12 7v5l3 2" />
     </>
   );
 
   return (
-    <div className="flex min-h-[88px] min-w-0 flex-col justify-center gap-2 px-4 py-3 sm:min-h-[94px] sm:gap-2.5 sm:px-5 sm:py-3.5">
-      <div className="flex min-w-0 items-center gap-2">
+    <div className="flex min-h-[68px] min-w-0 items-center gap-2.5 px-3 py-3 sm:min-h-[70px] sm:gap-3 sm:px-3.5 sm:py-3">
+      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center" style={{ color: accent }}>
         <svg
-          aria-hidden="true"
           viewBox="0 0 24 24"
-          className="h-[17px] w-[17px] shrink-0"
+          className="h-7 w-7"
           fill="none"
-          stroke={accent}
-          strokeWidth="2"
+          stroke="currentColor"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
           {icon}
         </svg>
-        <p className="min-w-0 text-[10px] font-semibold leading-tight text-white/65 sm:text-[11px]">{label}</p>
+      </span>
+      <div className="min-w-0">
+        <p className="whitespace-nowrap text-[22px] font-black leading-none tracking-tight tabular-nums text-white sm:text-2xl">{value}</p>
+        <p className="mt-1 whitespace-nowrap text-[10px] font-medium leading-none text-white/65 sm:text-[11px]">{label}</p>
       </div>
-      <p className="whitespace-nowrap text-[27px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[30px]">{value}</p>
     </div>
   );
 }
@@ -679,7 +683,7 @@ export default function LandingHome() {
       </section>
 
       {/* Estatísticas em uma faixa única e discreta */}
-      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.10] bg-[#08090d] shadow-[0_4px_16px_rgba(0,0,0,0.16)]">
+      <section aria-label="Resumo da jornada" className="mt-3 overflow-hidden rounded-xl border border-white/[0.10] bg-[#07090d]">
         <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
           <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" accent="#FB2C36" />
           <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" accent="#FB2C36" />
