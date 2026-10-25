@@ -341,10 +341,10 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   );
 }
 const STAT_ICON_SOURCES: Record<string, string> = {
-  gamepad: "/images/stat-icons/gamepad-refined.svg",
-  check: "/images/stat-icons/shield-check-refined.svg",
-  trophy: "/images/stat-icons/trophy-refined.svg",
-  clock: "/images/stat-icons/clock-refined.svg",
+  gamepad: "/images/stat-icons/gamepad.png",
+  check: "/images/stat-icons/shield-check.png",
+  trophy: "/images/stat-icons/trophy.png",
+  clock: "/images/stat-icons/clock.png",
 };
 
 function Stat({ symbol, value, label }: { symbol: string; value: string | number; label: string }) {
