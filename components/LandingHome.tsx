@@ -342,22 +342,55 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 }
 function Stat({ symbol, value, label, accent }: { symbol: string; value: string | number; label: string; accent: string }) {
   const icon = symbol === "gamepad" ? (
-    <><path d="M6 9h12a4 4 0 0 1 3.8 5.2l-1 3.1a2.4 2.4 0 0 1-4 .9L14.6 16H9.4l-2.2 2.2a2.4 2.4 0 0 1-4-.9l-1-3.1A4 4 0 0 1 6 9Z" /><path d="M7 11v4m-2-2h4m7-1h.01M18 14h.01" /></>
+    <>
+      <path d="M10.1 9.2h11.8a5.1 5.1 0 0 1 4.9 3.8l1.1 4.2c.5 2-1.8 3.5-3.4 2.2L20.7 16h-9.4l-3.8 3.4c-1.6 1.3-3.9-.2-3.4-2.2l1.1-4.2a5.1 5.1 0 0 1 4.9-3.8Z" fill="currentColor" fillOpacity="0.06" />
+      <path d="M10.1 9.2h11.8a5.1 5.1 0 0 1 4.9 3.8l1.1 4.2c.5 2-1.8 3.5-3.4 2.2L20.7 16h-9.4l-3.8 3.4c-1.6 1.3-3.9-.2-3.4-2.2l1.1-4.2a5.1 5.1 0 0 1 4.9-3.8Z" />
+      <path d="M10.5 11.7v5m-2.5-2.5h5" />
+      <circle cx="21.4" cy="12.8" r=".8" fill="currentColor" stroke="none" />
+      <circle cx="23.6" cy="15" r=".8" fill="currentColor" stroke="none" />
+      <path d="M13 7.1h6" strokeOpacity=".55" />
+    </>
   ) : symbol === "check" ? (
-    <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16.5 9" /></>
+    <>
+      <path d="M16 3.4 25.1 7v7.2c0 5.1-3.7 9.3-9.1 12.2C10.6 23.5 6.9 19.3 6.9 14.2V7L16 3.4Z" fill="currentColor" fillOpacity="0.06" />
+      <path d="M16 3.4 25.1 7v7.2c0 5.1-3.7 9.3-9.1 12.2C10.6 23.5 6.9 19.3 6.9 14.2V7L16 3.4Z" />
+      <path d="m11.5 14.9 3.1 3.1 6.4-7" />
+      <path d="M16 7.1v1.1" strokeOpacity=".55" />
+    </>
   ) : symbol === "trophy" ? (
-    <><path d="M8 21h8m-4-4v4m-5-18h10v5a5 5 0 0 1-10 0V3Z" /><path d="M7 5H3v2a5 5 0 0 0 5 5M17 5h4v2a5 5 0 0 1-5 5" /></>
+    <>
+      <path d="M9 5.4h14v6.3c0 4.4-2.8 7.5-7 8.7-4.2-1.2-7-4.3-7-8.7V5.4Z" fill="currentColor" fillOpacity="0.06" />
+      <path d="M9 5.4h14v6.3c0 4.4-2.8 7.5-7 8.7-4.2-1.2-7-4.3-7-8.7V5.4Z" />
+      <path d="M9 7.8H4.8v2.1c0 3.3 2.2 5.5 5.4 5.8m12.8-7.9h4.2v2.1c0 3.3-2.2 5.5-5.4 5.8" />
+      <path d="m16 8.2 1.3 2.5 2.8.4-2 2 .5 2.8-2.6-1.3-2.6 1.3.5-2.8-2-2 2.8-.4L16 8.2Z" fill="currentColor" stroke="none" />
+      <path d="M16 20.4v4.1m-4.4 2.1h8.8m-6.7-2.1h4.6" />
+    </>
   ) : (
-    <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></>
+    <>
+      <circle cx="16" cy="17" r="10.2" fill="currentColor" fillOpacity="0.04" />
+      <circle cx="16" cy="17" r="10.2" />
+      <path d="M13.1 3.6h5.8M16 3.6v2.8m5.9 1.1 1.8-1.8" />
+      <path d="M16 10.9V17l4.1 2.5" />
+      <path d="M16 6.8v1.3m10.2 8.9h-1.3M16 27.2v-1.3M5.8 17H7.1" strokeOpacity=".6" />
+      <circle cx="16" cy="17" r="1" fill="currentColor" stroke="none" />
+    </>
   );
+
   return (
     <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-5 sm:py-4">
-      <span
-        aria-hidden="true"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.06] text-[#FB2C36] sm:h-10 sm:w-10"
-        style={{ color: accent }}
-      >
-        <svg viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
+      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
+        <svg
+          viewBox="0 0 32 32"
+          className="h-[30px] w-[30px] sm:h-[34px] sm:w-[34px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.65"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ color: accent, filter: "drop-shadow(0 0 4px rgba(251, 44, 54, 0.18))" }}
+        >
+          {icon}
+        </svg>
       </span>
       <div className="min-w-0">
         <p className="truncate text-xl font-black leading-none tabular-nums text-white sm:text-2xl">{value}</p>
