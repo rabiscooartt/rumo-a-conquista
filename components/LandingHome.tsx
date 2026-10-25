@@ -351,12 +351,12 @@ function Stat({ symbol, value, label }: { symbol: string; value: string | number
   const iconSrc = STAT_ICON_SOURCES[symbol] ?? STAT_ICON_SOURCES.gamepad;
 
   return (
-    <div className="flex min-h-[76px] min-w-0 items-center gap-3 px-3.5 py-3 sm:min-h-[82px] sm:gap-3.5 sm:px-4 sm:py-3.5">
-      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
-        <img src={iconSrc} alt="" aria-hidden="true" width={44} height={44} className="h-10 w-10 shrink-0 object-contain sm:h-11 sm:w-11" />
+    <div className="flex min-h-[72px] min-w-0 items-center gap-2.5 rounded-md border border-[#481923] bg-gradient-to-b from-[#11090c] via-[#08090d] to-[#050609] px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,90,100,0.06)] sm:min-h-[74px] sm:gap-2.5 sm:px-3">
+      <span aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center">
+        <img src={iconSrc} alt="" aria-hidden="true" width={56} height={56} className="h-14 w-14 shrink-0 object-contain" />
       </span>
       <div className="min-w-0">
-        <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
+        <p className="whitespace-nowrap text-[22px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
         <p className="mt-1 text-[10px] font-medium leading-tight text-white/70 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
       </div>
     </div>
@@ -657,8 +657,8 @@ export default function LandingHome() {
           </div>
         </section>
 
-        <section aria-label="Resumo da jornada" className="bg-[#07090d]">
-          <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
+        <section aria-label="Resumo da jornada" className="bg-[#07090d] p-1.5 sm:p-1.5">
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
             <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" />
             <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" />
