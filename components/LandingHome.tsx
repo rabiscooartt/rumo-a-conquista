@@ -842,8 +842,8 @@ export default function LandingHome() {
               const updatedAt = formatPublishedDate(readText(game.updatedAt, "") || readText(game.createdAt, ""));
               return (
                 <Link key={game.slug} href={"/games/" + game.slug} className="group grid grid-cols-[64px_minmax(0,1fr)_42px] items-center gap-3 px-3 py-3 transition hover:bg-white/[0.025] sm:grid-cols-[78px_minmax(0,1fr)_72px] sm:gap-4 sm:px-4 sm:py-3.5">
-                  <div className="flex h-[82px] w-[64px] items-center justify-center overflow-hidden rounded-md border border-white/[0.12] bg-black/40 p-1 sm:h-[96px] sm:w-[78px] sm:p-1.5">
-                    <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.03]" />
+                  <div className="h-[82px] w-[64px] shrink-0 overflow-hidden rounded-md border border-white/[0.12] bg-black/40 sm:h-[96px] sm:w-[78px]">
+                    <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
                   </div>
 
                   <div className="min-w-0">
@@ -894,8 +894,8 @@ export default function LandingHome() {
             {nextMastery ? (
               <>
                 <div className="grid grid-cols-[86px_minmax(0,1fr)] items-center gap-3 p-3">
-                  <Link href={"/games/" + nextMastery.slug} className="flex h-[112px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/45 p-1.5 transition hover:border-red-500/40">
-                    <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
+                  <Link href={"/games/" + nextMastery.slug} className="group relative flex h-[112px] w-full items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/45 transition hover:border-red-500/40">
+                    <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
                   </Link>
                   <div className="min-w-0">
                     <h3 className="text-xs font-black leading-snug text-white sm:text-sm">{nextMastery.title}</h3>
