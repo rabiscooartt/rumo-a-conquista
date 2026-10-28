@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/*
+  RUMO À CONQUISTA — SISTEMA VISUAL GLOBAL
+  Vermelho vivo fica reservado a ações primárias; os tons Tailwind red-* são
+  a camada secundária para ícones, estados, links e decoração. Como os tokens
+  são globais, as abas existentes e as futuras seguem a mesma hierarquia.
+*/
+@theme {
+  --color-red-300: #ef9ba1;
+  --color-red-400: #e56e77;
+  --color-red-500: #d9424d;
+  --color-red-600: #b92f39;
+  --color-red-700: #92252e;
+  --color-red-800: #721d25;
+  --color-red-900: #51161b;
+  --color-red-950: #300e12;
+}
+
 /* ============================= */
 /* BASE GLOBAL DO SITE */
 /* ============================= */
@@ -7,6 +24,74 @@
 :root {
   --background: #020202;
   --foreground: #ffffff;
+
+  /* Identidade cromática: primário forte + acentos secundários contidos. */
+  --rac-accent-primary: #fb2c36;
+  --rac-accent-primary-hover: #e7242f;
+  --rac-accent-soft: #d9424d;
+  --rac-accent-muted: #ad343d;
+  --rac-accent-soft-bg: rgba(217, 66, 77, 0.10);
+  --rac-accent-soft-border: rgba(217, 66, 77, 0.24);
+
+  /* Superfícies e divisórias compartilhadas entre todas as abas. */
+  --rac-surface-base: #050609;
+  --rac-surface-raised: #090b0f;
+  --rac-border-soft: rgba(255, 255, 255, 0.085);
+  --rac-divider: rgba(255, 255, 255, 0.09);
+  --rac-text-primary: #f4f5f7;
+  --rac-text-secondary: rgba(255, 255, 255, 0.68);
+  --rac-selection-bg: rgba(217, 66, 77, 0.42);
+  --rac-scrollbar-hover: rgba(217, 66, 77, 0.48);
+}
+
+/*
+  Classes semânticas para páginas novas:
+  - rac-accent-action: ação primária de maior contraste;
+  - rac-accent-text / rac-icon-tile: realces discretos;
+  - rac-panel / rac-divider / rac-secondary-link: superfícies e elementos neutros.
+  Prefira estas classes e os tokens acima a novos hexadecimais avulsos.
+*/
+.rac-accent-action {
+  background-color: var(--rac-accent-primary);
+  border-color: var(--rac-accent-primary);
+  color: #fff;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.rac-accent-action:hover {
+  background-color: var(--rac-accent-primary-hover);
+  border-color: var(--rac-accent-primary-hover);
+}
+.rac-accent-action:focus-visible {
+  outline: 2px solid var(--rac-accent-primary);
+  outline-offset: 2px;
+}
+.rac-accent-text {
+  color: var(--rac-accent-soft);
+}
+.rac-icon-tile {
+  background-color: var(--rac-accent-soft-bg);
+  border: 1px solid var(--rac-accent-soft-border);
+  color: var(--rac-accent-soft);
+}
+.rac-panel {
+  background-color: var(--rac-surface-raised);
+  border: 1px solid var(--rac-border-soft);
+}
+.rac-divider {
+  border-color: var(--rac-divider);
+}
+.rac-secondary-link {
+  color: var(--rac-text-secondary);
+  transition: color 160ms ease;
+}
+.rac-secondary-link:hover {
+  color: var(--rac-accent-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rac-accent-action,
+  .rac-secondary-link {
+    transition: none;
+  }
 }
 
 * {
@@ -296,26 +381,11 @@ aside.game-sidebar-text-contrast {
 /* ============================= */
 
 /*
-  Referência de cor fornecida para os ícones: #FB2C36.
-  O escopo é limitado a regiões semânticas aside; cards do conteúdo central
-  e a barra de navegação superior continuam com suas próprias cores.
+  A cor dos ícones laterais é definida pelo próprio componente/estado, e não
+  forçada para vermelho em toda a sidebar. Isso preserva cinzas neutros para
+  informações secundárias e permite vermelho apenas nos acentos intencionais.
+  Os tokens red-* do Tailwind já adotam a paleta global refinada acima.
 */
-aside svg {
-  color: #fb2c36 !important;
-}
-
-aside svg [stroke="currentColor"] {
-  stroke: #fb2c36 !important;
-}
-
-aside svg [fill="currentColor"] {
-  fill: #fb2c36 !important;
-}
-
-/* Unifica tons vermelhos diferentes usados em ícones e pequenos acentos laterais. */
-aside :is(span, i, svg, [role="img"])[class*="text-red-"] {
-  color: #fb2c36 !important;
-}
 
 /* Textos secundários das laterais ficam mais claros sobre o BG, sem placas novas. */
 aside :is(p, span, a, small, strong, label, h1, h2, h3)[class~="text-white/30"] {
@@ -356,7 +426,7 @@ aside :is(p, span, a, small, strong, label, h1, h2, h3) {
 /* ============================= */
 
 ::selection {
-  background: rgba(239, 68, 68, 0.45);
+  background: var(--rac-selection-bg);
   color: #ffffff;
 }
 
@@ -380,7 +450,7 @@ aside :is(p, span, a, small, strong, label, h1, h2, h3) {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(239, 68, 68, 0.45);
+  background: var(--rac-scrollbar-hover);
 }
 
 /* ============================= */
