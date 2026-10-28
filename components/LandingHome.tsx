@@ -400,8 +400,8 @@ function Stat({ symbol, value, label, divided = false }: { symbol: string; value
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white sm:text-[20px]">{value}</p>
-        <p className="mt-1 text-[12px] font-medium leading-[1.25] text-white/55 sm:text-[13px]">{label}</p>
+        <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{value}</p>
+        <p className="mt-1 text-[13px] font-medium leading-[1.25] text-white/55">{label}</p>
       </div>
     </div>
   );
