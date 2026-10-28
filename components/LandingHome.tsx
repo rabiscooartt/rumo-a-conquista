@@ -548,7 +548,7 @@ export default function LandingHome() {
   const currentAchievementList = currentGame && Array.isArray(currentGame.achievementsList)
     ? currentGame.achievementsList as AchievementLike[]
     : [];
-  const visibleCurrentAchievements = currentAchievementList.slice(0, 8);
+  const visibleCurrentAchievements = currentAchievementList.slice(0, 6);
   const trophySummary = useMemo(() => getHomeTrophySummary(allGames), [allGames]);
 
   return (
@@ -705,28 +705,28 @@ export default function LandingHome() {
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
         />
 
-        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7 md:min-h-[288px]">
-          <div className="max-w-[500px]">
+        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[252px] md:px-6">
+          <div className="max-w-[470px]">
             <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
               <span className="text-[10px] leading-none">✣</span>
               Minha jornada, minhas conquistas
             </p>
-            <h1 id="home-journey-title" className="mt-2 text-[32px] font-black uppercase leading-none tracking-tight text-white sm:text-[38px] md:text-[40px]">
+            <h1 id="home-journey-title" className="mt-2 text-[30px] font-black uppercase leading-none tracking-tight text-white sm:text-[36px] md:text-[38px]">
               Cada desafio conta.
             </h1>
-            <p className="mt-2 max-w-[460px] text-[11px] font-medium leading-[1.4] text-white/70 sm:text-xs">
+            <p className="mt-1.5 max-w-[440px] text-[11px] font-medium leading-[1.35] text-white/70 sm:text-xs">
               Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
             </p>
             <Link
               href="/biblioteca"
               aria-label="Explorar os jogos do Rumo à Conquista"
-              className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-2 text-sm font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.18)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-5"
+              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
             >
               Explorar jogos <span aria-hidden="true">→</span>
             </Link>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-5 md:left-6 md:right-6 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
             <Stat symbol="library" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
             <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
@@ -736,7 +736,7 @@ export default function LandingHome() {
       </section>
 
       {/* Jogo atual com a faixa de conquistas integrada */}
-      <section className="overflow-hidden rounded-xl border border-red-500/25 bg-[#05070a]" aria-labelledby="current-game-title">
+      <section className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#07090d]/95" aria-labelledby="current-game-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <h2 id="current-game-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
             <span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogo atual
@@ -746,8 +746,8 @@ export default function LandingHome() {
 
         {currentGame ? (
           <>
-            <div className="grid gap-4 p-3 sm:grid-cols-[148px_minmax(0,1fr)] sm:gap-5 sm:p-4 lg:grid-cols-[156px_minmax(0,1fr)] lg:gap-6 lg:p-5">
-              <Link href={"/games/" + currentGame.slug} className="mx-auto flex h-[136px] w-[136px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/45 p-1.5 transition hover:border-red-500/40 sm:mx-0 sm:h-[148px] sm:w-[148px]">
+            <div className="grid gap-3 p-3 sm:grid-cols-[124px_minmax(0,1fr)] sm:gap-4 sm:p-4 lg:grid-cols-[136px_minmax(0,1fr)] lg:gap-4 lg:p-4">
+              <Link href={"/games/" + currentGame.slug} className="mx-auto flex h-[112px] w-[112px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/45 p-1.5 transition hover:border-red-500/40 sm:mx-0 sm:h-[124px] sm:w-[124px] lg:h-[128px] lg:w-[128px]">
                 <img src={currentGame.cardImage || currentGame.image || ""} alt={currentGame.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
               </Link>
 
@@ -755,7 +755,7 @@ export default function LandingHome() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     {currentGame.firstJourney?.status === "in_progress" ? <span className="inline-flex rounded border border-emerald-400/25 bg-emerald-400/[0.06] px-2 py-1 text-[9px] font-bold text-emerald-200">Jornada de Estreia</span> : null}
-                    <h3 className="mt-1 text-lg font-black leading-snug text-white sm:text-2xl">{currentGame.title}</h3>
+                    <h3 className="mt-1 text-lg font-black leading-snug text-white sm:text-xl lg:text-2xl">{currentGame.title}</h3>
                     <p className="mt-1 text-xs text-white/55">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
                   {getGameTimestamp(currentGame) ? <span className="shrink-0 text-[10px] text-white/45">{formatShortDate(getGameTimestamp(currentGame))}</span> : null}
@@ -767,7 +767,7 @@ export default function LandingHome() {
                   {readText(currentGame.currentObjective || currentGame.objective, "") ? <span className="max-w-full truncate">{readText(currentGame.currentObjective || currentGame.objective, "")}</span> : null}
                 </div>
 
-                <div className="mt-4 max-w-[820px]">
+                <div className="mt-3 max-w-[820px]">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                     <span className="font-black text-white">{currentCounts?.unlocked ?? 0} / {currentCounts?.total ?? 0} conquistas</span>
                     <div className="h-2 min-w-[100px] flex-1 overflow-hidden rounded-full bg-white/[0.10]">
@@ -793,14 +793,14 @@ export default function LandingHome() {
                     const title = getAchievementTitle(achievement, index);
                     const unlocked = ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(normalizeKey(achievement.status));
                     return (
-                      <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title + (unlocked ? " — desbloqueada" : " — bloqueada")} aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")} className={"group relative flex h-[58px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[66px] sm:w-[66px] " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}>
+                      <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title + (unlocked ? " — desbloqueada" : " — bloqueada")} aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")} className={"group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[58px] sm:w-[58px] " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}>
                         <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
                         {!unlocked ? <span aria-hidden="true" className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-[8px] text-white/70">🔒</span> : null}
                       </Link>
                     );
                   })}
                   {currentAchievementList.length > visibleCurrentAchievements.length ? (
-                    <Link href={"/games/" + currentGame.slug} className="flex h-[58px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] text-[10px] font-bold text-white/70 transition hover:border-red-500/40 hover:text-white sm:h-[66px] sm:min-w-[82px]">
+                    <Link href={"/games/" + currentGame.slug} className="flex h-[52px] min-w-[68px] shrink-0 flex-col items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] text-[10px] font-bold text-white/70 transition hover:border-red-500/40 hover:text-white sm:h-[58px] sm:min-w-[76px]">
                       +{currentAchievementList.length - visibleCurrentAchievements.length}
                       <span className="mt-0.5 text-[9px] text-white/45">conquistas</span>
                     </Link>
