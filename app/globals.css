@@ -1,21 +1,11 @@
 @import "tailwindcss";
 
 /*
-  RUMO À CONQUISTA — SISTEMA VISUAL GLOBAL
-  Vermelho vivo fica reservado a ações primárias; os tons Tailwind red-* são
-  a camada secundária para ícones, estados, links e decoração. Como os tokens
-  são globais, as abas existentes e as futuras seguem a mesma hierarquia.
+  RUMO À CONQUISTA — PALETA GLOBAL
+  Mantemos a escala original e vibrante do Tailwind red-* para que os estados
+  ativos, ações e ícones importantes recuperem a identidade da marca.
+  A contenção fica limitada aos suportes decorativos e usa classes semânticas.
 */
-@theme {
-  --color-red-300: #ef9ba1;
-  --color-red-400: #e56e77;
-  --color-red-500: #d9424d;
-  --color-red-600: #b92f39;
-  --color-red-700: #92252e;
-  --color-red-800: #721d25;
-  --color-red-900: #51161b;
-  --color-red-950: #300e12;
-}
 
 /* ============================= */
 /* BASE GLOBAL DO SITE */
@@ -28,10 +18,10 @@
   /* Identidade cromática: primário forte + acentos secundários contidos. */
   --rac-accent-primary: #fb2c36;
   --rac-accent-primary-hover: #e7242f;
-  --rac-accent-soft: #d9424d;
-  --rac-accent-muted: #ad343d;
-  --rac-accent-soft-bg: rgba(217, 66, 77, 0.10);
-  --rac-accent-soft-border: rgba(217, 66, 77, 0.24);
+  --rac-accent-soft: #ef4444;
+  --rac-accent-muted: #b91c1c;
+  --rac-accent-soft-bg: rgba(239, 68, 68, 0.08);
+  --rac-accent-soft-border: rgba(239, 68, 68, 0.20);
 
   /* Superfícies e divisórias compartilhadas entre todas as abas. */
   --rac-surface-base: #050609;
@@ -40,8 +30,8 @@
   --rac-divider: rgba(255, 255, 255, 0.09);
   --rac-text-primary: #f4f5f7;
   --rac-text-secondary: rgba(255, 255, 255, 0.68);
-  --rac-selection-bg: rgba(217, 66, 77, 0.42);
-  --rac-scrollbar-hover: rgba(217, 66, 77, 0.48);
+  --rac-selection-bg: rgba(239, 68, 68, 0.45);
+  --rac-scrollbar-hover: rgba(239, 68, 68, 0.45);
 }
 
 /*
@@ -72,6 +62,19 @@
   background-color: var(--rac-accent-soft-bg);
   border: 1px solid var(--rac-accent-soft-border);
   color: var(--rac-accent-soft);
+}
+
+/*
+  Refinamento global de suportes de ícones já existentes:
+  atenua apenas o pequeno fundo atrás do ícone; preserva a cor do ícone,
+  botões, links, estados ativos e os destaques de conquista.
+*/
+span[class~="bg-red-600/15"] {
+  background-color: var(--rac-accent-soft-bg);
+}
+span[class~="bg-red-600/15"].text-red-500,
+span[class~="bg-red-600/15"].text-red-400 {
+  color: var(--rac-accent-primary);
 }
 .rac-panel {
   background-color: var(--rac-surface-raised);
