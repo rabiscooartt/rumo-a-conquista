@@ -343,10 +343,10 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function StatIcon({ symbol }: { symbol: string }) {
   const common = {
     viewBox: "0 0 24 24",
-    className: "h-6 w-6",
+    className: "h-7 w-7",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.8,
+    strokeWidth: 2,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true as const,
@@ -356,9 +356,9 @@ function StatIcon({ symbol }: { symbol: string }) {
     return (
       <svg {...common}>
         <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" strokeWidth="2" />
-        <path d="M8 11.5v4.5M5.75 13.75h4.5" strokeWidth="1.8" />
-        <circle cx="16.8" cy="12.6" r=".9" fill="currentColor" stroke="none" />
-        <circle cx="18.8" cy="14.8" r=".9" fill="currentColor" stroke="none" />
+        <path d="M8 11.5v4.5M5.75 13.75h4.5" strokeWidth="2.1" />
+        <circle cx="16.8" cy="12.6" r="1.15" fill="currentColor" stroke="none" />
+        <circle cx="18.8" cy="14.8" r="1.15" fill="currentColor" stroke="none" />
       </svg>
     );
   }
@@ -388,20 +388,20 @@ function StatIcon({ symbol }: { symbol: string }) {
       <circle cx="12" cy="12" r="8.6" strokeWidth="1.9" />
       <path d="M12 6.6v1.3m0 8.2v1.3M6.6 12h1.3m8.2 0h1.3" strokeWidth="1.6" />
       <path d="M12 8.3v4.2l3.1 1.9" strokeWidth="2" />
-      <circle cx="12" cy="12" r=".85" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.05" fill="currentColor" stroke="none" />
     </svg>
   );
 }
 
 function Stat({ symbol, value, label, divided = false }: { symbol: string; value: string | number; label: string; divided?: boolean }) {
   return (
-    <div className={`flex min-w-0 items-center gap-2.5 ${divided ? "md:border-l md:border-white/10 md:pl-4" : "md:pr-4"}`}>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+    <div className={`flex min-w-0 items-stretch gap-2 ${divided ? "md:border-l md:border-white/10 md:pl-3" : "md:pr-4"}`}>
+      <span className="flex min-h-[44px] w-9 shrink-0 self-stretch items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
         <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{value}</p>
-        <p className="mt-1 text-[13px] font-medium leading-[1.25] text-white/55">{label}</p>
+        <p className={`mt-1 text-[13px] font-medium leading-[1.25] text-white/55 ${label === "Conquistas desbloqueadas" ? "2xl:whitespace-nowrap" : ""}`}>{label}</p>
       </div>
     </div>
   );
@@ -729,7 +729,7 @@ export default function LandingHome() {
             </Link>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0 md:grid-cols-4 md:gap-x-0 md:gap-y-0">
+          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
             <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
             <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
