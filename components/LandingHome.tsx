@@ -352,12 +352,13 @@ function StatIcon({ symbol }: { symbol: string }) {
     "aria-hidden": true as const,
   };
 
-  if (symbol === "gamepad") {
+  if (symbol === "library") {
     return (
-      <svg {...common}>
-        <path d="M7 8.5h10a4.5 4.5 0 0 1 4.4 3.5l.9 4.1a2.7 2.7 0 0 1-4.5 2.5L15 15.8H9l-2.8 2.8a2.7 2.7 0 0 1-4.5-2.5l.9-4.1A4.5 4.5 0 0 1 7 8.5Z" />
-        <path d="M7 11.5v4M5 13.5h4" strokeWidth="2.1" />
-        <circle cx="16.8" cy="13" r="1.15" fill="currentColor" stroke="none" />
+      <svg {...common} strokeWidth={2.1}>
+        <rect x="4.5" y="4.5" width="6.2" height="6.2" rx="1.2" />
+        <rect x="13.3" y="4.5" width="6.2" height="6.2" rx="1.2" />
+        <rect x="4.5" y="13.3" width="6.2" height="6.2" rx="1.2" />
+        <rect x="13.3" y="13.3" width="6.2" height="6.2" rx="1.2" />
       </svg>
     );
   }
@@ -726,7 +727,7 @@ export default function LandingHome() {
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
-            <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
+            <Stat symbol="library" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
             <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
             <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" divided />
