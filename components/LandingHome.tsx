@@ -705,7 +705,7 @@ export default function LandingHome() {
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
         />
 
-        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7">
+        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7 md:min-h-[288px]">
           <div className="max-w-[500px]">
             <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
               <span className="text-[10px] leading-none">✣</span>
