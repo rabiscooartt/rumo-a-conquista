@@ -356,9 +356,9 @@ function StatIcon({ symbol }: { symbol: string }) {
     return (
       <svg {...common}>
         <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" strokeWidth="2" />
-        <path d="M8 11.5v4.5M5.75 13.75h4.5" strokeWidth="2.1" />
-        <circle cx="16.8" cy="12.6" r="1.15" fill="currentColor" stroke="none" />
-        <circle cx="18.8" cy="14.8" r="1.15" fill="currentColor" stroke="none" />
+        <path d="M8 11.5v4.5M5.75 13.75h4.5" strokeWidth="1.8" />
+        <circle cx="16.8" cy="12.6" r="1.05" fill="none" stroke="currentColor" strokeWidth="1.7" />
+        <circle cx="18.8" cy="14.8" r="1.05" fill="none" stroke="currentColor" strokeWidth="1.7" />
       </svg>
     );
   }
@@ -378,7 +378,6 @@ function StatIcon({ symbol }: { symbol: string }) {
         <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" strokeWidth="1.9" />
         <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" strokeWidth="1.9" />
         <path d="M12 14.65V18.2M8.3 20H15.7" strokeWidth="1.9" />
-        <path d="m12 6.3 1.1 2.1 2.3.3-1.7 1.6.4 2.3-2.1-1.1-2.1 1.1.4-2.3-1.7-1.6 2.3-.3L12 6.3Z" fill="currentColor" stroke="none" />
       </svg>
     );
   }
@@ -386,9 +385,7 @@ function StatIcon({ symbol }: { symbol: string }) {
   return (
     <svg {...common}>
       <circle cx="12" cy="12" r="8.6" strokeWidth="1.9" />
-      <path d="M12 6.6v1.3m0 8.2v1.3M6.6 12h1.3m8.2 0h1.3" strokeWidth="1.6" />
-      <path d="M12 8.3v4.2l3.1 1.9" strokeWidth="2" />
-      <circle cx="12" cy="12" r="1.05" fill="currentColor" stroke="none" />
+      <path d="M12 7.5V12L15.2 14" strokeWidth="2.1" />
     </svg>
   );
 }
