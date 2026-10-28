@@ -341,75 +341,67 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   );
 }
 function StatIcon({ symbol }: { symbol: string }) {
-  const base = {
-    viewBox: "0 0 32 32",
-    className: "h-8 w-8 shrink-0 sm:h-9 sm:w-9",
+  const common = {
+    viewBox: "0 0 24 24",
+    className: "h-6 w-6",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
     "aria-hidden": true as const,
   };
-  const red = "#FF3D49";
-  const softRed = "#FF3D49";
-  const stroke = { stroke: red, strokeWidth: 2.1, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
   if (symbol === "gamepad") {
     return (
-      <svg {...base} fill="none">
-        <path
-          d="M8.1 10.5h15.8a4.2 4.2 0 0 1 4.1 3.2l1.1 4.9a2.8 2.8 0 0 1-4.2 3l-4.4-2.8h-5l-4.4 2.8a2.8 2.8 0 0 1-4.2-3l1.1-4.9a4.2 4.2 0 0 1 4.1-3.2Z"
-          fill={softRed} fillOpacity="0.17" {...stroke}
-        />
-        <path d="M9.1 13.5v5M6.6 16h5" {...stroke} strokeWidth="2.2" />
-        <circle cx="21.4" cy="14.4" r="1.25" fill={red} />
-        <circle cx="24.3" cy="17.1" r="1.25" fill={red} />
+      <svg {...common}>
+        <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" strokeWidth="2" />
+        <path d="M8 11.5v4.5M5.75 13.75h4.5" strokeWidth="1.8" />
+        <circle cx="16.8" cy="12.6" r=".9" fill="currentColor" stroke="none" />
+        <circle cx="18.8" cy="14.8" r=".9" fill="currentColor" stroke="none" />
       </svg>
     );
   }
 
   if (symbol === "check") {
     return (
-      <svg {...base} fill="none">
-        <path
-          d="M16 3.5 26 7v7.1c0 6.6-4.2 11-10 14-5.8-3-10-7.4-10-14V7l10-3.5Z"
-          fill={softRed} fillOpacity="0.17" {...stroke}
-        />
-        <path d="m10.3 15.5 3.7 3.6 7.7-8" stroke="#FFF5F5" strokeWidth="2.35" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M9.2 8.2 16 5.8l6.8 2.4" stroke={red} strokeWidth="1" strokeLinecap="round" opacity=".65" />
+      <svg {...common}>
+        <circle cx="12" cy="12" r="8.5" strokeWidth="1.9" />
+        <path d="m8.1 12.2 2.6 2.6 5.3-5.5" strokeWidth="2" />
       </svg>
     );
   }
 
   if (symbol === "trophy") {
     return (
-      <svg {...base} fill="none">
-        <path
-          d="M9 5.5h14v7c0 4.5-2.8 7.4-7 9-4.2-1.6-7-4.5-7-9v-7Z"
-          fill={softRed} fillOpacity="0.17" {...stroke}
-        />
-        <path d="M9 8H5v3c0 3 1.8 5 5.2 5.6M23 8h4v3c0 3-1.8 5-5.2 5.6" {...stroke} />
-        <path d="m16 8.4 1.75 3.35 3.7.55-2.68 2.6.64 3.68L16 16.85l-3.41 1.73.65-3.68-2.69-2.6 3.71-.55L16 8.4Z" fill={red} />
-        <path d="M16 21.5v4m-4 0h8m-9.7 3h11.4" {...stroke} />
+      <svg {...common}>
+        <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" strokeWidth="1.9" />
+        <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" strokeWidth="1.9" />
+        <path d="M12 14.65V18.2M8.3 20H15.7" strokeWidth="1.9" />
+        <path d="m12 6.3 1.1 2.1 2.3.3-1.7 1.6.4 2.3-2.1-1.1-2.1 1.1.4-2.3-1.7-1.6 2.3-.3L12 6.3Z" fill="currentColor" stroke="none" />
       </svg>
     );
   }
 
   return (
-    <svg {...base} fill="none">
-      <circle cx="16" cy="16" r="12.1" fill={softRed} fillOpacity="0.1" {...stroke} />
-      <path d="M16 6.8v1.8m0 15v1.7M6.8 16h1.8m14.8 0h1.8" {...stroke} strokeWidth="1.7" />
-      <path d="M16 10.2v6l4.3 2.6" stroke="#FFF5F5" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="16.1" r="1.25" fill={red} />
+    <svg {...common}>
+      <circle cx="12" cy="12" r="8.6" strokeWidth="1.9" />
+      <path d="M12 6.6v1.3m0 8.2v1.3M6.6 12h1.3m8.2 0h1.3" strokeWidth="1.6" />
+      <path d="M12 8.3v4.2l3.1 1.9" strokeWidth="2" />
+      <circle cx="12" cy="12" r=".85" fill="currentColor" stroke="none" />
     </svg>
   );
 }
 
-function Stat({ symbol, value, label }: { symbol: string; value: string | number; label: string }) {
+function Stat({ symbol, value, label, divided = false }: { symbol: string; value: string | number; label: string; divided?: boolean }) {
   return (
-    <div className="flex min-h-[72px] min-w-0 items-center gap-3 px-3 py-3 sm:min-h-[74px] sm:gap-3.5 sm:px-4">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10">
+    <div className={`flex min-w-0 items-center gap-2.5 ${divided ? "md:border-l md:border-white/10 md:pl-4" : "md:pr-4"}`}>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[26px]">{value}</p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-white/70 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
+        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white sm:text-[20px]">{value}</p>
+        <p className="mt-1 text-[12px] font-medium leading-[1.25] text-white/55 sm:text-[13px]">{label}</p>
       </div>
     </div>
   );
@@ -697,34 +689,32 @@ export default function LandingHome() {
       <div className="min-w-0 px-4 pb-12 pt-4 sm:px-5 lg:px-5 lg:pt-5">
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-w-0 space-y-4">
-      {/* Banner e estatísticas integrados em um único painel */}
+      {/* Banner principal integrado com as estatísticas, seguindo o padrão visual de Jogos e Conteúdo */}
       <section
         aria-label="Banner principal e resumo da jornada"
-        className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#050609] shadow-[0_6px_22px_rgba(0,0,0,0.16)]"
+        className="relative isolate overflow-hidden rounded-xl border border-white/[0.10] bg-[#050609] shadow-[0_6px_22px_rgba(0,0,0,0.16)]"
       >
-        <section
-          aria-labelledby="home-journey-title"
-          className="relative isolate flex min-h-[220px] items-center overflow-hidden border-b border-white/[0.08] bg-[#050609] px-4 py-6 sm:px-7 sm:py-7"
-        >
-          <BannerBackground
-            bannerKey="home"
-            imageUrl="/images/home-profile-banner-art.webp"
-            className="pointer-events-none absolute inset-0 -z-20"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.96)_24%,rgba(5,6,9,0.76)_46%,rgba(5,6,9,0.20)_78%,rgba(5,6,9,0.04)_100%)]"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.48)_48%,rgba(5,6,9,0.92)_100%)]"
-          />
-          <div className="relative z-10 w-full max-w-[500px]">
+        <BannerBackground
+          bannerKey="home"
+          imageUrl="/images/home-profile-banner-art.webp"
+          className="pointer-events-none absolute inset-0 -z-20"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
+        />
+
+        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-7 sm:pb-7 sm:pt-7">
+          <div className="max-w-[500px]">
             <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
               <span className="text-[10px] leading-none">✣</span>
               Minha jornada, minhas conquistas
             </p>
-            <h1 id="home-journey-title" className="mt-2 text-[28px] font-black uppercase leading-none tracking-tight text-white sm:text-[40px] md:text-[42px]">
+            <h1 id="home-journey-title" className="mt-2 text-[32px] font-black uppercase leading-none tracking-tight text-white sm:text-[38px] md:text-[40px]">
               Cada desafio conta.
             </h1>
             <p className="mt-2 max-w-[460px] text-[11px] font-medium leading-[1.4] text-white/70 sm:text-xs">
@@ -738,16 +728,14 @@ export default function LandingHome() {
               Explorar jogos <span aria-hidden="true">→</span>
             </Link>
           </div>
-        </section>
 
-        <section aria-label="Resumo da jornada" className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#08090d]">
-          <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
+          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0 md:grid-cols-4 md:gap-x-0 md:gap-y-0">
             <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
-            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" />
-            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" />
-            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" />
+            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
+            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
+            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" divided />
           </div>
-        </section>
+        </div>
       </section>
 
       {/* Jogo atual com a faixa de conquistas integrada */}
