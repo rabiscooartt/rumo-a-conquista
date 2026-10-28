@@ -341,71 +341,118 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   );
 }
 function StatIcon({ symbol }: { symbol: string }) {
-  const base = { viewBox: "0 0 32 32", className: "h-7 w-7 shrink-0 sm:h-[30px] sm:w-[30px]", "aria-hidden": true as const };
+  const base = {
+    viewBox: "0 0 40 40",
+    className: "h-8 w-8 shrink-0 sm:h-9 sm:w-9",
+    "aria-hidden": true as const,
+  };
 
-  if (symbol === "gamepad") return (
-    <svg {...base} fill="none">
-      <path d="M8 9h16c2.5 0 4.3 1.8 4.8 4.1l1.1 5.1c.4 2.2-2 3.5-3.7 2.2L22.3 17H9.7l-3.9 3.4c-1.7 1.3-4.1 0-3.7-2.2l1.1-5.1C3.7 10.8 5.5 9 8 9Z" fill="#8E101C"/>
-      <path d="M8 7.5h16c2.5 0 4.3 1.8 4.8 4.1l1.1 5.1c.4 2.2-2 3.5-3.7 2.2L22.3 15.5H9.7l-3.9 3.4c-1.7 1.3-4.1 0-3.7-2.2l1.1-5.1C3.7 9.3 5.5 7.5 8 7.5Z" fill="#F52B3A" stroke="#FF6872" strokeWidth="1"/>
-      <path d="M8 8.6h15.8c1.6 0 2.8.8 3.3 2" stroke="#FFB0B5" strokeWidth=".9" strokeLinecap="round"/>
-      <path d="M8.5 11.2v5.3M5.9 13.85h5.2" stroke="#151116" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="21.3" cy="11.7" r="1.6" fill="#161116"/><circle cx="24.4" cy="14.9" r="1.6" fill="#161116"/>
-      <circle cx="21.3" cy="11.7" r=".5" fill="#FF959C"/><circle cx="24.4" cy="14.9" r=".5" fill="#FF959C"/>
-    </svg>
-  );
+  if (symbol === "gamepad") {
+    return (
+      <svg {...base} fill="none">
+        <path d="M10 12.8h20c3.2 0 5.4 2 6 5.1l1.2 5.3c.5 2.8-2.5 4.5-4.7 2.9L27.3 23H12.7l-5.2 3.1c-2.2 1.6-5.2-.1-4.7-2.9L4 17.9c.6-3.1 2.8-5.1 6-5.1Z" fill="#8E101D"/>
+        <path d="M10 10.6h20c3.2 0 5.4 2 6 5.1l1.2 5.3c.5 2.8-2.5 4.5-4.7 2.9L27.3 21H12.7l-5.2 3.1c-2.2 1.6-5.2-.1-4.7-2.9L4 15.7c.6-3.1 2.8-5.1 6-5.1Z" fill="#FB303C" stroke="#FF6570" strokeWidth="1.15" strokeLinejoin="round"/>
+        <path d="M10.3 11.8h19.4c1.8 0 3.1.8 3.8 2.3" stroke="#FFB0B5" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M11 14.2v6.4m-3.2-3.2h6.4" stroke="#171116" strokeWidth="3.1" strokeLinecap="round"/>
+        <circle cx="25.8" cy="14.5" r="2.05" fill="#161116"/>
+        <circle cx="30" cy="18.3" r="2.05" fill="#161116"/>
+        <circle cx="25.8" cy="14.5" r=".65" fill="#FF9299"/>
+        <circle cx="30" cy="18.3" r=".65" fill="#FF9299"/>
+        <path d="M16.5 12.3h7" stroke="#A71C28" strokeWidth="1.1" strokeLinecap="round"/>
+      </svg>
+    );
+  }
 
-  if (symbol === "check") return (
-    <svg {...base} fill="none">
-      <circle cx="16" cy="16" r="13" fill="#98131F"/>
-      <circle cx="16" cy="15" r="12" fill="#F52B3A" stroke="#FF6872" strokeWidth="1"/>
-      <circle cx="16" cy="15" r="8.8" fill="#D21E2D"/>
-      <path d="m10.2 15 3.7 3.6 7.9-8.2" stroke="#84101B" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="m10.2 14.2 3.7 3.6 7.9-8.2" stroke="#FFF5F5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
+  if (symbol === "check") {
+    return (
+      <svg {...base} fill="none">
+        <path d="M20 4.3 31.3 8.2v9.4c0 7.1-4.7 12.1-11.3 15.8-6.6-3.7-11.3-8.7-11.3-15.8V8.2L20 4.3Z" fill="#8C111D"/>
+        <path d="M20 4.3 30.1 7.9v9.4c0 6.4-4 10.9-10.1 14.3-6.1-3.4-10.1-7.9-10.1-14.3V7.9L20 4.3Z" fill="#F72F3C" stroke="#FF6972" strokeWidth="1.1" strokeLinejoin="round"/>
+        <path d="M20 8.1 26.2 10.3v6.5c0 4.5-2.4 7.6-6.2 10-3.8-2.4-6.2-5.5-6.2-10v-6.5L20 8.1Z" fill="#C81D2B"/>
+        <path d="m14.7 17.2 3.5 3.4 7.3-7.3" stroke="#7E101B" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="m14.7 16.5 3.5 3.4 7.3-7.3" stroke="#FFF4F4" strokeWidth="2.15" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M13 9.3 20 6.8l7 2.5" stroke="#FFB2B7" strokeWidth=".9" strokeLinecap="round"/>
+      </svg>
+    );
+  }
 
-  if (symbol === "trophy") return (
-    <svg {...base} fill="none">
-      <path d="M9 4.5h14v7.2c0 4.9-2.7 7.8-7 9.3-4.3-1.5-7-4.4-7-9.3V4.5Z" fill="#98131F"/>
-      <path d="M9.5 3.5h13v7.8c0 4.3-2.5 7-6.5 8.5-4-1.5-6.5-4.2-6.5-8.5V3.5Z" fill="#F52B3A" stroke="#FF6872" strokeWidth=".9"/>
-      <path d="M9.5 5.5H5v3c0 3.3 1.8 5.4 5 6M22.5 5.5H27v3c0 3.3-1.8 5.4-5 6" stroke="#F52B3A" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M9.5 5.5H5v3c0 3.3 1.8 5.4 5 6M22.5 5.5H27v3c0 3.3-1.8 5.4-5 6" stroke="#FF6872" strokeWidth=".8" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="m16 6 1.8 3.4 3.7.5-2.7 2.7.6 3.7-3.4-1.8-3.4 1.8.6-3.7-2.7-2.7 3.7-.5L16 6Z" fill="#171116"/>
-      <path d="M16 19.5v4.2m-4 0h8m-10 3h12" stroke="#E72635" strokeWidth="2.4" strokeLinecap="round"/>
-      <path d="M12.5 26.7h7" stroke="#FF8188" strokeWidth=".8" strokeLinecap="round"/>
-    </svg>
-  );
+  if (symbol === "trophy") {
+    return (
+      <svg {...base} fill="none">
+        <path d="M11.4 7.1h17.2v8.7c0 5.4-3.2 8.5-8.6 10.5-5.4-2-8.6-5.1-8.6-10.5V7.1Z" fill="#8F111D"/>
+        <path d="M12 5.7h16v9c0 4.7-2.9 7.5-8 9.5-5.1-2-8-4.8-8-9.5v-9Z" fill="#F72F3C" stroke="#FF6872" strokeWidth="1.05" strokeLinejoin="round"/>
+        <path d="M12 8H6.2v3.2c0 3.6 2.1 5.9 6.3 6.7m15.5-9.9h5.8v3.2c0 3.6-2.1 5.9-6.3 6.7" stroke="#D91E2C" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 8H6.2v3.2c0 3.6 2.1 5.9 6.3 6.7m15.5-9.9h5.8v3.2c0 3.6-2.1 5.9-6.3 6.7" stroke="#FF6872" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="m20 8.8 2 3.7 4.1.6-3 2.9.7 4.1-3.8-1.9-3.8 1.9.7-4.1-3-2.9 4.1-.6 2-3.7Z" fill="#211117"/>
+        <path d="M20 24v5.1m-4.6 0h9.2m-11.1 3.5h13" stroke="#B71928" strokeWidth="3.2" strokeLinecap="round"/>
+        <path d="M16.5 29.1h7" stroke="#FF7079" strokeWidth="1" strokeLinecap="round"/>
+      </svg>
+    );
+  }
 
   return (
     <svg {...base} fill="none">
-      <circle cx="16" cy="16" r="13" fill="#98131F"/>
-      <circle cx="16" cy="15" r="12" fill="#F52B3A" stroke="#FF6872" strokeWidth="1"/>
-      <circle cx="16" cy="15" r="9.2" fill="#090A0E" stroke="#C92231" strokeWidth="1.2"/>
-      <path d="M16 7.8v1.7m0 11v1.7m-7.1-7.1h1.6m11 0h1.6" stroke="#FF6872" strokeWidth="1.2" strokeLinecap="round"/>
-      <path d="M16 10.2v4.9l4 2.4" stroke="#F9F7F7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="16" cy="15.1" r="1.3" fill="#FF6872"/>
+      <circle cx="20" cy="20.8" r="15" fill="#8E111D"/>
+      <circle cx="20" cy="19.3" r="14" fill="#F72F3C" stroke="#FF6972" strokeWidth="1.1"/>
+      <circle cx="20" cy="19.3" r="10.8" fill="#090A0E" stroke="#C92231" strokeWidth="1.5"/>
+      <circle cx="20" cy="19.3" r="8.7" stroke="#39151A" strokeWidth=".8"/>
+      <path d="M20 10.8v1.7m0 13.6v1.7m-8.5-8.5h1.7m13.6 0h1.7m-14.5-6 1.2 1.2m9.6 9.6 1.2 1.2m0-12-1.2 1.2m-9.6 9.6-1.2 1.2" stroke="#FF5965" strokeWidth="1.35" strokeLinecap="round"/>
+      <path d="M20 13.6v5.9l4.5 2.7" stroke="#FFF7F7" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="20" cy="19.4" r="1.6" fill="#FF6470"/>
+      <path d="M14.9 4.7h3.2m3.8 0h3.2" stroke="#F72F3C" strokeWidth="1.6" strokeLinecap="round"/>
     </svg>
   );
 }
 
 function Stat({ symbol, value, label }: { symbol: string; value: string | number; label: string }) {
   return (
-    <div className="flex min-h-[70px] min-w-0 items-center gap-3 px-3 py-3 sm:min-h-[74px] sm:gap-3.5 sm:px-4">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center sm:h-[30px] sm:w-[30px]">
+    <div className="flex min-h-[72px] min-w-0 items-center gap-3 px-3 py-3 sm:min-h-[74px] sm:gap-3.5 sm:px-4">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10">
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-white/65 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
+        <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[26px]">{value}</p>
+        <p className="mt-1 text-[10px] font-medium leading-tight text-white/70 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
       </div>
     </div>
   );
 }
+
+function getAchievementFallbackImage(achievement: AchievementLike) {
+  if (isMasteryAchievement(achievement)) return "/images/trophies/maestria.png";
+
+  const rank = normalizeKey(
+    readText(achievement.rank, "") || readText(achievement.difficulty, "")
+  );
+  const trophy = readText(achievement.trophy, "") || readText(achievement.icon, "");
+
+  if (rank.includes("ouro") || trophy.includes("🥇")) return "/images/trophies/ouro.png";
+  if (rank.includes("prata") || trophy.includes("🥈")) return "/images/trophies/prata.png";
+  return "/images/trophies/bronze.png";
+}
+
+function AchievementArtwork({ achievement, className }: { achievement: AchievementLike; className: string }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const image = readText(achievement.image, "").trim() || readText(achievement.officialImage, "").trim();
+  const src = image && !imageFailed ? image : getAchievementFallbackImage(achievement);
+
+  return (
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+      onError={() => { if (!imageFailed) setImageFailed(true); }}
+      className={className}
+    />
+  );
+}
+
 function AchievementIcon({ achievement }: { achievement: AchievementLike }) {
-  const image = readText(achievement.image, "") || readText(achievement.officialImage, "");
   return (
     <span title={readText(achievement.title, "Conquista desbloqueada")} className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/[0.12] bg-black/45 text-sm">
-      {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-contain" /> : getAchievementSymbol(achievement)}
+      <AchievementArtwork achievement={achievement} className="h-full w-full object-contain p-0.5" />
     </span>
   );
 }
@@ -761,12 +808,11 @@ export default function LandingHome() {
               {visibleCurrentAchievements.length ? (
                 <div className="flex gap-2 overflow-x-auto pb-1 sm:gap-3">
                   {visibleCurrentAchievements.map((achievement, index) => {
-                    const image = readText(achievement.image, "") || readText(achievement.officialImage, "") || readText(achievement.icon, "");
                     const title = getAchievementTitle(achievement, index);
                     const unlocked = ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(normalizeKey(achievement.status));
                     return (
                       <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title + (unlocked ? " — desbloqueada" : " — bloqueada")} aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")} className={"group relative flex h-[58px] w-[58px] shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[66px] sm:w-[66px] " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}>
-                        {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-contain" /> : <span className="text-2xl">{getAchievementSymbol(achievement)}</span>}
+                        <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
                         {!unlocked ? <span aria-hidden="true" className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-[8px] text-white/70">🔒</span> : null}
                       </Link>
                     );
