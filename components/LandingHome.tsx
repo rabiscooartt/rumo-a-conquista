@@ -747,8 +747,8 @@ export default function LandingHome() {
         {currentGame ? (
           <>
             <div className="grid gap-3 p-3 sm:grid-cols-[124px_minmax(0,1fr)] sm:gap-4 sm:p-4 lg:grid-cols-[136px_minmax(0,1fr)] lg:gap-4 lg:p-4">
-              <Link href={"/games/" + currentGame.slug} className="mx-auto flex h-[112px] w-[112px] items-center justify-center overflow-hidden rounded-lg border border-white/[0.12] bg-black/45 p-1.5 transition hover:border-red-500/40 sm:mx-0 sm:h-[124px] sm:w-[124px] lg:h-[128px] lg:w-[128px]">
-                <img src={currentGame.cardImage || currentGame.image || ""} alt={currentGame.title + " — capa"} loading="lazy" className="max-h-full max-w-full object-contain" />
+              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative mx-auto block aspect-[5/6] w-[104px] overflow-hidden rounded-lg border border-white/[0.06] bg-black transition hover:border-red-500/40 sm:mx-0 lg:w-[112px]">
+                <img src={currentGame.cardImage || currentGame.image || ""} alt={currentGame.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
               </Link>
 
               <div className="min-w-0 flex flex-col justify-center">
