@@ -355,10 +355,9 @@ function StatIcon({ symbol }: { symbol: string }) {
   if (symbol === "gamepad") {
     return (
       <svg {...common}>
-        <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" strokeWidth="2" />
-        <path d="M8 11.5v4.5M5.75 13.75h4.5" strokeWidth="1.8" />
-        <circle cx="16.8" cy="12.6" r="1.05" fill="none" stroke="currentColor" strokeWidth="1.7" />
-        <circle cx="18.8" cy="14.8" r="1.05" fill="none" stroke="currentColor" strokeWidth="1.7" />
+        <path d="M7 8.5h10a4.5 4.5 0 0 1 4.4 3.5l.9 4.1a2.7 2.7 0 0 1-4.5 2.5L15 15.8H9l-2.8 2.8a2.7 2.7 0 0 1-4.5-2.5l.9-4.1A4.5 4.5 0 0 1 7 8.5Z" />
+        <path d="M7 11.5v4M5 13.5h4" strokeWidth="2.1" />
+        <circle cx="16.8" cy="13" r="1.15" fill="currentColor" stroke="none" />
       </svg>
     );
   }
