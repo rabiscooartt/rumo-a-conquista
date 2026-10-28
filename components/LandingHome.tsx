@@ -340,24 +340,63 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
     </div>
   );
 }
-const STAT_ICON_SOURCES: Record<string, string> = {
-  gamepad: "/images/stat-icons/gamepad.png",
-  check: "/images/stat-icons/shield-check.png",
-  trophy: "/images/stat-icons/trophy.png",
-  clock: "/images/stat-icons/clock.png",
-};
+function StatIcon({ symbol }: { symbol: string }) {
+  const base = { viewBox: "0 0 32 32", className: "h-7 w-7 shrink-0 sm:h-[30px] sm:w-[30px]", "aria-hidden": true as const };
 
-function Stat({ symbol, value, label }: { symbol: string; value: string | number; label: string }) {
-  const iconSrc = STAT_ICON_SOURCES[symbol] ?? STAT_ICON_SOURCES.gamepad;
+  if (symbol === "gamepad") return (
+    <svg {...base} fill="none">
+      <path d="M8 9h16c2.5 0 4.3 1.8 4.8 4.1l1.1 5.1c.4 2.2-2 3.5-3.7 2.2L22.3 17H9.7l-3.9 3.4c-1.7 1.3-4.1 0-3.7-2.2l1.1-5.1C3.7 10.8 5.5 9 8 9Z" fill="#8E101C"/>
+      <path d="M8 7.5h16c2.5 0 4.3 1.8 4.8 4.1l1.1 5.1c.4 2.2-2 3.5-3.7 2.2L22.3 15.5H9.7l-3.9 3.4c-1.7 1.3-4.1 0-3.7-2.2l1.1-5.1C3.7 9.3 5.5 7.5 8 7.5Z" fill="#F52B3A" stroke="#FF6872" strokeWidth="1"/>
+      <path d="M8 8.6h15.8c1.6 0 2.8.8 3.3 2" stroke="#FFB0B5" strokeWidth=".9" strokeLinecap="round"/>
+      <path d="M8.5 11.2v5.3M5.9 13.85h5.2" stroke="#151116" strokeWidth="2.5" strokeLinecap="round"/>
+      <circle cx="21.3" cy="11.7" r="1.6" fill="#161116"/><circle cx="24.4" cy="14.9" r="1.6" fill="#161116"/>
+      <circle cx="21.3" cy="11.7" r=".5" fill="#FF959C"/><circle cx="24.4" cy="14.9" r=".5" fill="#FF959C"/>
+    </svg>
+  );
+
+  if (symbol === "check") return (
+    <svg {...base} fill="none">
+      <circle cx="16" cy="16" r="13" fill="#98131F"/>
+      <circle cx="16" cy="15" r="12" fill="#F52B3A" stroke="#FF6872" strokeWidth="1"/>
+      <circle cx="16" cy="15" r="8.8" fill="#D21E2D"/>
+      <path d="m10.2 15 3.7 3.6 7.9-8.2" stroke="#84101B" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="m10.2 14.2 3.7 3.6 7.9-8.2" stroke="#FFF5F5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+
+  if (symbol === "trophy") return (
+    <svg {...base} fill="none">
+      <path d="M9 4.5h14v7.2c0 4.9-2.7 7.8-7 9.3-4.3-1.5-7-4.4-7-9.3V4.5Z" fill="#98131F"/>
+      <path d="M9.5 3.5h13v7.8c0 4.3-2.5 7-6.5 8.5-4-1.5-6.5-4.2-6.5-8.5V3.5Z" fill="#F52B3A" stroke="#FF6872" strokeWidth=".9"/>
+      <path d="M9.5 5.5H5v3c0 3.3 1.8 5.4 5 6M22.5 5.5H27v3c0 3.3-1.8 5.4-5 6" stroke="#F52B3A" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9.5 5.5H5v3c0 3.3 1.8 5.4 5 6M22.5 5.5H27v3c0 3.3-1.8 5.4-5 6" stroke="#FF6872" strokeWidth=".8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="m16 6 1.8 3.4 3.7.5-2.7 2.7.6 3.7-3.4-1.8-3.4 1.8.6-3.7-2.7-2.7 3.7-.5L16 6Z" fill="#171116"/>
+      <path d="M16 19.5v4.2m-4 0h8m-10 3h12" stroke="#E72635" strokeWidth="2.4" strokeLinecap="round"/>
+      <path d="M12.5 26.7h7" stroke="#FF8188" strokeWidth=".8" strokeLinecap="round"/>
+    </svg>
+  );
 
   return (
-    <div className="flex min-h-[72px] min-w-0 items-center gap-2.5 rounded-md border border-[#481923] bg-gradient-to-b from-[#11090c] via-[#08090d] to-[#050609] px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,90,100,0.06)] sm:min-h-[74px] sm:gap-2.5 sm:px-3">
-      <span aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center">
-        <img src={iconSrc} alt="" aria-hidden="true" width={56} height={56} className="h-14 w-14 shrink-0 object-contain" />
+    <svg {...base} fill="none">
+      <circle cx="16" cy="16" r="13" fill="#98131F"/>
+      <circle cx="16" cy="15" r="12" fill="#F52B3A" stroke="#FF6872" strokeWidth="1"/>
+      <circle cx="16" cy="15" r="9.2" fill="#090A0E" stroke="#C92231" strokeWidth="1.2"/>
+      <path d="M16 7.8v1.7m0 11v1.7m-7.1-7.1h1.6m11 0h1.6" stroke="#FF6872" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M16 10.2v4.9l4 2.4" stroke="#F9F7F7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="16" cy="15.1" r="1.3" fill="#FF6872"/>
+    </svg>
+  );
+}
+
+function Stat({ symbol, value, label }: { symbol: string; value: string | number; label: string }) {
+  return (
+    <div className="flex min-h-[70px] min-w-0 items-center gap-3 px-3 py-3 sm:min-h-[74px] sm:gap-3.5 sm:px-4">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center sm:h-[30px] sm:w-[30px]">
+        <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="whitespace-nowrap text-[22px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
-        <p className="mt-1 text-[10px] font-medium leading-tight text-white/70 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
+        <p className="whitespace-nowrap text-[23px] font-extrabold leading-none tracking-tight tabular-nums text-white sm:text-[25px]">{value}</p>
+        <p className="mt-1 text-[10px] font-medium leading-tight text-white/65 sm:whitespace-nowrap sm:text-[11px]">{label}</p>
       </div>
     </div>
   );
@@ -657,8 +696,8 @@ export default function LandingHome() {
           </div>
         </section>
 
-        <section aria-label="Resumo da jornada" className="bg-[#07090d] p-1.5 sm:p-1.5">
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        <section aria-label="Resumo da jornada" className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#08090d]">
+          <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.08] sm:grid-cols-4 sm:divide-y-0">
             <Stat symbol="gamepad" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" />
             <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" />
