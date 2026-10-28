@@ -342,23 +342,24 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 }
 function StatIcon({ symbol }: { symbol: string }) {
   const base = {
-    viewBox: "0 0 40 40",
+    viewBox: "0 0 32 32",
     className: "h-8 w-8 shrink-0 sm:h-9 sm:w-9",
     "aria-hidden": true as const,
   };
+  const red = "#FF3D49";
+  const softRed = "#FF3D49";
+  const stroke = { stroke: red, strokeWidth: 2.1, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 
   if (symbol === "gamepad") {
     return (
       <svg {...base} fill="none">
-        <path d="M10 12.8h20c3.2 0 5.4 2 6 5.1l1.2 5.3c.5 2.8-2.5 4.5-4.7 2.9L27.3 23H12.7l-5.2 3.1c-2.2 1.6-5.2-.1-4.7-2.9L4 17.9c.6-3.1 2.8-5.1 6-5.1Z" fill="#8E101D"/>
-        <path d="M10 10.6h20c3.2 0 5.4 2 6 5.1l1.2 5.3c.5 2.8-2.5 4.5-4.7 2.9L27.3 21H12.7l-5.2 3.1c-2.2 1.6-5.2-.1-4.7-2.9L4 15.7c.6-3.1 2.8-5.1 6-5.1Z" fill="#FB303C" stroke="#FF6570" strokeWidth="1.15" strokeLinejoin="round"/>
-        <path d="M10.3 11.8h19.4c1.8 0 3.1.8 3.8 2.3" stroke="#FFB0B5" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M11 14.2v6.4m-3.2-3.2h6.4" stroke="#171116" strokeWidth="3.1" strokeLinecap="round"/>
-        <circle cx="25.8" cy="14.5" r="2.05" fill="#161116"/>
-        <circle cx="30" cy="18.3" r="2.05" fill="#161116"/>
-        <circle cx="25.8" cy="14.5" r=".65" fill="#FF9299"/>
-        <circle cx="30" cy="18.3" r=".65" fill="#FF9299"/>
-        <path d="M16.5 12.3h7" stroke="#A71C28" strokeWidth="1.1" strokeLinecap="round"/>
+        <path
+          d="M8.1 10.5h15.8a4.2 4.2 0 0 1 4.1 3.2l1.1 4.9a2.8 2.8 0 0 1-4.2 3l-4.4-2.8h-5l-4.4 2.8a2.8 2.8 0 0 1-4.2-3l1.1-4.9a4.2 4.2 0 0 1 4.1-3.2Z"
+          fill={softRed} fillOpacity="0.17" {...stroke}
+        />
+        <path d="M9.1 13.5v5M6.6 16h5" {...stroke} strokeWidth="2.2" />
+        <circle cx="21.4" cy="14.4" r="1.25" fill={red} />
+        <circle cx="24.3" cy="17.1" r="1.25" fill={red} />
       </svg>
     );
   }
@@ -366,12 +367,12 @@ function StatIcon({ symbol }: { symbol: string }) {
   if (symbol === "check") {
     return (
       <svg {...base} fill="none">
-        <path d="M20 4.3 31.3 8.2v9.4c0 7.1-4.7 12.1-11.3 15.8-6.6-3.7-11.3-8.7-11.3-15.8V8.2L20 4.3Z" fill="#8C111D"/>
-        <path d="M20 4.3 30.1 7.9v9.4c0 6.4-4 10.9-10.1 14.3-6.1-3.4-10.1-7.9-10.1-14.3V7.9L20 4.3Z" fill="#F72F3C" stroke="#FF6972" strokeWidth="1.1" strokeLinejoin="round"/>
-        <path d="M20 8.1 26.2 10.3v6.5c0 4.5-2.4 7.6-6.2 10-3.8-2.4-6.2-5.5-6.2-10v-6.5L20 8.1Z" fill="#C81D2B"/>
-        <path d="m14.7 17.2 3.5 3.4 7.3-7.3" stroke="#7E101B" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="m14.7 16.5 3.5 3.4 7.3-7.3" stroke="#FFF4F4" strokeWidth="2.15" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M13 9.3 20 6.8l7 2.5" stroke="#FFB2B7" strokeWidth=".9" strokeLinecap="round"/>
+        <path
+          d="M16 3.5 26 7v7.1c0 6.6-4.2 11-10 14-5.8-3-10-7.4-10-14V7l10-3.5Z"
+          fill={softRed} fillOpacity="0.17" {...stroke}
+        />
+        <path d="m10.3 15.5 3.7 3.6 7.7-8" stroke="#FFF5F5" strokeWidth="2.35" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.2 8.2 16 5.8l6.8 2.4" stroke={red} strokeWidth="1" strokeLinecap="round" opacity=".65" />
       </svg>
     );
   }
@@ -379,27 +380,23 @@ function StatIcon({ symbol }: { symbol: string }) {
   if (symbol === "trophy") {
     return (
       <svg {...base} fill="none">
-        <path d="M11.4 7.1h17.2v8.7c0 5.4-3.2 8.5-8.6 10.5-5.4-2-8.6-5.1-8.6-10.5V7.1Z" fill="#8F111D"/>
-        <path d="M12 5.7h16v9c0 4.7-2.9 7.5-8 9.5-5.1-2-8-4.8-8-9.5v-9Z" fill="#F72F3C" stroke="#FF6872" strokeWidth="1.05" strokeLinejoin="round"/>
-        <path d="M12 8H6.2v3.2c0 3.6 2.1 5.9 6.3 6.7m15.5-9.9h5.8v3.2c0 3.6-2.1 5.9-6.3 6.7" stroke="#D91E2C" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 8H6.2v3.2c0 3.6 2.1 5.9 6.3 6.7m15.5-9.9h5.8v3.2c0 3.6-2.1 5.9-6.3 6.7" stroke="#FF6872" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="m20 8.8 2 3.7 4.1.6-3 2.9.7 4.1-3.8-1.9-3.8 1.9.7-4.1-3-2.9 4.1-.6 2-3.7Z" fill="#211117"/>
-        <path d="M20 24v5.1m-4.6 0h9.2m-11.1 3.5h13" stroke="#B71928" strokeWidth="3.2" strokeLinecap="round"/>
-        <path d="M16.5 29.1h7" stroke="#FF7079" strokeWidth="1" strokeLinecap="round"/>
+        <path
+          d="M9 5.5h14v7c0 4.5-2.8 7.4-7 9-4.2-1.6-7-4.5-7-9v-7Z"
+          fill={softRed} fillOpacity="0.17" {...stroke}
+        />
+        <path d="M9 8H5v3c0 3 1.8 5 5.2 5.6M23 8h4v3c0 3-1.8 5-5.2 5.6" {...stroke} />
+        <path d="m16 8.4 1.75 3.35 3.7.55-2.68 2.6.64 3.68L16 16.85l-3.41 1.73.65-3.68-2.69-2.6 3.71-.55L16 8.4Z" fill={red} />
+        <path d="M16 21.5v4m-4 0h8m-9.7 3h11.4" {...stroke} />
       </svg>
     );
   }
 
   return (
     <svg {...base} fill="none">
-      <circle cx="20" cy="20.8" r="15" fill="#8E111D"/>
-      <circle cx="20" cy="19.3" r="14" fill="#F72F3C" stroke="#FF6972" strokeWidth="1.1"/>
-      <circle cx="20" cy="19.3" r="10.8" fill="#090A0E" stroke="#C92231" strokeWidth="1.5"/>
-      <circle cx="20" cy="19.3" r="8.7" stroke="#39151A" strokeWidth=".8"/>
-      <path d="M20 10.8v1.7m0 13.6v1.7m-8.5-8.5h1.7m13.6 0h1.7m-14.5-6 1.2 1.2m9.6 9.6 1.2 1.2m0-12-1.2 1.2m-9.6 9.6-1.2 1.2" stroke="#FF5965" strokeWidth="1.35" strokeLinecap="round"/>
-      <path d="M20 13.6v5.9l4.5 2.7" stroke="#FFF7F7" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="20" cy="19.4" r="1.6" fill="#FF6470"/>
-      <path d="M14.9 4.7h3.2m3.8 0h3.2" stroke="#F72F3C" strokeWidth="1.6" strokeLinecap="round"/>
+      <circle cx="16" cy="16" r="12.1" fill={softRed} fillOpacity="0.1" {...stroke} />
+      <path d="M16 6.8v1.8m0 15v1.7M6.8 16h1.8m14.8 0h1.8" {...stroke} strokeWidth="1.7" />
+      <path d="M16 10.2v6l4.3 2.6" stroke="#FFF5F5" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16" cy="16.1" r="1.25" fill={red} />
     </svg>
   );
 }
