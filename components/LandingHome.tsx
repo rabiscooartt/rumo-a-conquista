@@ -343,7 +343,7 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
 function StatIcon({ symbol }: { symbol: string }) {
   const common = {
     viewBox: "0 0 24 24",
-    className: "h-7 w-7",
+    className: "h-[22px] w-[22px]",
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 2,
@@ -393,12 +393,12 @@ function StatIcon({ symbol }: { symbol: string }) {
 function Stat({ symbol, value, label, divided = false }: { symbol: string; value: string | number; label: string; divided?: boolean }) {
   return (
     <div className={`flex min-w-0 items-stretch gap-2 ${divided ? "md:border-l md:border-white/10 md:pl-3" : "md:pr-4"}`}>
-      <span className="flex min-h-[44px] w-9 shrink-0 self-stretch items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+      <span className="flex min-h-[38px] w-9 shrink-0 self-stretch items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{value}</p>
-        <p className={`mt-1 text-[13px] font-medium leading-[1.25] text-white/55 ${label === "Conquistas desbloqueadas" ? "2xl:whitespace-nowrap" : ""}`}>{label}</p>
+        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white">{value}</p>
+        <p className={`mt-1 !text-[12px] font-medium leading-[1.25] text-white/55 ${label === "Conquistas desbloqueadas" ? "2xl:whitespace-nowrap" : ""}`}>{label}</p>
       </div>
     </div>
   );
