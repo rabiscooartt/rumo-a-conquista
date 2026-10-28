@@ -746,9 +746,9 @@ export default function LandingHome() {
 
         {currentGame ? (
           <>
-            <div className="grid gap-3 p-3 sm:grid-cols-[124px_minmax(0,1fr)] sm:gap-4 sm:p-4 lg:grid-cols-[136px_minmax(0,1fr)] lg:gap-4 lg:p-4">
-              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative mx-auto block aspect-[5/6] w-[104px] overflow-hidden rounded-lg border border-white/[0.06] bg-black transition hover:border-red-500/40 sm:mx-0 lg:w-[112px]">
-                <img src={currentGame.cardImage || currentGame.image || ""} alt={currentGame.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
+            <div className="grid grid-cols-[104px_minmax(0,1fr)] items-start gap-3 p-3 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-4 sm:p-4 lg:grid-cols-[148px_minmax(0,1fr)] lg:gap-5 lg:p-4">
+              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-video w-full overflow-hidden rounded-md border border-white/[0.08] bg-black transition hover:border-red-500/40">
+                <img src={currentGame.image || currentGame.cardImage || ""} alt={currentGame.title + " — arte do jogo"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" onError={(event) => { const fallback = currentGame.cardImage; if (fallback && event.currentTarget.dataset.fallbackApplied !== "true") { event.currentTarget.dataset.fallbackApplied = "true"; event.currentTarget.src = fallback; } }} />
               </Link>
 
               <div className="min-w-0 flex flex-col justify-center">
