@@ -31,6 +31,10 @@ type SavedAchievementState = { status?: string; rank?: string; date?: string; im
 type BacklogEntry = { id?: string; slug: string; order: number; status: "next" | "waiting" | "future" };
 type YoutubeItem = { id: string; title: string; description?: string; publishedAt?: string; thumbnail: string; url: string };
 type YoutubePayload = { videos?: YoutubeItem[]; liveNow?: YoutubeItem | null; error?: string };
+type LivePlatform = "youtube" | "twitch";
+type TwitchLiveItem = { id: string; title: string; gameName?: string; thumbnail: string; url: string };
+type TwitchPayload = { available?: boolean; live?: TwitchLiveItem | null; error?: string };
+type LiveStream = { platform: LivePlatform; id: string; title: string; thumbnail: string; url: string };
 
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
@@ -450,7 +454,39 @@ export default function LandingHome() {
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
   const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
   const [isLive, setIsLive] = useState(false);
+  const [twitchLive, setTwitchLive] = useState<TwitchLiveItem | null>(null);
+  const [expandedLivePlatform, setExpandedLivePlatform] = useState<LivePlatform | null>(null);
   const [youtubeLoaded, setYoutubeLoaded] = useState(false);
+
+  const liveStreams = useMemo<LiveStream[]>(() => {
+    const streams: LiveStream[] = [];
+    if (isLive && featuredVideo?.id) {
+      streams.push({
+        platform: "youtube",
+        id: featuredVideo.id,
+        title: featuredVideo.title,
+        thumbnail: featuredVideo.thumbnail,
+        url: featuredVideo.url,
+      });
+    }
+    if (twitchLive?.id) {
+      streams.push({
+        platform: "twitch",
+        id: twitchLive.id,
+        title: twitchLive.title,
+        thumbnail: twitchLive.thumbnail,
+        url: twitchLive.url,
+      });
+    }
+    return streams;
+  }, [isLive, featuredVideo, twitchLive]);
+
+  const sidebarRecentVideos = useMemo(
+    () => recentVideos.filter((video) => !(isLive && featuredVideo?.id === video.id)).slice(0, 4),
+    [recentVideos, isLive, featuredVideo?.id]
+  );
+
+  const activeLivePlayer = liveStreams.find((stream) => stream.platform === expandedLivePlatform) ?? null;
 
   const allGames = useMemo(
     () => (gamesList || []).filter((game) => Boolean(game.slug && game.title)) as HomeGame[],
@@ -472,11 +508,13 @@ export default function LandingHome() {
 
   useEffect(() => {
     const controller = new AbortController();
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
     async function loadFeaturedContent() {
       try {
         const response = await fetch(
           "/api/youtube/channel?handle=" + encodeURIComponent("@orabiisco") + "&maxResults=9",
-          { signal: controller.signal }
+          { signal: controller.signal, cache: "no-store" }
         );
         const payload = await response.json() as YoutubePayload;
         if (!response.ok) throw new Error(payload.error || "Não foi possível buscar o conteúdo.");
@@ -490,14 +528,49 @@ export default function LandingHome() {
         setFeaturedVideo(live || videos[0] || null);
         setIsLive(Boolean(live));
       } catch {
-        if (!controller.signal.aborted) { setFeaturedVideo(null); setRecentVideos([]); setIsLive(false); }
+        if (!controller.signal.aborted) {
+          setFeaturedVideo(null);
+          setRecentVideos([]);
+          setIsLive(false);
+        }
       } finally {
         if (!controller.signal.aborted) setYoutubeLoaded(true);
       }
     }
-    loadFeaturedContent();
-    return () => controller.abort();
+
+    async function loadTwitchStatus() {
+      try {
+        const response = await fetch("/api/twitch/live", {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Não foi possível confirmar o estado da Twitch.");
+        const payload = await response.json() as TwitchPayload;
+        setTwitchLive(payload.available ? payload.live ?? null : null);
+      } catch {
+        if (!controller.signal.aborted) setTwitchLive(null);
+      }
+    }
+
+    async function refreshLiveStatus() {
+      await Promise.all([loadFeaturedContent(), loadTwitchStatus()]);
+      if (!controller.signal.aborted) {
+        refreshTimer = setTimeout(refreshLiveStatus, 60_000);
+      }
+    }
+
+    void refreshLiveStatus();
+    return () => {
+      controller.abort();
+      if (refreshTimer) clearTimeout(refreshTimer);
+    };
   }, []);
+
+  useEffect(() => {
+    if (expandedLivePlatform && !liveStreams.some((stream) => stream.platform === expandedLivePlatform)) {
+      setExpandedLivePlatform(null);
+    }
+  }, [expandedLivePlatform, liveStreams]);
 
   const gamesByUpdated = useMemo(
     () => [...allGames].sort((a, b) => getGameTimestamp(b) - getGameTimestamp(a)),
@@ -920,6 +993,72 @@ export default function LandingHome() {
           </div>
 
           <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
+          {liveStreams.length > 0 ? (
+            <section className="overflow-hidden rounded-xl border border-red-500/30 bg-[#07090d]/95 shadow-[0_0_24px_rgba(251,44,54,0.06)]" aria-labelledby="live-now-title">
+              <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
+                <h2 id="live-now-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm">
+                  <span aria-hidden="true" className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
+                  </span>
+                  Ao vivo agora
+                </h2>
+                <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-300">Ao vivo</span>
+              </div>
+              <div className="p-3">
+                <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3">
+                  <div className="relative aspect-video overflow-hidden rounded-md border border-white/[0.08] bg-black/50">
+                    {liveStreams[0].thumbnail ? (
+                      <img src={liveStreams[0].thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    ) : currentGame?.cardImage || currentGame?.image ? (
+                      <img src={currentGame.cardImage || currentGame.image || ""} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    ) : null}
+                    <span className="absolute bottom-1 left-1 rounded bg-[#FB2C36] px-1.5 py-0.5 text-[8px] font-black uppercase text-white">Ao vivo</span>
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="line-clamp-2 text-xs font-black leading-snug text-white">{currentGame?.title || liveStreams[0].title}</h3>
+                    <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-white/50">
+                      {liveStreams.length > 1 ? "Transmissão confirmada no YouTube e na Twitch." : "Transmissão confirmada no " + (liveStreams[0].platform === "youtube" ? "YouTube." : "Twitch.")}
+                    </p>
+                  </div>
+                </div>
+                <div className={"mt-3 grid gap-2 " + (liveStreams.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
+                  {liveStreams.map((stream) => (
+                    <button
+                      key={stream.platform}
+                      type="button"
+                      onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
+                      aria-expanded={expandedLivePlatform === stream.platform}
+                      className={"inline-flex min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 py-2 text-[10px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/50 bg-red-500/15 text-white" : "border-white/[0.10] bg-white/[0.03] text-white/75 hover:border-red-500/30 hover:bg-white/[0.06] hover:text-white")}
+                    >
+                      <span aria-hidden="true">▶</span>
+                      {expandedLivePlatform === stream.platform ? "Fechar player" : stream.platform === "youtube" ? "Assistir no YouTube" : "Assistir na Twitch"}
+                    </button>
+                  ))}
+                </div>
+                {activeLivePlayer ? (
+                  <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.10] bg-black">
+                    <div className="aspect-video w-full">
+                      <iframe
+                        key={activeLivePlayer.platform + "-" + activeLivePlayer.id}
+                        src={activeLivePlayer.platform === "youtube"
+                          ? "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(activeLivePlayer.id) + "?autoplay=1&playsinline=1&rel=0"
+                          : "https://player.twitch.tv/?channel=orabiisco&parent=rumo-a-conquista.vercel.app&autoplay=true&muted=false"}
+                        title={"Transmissão ao vivo no " + (activeLivePlayer.platform === "youtube" ? "YouTube" : "Twitch")}
+                        className="h-full w-full"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                        referrerPolicy="strict-origin-when-cross-origin"
+                      />
+                    </div>
+                    <a href={activeLivePlayer.url} target="_blank" rel="noreferrer" className="block px-3 py-2 text-center text-[10px] font-bold text-[#FB2C36] transition hover:text-white">
+                      Abrir na plataforma ↗
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
           <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="next-mastery-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="next-mastery-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
@@ -956,9 +1095,9 @@ export default function LandingHome() {
               <h2 id="recent-content-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conteúdo recente</h2>
               <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos →</Link>
             </div>
-            {recentVideos.length ? (
+            {sidebarRecentVideos.length ? (
               <div className="divide-y divide-white/[0.08]">
-                {recentVideos.slice(0, 4).map((video) => {
+                {sidebarRecentVideos.map((video) => {
                   const liveItem = Boolean(isLive && featuredVideo?.id === video.id);
                   return (
                     <a key={video.id} href={video.url} target="_blank" rel="noreferrer" className="group flex min-w-0 gap-2.5 p-3 transition hover:bg-white/[0.025]">
