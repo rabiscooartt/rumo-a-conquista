@@ -626,8 +626,6 @@ export default function LandingHome() {
   // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
-  const showCurrentAchievementProgress =
-    !showFirstJourneyPlaceholder && currentAchievementList.length > 0;
   const trophySummary = useMemo(() => getHomeTrophySummary(allGames), [allGames]);
 
   return (
@@ -844,6 +842,23 @@ export default function LandingHome() {
                   <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base" aria-label={"Tempo de jogo: " + (hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-")}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg><span className="font-bold text-white/85">{hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}</span></span>
                 </div>
 
+                {currentCounts && currentCounts.total > 0 ? (
+                  <div className="mt-2 flex w-fit max-w-full min-w-0 items-center gap-2 sm:gap-2.5" aria-label={"Progresso de conquistas: " + currentCounts.unlocked + " de " + currentCounts.total}>
+                    <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-white/85">{currentCounts.unlocked}/{currentCounts.total}</span>
+                    <div
+                      className="h-[5px] w-[66px] shrink-0 overflow-hidden rounded-full bg-white/[0.10] sm:w-[100px] lg:w-[130px]"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={currentProgress}
+                      aria-label={"Progresso de " + currentGame.title}
+                    >
+                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                    </div>
+                    <span className="shrink-0 text-[10px] font-black text-white/75">{currentProgress}%</span>
+                  </div>
+                ) : null}
+
                 {showFirstJourneyPlaceholder ? (
                   <div className="mt-2 flex w-full min-w-0 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5 sm:gap-3">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
@@ -860,24 +875,9 @@ export default function LandingHome() {
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
                         <p className="shrink-0 text-xs font-black leading-tight text-white">Conquistas em preparação</p>
-                        <p className="text-[11px] leading-tight text-white/55 sm:text-xs">O progresso e as miniaturas aparecem quando esta etapa terminar.</p>
+                        <p className="text-[11px] leading-tight text-white/55 sm:text-xs">As miniaturas das conquistas aparecem quando esta etapa terminar.</p>
                       </div>
                     </div>
-                  </div>
-                ) : showCurrentAchievementProgress ? (
-                  <div className="mt-2 flex w-full min-w-[190px] items-center gap-2.5 sm:gap-3" aria-label={"Progresso de conquistas: " + (currentCounts?.unlocked ?? 0) + " de " + (currentCounts?.total ?? 0)}>
-                    <span className="shrink-0 whitespace-nowrap font-black text-white">{currentCounts?.unlocked ?? 0}/{currentCounts?.total ?? 0}</span>
-                    <div
-                      className="h-2 min-w-[70px] flex-1 overflow-hidden rounded-full bg-white/[0.10]"
-                      role="progressbar"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={currentProgress}
-                      aria-label={"Progresso de " + currentGame.title}
-                    >
-                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
-                    </div>
-                    <span className="shrink-0 font-black text-white">{currentProgress}%</span>
                   </div>
                 ) : null}
 
