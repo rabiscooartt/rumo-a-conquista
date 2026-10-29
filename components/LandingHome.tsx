@@ -549,17 +549,10 @@ export default function LandingHome() {
     ? currentGame.achievementsList as AchievementLike[]
     : [];
   const visibleCurrentAchievements = currentAchievementList.slice(0, 6);
-  const hasConfiguredCurrentAchievementArtwork =
-    visibleCurrentAchievements.length > 0 &&
-    visibleCurrentAchievements.every((achievement) =>
-      Boolean(
-        readText(achievement.image, "").trim() ||
-        readText(achievement.officialImage, "").trim()
-      )
-    );
+  // Keep the debut-journal message visible while the first journey is active.
+  // Once it is marked completed, the real achievement strip is shown again.
   const showFirstJourneyPlaceholder =
-    currentGame?.firstJourney?.status === "in_progress" &&
-    !hasConfiguredCurrentAchievementArtwork;
+    currentGame?.firstJourney?.status === "in_progress";
   const trophySummary = useMemo(() => getHomeTrophySummary(allGames), [allGames]);
 
   return (
@@ -816,7 +809,7 @@ export default function LandingHome() {
                       <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
                     </div>
                     <p className="mt-1 text-sm font-black text-white">Estamos jogando.</p>
-                    <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-white/55 sm:text-xs">As conquistas e suas artes vão aparecer aqui assim que estiverem definidas. Por enquanto, acompanhe o início desta jornada.</p>
+                    <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-white/55 sm:text-xs">As conquistas ainda estão sendo definidas. Quando a Jornada de Estreia terminar, a progressão será liberada.</p>
                   </div>
                   <div className="shrink-0 rounded-md border border-white/[0.08] bg-black/20 px-3 py-2 text-[10px] font-semibold text-white/45">Preparando conquistas</div>
                 </div>
