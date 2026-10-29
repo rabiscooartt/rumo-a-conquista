@@ -21,21 +21,12 @@ export default function PlatformIcon({
 
   if (normalizedPlatform === "steam") {
     return (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
+      <img
+        src="/images/platforms/steam.png"
+        alt=""
         aria-hidden="true"
-        className={className + " shrink-0"}
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="15.2" cy="8.2" r="5.2" />
-        <circle cx="15.2" cy="8.2" r="2.25" />
-        <circle cx="6.6" cy="16.8" r="2.65" />
-        <path d="M8.9 15.45 12.1 11.25" />
-      </svg>
+        className={className + " shrink-0 object-contain"}
+      />
     );
   }
 
