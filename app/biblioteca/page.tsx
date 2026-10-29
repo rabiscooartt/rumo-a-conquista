@@ -5,7 +5,8 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
-import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import PlatformIcon from "@/components/PlatformIcon";
+import { formatGameGenreLabel, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 
@@ -149,50 +150,6 @@ function IconGrid(props: { className?: string }) {
       <rect x="14" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
       <rect x="4" y="14" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
       <rect x="14" y="14" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
-    </SvgIcon>
-  );
-}
-
-function IconPlatform({
-  platform,
-  className = "h-4 w-4",
-}: {
-  platform?: string;
-  className?: string;
-}) {
-  const normalizedPlatform = normalizeText(platform || "Steam");
-
-  if (normalizedPlatform === "steam") {
-    return (
-      <img
-        src="/images/platforms/steam.png"
-        alt="Steam"
-        className={`${className} shrink-0 object-contain`}
-      />
-    );
-  }
-
-  return (
-    <SvgIcon className={className}>
-      <circle
-        cx="12"
-        cy="12"
-        r="8.25"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M8.5 10.5H15.5V15H8.5Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 8.5V10.5M14 8.5V10.5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
     </SvgIcon>
   );
 }
@@ -1261,7 +1218,7 @@ function GenresRadar({
                         ? "Puzzle"
                         : normalized === "indie"
                           ? "Indie"
-                          : genre;
+                          : formatGameGenreLabel(genre);
 
           counts.set(label, (counts.get(label) ?? 0) + 1);
         });
