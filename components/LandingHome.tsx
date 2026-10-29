@@ -841,7 +841,7 @@ export default function LandingHome() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-white/65 sm:text-xs">
                   {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base"><PlatformIcon platform={currentGame.platform} className="h-5 w-5" />{currentGame.platform}</span> : null}
-                  {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
+                  <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base" aria-label={"Tempo de jogo: " + (hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-")}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg><span className="font-bold text-white/85">{hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}</span></span>
                 </div>
 
                 {showFirstJourneyPlaceholder ? (
