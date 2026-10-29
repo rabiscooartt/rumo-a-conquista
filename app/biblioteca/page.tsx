@@ -844,12 +844,12 @@ function getGameRating(game: BibliotecaGame) {
   return Math.min(5, Math.max(0, baseRating / 2));
 }
 
-function GameRating({ rating }: { rating: number }) {
+function GameRating({ rating, compact = false }: { rating: number; compact?: boolean }) {
   return (
     <StarRating
       rating={rating}
       size="small"
-      className="h-[14px] !text-[12px] !tracking-[-0.04em]"
+      className={compact ? "h-[12px] !text-[11px] !tracking-[-0.05em]" : "h-[14px] !text-[12px] !tracking-[-0.04em]"}
     />
   );
 }
@@ -1082,8 +1082,8 @@ function GameGridCard({
         </span>
 
         {isCompleted ? (
-          <div className="absolute right-2 top-2 z-10 rounded bg-black/65 px-1 py-0 opacity-90 shadow-sm backdrop-blur-sm">
-            <GameRating rating={rating} />
+          <div className="absolute right-2 top-2 z-10 rounded bg-black/50 px-1 py-0 opacity-85 shadow-sm backdrop-blur-sm">
+            <GameRating rating={rating} compact />
           </div>
         ) : null}
       </div>
