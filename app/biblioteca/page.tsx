@@ -1064,7 +1064,7 @@ function GameGridCard({
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
       className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-2 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
-      <div className="relative aspect-[5/6] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
+      <div className="relative aspect-[5/6] overflow-hidden rounded-lg bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
