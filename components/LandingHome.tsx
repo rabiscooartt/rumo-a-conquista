@@ -841,44 +841,45 @@ export default function LandingHome() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-white/65 sm:text-xs">
                   {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base"><PlatformIcon platform={currentGame.platform} className="h-5 w-5" />{currentGame.platform}</span> : null}
-                  {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
-                  {showFirstJourneyPlaceholder ? (
-                    <div className="flex min-w-[220px] flex-1 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
-                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="8.5" />
-                          <circle cx="12" cy="12" r="3.2" />
-                          <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
-                        </svg>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <span className="text-[8px] font-black uppercase tracking-[0.1em] text-white/65">Jornada de Estreia</span>
-                          <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
-                        </div>
-                        <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
-                          <p className="shrink-0 text-xs font-black leading-tight text-white">Conquistas em preparação</p>
-                          <p className="text-[11px] leading-tight text-white/55 sm:text-xs">O progresso e as miniaturas aparecem quando esta etapa terminar.</p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : showCurrentAchievementProgress ? (
-                    <div className="flex min-w-[190px] flex-1 items-center gap-2.5 sm:gap-3" aria-label={"Progresso de conquistas: " + (currentCounts?.unlocked ?? 0) + " de " + (currentCounts?.total ?? 0)}>
-                      <span className="shrink-0 whitespace-nowrap font-black text-white">{currentCounts?.unlocked ?? 0}/{currentCounts?.total ?? 0}</span>
-                      <div
-                        className="h-2 min-w-[70px] flex-1 overflow-hidden rounded-full bg-white/[0.10]"
-                        role="progressbar"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={currentProgress}
-                        aria-label={"Progresso de " + currentGame.title}
-                      >
-                        <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
-                      </div>
-                      <span className="shrink-0 font-black text-white">{currentProgress}%</span>
-                    </div>
-                  ) : null}
+                  {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
                 </div>
+
+                {showFirstJourneyPlaceholder ? (
+                  <div className="mt-2 flex w-full min-w-0 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5 sm:gap-3">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="8.5" />
+                        <circle cx="12" cy="12" r="3.2" />
+                        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="text-[8px] font-black uppercase tracking-[0.1em] text-white/65">Jornada de Estreia</span>
+                        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
+                        <p className="shrink-0 text-xs font-black leading-tight text-white">Conquistas em preparação</p>
+                        <p className="text-[11px] leading-tight text-white/55 sm:text-xs">O progresso e as miniaturas aparecem quando esta etapa terminar.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : showCurrentAchievementProgress ? (
+                  <div className="mt-2 flex w-full min-w-[190px] items-center gap-2.5 sm:gap-3" aria-label={"Progresso de conquistas: " + (currentCounts?.unlocked ?? 0) + " de " + (currentCounts?.total ?? 0)}>
+                    <span className="shrink-0 whitespace-nowrap font-black text-white">{currentCounts?.unlocked ?? 0}/{currentCounts?.total ?? 0}</span>
+                    <div
+                      className="h-2 min-w-[70px] flex-1 overflow-hidden rounded-full bg-white/[0.10]"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={currentProgress}
+                      aria-label={"Progresso de " + currentGame.title}
+                    >
+                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                    </div>
+                    <span className="shrink-0 font-black text-white">{currentProgress}%</span>
+                  </div>
+                ) : null}
 
               </div>
             </div>
