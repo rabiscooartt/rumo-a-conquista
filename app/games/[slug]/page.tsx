@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
+  formatGameGenreLabel,
+  formatGameGenreList,
   type FlexibleAchievementInput,
   type SiteGame,
 } from "@/lib/useSiteGames";
@@ -305,7 +307,7 @@ export default function GamePage() {
 
     return {
       title: readText(game.title, "Jogo sem nome"),
-      subtitle: readText(game.subtitle, ""),
+      subtitle: formatGameGenreList(readText(game.subtitle, "")),
       image: readText(game.image, "") || `/images/games/${slug}/banner.jpg`,
       cardImage: readText(game.cardImage, ""),
       achievements: achievementsList.length > 0 ? `${completedAchievements}/${achievementsList.length}` : "0/0",
@@ -341,10 +343,9 @@ export default function GamePage() {
         if (!rawReview || typeof rawReview !== "object" || Array.isArray(rawReview)) {
           return "";
         }
-        return readText(
-          (rawReview as Record<string, unknown>).__primaryGenre,
-          ""
-        ).trim();
+        return formatGameGenreLabel(
+          readText((rawReview as Record<string, unknown>).__primaryGenre, "").trim()
+        );
       })(),
       review: normalizeReview(game.review),
       finalBadge: getFinalBadge(game),
@@ -376,7 +377,7 @@ export default function GamePage() {
       })(),
       platform: readText((game as { platform?: unknown }).platform, "Steam") || "Steam",
       genres: Array.isArray((game as { genres?: unknown }).genres)
-        ? ((game as { genres?: unknown[] }).genres || []).map((genre) => readText(genre, "")).filter(Boolean)
+        ? ((game as { genres?: unknown[] }).genres || []).map((genre) => formatGameGenreLabel(readText(genre, ""))).filter(Boolean)
         : [],
       developer: readText((game as { developer?: unknown }).developer, ""),
       releaseYear: readText((game as { releaseYear?: unknown }).releaseYear, ""),
