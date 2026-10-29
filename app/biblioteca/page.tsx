@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
-import PlatformIcon from "@/components/PlatformIcon";
+import IconPlatform from "@/components/PlatformIcon";
 import { formatGameGenreLabel, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
