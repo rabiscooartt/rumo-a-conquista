@@ -4,6 +4,7 @@ import Link from "next/link";
 import BannerBackground from "@/components/BannerBackground";
 import ProfileAvatar from "@/components/ProfileAvatar";
 import { useEffect, useMemo, useState } from "react";
+import PlatformIcon from "@/components/PlatformIcon";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 
 type HomeGame = SiteGame & {
@@ -759,15 +760,14 @@ export default function LandingHome() {
               <div className="min-w-0 flex flex-col justify-center">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    {currentGame.firstJourney?.status === "in_progress" ? <span className="inline-flex rounded border border-emerald-400/25 bg-emerald-400/[0.06] px-2 py-1 text-[9px] font-bold text-emerald-200">Jornada de Estreia</span> : null}
-                    <h3 className="mt-1 text-lg font-black leading-snug text-white sm:text-xl lg:text-2xl">{currentGame.title}</h3>
+                    <h3 className="text-lg font-black leading-snug text-white sm:text-xl lg:text-2xl">{currentGame.title}</h3>
                     <p className="mt-1 text-xs text-white/55">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
                   {getGameTimestamp(currentGame) ? <span className="shrink-0 text-[10px] text-white/45">{formatShortDate(getGameTimestamp(currentGame))}</span> : null}
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-white/65 sm:text-xs">
-                  {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><span aria-hidden="true">▰</span>{currentGame.platform}</span> : null}
+                  {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><PlatformIcon platform={currentGame.platform} className="h-4 w-4" />{currentGame.platform}</span> : null}
                   {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
                   {showFirstJourneyPlaceholder ? (
                     <div className="flex min-w-[220px] flex-1 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5">
@@ -784,8 +784,8 @@ export default function LandingHome() {
                           <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
                         </div>
                         <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
-                          <p className="shrink-0 text-xs font-black leading-tight text-white">Estamos jogando.</p>
-                          <p className="text-[10px] leading-tight text-white/50">A progressão e as conquistas aparecem após a Jornada de Estreia.</p>
+                          <p className="shrink-0 text-xs font-black leading-tight text-white">Conquistas em preparação</p>
+                          <p className="text-[11px] leading-tight text-white/55 sm:text-xs">O progresso e as miniaturas aparecem quando esta etapa terminar.</p>
                         </div>
                       </div>
                     </div>
