@@ -762,18 +762,21 @@ export default function LandingHome() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-white/65 sm:text-xs">
-                  {currentGame.platform ? <span className="inline-flex items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><span aria-hidden="true">▰</span>{currentGame.platform}</span> : null}
-                  {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
-                  {readText(currentGame.currentObjective || currentGame.objective, "") ? <span className="max-w-full truncate">{readText(currentGame.currentObjective || currentGame.objective, "")}</span> : null}
-                </div>
-
-                <div className="mt-3 max-w-[820px]">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
-                    <span className="font-black text-white">{currentCounts?.unlocked ?? 0} / {currentCounts?.total ?? 0} conquistas</span>
-                    <div className="h-2 min-w-[100px] flex-1 overflow-hidden rounded-full bg-white/[0.10]">
-                      <div className="h-full rounded-full bg-[#FB2C36]" style={{ width: currentProgress + "%" }} />
+                  {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><span aria-hidden="true">▰</span>{currentGame.platform}</span> : null}
+                  {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
+                  <div className="flex min-w-[190px] flex-1 items-center gap-2.5 sm:gap-3" aria-label={"Progresso de conquistas: " + (currentCounts?.unlocked ?? 0) + " de " + (currentCounts?.total ?? 0)}>
+                    <span className="shrink-0 whitespace-nowrap font-black text-white">{currentCounts?.unlocked ?? 0}/{currentCounts?.total ?? 0}</span>
+                    <div
+                      className="h-2 min-w-[70px] flex-1 overflow-hidden rounded-full bg-white/[0.10]"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={currentProgress}
+                      aria-label={"Progresso de " + currentGame.title}
+                    >
+                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
                     </div>
-                    <span className="font-black text-white">{currentProgress}%</span>
+                    <span className="shrink-0 font-black text-white">{currentProgress}%</span>
                   </div>
                 </div>
 
