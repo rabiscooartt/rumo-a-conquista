@@ -615,6 +615,10 @@ export default function LandingHome() {
   }, [allGames]);
 
   const currentCounts = currentGame ? getAchievementCounts(currentGame) : null;
+  const currentTrophySummary = useMemo(() => currentGame ? getHomeTrophySummary([currentGame]) : null, [currentGame]);
+  const currentTrophyTierEntries = currentTrophySummary
+    ? HOME_TROPHY_TIERS.filter((tier) => tier.key !== "maestria" && currentTrophySummary[tier.key].total > 0)
+    : [];
   const currentProgress = currentGame ? Math.min(100, Math.max(0, Number(currentGame.progress) || 0)) : 0;
   const nextCounts = nextMastery ? getAchievementCounts(nextMastery) : null;
   const nextProgress = nextMastery ? Math.min(100, Math.max(0, Number(nextMastery.progress) || 0)) : 0;
@@ -837,27 +841,43 @@ export default function LandingHome() {
                   {getGameTimestamp(currentGame) ? <span className="shrink-0 text-[10px] text-white/45">{formatShortDate(getGameTimestamp(currentGame))}</span> : null}
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-white/65 sm:text-xs">
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/65 sm:gap-x-4 sm:text-xs">
                   {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base"><PlatformIcon platform={currentGame.platform} className="h-5 w-5" />{currentGame.platform}</span> : null}
                   <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base" aria-label={"Tempo de jogo: " + (hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-")}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg><span className="font-bold text-white/85">{hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}</span></span>
-                </div>
-
-                {currentCounts && currentCounts.total > 0 ? (
-                  <div className="mt-2 flex w-fit max-w-full min-w-0 items-center gap-2 sm:gap-2.5" aria-label={"Progresso de conquistas: " + currentCounts.unlocked + " de " + currentCounts.total}>
-                    <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-white/85">{currentCounts.unlocked}/{currentCounts.total}</span>
-                    <div
-                      className="h-[5px] w-[66px] shrink-0 overflow-hidden rounded-full bg-white/[0.10] sm:w-[100px] lg:w-[130px]"
-                      role="progressbar"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={currentProgress}
-                      aria-label={"Progresso de " + currentGame.title}
-                    >
-                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                  {currentCounts && currentCounts.total > 0 ? (
+                    <div className="inline-flex shrink-0 flex-col gap-1" aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}>
+                      <div className="flex items-center gap-x-1.5" aria-label={"Troféus desbloqueados por categoria em " + currentGame.title}>
+                        {currentTrophyTierEntries.length > 0 ? currentTrophyTierEntries.map((tier) => {
+                          const counter = currentTrophySummary?.[tier.key];
+                          if (!counter) return null;
+                          return (
+                            <span key={tier.key} className="inline-flex items-center gap-0.5 whitespace-nowrap" title={tier.label + ": " + counter.unlocked + " de " + counter.total} aria-label={tier.label + ": " + counter.unlocked + " de " + counter.total}>
+                              <img src={tier.image} alt="" loading="lazy" className="h-[11px] w-[11px] object-contain" />
+                              <span className="text-[9px] font-black leading-none text-white/80">{counter.unlocked}/{counter.total}</span>
+                            </span>
+                          );
+                        }) : (
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap text-[9px] font-black text-white/80" title={currentCounts.unlocked + " de " + currentCounts.total + " conquistas desbloqueadas"}>
+                            <span aria-hidden="true">🏆</span>{currentCounts.unlocked}/{currentCounts.total}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="h-[5px] w-[66px] shrink-0 overflow-hidden rounded-full bg-white/[0.10] sm:w-[100px] lg:w-[130px]"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={currentProgress}
+                          aria-label={"Progresso de " + currentGame.title}
+                        >
+                          <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                        </div>
+                        <span className="shrink-0 text-[10px] font-black text-white/75">{currentProgress}%</span>
+                      </div>
                     </div>
-                    <span className="shrink-0 text-[10px] font-black text-white/75">{currentProgress}%</span>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
 
                 {showFirstJourneyPlaceholder ? (
                   <div className="mt-2 flex w-full min-w-0 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5 sm:gap-3">
