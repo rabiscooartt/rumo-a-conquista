@@ -852,7 +852,7 @@ export default function LandingHome() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <div
-                          className="h-[5px] w-[66px] shrink-0 overflow-hidden rounded-full bg-white/[0.10] sm:w-[100px] lg:w-[130px]"
+                          className="h-[5px] w-[66px] shrink-0 overflow-hidden rounded-full bg-white/[0.10] sm:w-[100px] lg:w-[160px]"
                           role="progressbar"
                           aria-valuemin={0}
                           aria-valuemax={100}
