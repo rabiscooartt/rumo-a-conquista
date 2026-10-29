@@ -889,7 +889,6 @@ export default function LandingHome() {
                   </div>
                 ) : (
                   <div className="mt-2 flex w-full min-w-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-2 py-1.5">
-                    <span className="shrink-0 text-[8px] font-black uppercase tracking-wide text-white/55 sm:text-[9px]">Conquistas</span>
                     {visibleCurrentAchievements.length ? (
                       <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-0.5">
                         {visibleCurrentAchievements.map((achievement, index) => {
@@ -901,7 +900,7 @@ export default function LandingHome() {
                               href={"/games/" + currentGame.slug}
                               title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
                               aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-                              className={"group relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-9 sm:w-9 lg:h-10 lg:w-10 " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
+                              className={"group relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-9 sm:w-9 lg:h-11 lg:w-11 " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
                             >
                               <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
                               {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
@@ -909,7 +908,7 @@ export default function LandingHome() {
                           );
                         })}
                         {currentAchievementList.length > visibleCurrentAchievements.length ? (
-                          <Link href={"/games/" + currentGame.slug} className="flex h-8 min-w-9 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-1.5 text-[9px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:h-9 lg:h-10">
+                          <Link href={"/games/" + currentGame.slug} className="flex h-8 min-w-9 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-1.5 text-[9px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:h-9 lg:h-11">
                             +{currentAchievementList.length - visibleCurrentAchievements.length}
                           </Link>
                         ) : null}
