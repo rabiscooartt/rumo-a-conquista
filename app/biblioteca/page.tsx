@@ -1064,12 +1064,19 @@ function GameGridCard({
       aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
       className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-2 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
     >
-      <div className="relative aspect-[5/6] overflow-hidden rounded-lg bg-black">
+      <div className="relative aspect-[5/6] overflow-hidden rounded-lg border border-white/[0.06] bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         {normalizeText(platform) === "steam" ? (
-          <div className="absolute left-2 top-2 h-6 w-6 overflow-hidden rounded-md">
-            <IconPlatform platform={platform} className="h-6 w-6" />
+          <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center overflow-hidden rounded-md border border-white/10 bg-[#0b1726] shadow-sm">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="h-[21px] w-[21px] text-white"
+              fill="currentColor"
+            >
+              <path d="M11.979 0C5.678 0 .51 4.868 0 11.056l6.086 2.834a3.48 3.48 0 0 1 1.79-.556c.059 0 .118.002.176.005l2.71-3.928a4.646 4.646 0 1 1 4.64 4.756c-.037 0-.073 0-.108-.005l-3.861 2.754a3.48 3.48 0 0 1-6.89.837L0 15.508C1.776 20.516 6.53 24 12.085 24 18.668 24 24 18.668 24 12.085S18.562 0 11.979 0Zm3.422 10.241a2.604 2.604 0 1 0 0-5.208 2.604 2.604 0 0 0 0 5.208Zm-7.525 7.017a1.762 1.762 0 1 0 0-3.524 1.762 1.762 0 0 0 0 3.524Z" />
+            </svg>
           </div>
         ) : (
           <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
