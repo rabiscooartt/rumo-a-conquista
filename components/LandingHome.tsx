@@ -549,10 +549,11 @@ export default function LandingHome() {
     ? currentGame.achievementsList as AchievementLike[]
     : [];
   const visibleCurrentAchievements = currentAchievementList.slice(0, 6);
-  // Keep the debut-journal message visible while the first journey is active.
-  // Once it is marked completed, the real achievement strip is shown again.
+  // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
+  const showCurrentAchievementProgress =
+    !showFirstJourneyPlaceholder && currentAchievementList.length > 0;
   const trophySummary = useMemo(() => getHomeTrophySummary(allGames), [allGames]);
 
   return (
@@ -768,25 +769,46 @@ export default function LandingHome() {
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-white/65 sm:text-xs">
                   {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><span aria-hidden="true">▰</span>{currentGame.platform}</span> : null}
                   {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
-                  <div className="flex min-w-[190px] flex-1 items-center gap-2.5 sm:gap-3" aria-label={"Progresso de conquistas: " + (currentCounts?.unlocked ?? 0) + " de " + (currentCounts?.total ?? 0)}>
-                    <span className="shrink-0 whitespace-nowrap font-black text-white">{currentCounts?.unlocked ?? 0}/{currentCounts?.total ?? 0}</span>
-                    <div
-                      className="h-2 min-w-[70px] flex-1 overflow-hidden rounded-full bg-white/[0.10]"
-                      role="progressbar"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={currentProgress}
-                      aria-label={"Progresso de " + currentGame.title}
-                    >
-                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                  {showFirstJourneyPlaceholder ? (
+                    <div className="flex min-w-[220px] flex-1 items-center gap-3 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-3 py-2">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="8.5" />
+                          <circle cx="12" cy="12" r="3.2" />
+                          <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/65">Jornada de Estreia</span>
+                          <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
+                        </div>
+                        <p className="mt-0.5 text-sm font-black text-white">Estamos jogando.</p>
+                        <p className="mt-0.5 text-[10px] leading-relaxed text-white/50 sm:text-[11px]">A progressão e as conquistas aparecerão quando a Jornada de Estreia terminar.</p>
+                      </div>
                     </div>
-                    <span className="shrink-0 font-black text-white">{currentProgress}%</span>
-                  </div>
+                  ) : showCurrentAchievementProgress ? (
+                    <div className="flex min-w-[190px] flex-1 items-center gap-2.5 sm:gap-3" aria-label={"Progresso de conquistas: " + (currentCounts?.unlocked ?? 0) + " de " + (currentCounts?.total ?? 0)}>
+                      <span className="shrink-0 whitespace-nowrap font-black text-white">{currentCounts?.unlocked ?? 0}/{currentCounts?.total ?? 0}</span>
+                      <div
+                        className="h-2 min-w-[70px] flex-1 overflow-hidden rounded-full bg-white/[0.10]"
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={currentProgress}
+                        aria-label={"Progresso de " + currentGame.title}
+                      >
+                        <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                      </div>
+                      <span className="shrink-0 font-black text-white">{currentProgress}%</span>
+                    </div>
+                  ) : null}
                 </div>
 
               </div>
             </div>
 
+{!showFirstJourneyPlaceholder ? (
             <div className="border-t border-white/[0.09] px-3 py-3 sm:px-4 sm:py-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h3 className="flex items-center gap-2 text-xs font-bold text-white/85 sm:text-sm">
@@ -794,26 +816,7 @@ export default function LandingHome() {
                 </h3>
                 <Link href={"/games/" + currentGame.slug} className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todas <span aria-hidden="true">→</span></Link>
               </div>
-              {showFirstJourneyPlaceholder ? (
-                <div className="flex flex-col gap-3 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="8.5" />
-                      <circle cx="12" cy="12" r="3.2" />
-                      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/75">Jornada de Estreia</span>
-                      <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
-                    </div>
-                    <p className="mt-1 text-sm font-black text-white">Estamos jogando.</p>
-                    <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-white/55 sm:text-xs">As conquistas ainda estão sendo definidas. Quando a Jornada de Estreia terminar, a progressão será liberada.</p>
-                  </div>
-                  <div className="shrink-0 rounded-md border border-white/[0.08] bg-black/20 px-3 py-2 text-[10px] font-semibold text-white/45">Preparando conquistas</div>
-                </div>
-              ) : visibleCurrentAchievements.length ? (
+              {visibleCurrentAchievements.length ? (
 
                 <div className="flex gap-2 overflow-x-auto pb-1 sm:gap-3">
                   {visibleCurrentAchievements.map((achievement, index) => {
@@ -835,9 +838,10 @@ export default function LandingHome() {
                 </div>
 
               ) : (
-                <p className="py-2 text-[11px] text-white/45">As conquistas desbloqueadas deste jogo aparecerão aqui.</p>
+                <p className="py-2 text-[11px] text-white/45">As conquistas deste jogo aparecerão aqui quando estiverem configuradas.</p>
               )}
             </div>
+            ) : null}
           </>
         ) : (
           <div className="p-5 sm:p-7">
