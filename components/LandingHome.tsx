@@ -767,7 +767,7 @@ export default function LandingHome() {
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-white/65 sm:text-xs">
-                  {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#1267c8] px-3 py-1.5 font-bold text-white"><PlatformIcon platform={currentGame.platform} className="h-4 w-4" />{currentGame.platform}</span> : null}
+                  {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base"><PlatformIcon platform={currentGame.platform} className="h-5 w-5" />{currentGame.platform}</span> : null}
                   {hasUsefulTimeValue(currentGame.hours) ? <span className="inline-flex shrink-0 items-center gap-2"><span className="text-lg text-white/80">◷</span><span className="font-bold text-white/85">{readText(currentGame.hours, "")}</span></span> : null}
                   {showFirstJourneyPlaceholder ? (
                     <div className="flex min-w-[220px] flex-1 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5">
