@@ -620,7 +620,11 @@ export default function LandingHome() {
   const nextProgress = nextMastery ? Math.min(100, Math.max(0, Number(nextMastery.progress) || 0)) : 0;
   const currentUnlockedAchievements = currentGame ? getUnlockedAchievements(currentGame) : [];
   const currentAchievementList = currentGame && Array.isArray(currentGame.achievementsList)
-    ? currentGame.achievementsList as AchievementLike[]
+    ? (currentGame.achievementsList as AchievementLike[]).filter((achievement) =>
+        Boolean(readText(achievement.title, "").trim()) &&
+        achievement.isHidden !== true &&
+        achievement.hidden !== true
+      )
     : [];
   const visibleCurrentAchievements = currentAchievementList.slice(0, 6);
   // During the active debut journey, preparation replaces progress and trophy previews.
@@ -883,45 +887,42 @@ export default function LandingHome() {
                       </div>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="mt-2 flex w-full min-w-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-2 py-1.5">
+                    <span className="shrink-0 text-[8px] font-black uppercase tracking-wide text-white/55 sm:text-[9px]">Conquistas</span>
+                    {visibleCurrentAchievements.length ? (
+                      <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-0.5">
+                        {visibleCurrentAchievements.map((achievement, index) => {
+                          const title = getAchievementTitle(achievement, index);
+                          const unlocked = isHomeAchievementUnlocked(currentGame, achievement);
+                          return (
+                            <Link
+                              key={currentGame.slug + ":" + title + ":" + index}
+                              href={"/games/" + currentGame.slug}
+                              title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
+                              aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
+                              className={"group relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-9 sm:w-9 lg:h-10 lg:w-10 " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
+                            >
+                              <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
+                              {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
+                            </Link>
+                          );
+                        })}
+                        {currentAchievementList.length > visibleCurrentAchievements.length ? (
+                          <Link href={"/games/" + currentGame.slug} className="flex h-8 min-w-9 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-1.5 text-[9px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:h-9 lg:h-10">
+                            +{currentAchievementList.length - visibleCurrentAchievements.length}
+                          </Link>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="min-w-0 flex-1 text-[10px] text-white/45">As conquistas aparecerão quando forem configuradas.</p>
+                    )}
+                    <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 text-[9px] font-bold text-[#FB2C36] transition hover:text-white sm:text-[10px]">Ver todas <span aria-hidden="true">→</span></Link>
+                  </div>
+                )}
 
               </div>
             </div>
-
-{!showFirstJourneyPlaceholder ? (
-            <div className="border-t border-white/[0.09] px-3 py-3 sm:px-4 sm:py-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="flex items-center gap-2 text-xs font-bold text-white/85 sm:text-sm">
-                  <span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conquistas do jogo
-                </h3>
-                <Link href={"/games/" + currentGame.slug} className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todas <span aria-hidden="true">→</span></Link>
-              </div>
-              {visibleCurrentAchievements.length ? (
-
-                <div className="flex gap-2 overflow-x-auto pb-1 sm:gap-3">
-                  {visibleCurrentAchievements.map((achievement, index) => {
-                    const title = getAchievementTitle(achievement, index);
-                    const unlocked = ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(normalizeKey(achievement.status));
-                    return (
-                      <Link key={currentGame.slug + ":" + title + ":" + index} href={"/games/" + currentGame.slug} title={title + (unlocked ? " — desbloqueada" : " — bloqueada")} aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")} className={"group relative flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-1 transition hover:border-red-500/60 sm:h-[58px] sm:w-[58px] " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}>
-                        <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
-                        {!unlocked ? <span aria-hidden="true" className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-[8px] text-white/70">🔒</span> : null}
-                      </Link>
-                    );
-                  })}
-                  {currentAchievementList.length > visibleCurrentAchievements.length ? (
-                    <Link href={"/games/" + currentGame.slug} className="flex h-[52px] min-w-[68px] shrink-0 flex-col items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] text-[10px] font-bold text-white/70 transition hover:border-red-500/40 hover:text-white sm:h-[58px] sm:min-w-[76px]">
-                      +{currentAchievementList.length - visibleCurrentAchievements.length}
-                      <span className="mt-0.5 text-[9px] text-white/45">conquistas</span>
-                    </Link>
-                  ) : null}
-                </div>
-
-              ) : (
-                <p className="py-2 text-[11px] text-white/45">As conquistas deste jogo aparecerão aqui quando estiverem configuradas.</p>
-              )}
-            </div>
-            ) : null}
           </>
         ) : (
           <div className="p-5 sm:p-7">
