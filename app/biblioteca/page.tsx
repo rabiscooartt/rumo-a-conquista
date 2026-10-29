@@ -1068,8 +1068,8 @@ function GameGridCard({
         <GameCoverImage src={cardImage} title={gameTitle} />
 
         {normalizeText(platform) === "steam" ? (
-          <div className="absolute left-2 top-2 h-[29px] w-[29px] overflow-hidden rounded-md">
-            <IconPlatform platform={platform} className="h-[29px] w-[29px]" />
+          <div className="absolute left-2 top-2 h-[26px] w-[26px] overflow-hidden rounded-md">
+            <IconPlatform platform={platform} className="h-[26px] w-[26px]" />
           </div>
         ) : (
           <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
