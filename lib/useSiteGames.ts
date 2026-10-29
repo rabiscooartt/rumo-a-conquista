@@ -164,6 +164,55 @@ export function slugify(text: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+export function formatGameGenreLabel(value: string): string {
+  const label = value.trim();
+  if (!label) return "";
+
+  const normalized = label
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+
+  const canonicalLabels: Record<string, string> = {
+    rpg: "RPG",
+    jrpg: "JRPG",
+    arpg: "ARPG",
+    crpg: "CRPG",
+    fps: "FPS",
+    tps: "TPS",
+    mmo: "MMO",
+    mmorpg: "MMORPG",
+    moba: "MOBA",
+    pvp: "PvP",
+    pve: "PvE",
+    acao: "Ação",
+    action: "Ação",
+    aventura: "Aventura",
+    adventure: "Aventura",
+    plataforma: "Plataforma",
+    platformer: "Plataforma",
+    estrategia: "Estratégia",
+    strategy: "Estratégia",
+    puzzle: "Puzzle",
+    indie: "Indie",
+    cooperativo: "Cooperativo",
+    cooperative: "Cooperativo",
+    coop: "Cooperativo",
+    cacaamonstros: "Caça a monstros",
+  };
+
+  return canonicalLabels[normalized] ??
+    label.replace(/^\p{L}/u, (firstLetter) => firstLetter.toLocaleUpperCase("pt-BR"));
+}
+
+export function formatGameGenreList(value: string): string {
+  return value
+    .split(/(\s*[,;\/|]\s*)/u)
+    .map((part) => (/^[\s,;\/|]*$/u.test(part) ? part : formatGameGenreLabel(part)))
+    .join("");
+}
+
 function extractYoutubePlaylistUrl(review: unknown) {
   if (!review || typeof review !== "object" || Array.isArray(review)) {
     return "";
@@ -652,7 +701,17 @@ function createFinalBadgeFromAchievements(
 function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
   const finalSlug = readText(game.slug, slug);
   const title = readText(game.title, "Jogo sem nome");
-  const subtitle = readText(game.subtitle, "");
+  const subtitle = formatGameGenreList(readText(game.subtitle, ""));
+  const normalizedGenres = Array.isArray(game.genres)
+    ? game.genres
+        .map((genre) => formatGameGenreLabel(readText(genre, "")))
+        .filter(Boolean)
+    : typeof game.genres === "string"
+      ? formatGameGenreList(game.genres)
+          .split(/[,;\/|]+/)
+          .map((genre) => formatGameGenreLabel(genre))
+          .filter(Boolean)
+      : undefined;
   const rawStatus = normalizeStatus(readText(game.status, "progress"));
   const hours = game.hours ?? "0h";
 
@@ -760,6 +819,7 @@ function normalizeGame(slug: string, game: Partial<SiteGame>): SiteGame {
     slug: finalSlug,
     title,
     subtitle,
+    ...(normalizedGenres !== undefined ? { genres: normalizedGenres } : {}),
     status,
     progress: progressStats.percent,
     hours,
