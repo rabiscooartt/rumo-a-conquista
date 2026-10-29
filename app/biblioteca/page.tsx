@@ -1067,9 +1067,15 @@ function GameGridCard({
       <div className="relative aspect-[5/6] overflow-hidden rounded-lg bg-black">
         <GameCoverImage src={cardImage} title={gameTitle} />
 
-        <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
-          <IconPlatform platform={platform} className="h-5 w-5 text-white/75" />
-        </div>
+        {normalizeText(platform) === "steam" ? (
+          <div className="absolute left-2 top-2 h-6 w-6 overflow-hidden rounded-md">
+            <IconPlatform platform={platform} className="h-6 w-6" />
+          </div>
+        ) : (
+          <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
+            <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
+          </div>
+        )}
 
         <span className={`absolute bottom-2 left-2 rounded-md border border-transparent px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-[0.03em] backdrop-blur-sm ${statusClass}`}>
           {statusLabel}
