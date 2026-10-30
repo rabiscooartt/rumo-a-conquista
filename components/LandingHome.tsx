@@ -937,6 +937,31 @@ export default function LandingHome() {
                       </svg>
                       <span className="font-bold text-white/85">{hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}</span>
                     </span>
+                    {showFirstJourneyPlaceholder ? (
+                      <div
+                        className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-500/[0.07] via-white/[0.025] to-transparent px-2.5 py-1.5 shadow-[0_5px_18px_rgba(251,44,54,0.05)]"
+                        role="status"
+                        aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
+                      >
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-red-500/25 bg-red-500/[0.09] text-[#FB2C36]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="8.5" />
+                            <circle cx="12" cy="12" r="3.2" />
+                            <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+                          </svg>
+                        </span>
+                        <span className="min-w-0">
+                          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                            <span className="text-[8px] font-black uppercase leading-none tracking-[0.12em] text-white/75">Jornada de Estreia</span>
+                            <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-1.5 py-0.5 text-[7px] font-black uppercase leading-none tracking-wide text-emerald-300">Em andamento</span>
+                          </span>
+                          <span className="mt-1 block text-[10px] leading-tight">
+                            <span className="font-bold text-white/85">Conquistas em preparação</span>
+                            <span className="ml-1 text-white/45">· miniaturas após esta etapa</span>
+                          </span>
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
@@ -973,28 +998,8 @@ export default function LandingHome() {
               </div>
             </div>
 
-            <div className="mt-4 border-t border-white/[0.08] pt-3">
-              {showFirstJourneyPlaceholder ? (
-                <div className="flex w-full min-w-0 items-center gap-3 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-3 py-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="8.5" />
-                      <circle cx="12" cy="12" r="3.2" />
-                      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/70">Jornada de Estreia</span>
-                      <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
-                    </div>
-                    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
-                      <p className="text-xs font-black leading-tight text-white">Conquistas em preparação</p>
-                      <p className="text-[11px] leading-tight text-white/55 sm:text-xs">As miniaturas das conquistas aparecem quando esta etapa terminar.</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
+            {!showFirstJourneyPlaceholder ? (
+              <div className="mt-4 border-t border-white/[0.08] pt-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {visibleCurrentAchievements.length ? (
@@ -1031,8 +1036,8 @@ export default function LandingHome() {
                     Ver todas <span aria-hidden="true">→</span>
                   </Link>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="p-5 sm:p-7">
