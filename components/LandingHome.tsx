@@ -626,7 +626,7 @@ export default function LandingHome() {
         achievement.hidden !== true
       )
     : [];
-  const visibleCurrentAchievements = currentAchievementList.slice(0, 6);
+  const visibleCurrentAchievements = currentAchievementList.slice(0, 10);
   // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
@@ -816,7 +816,7 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* Jogo atual com a faixa de conquistas integrada */}
+      {/* Jogo atual em duas faixas: informações do jogo e prévia das conquistas */}
       <section className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#07090d]/95" aria-labelledby="current-game-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <h2 id="current-game-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
@@ -826,103 +826,148 @@ export default function LandingHome() {
         </div>
 
         {currentGame ? (
-          <>
-            <div className="grid grid-cols-[124px_minmax(0,1fr)] items-start gap-3 p-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 sm:p-4 lg:items-stretch lg:grid-cols-[252px_minmax(0,1fr)] lg:gap-5 lg:p-4">
-              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-video w-full overflow-hidden rounded-md border border-white/[0.08] bg-black transition hover:border-red-500/40">
-                <img src={currentGame.image || currentGame.cardImage || ""} alt={currentGame.title + " — arte do jogo"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" onError={(event) => { const fallback = currentGame.cardImage; if (fallback && event.currentTarget.dataset.fallbackApplied !== "true") { event.currentTarget.dataset.fallbackApplied = "true"; event.currentTarget.src = fallback; } }} />
+          <div className="p-3 sm:p-4">
+            <div className="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-5">
+              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-video w-full self-center overflow-hidden rounded-md border border-white/[0.08] bg-black transition hover:border-red-500/40">
+                <img
+                  src={currentGame.image || currentGame.cardImage || ""}
+                  alt={currentGame.title + " — arte do jogo"}
+                  loading="lazy"
+                  className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105"
+                  onError={(event) => {
+                    const fallback = currentGame.cardImage;
+                    if (fallback && event.currentTarget.dataset.fallbackApplied !== "true") {
+                      event.currentTarget.dataset.fallbackApplied = "true";
+                      event.currentTarget.src = fallback;
+                    }
+                  }}
+                />
               </Link>
 
-              <div className="min-w-0 flex flex-col justify-center lg:h-full lg:justify-between">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-black leading-snug text-white sm:text-xl lg:text-2xl">{currentGame.title}</h3>
-                    <p className="mt-1 text-xs text-white/55">{currentGame.subtitle || "Sua jornada em andamento"}</p>
-                  </div>
-                  {getGameTimestamp(currentGame) ? <span className="shrink-0 text-[10px] text-white/45">{formatShortDate(getGameTimestamp(currentGame))}</span> : null}
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/65 sm:gap-x-4 sm:text-xs">
-                  {currentGame.platform ? <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base"><PlatformIcon platform={currentGame.platform} className="h-5 w-5" />{currentGame.platform}</span> : null}
-                  <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/90 sm:text-base" aria-label={"Tempo de jogo: " + (hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-")}><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg><span className="font-bold text-white/85">{hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}</span></span>
-                  {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
-                    <div className="inline-flex shrink-0 flex-col gap-1" aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}>
-                      <div className="flex items-center gap-1 whitespace-nowrap text-[9px] font-black leading-none text-white/80" title={currentCounts.unlocked + " de " + currentCounts.total + " conquistas desbloqueadas"}>
-                        <span aria-hidden="true">🏆</span>
-                        <span>{currentCounts.unlocked}/{currentCounts.total}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="h-[5px] w-[66px] shrink-0 overflow-hidden rounded-full bg-white/[0.10] sm:w-[100px] lg:w-[160px]"
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={currentProgress}
-                          aria-label={"Progresso de " + currentGame.title}
-                        >
-                          <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
-                        </div>
-                        <span className="shrink-0 text-[10px] font-black text-white/75">{currentProgress}%</span>
-                      </div>
+              <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(150px,190px)] sm:items-center lg:grid-cols-[minmax(0,1fr)_minmax(190px,230px)_auto] lg:gap-5">
+                <div className="min-w-0 lg:col-start-1">
+                  <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1">
+                    <div className="min-w-0">
+                      <h3 className="text-base font-black leading-tight text-white sm:text-lg lg:text-xl xl:text-2xl">{currentGame.title}</h3>
+                      <p className="mt-1 text-[11px] leading-snug text-white/55 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                     </div>
-                  ) : null}
-                </div>
+                    {getGameTimestamp(currentGame) ? (
+                      <span className="shrink-0 whitespace-nowrap text-[9px] text-white/45 sm:text-[10px] lg:hidden">
+                        {formatShortDate(getGameTimestamp(currentGame))}
+                      </span>
+                    ) : null}
+                  </div>
 
-                {showFirstJourneyPlaceholder ? (
-                  <div className="mt-2 flex w-full min-w-0 items-center gap-2.5 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-2.5 py-1.5 sm:gap-3">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
-                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="8.5" />
-                        <circle cx="12" cy="12" r="3.2" />
-                        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/65 sm:gap-x-4 sm:text-xs">
+                    {currentGame.platform ? (
+                      <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-white/90 sm:text-sm">
+                        <PlatformIcon platform={currentGame.platform} className="h-5 w-5" />
+                        {currentGame.platform}
+                      </span>
+                    ) : null}
+                    <span
+                      className="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-white/90 sm:text-sm"
+                      aria-label={"Tempo de jogo: " + (hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-")}
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
                       </svg>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                        <span className="text-[8px] font-black uppercase tracking-[0.1em] text-white/65">Jornada de Estreia</span>
-                        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
-                      </div>
-                      <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
-                        <p className="shrink-0 text-xs font-black leading-tight text-white">Conquistas em preparação</p>
-                        <p className="text-[11px] leading-tight text-white/55 sm:text-xs">As miniaturas das conquistas aparecem quando esta etapa terminar.</p>
-                      </div>
-                    </div>
+                      <span className="font-bold text-white/85">{hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}</span>
+                    </span>
                   </div>
-                ) : (
-                  <div className="mt-2 flex w-full min-w-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-2 py-1.5">
-                    {visibleCurrentAchievements.length ? (
-                      <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-0.5">
-                        {visibleCurrentAchievements.map((achievement, index) => {
-                          const title = getAchievementTitle(achievement, index);
-                          const unlocked = isHomeAchievementUnlocked(currentGame, achievement);
-                          return (
-                            <Link
-                              key={currentGame.slug + ":" + title + ":" + index}
-                              href={"/games/" + currentGame.slug}
-                              title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-                              aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-                              className={"group relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-9 sm:w-9 lg:h-11 lg:w-11 " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
-                            >
-                              <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
-                              {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
-                            </Link>
-                          );
-                        })}
-                        {currentAchievementList.length > visibleCurrentAchievements.length ? (
-                          <Link href={"/games/" + currentGame.slug} className="flex h-8 min-w-9 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-1.5 text-[9px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:h-9 lg:h-11">
-                            +{currentAchievementList.length - visibleCurrentAchievements.length}
-                          </Link>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <p className="min-w-0 flex-1 text-[10px] text-white/45">As conquistas aparecerão quando forem configuradas.</p>
-                    )}
-                    <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 text-[9px] font-bold text-[#FB2C36] transition hover:text-white sm:text-[10px]">Ver todas <span aria-hidden="true">→</span></Link>
-                  </div>
-                )}
+                </div>
 
+                {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
+                  <div
+                    className="min-w-0 rounded-lg border border-white/[0.07] bg-black/20 px-3 py-2 sm:col-start-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 lg:col-start-2"
+                    aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-black text-white/85" title={currentCounts.unlocked + " de " + currentCounts.total + " conquistas desbloqueadas"}>
+                        <span aria-hidden="true">🏆</span>
+                        {currentCounts.unlocked}/{currentCounts.total}
+                      </span>
+                      <span className="shrink-0 text-[11px] font-black text-white/75">{currentProgress}%</span>
+                    </div>
+                    <div
+                      className="mt-2 h-[7px] w-full overflow-hidden rounded-full bg-white/[0.10]"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={currentProgress}
+                      aria-label={"Progresso de " + currentGame.title}
+                    >
+                      <div className="h-full rounded-full bg-[#FB2C36] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                    </div>
+                  </div>
+                ) : null}
+
+                {getGameTimestamp(currentGame) ? (
+                  <span className="hidden shrink-0 whitespace-nowrap text-right text-[10px] text-white/45 lg:col-start-3 lg:block">
+                    {formatShortDate(getGameTimestamp(currentGame))}
+                  </span>
+                ) : null}
               </div>
             </div>
-          </>
+
+            <div className="mt-4 border-t border-white/[0.08] pt-3">
+              {showFirstJourneyPlaceholder ? (
+                <div className="flex w-full min-w-0 items-center gap-3 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-950/25 via-[#0b0d12] to-[#08090c] px-3 py-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-red-500/20 bg-red-500/[0.08] text-[#FB2C36]">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="8.5" />
+                      <circle cx="12" cy="12" r="3.2" />
+                      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/70">Jornada de Estreia</span>
+                      <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-300">Em andamento</span>
+                    </div>
+                    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
+                      <p className="text-xs font-black leading-tight text-white">Conquistas em preparação</p>
+                      <p className="text-[11px] leading-tight text-white/55 sm:text-xs">As miniaturas das conquistas aparecem quando esta etapa terminar.</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {visibleCurrentAchievements.length ? (
+                      visibleCurrentAchievements.map((achievement, index) => {
+                        const title = getAchievementTitle(achievement, index);
+                        const unlocked = isHomeAchievementUnlocked(currentGame, achievement);
+                        return (
+                          <Link
+                            key={currentGame.slug + ":" + title + ":" + index}
+                            href={"/games/" + currentGame.slug}
+                            title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
+                            aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
+                            className={"group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-10 sm:w-10 lg:h-11 lg:w-11 " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
+                          >
+                            <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
+                            {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
+                          </Link>
+                        );
+                      })
+                    ) : (
+                      <p className="min-w-0 text-[10px] text-white/45">As conquistas aparecerão quando forem configuradas.</p>
+                    )}
+                    {currentAchievementList.length > visibleCurrentAchievements.length ? (
+                      <Link href={"/games/" + currentGame.slug} className="flex h-9 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:h-10">
+                        +{currentAchievementList.length - visibleCurrentAchievements.length}
+                      </Link>
+                    ) : null}
+                  </div>
+                  <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 whitespace-nowrap text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">
+                    Ver todas <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
           <div className="p-5 sm:p-7">
             <h3 className="text-base font-black text-white">Nenhum jogo em andamento</h3>
