@@ -939,27 +939,29 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex shrink-0 items-center gap-2.5 overflow-hidden rounded-lg border border-red-500/25 bg-gradient-to-br from-[#1b0e12] via-[#111015] to-[#0b0d11] px-2.5 py-1.5 shadow-[0_0_18px_rgba(251,44,54,0.07),inset_0_1px_0_rgba(255,255,255,0.04)] lg:whitespace-nowrap"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-[420px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3 py-2 shadow-[0_0_20px_rgba(251,44,54,0.07),inset_0_1px_0_rgba(255,255,255,0.045)]"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
                         title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
                       >
-                        <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-gradient-to-b from-red-400/80 to-red-700/30" />
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-red-400/30 bg-red-500/[0.12] text-[#ff5964] shadow-[0_0_12px_rgba(251,44,54,0.12)]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-gradient-to-b from-red-400/90 to-red-700/30" />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-400/30 bg-red-500/[0.12] text-[#ff5964] shadow-[0_0_12px_rgba(251,44,54,0.12)]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
                           </svg>
                         </span>
-                        <span className="flex min-w-0 flex-col gap-1">
-                          <span className="whitespace-nowrap text-[9px] font-black uppercase leading-none tracking-[0.09em] text-white/90">Jornada de Estreia</span>
-                          <span className="flex items-center gap-1.5">
+                        <span className="flex min-w-0 shrink-0 flex-col gap-1.5">
+                          <span className="whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-[0.08em] text-white/95">Jornada de Estreia</span>
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-2 py-1">
                             <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.55)]" />
                             <span className="whitespace-nowrap text-[8px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
-                            <span aria-hidden="true" className="text-[8px] text-white/25">·</span>
-                            <span className="whitespace-nowrap text-[8px] leading-none text-white/45">Conquistas em preparação</span>
                           </span>
+                        </span>
+                        <span aria-hidden="true" className="mx-0.5 hidden h-9 w-px shrink-0 bg-white/[0.10] sm:block" />
+                        <span className="min-w-0 flex-1 text-[10px] leading-relaxed text-white/60 sm:text-[11px]">
+                          As conquistas e suas miniaturas serão apresentadas após a conclusão desta etapa.
                         </span>
                       </div>
                     ) : null}
