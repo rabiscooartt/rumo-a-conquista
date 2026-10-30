@@ -939,12 +939,12 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none items-center gap-x-3 gap-y-3 overflow-hidden rounded-xl border border-white/[0.10] bg-[#111116] px-3.5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] lg:flex-[1_1_auto] lg:max-w-none sm:gap-x-4"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none items-center gap-x-3 gap-y-2 overflow-hidden rounded-xl border border-white/[0.10] bg-[#111116] px-3.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] lg:flex-[1_1_auto] lg:max-w-none sm:gap-x-4"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conclua esta etapa para revelar as miniaturas das conquistas."
                         title="Conclua esta etapa para revelar as miniaturas das conquistas."
                       >
-                        <span aria-hidden="true" className="absolute inset-y-3 left-0 w-[2px] rounded-full bg-red-500/75" />
+                        <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-red-500/75" />
                         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-[#26151a] text-[#ff6871]">
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
@@ -953,14 +953,16 @@ export default function LandingHome() {
                           </svg>
                         </span>
                         <span className="flex min-w-0 flex-1 basis-[190px] flex-col gap-1">
-                          <span className="text-sm font-bold leading-tight text-white sm:text-[15px]">Jornada de Estreia</span>
+                          <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="text-sm font-bold leading-tight text-white sm:text-[15px]">Jornada de Estreia</span>
+                            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1.5">
+                              <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                              <span className="whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.06em] text-emerald-300">Em andamento</span>
+                            </span>
+                          </span>
                           <span className="text-xs leading-snug text-white/65 sm:text-[13px] lg:whitespace-nowrap">
                             Conclua esta etapa para revelar as miniaturas das conquistas.
                           </span>
-                        </span>
-                        <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1.5">
-                          <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-                          <span className="whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.06em] text-emerald-300">Em andamento</span>
                         </span>
                       </div>
                     ) : null}
