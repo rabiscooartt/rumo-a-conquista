@@ -945,8 +945,8 @@ export default function LandingHome() {
                         title="Conclua esta etapa para revelar as miniaturas das conquistas."
                       >
                         <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-red-500/75" />
-                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-[#26151a] text-[#ff6871]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-[#26151a] text-[#ff6871]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
