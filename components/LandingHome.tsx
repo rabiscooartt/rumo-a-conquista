@@ -955,9 +955,9 @@ export default function LandingHome() {
                         <span className="flex min-w-0 flex-1 basis-[190px] flex-col gap-1">
                           <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                             <span className="text-sm font-bold leading-tight text-white sm:text-[15px]">Jornada de Estreia</span>
-                            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1.5">
+                            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2.5 py-1">
                               <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-                              <span className="whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.06em] text-emerald-300">Em andamento</span>
+                              <span className="whitespace-nowrap text-[8px] font-bold uppercase leading-none tracking-[0.06em] text-emerald-300">Em andamento</span>
                             </span>
                           </span>
                           <span className="text-xs leading-snug text-white/65 sm:text-[13px] lg:whitespace-nowrap">
