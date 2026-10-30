@@ -939,14 +939,14 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-[420px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3 py-2 shadow-[0_0_20px_rgba(251,44,54,0.07),inset_0_1px_0_rgba(255,255,255,0.045)]"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-[420px] min-h-[66px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3 py-3 shadow-[0_0_20px_rgba(251,44,54,0.07),inset_0_1px_0_rgba(255,255,255,0.045)]"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
                         title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
                       >
                         <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-gradient-to-b from-red-400/90 to-red-700/30" />
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-400/30 bg-red-500/[0.12] text-[#ff5964] shadow-[0_0_12px_rgba(251,44,54,0.12)]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-400/30 bg-red-500/[0.12] text-[#ff5964] shadow-[0_0_12px_rgba(251,44,54,0.12)]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
