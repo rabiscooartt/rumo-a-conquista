@@ -920,7 +920,7 @@ export default function LandingHome() {
                     ) : null}
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/65 sm:gap-x-4 sm:text-xs">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/65 sm:gap-x-4 sm:text-xs lg:flex-nowrap lg:gap-y-0">
                     {currentGame.platform ? (
                       <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-white/90 sm:text-sm">
                         <PlatformIcon platform={currentGame.platform} className="h-5 w-5" />
@@ -939,27 +939,20 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-red-500/20 bg-gradient-to-r from-red-500/[0.07] via-white/[0.025] to-transparent px-2.5 py-1.5 shadow-[0_5px_18px_rgba(251,44,54,0.05)]"
+                        className="inline-flex shrink-0 items-center gap-2 rounded-md border border-red-500/25 bg-red-500/[0.06] px-2 py-1 lg:whitespace-nowrap"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
+                        title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
                       >
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-red-500/25 bg-red-500/[0.09] text-[#FB2C36]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-red-500/25 bg-red-500/[0.09] text-[#FB2C36]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
                           </svg>
                         </span>
-                        <span className="min-w-0">
-                          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                            <span className="text-[8px] font-black uppercase leading-none tracking-[0.12em] text-white/75">Jornada de Estreia</span>
-                            <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-1.5 py-0.5 text-[7px] font-black uppercase leading-none tracking-wide text-emerald-300">Em andamento</span>
-                          </span>
-                          <span className="mt-1 block text-[10px] leading-tight">
-                            <span className="font-bold text-white/85">Conquistas em preparação</span>
-                            <span className="ml-1 text-white/45">· miniaturas após esta etapa</span>
-                          </span>
-                        </span>
+                        <span className="whitespace-nowrap text-[8px] font-black uppercase tracking-[0.1em] text-white/80">Jornada de Estreia</span>
+                        <span className="shrink-0 whitespace-nowrap rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-1.5 py-1 text-[7px] font-black uppercase leading-none tracking-wide text-emerald-300">Em andamento</span>
                       </div>
                     ) : null}
                   </div>
