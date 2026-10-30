@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import StarRating from "@/components/StarRating";
@@ -784,6 +784,170 @@ function GameEmblem({ game, className }: { game: BibliotecaGame; className?: str
   );
 }
 
+
+type AchievementPreviewItem = {
+  key: string;
+  title: string;
+  image?: string;
+  fallback: string;
+};
+
+function isAchievementImageSource(value: string) {
+  const source = value.trim().toLowerCase();
+  return source.startsWith("https://") ||
+    source.startsWith("http://") ||
+    source.startsWith("/") ||
+    source.startsWith("data:image/");
+}
+
+function getUnlockedAchievementPreviewItems(game: BibliotecaGame): AchievementPreviewItem[] {
+  const achievements: AchievementLike[] = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    "rumo-a-conquista-achievements-" + game.slug,
+    {}
+  );
+  const hiddenAchievementTitles = readLocalJson<string[]>(
+    "rumo-a-conquista-hidden-achievements-" + game.slug,
+    []
+  );
+
+  return achievements.flatMap((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    if (Boolean(achievement.isHidden) || hiddenAchievementTitles.includes(title)) {
+      return [];
+    }
+
+    const manualState = manualStates[title];
+    const status = normalizeAchievementStatus(
+      manualState?.status ?? readText(achievement.status, "locked")
+    );
+    if (status !== "completed") return [];
+
+    const imageCandidates = [
+      readText(manualState?.image, ""),
+      readText(achievement.image, ""),
+      readText(achievement.officialImage, ""),
+      readText(achievement.icon, ""),
+      readText(achievement.trophy, ""),
+    ];
+    const image = imageCandidates.find(isAchievementImageSource) || "";
+    const fallbackCandidate = [
+      readText(achievement.icon, ""),
+      readText(achievement.trophy, ""),
+    ].find((value) => value && !isAchievementImageSource(value) && value.length <= 6);
+    const rank = normalizeRank(
+      manualState?.rank ??
+        readText(achievement.rank, readText(achievement.difficulty, "")),
+      readText(achievement.trophy, "")
+    );
+
+    return [{
+      key: readText(achievement.id, title + "-" + index),
+      title,
+      image: image || undefined,
+      fallback: fallbackCandidate || getRankIcon(rank),
+    }];
+  });
+}
+
+function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const measure = () => setAvailableWidth(element.getBoundingClientRect().width);
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [items.length]);
+
+  if (items.length === 0) return null;
+
+  const itemSize = 28;
+  const gap = 4;
+  const moreMinimumWidth = 34;
+  const capacityWithoutMore = Math.max(
+    0,
+    Math.floor((availableWidth + gap) / (itemSize + gap))
+  );
+
+  let visibleCount = Math.min(items.length, capacityWithoutMore);
+  if (items.length > capacityWithoutMore) {
+    visibleCount = Math.max(0, capacityWithoutMore - 1);
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const hiddenCount = items.length - visibleCount;
+      const moreWidth = Math.max(
+        moreMinimumWidth,
+        25 + String(hiddenCount).length * 6
+      );
+      const nextVisibleCount = Math.max(
+        0,
+        Math.floor((availableWidth - moreWidth + gap) / (itemSize + gap))
+      );
+
+      if (nextVisibleCount === visibleCount) break;
+      visibleCount = nextVisibleCount;
+    }
+  }
+
+  const hiddenCount = items.length - visibleCount;
+  if (availableWidth <= 0) {
+    return <div ref={containerRef} className="mt-1.5 h-7 w-full min-w-0" aria-hidden="true" />;
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="mt-1.5 flex min-w-0 w-full items-center gap-1 overflow-hidden"
+      aria-label={items.length + " conquistas desbloqueadas"}
+    >
+      {items.slice(0, visibleCount).map((item) => (
+        <span
+          key={item.key}
+          title={item.title}
+          aria-label={item.title}
+          className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/15 bg-[#17191f] text-sm"
+        >
+          <span aria-hidden="true">{item.fallback}</span>
+          {item.image ? (
+            <img
+              src={item.image}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          ) : null}
+        </span>
+      ))}
+      {hiddenCount > 0 ? (
+        <span
+          title={hiddenCount + " conquistas adicionais"}
+          className="inline-flex h-7 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-white/10 bg-white/[0.07] px-1.5 text-[10px] font-black text-white/75"
+        >
+          +{hiddenCount}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 function MiniStatCard({
   label,
   value,
@@ -922,6 +1086,7 @@ function GameRow({
   const gameTitle = readText(game.title, "Jogo");
   const cardImage = readText(game.cardImage, "") || readText(game.image, "");
   const achievementStats = getAchievementStats(game);
+  const unlockedAchievementPreviews = getUnlockedAchievementPreviewItems(game);
   const progress = getProgressPercent(game, achievementStats);
   const isCompleted = isCompletedGame(game);
   const hasActivity = Boolean(activitySummary);
@@ -1004,8 +1169,8 @@ function GameRow({
             ) : null}
           </div>
 
-          <div className="mt-3 flex items-center gap-2.5">
-            <div className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+          <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2.5 gap-y-0">
+            <div className="h-[5px] min-w-0 overflow-hidden rounded-full bg-white/[0.07]">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${progressClass}`}
                 style={{ width: `${progress}%` }}
@@ -1014,6 +1179,9 @@ function GameRow({
             <span className={`w-10 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
               {progress}%
             </span>
+            <div className="col-start-1 row-start-2 min-w-0">
+              <AchievementMiniatures items={unlockedAchievementPreviews} />
+            </div>
           </div>
         </div>
 
