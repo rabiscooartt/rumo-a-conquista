@@ -906,7 +906,7 @@ export default function LandingHome() {
                 />
               </Link>
 
-              <div className={"grid min-w-0 grid-cols-1 gap-3 sm:items-center " + (showFirstJourneyPlaceholder ? "sm:grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-5" : "sm:grid-cols-[minmax(0,1fr)_minmax(150px,190px)] lg:grid-cols-[minmax(0,1fr)_minmax(190px,230px)_auto] lg:gap-5")}>
+              <div className={"grid min-w-0 grid-cols-1 gap-3 sm:items-center " + (showFirstJourneyPlaceholder ? "sm:grid-cols-1" : "sm:grid-cols-[minmax(0,1fr)_minmax(150px,190px)] lg:grid-cols-[minmax(0,1fr)_minmax(190px,230px)_auto] lg:gap-5")}>
                 <div className="min-w-0 lg:col-start-1">
                   <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1">
                     <div className="min-w-0">
@@ -914,7 +914,7 @@ export default function LandingHome() {
                       <p className="mt-1 text-[11px] leading-snug text-white/55 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                     </div>
                     {getGameTimestamp(currentGame) ? (
-                      <span className="shrink-0 whitespace-nowrap text-[9px] text-white/45 sm:text-[10px] lg:hidden">
+                      <span className={"shrink-0 whitespace-nowrap text-[9px] text-white/45 sm:text-[10px] " + (showFirstJourneyPlaceholder ? "lg:inline-flex" : "lg:hidden")}>
                         {formatShortDate(getGameTimestamp(currentGame))}
                       </span>
                     ) : null}
@@ -939,7 +939,7 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-[550px] min-h-[74px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3.5 py-3 shadow-[0_0_20px_rgba(251,44,54,0.08),inset_0_1px_0_rgba(255,255,255,0.05)] lg:flex-[0_0_550px] lg:max-w-[550px]"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none min-h-[74px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3.5 py-3 shadow-[0_0_20px_rgba(251,44,54,0.08),inset_0_1px_0_rgba(255,255,255,0.05)] lg:flex-[1_1_auto] lg:max-w-none"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
                         title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
@@ -960,7 +960,7 @@ export default function LandingHome() {
                           </span>
                         </span>
                         <span aria-hidden="true" className="mx-0.5 hidden h-9 w-px shrink-0 bg-white/[0.10] sm:block" />
-                        <span className="min-w-0 flex-1 text-[10px] leading-relaxed text-white/65 sm:text-[11px] lg:shrink-0 lg:whitespace-nowrap lg:text-[9.5px] lg:leading-none">
+                        <span className="min-w-0 flex-1 text-[10px] leading-relaxed text-white/70 sm:text-[11px] lg:shrink-0 lg:whitespace-nowrap lg:text-[10px] lg:leading-none">
                           As miniaturas das conquistas aparecem ao concluir esta etapa.
                         </span>
                       </div>
@@ -993,8 +993,8 @@ export default function LandingHome() {
                   </div>
                 ) : null}
 
-                {getGameTimestamp(currentGame) ? (
-                  <span className={"hidden shrink-0 whitespace-nowrap text-right text-[10px] text-white/45 lg:block " + (!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? "lg:col-start-3" : "lg:col-start-2")}>
+                {!showFirstJourneyPlaceholder && getGameTimestamp(currentGame) ? (
+                  <span className={"hidden shrink-0 whitespace-nowrap text-right text-[10px] text-white/45 lg:block " + (currentCounts && currentCounts.total > 0 ? "lg:col-start-3" : "lg:col-start-2")}>
                     {formatShortDate(getGameTimestamp(currentGame))}
                   </span>
                 ) : null}
