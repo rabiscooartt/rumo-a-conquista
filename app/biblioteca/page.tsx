@@ -821,10 +821,10 @@ function getUnlockedAchievementPreviewItems(game: BibliotecaGame): AchievementPr
     }
 
     const manualState = manualStates[title];
-    const status = normalizeAchievementStatus(
-      manualState?.status ?? readText(achievement.status, "locked")
-    );
-    if (status !== "completed") return [];
+    const isCompleted =
+      normalizeAchievementStatus(manualState?.status) === "completed" ||
+      normalizeAchievementStatus(readText(achievement.status, "locked")) === "completed";
+    if (!isCompleted) return [];
 
     const imageCandidates = [
       readText(manualState?.image, ""),
