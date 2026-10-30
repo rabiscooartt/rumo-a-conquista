@@ -440,6 +440,62 @@ function AchievementArtwork({ achievement, className }: { achievement: Achieveme
   );
 }
 
+function getIndividualAchievementImages(achievement: AchievementLike) {
+  const candidates = [
+    readText(achievement.image, "").trim(),
+    readText(achievement.officialImage, "").trim(),
+  ];
+
+  return Array.from(new Set(
+    candidates.filter((src) => src && !src.toLowerCase().includes("/images/trophies/"))
+  ));
+}
+
+function AchievementPreviewLink({
+  game,
+  achievement,
+  index,
+}: {
+  game: HomeGame;
+  achievement: AchievementLike;
+  index: number;
+}) {
+  const imageSources = getIndividualAchievementImages(achievement);
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (imageSources.length === 0 || imageFailed) return null;
+
+  const title = getAchievementTitle(achievement, index);
+  const unlocked = isHomeAchievementUnlocked(game, achievement);
+
+  return (
+    <Link
+      href={"/games/" + game.slug}
+      title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
+      aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
+      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11] p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-red-500/60 sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (index >= 6 ? "hidden lg:flex " : index >= 4 ? "hidden sm:flex " : "") + (unlocked ? "border-red-500/40" : "border-white/[0.14] opacity-80 grayscale-[0.2]")}
+    >
+      <img
+        src={imageSources[sourceIndex]}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        onError={() => {
+          if (sourceIndex < imageSources.length - 1) {
+            setSourceIndex((current) => current + 1);
+          } else {
+            setImageFailed(true);
+          }
+        }}
+        className="h-full w-full object-contain"
+      />
+      {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
+    </Link>
+  );
+}
+
 function AchievementIcon({ achievement }: { achievement: AchievementLike }) {
   return (
     <span title={readText(achievement.title, "Conquista desbloqueada")} className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/[0.12] bg-black/45 text-sm">
@@ -626,7 +682,13 @@ export default function LandingHome() {
         achievement.hidden !== true
       )
     : [];
-  const visibleCurrentAchievements = currentAchievementList.slice(0, 14);
+  // A prévia mostra apenas artes individuais; não replica o troféu genérico como imagem de conquistas.
+  const visibleCurrentAchievements = currentAchievementList
+    .filter((achievement) => getIndividualAchievementImages(achievement).length > 0)
+    .slice(0, 8);
+  const currentPreviewMobileCount = Math.min(4, visibleCurrentAchievements.length);
+  const currentPreviewTabletCount = Math.min(6, visibleCurrentAchievements.length);
+  const currentPreviewDesktopCount = visibleCurrentAchievements.length;
   // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
@@ -934,45 +996,34 @@ export default function LandingHome() {
                 </div>
               ) : (
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {visibleCurrentAchievements.length ? (
-                      visibleCurrentAchievements.map((achievement, index) => {
-                        const title = getAchievementTitle(achievement, index);
-                        const unlocked = isHomeAchievementUnlocked(currentGame, achievement);
-                        return (
-                          <Link
-                            key={currentGame.slug + ":" + title + ":" + index}
-                            href={"/games/" + currentGame.slug}
-                            title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-                            aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-                            className={"group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-10 sm:w-10 lg:h-11 lg:w-11 " + (index >= 10 ? "hidden lg:flex " : index >= 7 ? "hidden md:flex " : index >= 5 ? "hidden sm:flex " : "") + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
-                          >
-                            <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
-                            {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
-                          </Link>
-                        );
-                      })
+                      visibleCurrentAchievements.map((achievement, index) => (
+                        <AchievementPreviewLink
+                          key={currentGame.slug + ":preview:" + (achievement.id || index)}
+                          game={currentGame}
+                          achievement={achievement}
+                          index={index}
+                        />
+                      ))
                     ) : (
-                      <p className="min-w-0 text-[10px] text-white/45">As conquistas aparecerão quando forem configuradas.</p>
+                      <p className="min-w-0 flex-1 text-[11px] text-white/45">
+                        As artes individuais das conquistas aparecerão aqui quando estiverem configuradas.
+                      </p>
                     )}
-                    {currentAchievementList.length > 5 ? (
-                      <Link href={"/games/" + currentGame.slug} className="flex h-9 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:hidden">
-                        +{currentAchievementList.length - 5}
+                    {visibleCurrentAchievements.length > 0 && currentAchievementList.length > currentPreviewMobileCount ? (
+                      <Link href={"/games/" + currentGame.slug} className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:hidden">
+                        +{currentAchievementList.length - currentPreviewMobileCount}
                       </Link>
                     ) : null}
-                    {currentAchievementList.length > 7 ? (
-                      <Link href={"/games/" + currentGame.slug} className="hidden h-10 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:flex md:hidden">
-                        +{currentAchievementList.length - 7}
+                    {visibleCurrentAchievements.length > 0 && currentAchievementList.length > currentPreviewTabletCount ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:flex lg:hidden">
+                        +{currentAchievementList.length - currentPreviewTabletCount}
                       </Link>
                     ) : null}
-                    {currentAchievementList.length > 10 ? (
-                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white md:flex lg:hidden">
-                        +{currentAchievementList.length - 10}
-                      </Link>
-                    ) : null}
-                    {currentAchievementList.length > 14 ? (
-                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white lg:flex">
-                        +{currentAchievementList.length - 14}
+                    {visibleCurrentAchievements.length > 0 && currentAchievementList.length > currentPreviewDesktopCount ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-12 min-w-11 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white lg:flex">
+                        +{currentAchievementList.length - currentPreviewDesktopCount}
                       </Link>
                     ) : null}
                   </div>
