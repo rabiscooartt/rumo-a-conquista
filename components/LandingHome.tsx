@@ -939,24 +939,24 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none min-h-[74px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-[#170e12] via-[#111116] to-[#0c0e12] px-3.5 py-3 shadow-[0_0_14px_rgba(251,44,54,0.045),inset_0_1px_0_rgba(255,255,255,0.045)] lg:flex-[1_1_auto] lg:max-w-none"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none min-h-[66px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-[#170e12] via-[#111116] to-[#0c0e12] px-3.5 py-2.5 shadow-[0_0_14px_rgba(251,44,54,0.045),inset_0_1px_0_rgba(255,255,255,0.045)] lg:flex-[1_1_auto] lg:max-w-none"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
                         title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
                       >
                         <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-gradient-to-b from-red-400/75 to-red-700/20" />
-                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-red-500/[0.09] text-[#ff6871] shadow-[0_0_9px_rgba(251,44,54,0.07)]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-red-500/[0.09] text-[#ff6871] shadow-[0_0_9px_rgba(251,44,54,0.07)]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
                           </svg>
                         </span>
-                        <span className="flex min-w-0 shrink-0 flex-col gap-2">
-                          <span className="whitespace-nowrap text-[12px] font-black uppercase leading-none tracking-[0.06em] text-white/95">Jornada de Estreia</span>
-                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2.5 py-1.5">
+                        <span className="flex min-w-0 shrink-0 flex-col gap-1.5">
+                          <span className="whitespace-nowrap text-[11px] font-black uppercase leading-none tracking-[0.06em] text-white/95">Jornada de Estreia</span>
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-1">
                             <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.4)]" />
-                            <span className="whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
+                            <span className="whitespace-nowrap text-[8px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
                           </span>
                         </span>
                         <span aria-hidden="true" className="mx-0.5 hidden h-9 w-px shrink-0 bg-white/[0.07] sm:block" />
