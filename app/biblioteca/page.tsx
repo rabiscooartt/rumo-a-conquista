@@ -952,9 +952,9 @@ function GameRow({
       href={`/games/${gameSlug}`}
       className="group/row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025]"
     >
-      <div className="grid grid-cols-[70px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[84px_minmax(0,1fr)_92px] sm:gap-4 lg:grid-cols-[94px_minmax(0,1fr)_92px]">
-        <div className="h-[100px] w-[70px] shrink-0 overflow-hidden rounded-md border border-white/[0.16] bg-[#050609] shadow-[0_4px_14px_rgba(0,0,0,0.28)] sm:h-[116px] sm:w-[84px] lg:h-[128px] lg:w-[94px]">
-          <GameCoverImage src={cardImage} title={gameTitle} imageClassName="h-full w-full object-contain object-center p-1 transition duration-300 group-hover/row:brightness-110" />
+      <div className="grid grid-cols-[84px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[92px_minmax(0,1fr)_92px] sm:gap-4 lg:grid-cols-[100px_minmax(0,1fr)_92px]">
+        <div className="h-[108px] w-[84px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[118px] sm:w-[92px] lg:h-[128px] lg:w-[100px]">
+          <GameCoverImage src={cardImage} title={gameTitle} imageClassName="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover/row:scale-105 group-hover/row:brightness-105" />
         </div>
 
         <div className="min-w-0 pt-0.5">
