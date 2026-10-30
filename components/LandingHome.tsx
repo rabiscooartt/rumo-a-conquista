@@ -939,28 +939,28 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-[500px] min-h-[66px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3 py-3 shadow-[0_0_20px_rgba(251,44,54,0.07),inset_0_1px_0_rgba(255,255,255,0.045)] lg:flex-[0_0_500px] lg:max-w-[500px]"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-[550px] min-h-[74px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/25 bg-gradient-to-r from-[#1b0e12] via-[#121116] to-[#0c0e12] px-3.5 py-3 shadow-[0_0_20px_rgba(251,44,54,0.08),inset_0_1px_0_rgba(255,255,255,0.05)] lg:flex-[0_0_550px] lg:max-w-[550px]"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
                         title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
                       >
                         <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-gradient-to-b from-red-400/90 to-red-700/30" />
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-400/30 bg-red-500/[0.12] text-[#ff5964] shadow-[0_0_12px_rgba(251,44,54,0.12)]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-red-400/30 bg-red-500/[0.12] text-[#ff5964] shadow-[0_0_12px_rgba(251,44,54,0.12)]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
                           </svg>
                         </span>
                         <span className="flex min-w-0 shrink-0 flex-col gap-1.5">
-                          <span className="whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-[0.08em] text-white/95">Jornada de Estreia</span>
-                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-2 py-1">
+                          <span className="whitespace-nowrap text-[11px] font-black uppercase leading-none tracking-[0.08em] text-white/95">Jornada de Estreia</span>
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-2.5 py-1.5">
                             <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.55)]" />
-                            <span className="whitespace-nowrap text-[8px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
+                            <span className="whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
                           </span>
                         </span>
                         <span aria-hidden="true" className="mx-0.5 hidden h-9 w-px shrink-0 bg-white/[0.10] sm:block" />
-                        <span className="min-w-0 flex-1 text-[10px] leading-relaxed text-white/60 sm:text-[11px]">
+                        <span className="min-w-0 flex-1 text-[10px] leading-relaxed text-white/65 sm:text-[11px] lg:shrink-0 lg:whitespace-nowrap lg:text-[9.5px] lg:leading-none">
                           As miniaturas das conquistas aparecem ao concluir esta etapa.
                         </span>
                       </div>
