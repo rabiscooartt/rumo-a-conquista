@@ -889,7 +889,7 @@ export default function LandingHome() {
 
         {currentGame ? (
           <div className="p-3 sm:p-4">
-            <div className="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-5">
+            <div className="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-5">
               <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-video w-full self-center overflow-hidden rounded-md border border-white/[0.08] bg-black transition hover:border-red-500/40">
                 <img
                   src={currentGame.image || currentGame.cardImage || ""}
@@ -910,8 +910,8 @@ export default function LandingHome() {
                 <div className="min-w-0 lg:col-start-1">
                   <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1">
                     <div className="min-w-0">
-                      <h3 className="text-base font-black leading-tight text-white sm:text-lg lg:text-xl xl:text-2xl">{currentGame.title}</h3>
-                      <p className="mt-1 text-[11px] leading-snug text-white/55 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
+                      <h3 className="text-base font-black leading-tight text-white sm:text-lg lg:text-2xl xl:text-[26px]">{currentGame.title}</h3>
+                      <p className="mt-1 text-xs leading-snug text-white/60 sm:text-[13px]">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                     </div>
                     {getGameTimestamp(currentGame) ? (
                       <span className={"shrink-0 whitespace-nowrap text-[9px] text-white/45 sm:text-[10px] " + (showFirstJourneyPlaceholder ? "lg:inline-flex" : "lg:hidden")}>
@@ -922,16 +922,16 @@ export default function LandingHome() {
 
                   <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-white/65 sm:gap-x-4 sm:text-xs lg:flex-nowrap lg:gap-y-0">
                     {currentGame.platform ? (
-                      <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-white/90 sm:text-sm">
-                        <PlatformIcon platform={currentGame.platform} className="h-5 w-5" />
+                      <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/95 sm:text-base">
+                        <PlatformIcon platform={currentGame.platform} className="h-6 w-6" />
                         {currentGame.platform}
                       </span>
                     ) : null}
                     <span
-                      className="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-white/90 sm:text-sm"
+                      className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-white/95 sm:text-base"
                       aria-label={"Tempo de jogo: " + (hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-")}
                     >
-                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white/80" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 text-white/85" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="9" />
                         <path d="M12 7v5l3 2" />
                       </svg>
@@ -939,24 +939,24 @@ export default function LandingHome() {
                     </span>
                     {showFirstJourneyPlaceholder ? (
                       <div
-                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none min-h-[66px] items-center gap-3 overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-[#170e12] via-[#111116] to-[#0c0e12] px-3.5 py-2.5 shadow-[0_0_14px_rgba(251,44,54,0.045),inset_0_1px_0_rgba(255,255,255,0.045)] lg:flex-[1_1_auto] lg:max-w-none"
+                        className="relative inline-flex min-w-0 flex-[1_1_360px] max-w-none min-h-[72px] items-center gap-2 overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-[#170e12] via-[#111116] to-[#0c0e12] px-3.5 py-2.5 shadow-[0_0_14px_rgba(251,44,54,0.045),inset_0_1px_0_rgba(255,255,255,0.045)] lg:flex-[1_1_auto] lg:max-w-none"
                         role="status"
                         aria-label="Jornada de Estreia em andamento. Conquistas em preparação."
                         title="Conquistas em preparação; as miniaturas serão exibidas quando esta etapa terminar."
                       >
                         <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[2px] rounded-full bg-gradient-to-b from-red-400/75 to-red-700/20" />
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-red-500/[0.09] text-[#ff6871] shadow-[0_0_9px_rgba(251,44,54,0.07)]">
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-400/25 bg-red-500/[0.09] text-[#ff6871] shadow-[0_0_9px_rgba(251,44,54,0.07)]">
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="8.5" />
                             <circle cx="12" cy="12" r="3.2" />
                             <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
                           </svg>
                         </span>
-                        <span className="flex min-w-0 shrink-0 flex-col gap-1.5">
-                          <span className="whitespace-nowrap text-[11px] font-black uppercase leading-none tracking-[0.06em] text-white/95">Jornada de Estreia</span>
-                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2 py-1">
+                        <span className="flex min-w-0 shrink-0 flex-col gap-2">
+                          <span className="whitespace-nowrap text-xs font-black uppercase leading-none tracking-[0.06em] text-white/95">Jornada de Estreia</span>
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-2.5 py-1.5">
                             <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.4)]" />
-                            <span className="whitespace-nowrap text-[8px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
+                            <span className="whitespace-nowrap text-[9px] font-bold uppercase leading-none tracking-[0.07em] text-emerald-300">Em andamento</span>
                           </span>
                         </span>
                         <span aria-hidden="true" className="mx-0.5 hidden h-9 w-px shrink-0 bg-white/[0.07] sm:block" />
