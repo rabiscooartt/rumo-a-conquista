@@ -904,7 +904,7 @@ export default function LandingHome() {
                 ) : null}
 
                 {getGameTimestamp(currentGame) ? (
-                  <span className="hidden shrink-0 whitespace-nowrap text-right text-[10px] text-white/45 lg:col-start-3 lg:block">
+                  <span className={"hidden shrink-0 whitespace-nowrap text-right text-[10px] text-white/45 lg:block " + (!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? "lg:col-start-3" : "lg:col-start-2")}>
                     {formatShortDate(getGameTimestamp(currentGame))}
                   </span>
                 ) : null}
