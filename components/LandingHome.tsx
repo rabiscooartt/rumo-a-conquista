@@ -626,7 +626,7 @@ export default function LandingHome() {
         achievement.hidden !== true
       )
     : [];
-  const visibleCurrentAchievements = currentAchievementList.slice(0, 10);
+  const visibleCurrentAchievements = currentAchievementList.slice(0, 14);
   // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
@@ -891,7 +891,7 @@ export default function LandingHome() {
                       <span className="shrink-0 text-[11px] font-black text-white/75">{currentProgress}%</span>
                     </div>
                     <div
-                      className="mt-2 h-[7px] w-full overflow-hidden rounded-full bg-white/[0.10]"
+                      className="mt-2 h-[7px] w-full overflow-hidden rounded-full bg-white/[0.10] sm:h-[8px]"
                       role="progressbar"
                       aria-valuemin={0}
                       aria-valuemax={100}
@@ -945,7 +945,7 @@ export default function LandingHome() {
                             href={"/games/" + currentGame.slug}
                             title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
                             aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-                            className={"group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-10 sm:w-10 lg:h-11 lg:w-11 " + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
+                            className={"group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-black/40 p-0.5 transition hover:border-red-500/60 sm:h-10 sm:w-10 lg:h-11 lg:w-11 " + (index >= 10 ? "hidden lg:flex " : index >= 7 ? "hidden md:flex " : index >= 5 ? "hidden sm:flex " : "") + (unlocked ? "border-red-500/35" : "border-white/[0.12] opacity-65 grayscale-[0.4]")}
                           >
                             <AchievementArtwork achievement={achievement} className="h-full w-full object-contain" />
                             {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
@@ -955,9 +955,24 @@ export default function LandingHome() {
                     ) : (
                       <p className="min-w-0 text-[10px] text-white/45">As conquistas aparecerão quando forem configuradas.</p>
                     )}
-                    {currentAchievementList.length > visibleCurrentAchievements.length ? (
-                      <Link href={"/games/" + currentGame.slug} className="flex h-9 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:h-10">
-                        +{currentAchievementList.length - visibleCurrentAchievements.length}
+                    {currentAchievementList.length > 5 ? (
+                      <Link href={"/games/" + currentGame.slug} className="flex h-9 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:hidden">
+                        +{currentAchievementList.length - 5}
+                      </Link>
+                    ) : null}
+                    {currentAchievementList.length > 7 ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-10 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:flex md:hidden">
+                        +{currentAchievementList.length - 7}
+                      </Link>
+                    ) : null}
+                    {currentAchievementList.length > 10 ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white md:flex lg:hidden">
+                        +{currentAchievementList.length - 10}
+                      </Link>
+                    ) : null}
+                    {currentAchievementList.length > 14 ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white lg:flex">
+                        +{currentAchievementList.length - 14}
                       </Link>
                     ) : null}
                   </div>
