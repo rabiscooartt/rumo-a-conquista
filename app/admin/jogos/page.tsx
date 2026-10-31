@@ -1133,7 +1133,7 @@ export default function NewGamesAdminPage() {
                 <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
                   <button
                     type="button"
-                    onClick={() => toggleAdminSection("01")
+                    onClick={() => toggleAdminSection("01")}
                     aria-expanded={!collapsedSections["01"]}
                     className="group flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
                   >
