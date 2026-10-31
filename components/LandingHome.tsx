@@ -3,9 +3,11 @@
 import Link from "next/link";
 import BannerBackground from "@/components/BannerBackground";
 import ProfileAvatar from "@/components/ProfileAvatar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PlatformIcon from "@/components/PlatformIcon";
+import StarRating from "@/components/StarRating";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { games as baseGames } from "@/data/games";
 
 type HomeGame = SiteGame & {
   mastery?: string;
@@ -501,6 +503,203 @@ function AchievementIcon({ achievement }: { achievement: AchievementLike }) {
     <span title={readText(achievement.title, "Conquista desbloqueada")} className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-white/[0.12] bg-black/45 text-sm">
       <AchievementArtwork achievement={achievement} className="h-full w-full object-contain p-0.5" />
     </span>
+  );
+}
+
+
+type RecentAchievementPreviewItem = {
+  key: string;
+  title: string;
+  image?: string;
+  fallback: string;
+};
+
+function isRecentAchievementImageSource(value: string) {
+  const source = value.trim().toLowerCase();
+  return source.startsWith("https://") ||
+    source.startsWith("http://") ||
+    source.startsWith("/") ||
+    source.startsWith("data:image/");
+}
+
+function getRecentAchievementPreviews(game: HomeGame): RecentAchievementPreviewItem[] {
+  const achievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList as AchievementLike[]
+    : [];
+  const manualStates = readLocalJson<Record<string, SavedAchievementState>>(
+    "rumo-a-conquista-achievements-" + game.slug,
+    {}
+  );
+  const hiddenTitles = readLocalJson<string[]>(
+    "rumo-a-conquista-hidden-achievements-" + game.slug,
+    []
+  );
+
+  return achievements.flatMap((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    if (Boolean(achievement.isHidden) || hiddenTitles.includes(title)) return [];
+
+    const manualState = manualStates[title];
+    const manualCompleted = ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"]
+      .includes(normalizeKey(manualState?.status));
+    const sourceCompleted = isHomeAchievementUnlocked(game, achievement);
+    if (!manualCompleted && !sourceCompleted) return [];
+
+    const imageCandidates = [
+      readText(manualState?.image, ""),
+      readText(achievement.image, ""),
+      readText(achievement.officialImage, ""),
+      readText(achievement.icon, ""),
+      readText(achievement.trophy, ""),
+    ];
+    const image = imageCandidates.find(isRecentAchievementImageSource) || "";
+    const fallback = [
+      readText(achievement.icon, ""),
+      readText(achievement.trophy, ""),
+    ].find((value) => value && !isRecentAchievementImageSource(value) && value.length <= 6);
+
+    return [{
+      key: readText(achievement.id, title + "-" + index),
+      title,
+      image: image || undefined,
+      fallback: fallback || getAchievementSymbol(achievement),
+    }];
+  });
+}
+
+function RecentAchievementMiniatures({ items }: { items: RecentAchievementPreviewItem[] }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const measure = () => setAvailableWidth(element.getBoundingClientRect().width);
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [items.length]);
+
+  if (items.length === 0) return null;
+
+  const itemSize = 36;
+  const gap = 4;
+  const moreMinimumWidth = 34;
+  const capacityWithoutMore = Math.max(0, Math.floor((availableWidth + gap) / (itemSize + gap)));
+  let visibleCount = Math.min(items.length, capacityWithoutMore);
+
+  if (items.length > capacityWithoutMore) {
+    visibleCount = Math.max(0, capacityWithoutMore - 1);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const hiddenCount = items.length - visibleCount;
+      const moreWidth = Math.max(moreMinimumWidth, 25 + String(hiddenCount).length * 6);
+      const nextVisibleCount = Math.max(0, Math.floor((availableWidth - moreWidth + gap) / (itemSize + gap)));
+      if (nextVisibleCount === visibleCount) break;
+      visibleCount = nextVisibleCount;
+    }
+  }
+
+  const hiddenCount = items.length - visibleCount;
+  if (availableWidth <= 0) {
+    return <div ref={containerRef} className="mt-1.5 h-9 w-full min-w-0" aria-hidden="true" />;
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="mt-1.5 flex min-w-0 w-full items-center gap-1 overflow-hidden"
+      aria-label={items.length + " conquistas desbloqueadas"}
+    >
+      {items.slice(0, visibleCount).map((item) => (
+        <span
+          key={item.key}
+          title={item.title}
+          aria-label={item.title}
+          className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/15 bg-[#17191f] text-sm"
+        >
+          <span aria-hidden="true">{item.fallback}</span>
+          {item.image ? (
+            <img
+              src={item.image}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(event) => { event.currentTarget.style.display = "none"; }}
+            />
+          ) : null}
+        </span>
+      ))}
+      {hiddenCount > 0 ? (
+        <span
+          title={hiddenCount + " conquistas adicionais"}
+          className="inline-flex h-9 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-white/10 bg-white/[0.07] px-1.5 text-[10px] font-black text-white/75"
+        >
+          +{hiddenCount}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function getRecentGameRating(game: HomeGame) {
+  const directReview = (game as HomeGame & { review?: { nota?: unknown } }).review;
+  const directValue = Number(readText(directReview?.nota, "").replace(",", "."));
+  if (Number.isFinite(directValue) && directValue > 0) {
+    return Math.min(5, Math.max(0, directValue / 2));
+  }
+
+  const baseGame = (baseGames as unknown as Record<string, { review?: { nota?: unknown } }>)[game.slug];
+  const baseValue = Number(readText(baseGame?.review?.nota, "").replace(",", "."));
+  return Number.isFinite(baseValue) && baseValue > 0
+    ? Math.min(5, Math.max(0, baseValue / 2))
+    : 0;
+}
+
+function getRecentGameDate(game: HomeGame) {
+  const title = normalizeKey(game.title);
+  if (title === "crisoltheaterofidols") return "27/03/2026 → 06/04/2026";
+  if (title === "hogwartslegacy") return "25/01/2026 → 10/02/2026";
+
+  const raw = readText(game.updatedAt, "") || readText(game.createdAt, "");
+  if (!raw) return "";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("pt-BR");
+}
+
+function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "calendar"; className: string }) {
+  if (type === "trophy") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" />
+        <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" />
+        <path d="M12 14.65V18.2M8.3 20H15.7" />
+      </svg>
+    );
+  }
+
+  if (type === "calendar") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3.75" y="5" width="16.5" height="15" rx="2" />
+        <path d="M7.5 3.5V6.5M16.5 3.5V6.5M3.75 9H20.25" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.25" />
+      <path d="M12 7.5V12L15.2 14" />
+    </svg>
   );
 }
 
@@ -1068,43 +1267,125 @@ export default function LandingHome() {
           <div className="divide-y divide-white/[0.09]">
             {recentGames.slice(0, 3).map((game) => {
               const counts = getAchievementCounts(game);
-              const progress = Math.max(0, Math.min(100, Number(game.progress) || 0));
               const completed = getGameStatus(game) === "completed";
-              const emblem = getGameEmblemImage(game);
-              const updatedAt = formatPublishedDate(readText(game.updatedAt, "") || readText(game.createdAt, ""));
+              const progress = completed ? 100 : Math.max(0, Math.min(100, Number(game.progress) || 0));
+              const emblem = getGameEmblemImage(game) || "/images/games/emblem.png";
+              const date = getRecentGameDate(game);
+              const rating = getRecentGameRating(game);
+              const platform = readText(game.platform, "").trim() || "Steam";
+              const playedTime = readText(game.hours, "0h");
+              const statusLabel = completed ? "Finalizado" : "Em progresso";
+              const statusClass = completed
+                ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+                : "border-red-500/25 bg-red-500/10 text-red-300";
+              const progressClass = completed
+                ? "bg-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.55)]"
+                : "bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.45)]";
+              const achievementPreviews = getRecentAchievementPreviews(game);
+
               return (
-                <Link key={game.slug} href={"/games/" + game.slug} className="group grid grid-cols-[64px_minmax(0,1fr)_42px] items-center gap-3 px-3 py-3 transition hover:bg-white/[0.025] sm:grid-cols-[78px_minmax(0,1fr)_72px] sm:gap-4 sm:px-4 sm:py-3.5">
-                  <div className="h-[82px] w-[64px] shrink-0 overflow-hidden rounded-md border border-white/[0.12] bg-black/40 sm:h-[96px] sm:w-[78px]">
-                    <img src={game.cardImage || game.image || ""} alt={game.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <h3 className="min-w-0 text-xs font-black leading-snug text-white transition group-hover:text-white sm:text-base">{game.title}</h3>
-                      <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-wide sm:text-[9px] " + (completed ? "border-emerald-400/25 bg-emerald-400/[0.07] text-emerald-300" : "border-red-400/25 bg-red-500/[0.07] text-red-300")}>{completed ? "Finalizado" : "Em andamento"}</span>
+                <Link
+                  key={game.slug}
+                  href={"/games/" + game.slug}
+                  className="group/recent-row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025] last:border-b-0"
+                >
+                  <div className="grid grid-cols-[84px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[92px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[100px_minmax(0,1fr)_108px]">
+                    <div className="h-[108px] w-[84px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[118px] sm:w-[92px] lg:h-[128px] lg:w-[100px]">
+                      <img
+                        src={game.cardImage || game.image || ""}
+                        alt={game.title + " — capa"}
+                        loading="lazy"
+                        className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover/recent-row:scale-105 group-hover/recent-row:brightness-105"
+                      />
                     </div>
 
-                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[9px] text-white/60 sm:gap-x-4 sm:text-[11px]">
-                      {game.platform ? <span className="inline-flex items-center gap-1.5 border-r border-white/[0.12] pr-3 sm:pr-4"><span aria-hidden="true" className="text-blue-300">◈</span>{game.platform}</span> : null}
-                      <span className="inline-flex items-center gap-1.5 border-r border-white/[0.12] pr-3 sm:pr-4"><span aria-hidden="true" className="text-amber-400">🏆</span>{counts.unlocked}/{counts.total}</span>
-                      {hasUsefulTimeValue(game.hours) ? <span className="inline-flex items-center gap-1.5 border-r border-white/[0.12] pr-3 sm:pr-4"><span aria-hidden="true" className="text-cyan-300">◷</span>{readText(game.hours, "")}</span> : null}
-                      {updatedAt ? <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="text-violet-300">▦</span>{updatedAt}</span> : null}
-                    </div>
-
-                    <div className="mt-3 flex items-center gap-2.5 sm:mt-3.5 sm:gap-3">
-                      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.10] sm:h-[5px]">
-                        <div className={"h-full rounded-full " + (completed ? "bg-emerald-400" : "bg-[#FB2C36]")} style={{ width: progress + "%" }} />
+                    <div className="min-w-0 pt-0.5">
+                      <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
+                        <h3
+                          className="min-w-0 max-w-[72%] shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
+                          title={game.title}
+                        >
+                          {game.title}
+                        </h3>
+                        {completed && rating > 0 ? (
+                          <StarRating
+                            rating={rating}
+                            size="small"
+                            className="h-[14px] !text-[12px] !tracking-[-0.04em]"
+                          />
+                        ) : null}
+                        <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] " + statusClass}>
+                          {statusLabel}
+                        </span>
                       </div>
-                      <span className={"shrink-0 text-[10px] font-black sm:text-xs " + (completed ? "text-emerald-300" : "text-[#FB2C36]")}>{progress}%</span>
+
+                      <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <PlatformIcon platform={platform} className="h-[18px] w-[18px] text-white/65" />
+                          {platform}
+                        </span>
+                        <span className="hidden h-4 w-px bg-white/15 sm:block" />
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <RecentMetadataIcon type="trophy" className="h-[18px] w-[18px] text-amber-400" />
+                          {counts.unlocked}/{counts.total}
+                        </span>
+                        <span className="hidden h-4 w-px bg-white/15 sm:block" />
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <RecentMetadataIcon type="clock" className="h-4 w-4 text-sky-400" />
+                          {playedTime}
+                        </span>
+                        {date ? (
+                          <>
+                            <span className="hidden h-4 w-px bg-white/15 sm:block" />
+                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                              <RecentMetadataIcon type="calendar" className="h-4 w-4 text-violet-400" />
+                              {date}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2.5 gap-y-0">
+                        <div className="h-[5px] min-w-0 overflow-hidden rounded-full bg-white/[0.07]">
+                          <div className={"h-full rounded-full transition-all duration-500 " + progressClass} style={{ width: progress + "%" }} />
+                        </div>
+                        <span className={"w-10 shrink-0 text-right text-[12px] font-black " + (completed ? "text-emerald-300" : "text-white/60")}>
+                          {progress}%
+                        </span>
+                        <div className="col-start-1 row-start-2 min-w-0">
+                          <RecentAchievementMiniatures items={achievementPreviews} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex h-[100px] w-[78px] items-center justify-end sm:h-[115px] sm:w-[90px]">
+                      <div className="relative flex h-[100px] w-[78px] shrink-0 items-center justify-center overflow-visible sm:h-[115px] sm:w-[90px]">
+                        <div className={"relative h-full w-full transition duration-300 " + (
+                          completed
+                            ? "scale-[1.30]"
+                            : "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
+                        )}>
+                          <img
+                            src={emblem}
+                            alt={game.title + " — emblema"}
+                            loading="lazy"
+                            className="h-full w-full object-contain"
+                            onError={(event) => { event.currentTarget.src = "/images/games/emblem.png"; }}
+                          />
+                        </div>
+                        {!completed ? (
+                          <div className="pointer-events-none absolute right-0 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/75 text-sm shadow-[0_0_18px_rgba(0,0,0,0.5)] backdrop-blur-sm">
+                            🔒
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex h-[68px] w-[42px] items-center justify-center sm:h-[86px] sm:w-[72px]">
-                    {emblem ? (
-                      <img src={emblem} alt="" loading="lazy" className="max-h-full max-w-full object-contain opacity-90 transition group-hover:opacity-100" />
-                    ) : (
-                      <span aria-hidden="true" className="text-2xl text-white/20 sm:text-3xl">♜</span>
-                    )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
                   </div>
                 </Link>
               );
