@@ -163,6 +163,8 @@ export default function NewGamesAdminPage() {
   const [reviewDraftStatus, setReviewDraftStatus] = useState("");
   const [reviewCopyError, setReviewCopyError] = useState("");
   const [restoringMouse, setRestoringMouse] = useState(false);
+  const [generatingGameBackground, setGeneratingGameBackground] = useState(false);
+  const [gameBackgroundError, setGameBackgroundError] = useState("");
   const [draft, setDraft] = useState<Record<string, string> | null>(null);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, Record<string, string>>>({});
   const [journeyDraftIds, setJourneyDraftIds] = useState<string[]>([]);
@@ -535,6 +537,47 @@ export default function NewGamesAdminPage() {
       Array.isArray(selectedGame.firstJourney.achievementIds));
   const journeySelectionFinalized =
     journeyCompleted && Array.isArray(selectedGame?.firstJourney?.achievementIds);
+
+  async function generateGameBackground() {
+    if (!selectedGame || generatingGameBackground) return;
+
+    const confirmed = window.confirm(
+      "Gerar e aplicar um novo fundo para " +
+        selectedGame.title +
+        "? A imagem atual será substituída. Esta ação consome créditos da API de imagens."
+    );
+    if (!confirmed) return;
+
+    setGeneratingGameBackground(true);
+    setGameBackgroundError("");
+
+    try {
+      const response = await fetch("/api/admin/game-background", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ slug: selectedGame.slug }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; image?: string; error?: string }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.image) {
+        throw new Error(payload?.error || "Não foi possível gerar o fundo do jogo.");
+      }
+
+      window.alert("Novo fundo de " + selectedGame.title + " gerado e aplicado à Home.");
+      window.location.reload();
+    } catch (error) {
+      setGameBackgroundError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar o fundo. Tente novamente."
+      );
+    } finally {
+      setGeneratingGameBackground(false);
+    }
+  }
 
   async function restoreMouseData() {
     if (restoringMouse) return;
@@ -1034,9 +1077,63 @@ export default function NewGamesAdminPage() {
                 </section>
 
                 <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                      <div className="relative h-[76px] w-[132px] shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
+                        {selectedGame.image || selectedGame.cardImage ? (
+                          <img
+                            src={selectedGame.image || selectedGame.cardImage || ""}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-white/25">
+                            <span className="text-[9px] font-bold uppercase">Sem banner</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400">Ambientação da Home</p>
+                        <h3 className="mt-1 text-lg font-black text-white">Fundo do jogo</h3>
+                        <p className="mt-1 max-w-[560px] text-[11px] leading-relaxed text-white/45">
+                          Gere um banner horizontal inspirado no universo deste jogo. A imagem será salva no Supabase e aplicada automaticamente como fundo do painel Jogo Atual, sem alterar a capa.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-2 md:items-end">
+                      <button
+                        type="button"
+                        onClick={() => void generateGameBackground()}
+                        disabled={generatingGameBackground || saving}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/35 bg-red-500/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.12em] text-red-100 transition hover:bg-red-500/20 disabled:cursor-wait disabled:opacity-50"
+                      >
+                        {generatingGameBackground ? (
+                          <>
+                            <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-100/25 border-t-red-100" />
+                            Gerando arte...
+                          </>
+                        ) : (
+                          <>
+                            <span aria-hidden="true">✦</span>
+                            Gerar novo fundo
+                          </>
+                        )}
+                      </button>
+                      <span className="text-[9px] text-white/30">A geração consome créditos da API de imagens.</span>
+                    </div>
+                  </div>
+                  {gameBackgroundError ? (
+                    <p role="alert" className="mt-3 rounded-lg border border-red-500/25 bg-red-500/[0.08] px-3 py-2 text-[11px] leading-relaxed text-red-200">
+                      {gameBackgroundError}
+                    </p>
+                  ) : null}
+                </section>
+
+                <section className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-5">
                   <button
                     type="button"
-                    onClick={() => toggleAdminSection("01")}
+                    onClick={() => toggleAdminSection("01")
                     aria-expanded={!collapsedSections["01"]}
                     className="group flex w-full items-center justify-between gap-4 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
                   >
