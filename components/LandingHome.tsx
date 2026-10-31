@@ -1385,12 +1385,6 @@ export default function LandingHome() {
               );
             })}
           </div>
-        )}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
         ) : (
           <p className="p-5 text-sm text-white/50">Os jogos recentes aparecerão aqui conforme o progresso for registrado.</p>
         )}
