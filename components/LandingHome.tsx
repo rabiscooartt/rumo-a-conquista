@@ -488,9 +488,9 @@ function getCurrentGameTheme(game: HomeGame | null): CurrentGameTheme {
   return {
     accent,
     rgb,
-    border: "rgba(" + rgb + ", 0.54)",
-    glow: "rgba(" + rgb + ", 0.17)",
-    soft: "rgba(" + rgb + ", 0.11)",
+    border: "rgba(" + rgb + ", 0.46)",
+    glow: "rgba(" + rgb + ", 0.145)",
+    soft: "rgba(" + rgb + ", 0.095)",
   };
 }
 
@@ -498,10 +498,12 @@ function AchievementPreviewLink({
   game,
   achievement,
   index,
+  onUnavailable,
 }: {
   game: HomeGame;
   achievement: AchievementLike;
   index: number;
+  onUnavailable?: (key: string) => void;
 }) {
   const imageSources = getIndividualAchievementImages(achievement);
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -532,6 +534,7 @@ function AchievementPreviewLink({
             setSourceIndex((current) => current + 1);
           } else {
             setImageFailed(true);
+            onUnavailable?.(readText(achievement.id, title || String(index)));
           }
         }}
         className="h-full w-full object-contain"
@@ -885,6 +888,10 @@ export default function LandingHome() {
     () => gamesByUpdated.find((game) => getGameStatus(game) === "progress") ?? null,
     [gamesByUpdated]
   );
+  const [unavailableCurrentAchievementKeys, setUnavailableCurrentAchievementKeys] = useState<string[]>([]);
+  useEffect(() => {
+    setUnavailableCurrentAchievementKeys([]);
+  }, [currentGame?.slug]);
   const nextMastery = useMemo(() => {
     const bySlug = new Map(allGames.map((game) => [game.slug, game]));
     const eligibleQueue = backlogEntries
@@ -952,9 +959,14 @@ export default function LandingHome() {
   const visibleCurrentAchievements = pendingCurrentAchievementList
     .filter((achievement) => getIndividualAchievementImages(achievement).length > 0)
     .slice(0, 8);
-  const currentPreviewMobileCount = Math.min(4, visibleCurrentAchievements.length);
-  const currentPreviewTabletCount = Math.min(6, visibleCurrentAchievements.length);
-  const currentPreviewDesktopCount = visibleCurrentAchievements.length;
+  const unavailableCurrentAchievementSet = new Set(unavailableCurrentAchievementKeys);
+  const loadedCurrentAchievementCandidates = visibleCurrentAchievements.filter((achievement, index) => {
+    const key = readText(achievement.id, getAchievementTitle(achievement, index));
+    return !unavailableCurrentAchievementSet.has(key);
+  });
+  const currentPreviewMobileCount = Math.min(4, loadedCurrentAchievementCandidates.length);
+  const currentPreviewTabletCount = Math.min(6, loadedCurrentAchievementCandidates.length);
+  const currentPreviewDesktopCount = loadedCurrentAchievementCandidates.length;
   // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
@@ -1147,7 +1159,7 @@ export default function LandingHome() {
       {/* Jogo atual: estrutura horizontal temática inspirada na referência */}
       <section
         className="relative isolate overflow-hidden rounded-2xl border bg-[#06090e] shadow-[0_12px_34px_rgba(0,0,0,0.30)]"
-        style={{ borderColor: currentGameTheme.border, boxShadow: "0 0 26px " + currentGameTheme.glow + ", 0 12px 34px rgba(0,0,0,0.30)" }}
+        style={{ borderColor: currentGameTheme.border, boxShadow: "0 0 22px " + currentGameTheme.glow + ", 0 12px 34px rgba(0,0,0,0.30)" }}
         aria-labelledby="current-game-title"
       >
         {currentGame ? (
@@ -1181,7 +1193,7 @@ export default function LandingHome() {
                   <span
                     aria-hidden="true"
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-black/20"
-                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border, boxShadow: "0 0 18px " + currentGameTheme.glow }}
+                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border, boxShadow: "0 0 15px " + currentGameTheme.glow }}
                   >
                     <svg viewBox="0 0 32 32" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M4 10.5 9.2 14l6.8-8 6.8 8 5.2-3.5-2.2 13H6.2L4 10.5Z" />
@@ -1207,7 +1219,7 @@ export default function LandingHome() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(210px,0.95fr)_minmax(0,1.05fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(220px,1.02fr)_minmax(220px,1.08fr)_minmax(180px,0.92fr)] lg:gap-4 lg:px-5">
+              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(210px,0.95fr)_minmax(0,1.05fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(220px,1fr)_minmax(320px,1.35fr)_minmax(180px,0.85fr)] lg:gap-4 lg:px-5">
                 <Link
                   href={"/games/" + currentGame.slug}
                   aria-label={"Abrir jogo: " + currentGame.title}
@@ -1233,7 +1245,7 @@ export default function LandingHome() {
 
                 <div className="flex min-w-0 flex-col justify-center gap-2.5 sm:gap-3">
                   <div className="min-w-0">
-                    <h3 className="text-lg font-black leading-tight tracking-[-0.025em] text-white sm:text-xl lg:text-[22px] xl:text-[24px]">{currentGame.title}</h3>
+                    <h3 className="text-lg font-black leading-tight tracking-[-0.03em] text-white sm:text-xl lg:text-[19px] xl:whitespace-nowrap xl:text-[20px]">{currentGame.title}</h3>
                     <p className="mt-1 text-[11px] leading-snug text-white/65 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs">
@@ -1315,8 +1327,8 @@ export default function LandingHome() {
                   </div>
                   <div className="flex min-w-0 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {visibleCurrentAchievements.length ? (
-                      visibleCurrentAchievements.map((achievement, index) => (
-                        <AchievementPreviewLink key={currentGame.slug + ":preview:" + (achievement.id || index)} game={currentGame} achievement={achievement} index={index} />
+                      loadedCurrentAchievementCandidates.map((achievement, index) => (
+                        <AchievementPreviewLink key={currentGame.slug + ":preview:" + (achievement.id || index)} game={currentGame} achievement={achievement} index={index} onUnavailable={(key) => setUnavailableCurrentAchievementKeys((current) => current.includes(key) ? current : [...current, key])} />
                       ))
                     ) : (
                       <p className="min-w-0 text-[10px] text-white/50">
