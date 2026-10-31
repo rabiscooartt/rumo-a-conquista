@@ -1103,17 +1103,41 @@ export default function LandingHome() {
         </div>
 
         {currentGame ? (
-          <div className="p-3 sm:p-4">
-            <div className="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-5">
-              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-video w-full self-center overflow-hidden rounded-md border border-white/[0.08] bg-black transition hover:border-red-500/40">
+          <div className="relative isolate overflow-hidden">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+              <img
+                key={currentGame.slug}
+                src={currentGame.image || currentGame.cardImage || ""}
+                alt=""
+                loading="eager"
+                decoding="async"
+                className="h-full w-full scale-[1.03] object-cover object-[68%_center] opacity-40 blur-[1px]"
+                onError={(event) => {
+                  const fallback = currentGame.cardImage;
+                  if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
+                    event.currentTarget.dataset.fallbackApplied = "true";
+                    event.currentTarget.src = fallback;
+                  } else {
+                    event.currentTarget.style.display = "none";
+                  }
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#07090d]/95 via-[#07090d]/82 to-[#07090d]/48" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07090d]/82 via-[#07090d]/25 to-[#07090d]/42" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_78%_45%,rgba(0,0,0,0)_0%,rgba(7,9,13,0.18)_44%,rgba(7,9,13,0.56)_100%)]" />
+            </div>
+            <div className="relative z-10 p-3 sm:p-4">
+            <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[116px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[150px_minmax(0,1fr)] lg:gap-5">
+              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-[3/4] w-full self-center overflow-hidden rounded-lg border border-white/[0.14] bg-black/70 shadow-[0_8px_24px_rgba(0,0,0,0.38)] transition hover:border-red-500/50">
                 <img
-                  src={currentGame.image || currentGame.cardImage || ""}
-                  alt={currentGame.title + " — arte do jogo"}
-                  loading="lazy"
-                  className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105"
+                  src={currentGame.cardImage || currentGame.image || ""}
+                  alt={currentGame.title + " — capa"}
+                  loading="eager"
+                  decoding="async"
+                  className="h-full w-full object-cover object-center brightness-95 contrast-105 transition duration-700 group-hover:scale-105 group-hover:brightness-105"
                   onError={(event) => {
-                    const fallback = currentGame.cardImage;
-                    if (fallback && event.currentTarget.dataset.fallbackApplied !== "true") {
+                    const fallback = currentGame.image;
+                    if (fallback && fallback !== currentGame.cardImage && event.currentTarget.dataset.fallbackApplied !== "true") {
                       event.currentTarget.dataset.fallbackApplied = "true";
                       event.currentTarget.src = fallback;
                     }
@@ -1271,6 +1295,7 @@ export default function LandingHome() {
                 </div>
               </div>
             ) : null}
+            </div>
           </div>
         ) : (
           <div className="p-5 sm:p-7">
