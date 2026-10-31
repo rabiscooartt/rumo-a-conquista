@@ -876,7 +876,7 @@ function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
 
   if (items.length === 0) return null;
 
-  const itemSize = 28;
+  const itemSize = 36;
   const gap = 4;
   const moreMinimumWidth = 34;
   const capacityWithoutMore = Math.max(
@@ -906,7 +906,7 @@ function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
 
   const hiddenCount = items.length - visibleCount;
   if (availableWidth <= 0) {
-    return <div ref={containerRef} className="mt-1.5 h-7 w-full min-w-0" aria-hidden="true" />;
+    return <div ref={containerRef} className="mt-1.5 h-9 w-full min-w-0" aria-hidden="true" />;
   }
 
   return (
@@ -920,7 +920,7 @@ function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
           key={item.key}
           title={item.title}
           aria-label={item.title}
-          className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/15 bg-[#17191f] text-sm"
+          className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/15 bg-[#17191f] text-sm"
         >
           <span aria-hidden="true">{item.fallback}</span>
           {item.image ? (
@@ -939,7 +939,7 @@ function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
       {hiddenCount > 0 ? (
         <span
           title={hiddenCount + " conquistas adicionais"}
-          className="inline-flex h-7 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-white/10 bg-white/[0.07] px-1.5 text-[10px] font-black text-white/75"
+          className="inline-flex h-9 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-white/10 bg-white/[0.07] px-1.5 text-[10px] font-black text-white/75"
         >
           +{hiddenCount}
         </span>
