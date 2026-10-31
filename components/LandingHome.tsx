@@ -1111,7 +1111,7 @@ export default function LandingHome() {
                 alt=""
                 loading="eager"
                 decoding="async"
-                className="h-full w-full scale-[1.03] object-cover object-[68%_center] opacity-40 blur-[1px]"
+                className="h-full w-full scale-[1.04] object-cover object-[90%_center] opacity-55 blur-[1px]"
                 onError={(event) => {
                   const fallback = currentGame.cardImage;
                   if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
@@ -1122,7 +1122,7 @@ export default function LandingHome() {
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#07090d]/95 via-[#07090d]/82 to-[#07090d]/48" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#07090d]/96 via-[#07090d]/84 to-[#07090d]/38" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#07090d]/82 via-[#07090d]/25 to-[#07090d]/42" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_78%_45%,rgba(0,0,0,0)_0%,rgba(7,9,13,0.18)_44%,rgba(7,9,13,0.56)_100%)]" />
             </div>
