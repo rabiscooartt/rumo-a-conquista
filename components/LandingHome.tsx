@@ -1107,14 +1107,14 @@ export default function LandingHome() {
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               <img
                 key={currentGame.slug}
-                src={currentGame.image || currentGame.cardImage || ""}
+                src={currentGame.cardImage || currentGame.image || ""}
                 alt=""
                 loading="eager"
                 decoding="async"
-                className="h-full w-full scale-[1.04] object-cover object-[90%_center] opacity-55 blur-[1px]"
+                className="h-full w-full scale-[1.12] object-cover object-[50%_42%] opacity-65 blur-[14px]"
                 onError={(event) => {
-                  const fallback = currentGame.cardImage;
-                  if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
+                  const fallback = currentGame.image;
+                  if (fallback && fallback !== currentGame.cardImage && event.currentTarget.dataset.fallbackApplied !== "true") {
                     event.currentTarget.dataset.fallbackApplied = "true";
                     event.currentTarget.src = fallback;
                   } else {
@@ -1122,8 +1122,8 @@ export default function LandingHome() {
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#07090d]/96 via-[#07090d]/84 to-[#07090d]/38" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#07090d]/82 via-[#07090d]/25 to-[#07090d]/42" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#07090d]/88 via-[#07090d]/70 to-[#07090d]/54" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07090d]/72 via-[#07090d]/30 to-[#07090d]/48" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_78%_45%,rgba(0,0,0,0)_0%,rgba(7,9,13,0.18)_44%,rgba(7,9,13,0.56)_100%)]" />
             </div>
             <div className="relative z-10 p-3 sm:p-4">
