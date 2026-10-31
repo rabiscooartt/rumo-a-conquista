@@ -476,7 +476,7 @@ function AchievementPreviewLink({
       href={"/games/" + game.slug}
       title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
       aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11] p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-red-500/60 sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (index >= 6 ? "hidden lg:flex " : index >= 4 ? "hidden sm:flex " : "") + (unlocked ? "border-red-500/40" : "border-white/[0.14] opacity-80 grayscale-[0.2]")}
+      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11] p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-sky-300/70 sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (index >= 6 ? "hidden lg:flex " : index >= 4 ? "hidden sm:flex " : "") + (unlocked ? "border-emerald-400/40" : "border-sky-400/30 bg-[#07131b] opacity-90 grayscale-[0.5]")}
     >
       <img
         src={imageSources[sourceIndex]}
@@ -493,7 +493,7 @@ function AchievementPreviewLink({
         }}
         className="h-full w-full object-contain"
       />
-      {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-black/85 px-0.5 text-[7px] leading-tight text-white/75">🔒</span> : null}
+      {!unlocked ? <span aria-hidden="true" className="absolute bottom-0 right-0 rounded-tl bg-sky-950/95 px-0.5 text-[7px] leading-tight text-sky-100">🔒</span> : null}
     </Link>
   );
 }
@@ -623,7 +623,7 @@ function RecentAchievementMiniatures({ items }: { items: RecentAchievementPrevie
           key={item.key}
           title={item.title}
           aria-label={item.title}
-          className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/15 bg-[#17191f] text-sm"
+          className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-emerald-400/25 bg-[#101914] text-sm"
         >
           <span aria-hidden="true">{item.fallback}</span>
           {item.image ? (
@@ -640,7 +640,7 @@ function RecentAchievementMiniatures({ items }: { items: RecentAchievementPrevie
       {hiddenCount > 0 ? (
         <span
           title={hiddenCount + " conquistas adicionais"}
-          className="inline-flex h-9 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-white/10 bg-white/[0.07] px-1.5 text-[10px] font-black text-white/75"
+          className="inline-flex h-9 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-emerald-400/20 bg-emerald-500/[0.05] px-1.5 text-[10px] font-black text-emerald-100/80"
         >
           +{hiddenCount}
         </span>
@@ -873,16 +873,32 @@ export default function LandingHome() {
   const currentProgress = currentGame ? Math.min(100, Math.max(0, Number(currentGame.progress) || 0)) : 0;
   const nextCounts = nextMastery ? getAchievementCounts(nextMastery) : null;
   const nextProgress = nextMastery ? Math.min(100, Math.max(0, Number(nextMastery.progress) || 0)) : 0;
-  const currentUnlockedAchievements = currentGame ? getUnlockedAchievements(currentGame) : [];
+  const currentHiddenAchievementTitles = currentGame
+    ? readLocalJson<string[]>("rumo-a-conquista-hidden-achievements-" + currentGame.slug, [])
+    : [];
+  const currentManualAchievementStates = currentGame
+    ? readLocalJson<Record<string, SavedAchievementState>>("rumo-a-conquista-achievements-" + currentGame.slug, {})
+    : {};
   const currentAchievementList = currentGame && Array.isArray(currentGame.achievementsList)
-    ? (currentGame.achievementsList as AchievementLike[]).filter((achievement) =>
-        Boolean(readText(achievement.title, "").trim()) &&
-        achievement.isHidden !== true &&
-        achievement.hidden !== true
-      )
+    ? (currentGame.achievementsList as AchievementLike[]).filter((achievement) => {
+        const title = readText(achievement.title, "").trim();
+        return Boolean(title) &&
+          achievement.isHidden !== true &&
+          achievement.hidden !== true &&
+          !currentHiddenAchievementTitles.includes(title);
+      })
+    : [];
+  // Jogo atual mostra somente desafios pendentes; a Biblioteca/Recentes destaca o que já foi conquistado.
+  const pendingCurrentAchievementList = currentGame
+    ? currentAchievementList.filter((achievement) => {
+        const title = getAchievementTitle(achievement, currentAchievementList.indexOf(achievement));
+        const manualStatus = normalizeKey(currentManualAchievementStates[title]?.status);
+        const manuallyUnlocked = ["completed", "concluido", "concluida", "desbloqueado", "desbloqueada"].includes(manualStatus);
+        return !manuallyUnlocked && !isHomeAchievementUnlocked(currentGame, achievement);
+      })
     : [];
   // A prévia mostra apenas artes individuais; não replica o troféu genérico como imagem de conquistas.
-  const visibleCurrentAchievements = currentAchievementList
+  const visibleCurrentAchievements = pendingCurrentAchievementList
     .filter((achievement) => getIndividualAchievementImages(achievement).length > 0)
     .slice(0, 8);
   const currentPreviewMobileCount = Math.min(4, visibleCurrentAchievements.length);
@@ -1203,6 +1219,18 @@ export default function LandingHome() {
 
             {!showFirstJourneyPlaceholder ? (
               <div className="mt-4 border-t border-white/[0.08] pt-3">
+                <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
+                  <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-sky-300">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="5" y="10" width="14" height="11" rx="2" />
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                    </svg>
+                    Desafios a desbloquear
+                  </span>
+                  <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.08em] text-white/35">
+                    {pendingCurrentAchievementList.length} pendentes
+                  </span>
+                </div>
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {visibleCurrentAchievements.length ? (
@@ -1216,22 +1244,24 @@ export default function LandingHome() {
                       ))
                     ) : (
                       <p className="min-w-0 flex-1 text-[11px] text-white/45">
-                        As artes individuais das conquistas aparecerão aqui quando estiverem configuradas.
+                        {pendingCurrentAchievementList.length === 0
+                          ? "Todas as conquistas desta jornada já foram desbloqueadas."
+                          : "As miniaturas dos desafios aparecem aqui quando suas artes individuais estiverem configuradas."}
                       </p>
                     )}
-                    {visibleCurrentAchievements.length > 0 && currentAchievementList.length > currentPreviewMobileCount ? (
+                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewMobileCount ? (
                       <Link href={"/games/" + currentGame.slug} className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:hidden">
-                        +{currentAchievementList.length - currentPreviewMobileCount}
+                        +{pendingCurrentAchievementList.length - currentPreviewMobileCount}
                       </Link>
                     ) : null}
-                    {visibleCurrentAchievements.length > 0 && currentAchievementList.length > currentPreviewTabletCount ? (
+                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewTabletCount ? (
                       <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white sm:flex lg:hidden">
-                        +{currentAchievementList.length - currentPreviewTabletCount}
+                        +{pendingCurrentAchievementList.length - currentPreviewTabletCount}
                       </Link>
                     ) : null}
-                    {visibleCurrentAchievements.length > 0 && currentAchievementList.length > currentPreviewDesktopCount ? (
+                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewDesktopCount ? (
                       <Link href={"/games/" + currentGame.slug} className="hidden h-12 min-w-11 shrink-0 items-center justify-center rounded-md border border-white/[0.12] bg-white/[0.025] px-2 text-[10px] font-black text-white/75 transition hover:border-red-500/40 hover:text-white lg:flex">
-                        +{currentAchievementList.length - currentPreviewDesktopCount}
+                        +{pendingCurrentAchievementList.length - currentPreviewDesktopCount}
                       </Link>
                     ) : null}
                   </div>
@@ -1258,7 +1288,7 @@ export default function LandingHome() {
             <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
               <span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos recentes
             </h2>
-            <p className="mt-1 text-[10px] text-white/45 sm:text-xs">Suas jornadas mais recentes, com progresso e emblema.</p>
+            <p className="mt-1 text-[10px] text-white/45 sm:text-xs">Conquistas já desbloqueadas nas suas jornadas recentes.</p>
           </div>
           <Link href="/biblioteca" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todos <span aria-hidden="true">→</span></Link>
         </div>
