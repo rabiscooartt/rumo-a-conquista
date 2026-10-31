@@ -453,6 +453,47 @@ function getIndividualAchievementImages(achievement: AchievementLike) {
   ));
 }
 
+type CurrentGameTheme = {
+  accent: string;
+  rgb: string;
+  border: string;
+  glow: string;
+  soft: string;
+};
+
+function getCurrentGameTheme(game: HomeGame | null): CurrentGameTheme {
+  const normalized = game ? normalizeKey(game.slug + " " + game.title) : "";
+  const presets = [
+    { match: ["monsterhunter", "iceborne"], accent: "#22D6F4" },
+    { match: ["hogwarts", "howgarts"], accent: "#D5B36B" },
+    { match: ["hades"], accent: "#F0783E" },
+    { match: ["crisol"], accent: "#BD4A43" },
+    { match: ["mousepiforhire", "mouse"], accent: "#C5CBD3" },
+    { match: ["thesurge"], accent: "#D58A47" },
+    { match: ["division"], accent: "#E9843D" },
+    { match: ["childoflight"], accent: "#8CC6E8" },
+  ];
+  const configured = game
+    ? readText((game as HomeGame & { accentColor?: unknown; themeColor?: unknown }).accentColor, "") ||
+      readText((game as HomeGame & { accentColor?: unknown; themeColor?: unknown }).themeColor, "")
+    : "";
+  const configuredHex = /^#[0-9a-fA-F]{6}$/.test(configured) ? configured : "";
+  const preset = presets.find((item) => item.match.some((part) => normalized.includes(normalizeKey(part))));
+  const accent = configuredHex || preset?.accent || "#FB2C36";
+  const rgb = [
+    parseInt(accent.slice(1, 3), 16),
+    parseInt(accent.slice(3, 5), 16),
+    parseInt(accent.slice(5, 7), 16),
+  ].join(", ");
+  return {
+    accent,
+    rgb,
+    border: "rgba(" + rgb + ", 0.54)",
+    glow: "rgba(" + rgb + ", 0.17)",
+    soft: "rgba(" + rgb + ", 0.11)",
+  };
+}
+
 function AchievementPreviewLink({
   game,
   achievement,
@@ -470,13 +511,15 @@ function AchievementPreviewLink({
 
   const title = getAchievementTitle(achievement, index);
   const unlocked = isHomeAchievementUnlocked(game, achievement);
+  const theme = getCurrentGameTheme(game);
 
   return (
     <Link
       href={"/games/" + game.slug}
       title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
       aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11] p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-red-400/65 sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (index >= 6 ? "hidden lg:flex " : index >= 4 ? "hidden sm:flex " : "") + (unlocked ? "border-emerald-400/40" : "border-white/20 opacity-95 grayscale-[0.55]")}
+      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11]/90 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (index >= 6 ? "hidden lg:flex " : index >= 4 ? "hidden sm:flex " : "") + (unlocked ? "border-emerald-400/40" : "border-white/20 opacity-95 grayscale-[0.45]")}
+      style={!unlocked ? { borderColor: theme.border } : undefined}
     >
       <img
         src={imageSources[sourceIndex]}
@@ -493,7 +536,14 @@ function AchievementPreviewLink({
         }}
         className="h-full w-full object-contain"
       />
-
+      {!unlocked ? (
+        <span aria-hidden="true" className="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center rounded-tl bg-[#05070b]/95" style={{ color: theme.accent }}>
+          <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2.5" y="5.2" width="7" height="5.2" rx="1" />
+            <path d="M4 5.2V3.8a2 2 0 0 1 4 0v1.4" />
+          </svg>
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -871,6 +921,7 @@ export default function LandingHome() {
 
   const currentCounts = currentGame ? getAchievementCounts(currentGame) : null;
   const currentProgress = currentGame ? Math.min(100, Math.max(0, Number(currentGame.progress) || 0)) : 0;
+  const currentGameTheme = getCurrentGameTheme(currentGame);
   const nextCounts = nextMastery ? getAchievementCounts(nextMastery) : null;
   const nextProgress = nextMastery ? Math.min(100, Math.max(0, Number(nextMastery.progress) || 0)) : 0;
   const currentHiddenAchievementTitles = currentGame
@@ -1093,37 +1144,25 @@ export default function LandingHome() {
         </div>
       </section>
 
-      {/* Jogo atual em duas faixas: informações do jogo e prévia das conquistas */}
-      <section className="overflow-hidden rounded-2xl border border-red-500/20 bg-[#07090d]/95 shadow-[0_12px_34px_rgba(0,0,0,0.26)]" aria-labelledby="current-game-title">
-        <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] bg-[#08090d]/55 px-4 py-3 sm:px-5">
-          <h2 id="current-game-title" className="flex min-w-0 items-center gap-2 text-[11px] font-black uppercase tracking-[0.12em] text-white sm:text-xs">
-            <span aria-hidden="true" className="h-4 w-[3px] shrink-0 rounded-full bg-[#FB2C36]" />
-            Jogo atual
-          </h2>
-          <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-            {currentGame ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/25 bg-red-500/[0.07] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.08em] text-red-200 sm:text-[9px]">
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                Em andamento
-              </span>
-            ) : null}
-            {currentGame ? <Link href={"/games/" + currentGame.slug} className="whitespace-nowrap text-[9px] font-bold text-white/45 transition hover:text-white sm:text-[10px]">Abrir jogo <span className="text-[#FB2C36]">→</span></Link> : null}
-          </div>
-        </div>
-
+      {/* Jogo atual: estrutura horizontal temática inspirada na referência */}
+      <section
+        className="relative isolate overflow-hidden rounded-2xl border bg-[#06090e] shadow-[0_12px_34px_rgba(0,0,0,0.30)]"
+        style={{ borderColor: currentGameTheme.border, boxShadow: "0 0 26px " + currentGameTheme.glow + ", 0 12px 34px rgba(0,0,0,0.30)" }}
+        aria-labelledby="current-game-title"
+      >
         {currentGame ? (
-          <div className="relative isolate overflow-hidden">
+          <>
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               <img
-                key={currentGame.slug}
-                src={currentGame.cardImage || currentGame.image || ""}
+                key={currentGame.slug + ":ambient"}
+                src={currentGame.image || currentGame.cardImage || ""}
                 alt=""
                 loading="eager"
                 decoding="async"
-                className="h-full w-full scale-[1.12] object-cover object-[72%_42%] opacity-90 blur-[8px] saturate-[1.3] contrast-125 brightness-[0.78]"
+                className="h-full w-full scale-[1.08] object-cover object-[72%_45%] opacity-65 blur-[3px] saturate-[1.45] contrast-110 brightness-[0.72]"
                 onError={(event) => {
-                  const fallback = currentGame.image;
-                  if (fallback && fallback !== currentGame.cardImage && event.currentTarget.dataset.fallbackApplied !== "true") {
+                  const fallback = currentGame.cardImage;
+                  if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
                     event.currentTarget.dataset.fallbackApplied = "true";
                     event.currentTarget.src = fallback;
                   } else {
@@ -1131,149 +1170,178 @@ export default function LandingHome() {
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#07090d]/94 via-[#07090d]/72 to-[#07090d]/42" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#07090d]/72 via-[#07090d]/25 to-[#07090d]/42" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_78%_42%,rgba(0,0,0,0)_0%,rgba(7,9,13,0.08)_58%,rgba(7,9,13,0.30)_100%)]" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#05070b]/90 via-[#05070b]/64 to-[#05070b]/36" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#05070b]/80 via-[#05070b]/28 to-[#05070b]/36" />
+              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 82% 38%, rgba(" + currentGameTheme.rgb + ", 0.25), transparent 58%)" }} />
             </div>
-            <div className="relative z-10 p-3 sm:p-4">
-            <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[128px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[168px_minmax(0,1fr)] lg:gap-5">
-              <Link href={"/games/" + currentGame.slug} aria-label={"Abrir jogo: " + currentGame.title} className="group relative block aspect-[3/4] w-full self-center overflow-hidden rounded-lg border border-white/[0.14] bg-black/70 shadow-[0_8px_24px_rgba(0,0,0,0.38)] transition hover:border-red-500/50">
-                <img
-                  src={currentGame.cardImage || currentGame.image || ""}
-                  alt={currentGame.title + " — capa"}
-                  loading="eager"
-                  decoding="async"
-                  className="h-full w-full object-cover object-center brightness-95 contrast-105 transition duration-700 group-hover:scale-105 group-hover:brightness-105"
-                  onError={(event) => {
-                    const fallback = currentGame.image;
-                    if (fallback && fallback !== currentGame.cardImage && event.currentTarget.dataset.fallbackApplied !== "true") {
-                      event.currentTarget.dataset.fallbackApplied = "true";
-                      event.currentTarget.src = fallback;
-                    }
-                  }}
-                />
-              </Link>
 
-              <div className="flex min-w-0 flex-col justify-center gap-3 lg:gap-3.5">
-                <div className="min-w-0">
-                  <h3 className="text-lg font-black leading-tight tracking-[-0.025em] text-white sm:text-xl lg:text-2xl xl:text-[26px]">{currentGame.title}</h3>
-                  <p className="mt-1 text-xs leading-snug text-white/65 sm:text-[13px]">{currentGame.subtitle || "Sua jornada em andamento"}</p>
-                </div>
-
-                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-semibold text-white/80 sm:gap-x-4 sm:text-xs">
-                  {currentGame.platform ? (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
-                      <PlatformIcon platform={currentGame.platform} className="h-5 w-5" />
-                      {currentGame.platform}
-                    </span>
-                  ) : null}
-                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px] text-white/65" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="8.5" />
-                      <path d="M12 7.5v5l3 2" />
-                    </svg>
-                    {hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}
-                  </span>
-                  {getGameTimestamp(currentGame) ? (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/55">
-                      <span aria-hidden="true" className="h-3.5 w-px bg-white/20" />
-                      {formatShortDate(getGameTimestamp(currentGame))}
-                    </span>
-                  ) : null}
-                </div>
-
-                {showFirstJourneyPlaceholder ? (
-                  <div
-                    className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 border-red-500/70 bg-black/25 px-3 py-2"
-                    role="status"
-                    aria-label="Jornada de Estreia em andamento. Conclua esta etapa para revelar as miniaturas das conquistas."
-                    title="Conclua esta etapa para revelar as miniaturas das conquistas."
+            <div className="relative z-10">
+              <div className="flex min-h-[58px] items-center justify-between gap-3 border-b border-white/[0.10] bg-[#05070b]/45 px-4 py-2.5 sm:px-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-black/20"
+                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border, boxShadow: "0 0 18px " + currentGameTheme.glow }}
                   >
-                    <span className="text-xs font-bold text-white">Jornada de Estreia</span>
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-300">
-                      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      Em andamento
-                    </span>
-                    <span className="basis-full text-[11px] leading-snug text-white/55 sm:basis-auto sm:before:mx-1 sm:before:text-white/25 sm:before:content-['·']">
-                      Conclua esta etapa para revelar as miniaturas das conquistas.
-                    </span>
+                    <svg viewBox="0 0 32 32" className="h-7 w-7" fill="currentColor" aria-hidden="true">
+                      <path d="M4 10.5 9.2 14l6.8-8 6.8 8 5.2-3.5-2.2 13H6.2L4 10.5Z" />
+                      <path d="M7 26h18v2H7z" />
+                      <circle cx="4.7" cy="9.5" r="2" />
+                      <circle cx="27.3" cy="9.5" r="2" />
+                      <circle cx="16" cy="5" r="2.2" />
+                    </svg>
+                  </span>
+                  <span className="min-w-0">
+                    <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
+                    <p className="mt-0.5 hidden text-[10px] leading-snug text-white/60 sm:block">Sua jornada em andamento. Conquiste, explore e complete!</p>
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border bg-black/25 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.07em] sm:px-3 sm:text-[9px]" style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border }}>
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentGameTheme.accent, boxShadow: "0 0 8px " + currentGameTheme.glow }} />
+                    Em andamento
+                  </span>
+                  <Link href={"/games/" + currentGame.slug} className="whitespace-nowrap text-[9px] font-bold text-white/55 transition hover:text-white sm:text-[10px]">
+                    Abrir jogo <span style={{ color: currentGameTheme.accent }}>→</span>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(210px,0.95fr)_minmax(0,1.05fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(220px,1.02fr)_minmax(220px,1.08fr)_minmax(180px,0.92fr)] lg:gap-4 lg:px-5">
+                <Link
+                  href={"/games/" + currentGame.slug}
+                  aria-label={"Abrir jogo: " + currentGame.title}
+                  className="group relative block aspect-[2.25/1] w-full self-center overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition"
+                  style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)" }}
+                >
+                  <img
+                    src={currentGame.image || currentGame.cardImage || ""}
+                    alt={currentGame.title + " — arte do jogo"}
+                    loading="eager"
+                    decoding="async"
+                    className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.025]"
+                    onError={(event) => {
+                      const fallback = currentGame.cardImage;
+                      if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
+                        event.currentTarget.dataset.fallbackApplied = "true";
+                        event.currentTarget.src = fallback;
+                      }
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-white/[0.04]" />
+                </Link>
+
+                <div className="flex min-w-0 flex-col justify-center gap-2.5 sm:gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-black leading-tight tracking-[-0.025em] text-white sm:text-xl lg:text-[22px] xl:text-[24px]">{currentGame.title}</h3>
+                    <p className="mt-1 text-[11px] leading-snug text-white/65 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
-                ) : currentCounts && currentCounts.total > 0 ? (
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs">
+                    {currentGame.platform ? (
+                      <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+                        <PlatformIcon platform={currentGame.platform} className="h-[19px] w-[19px]" />
+                        {currentGame.platform}
+                      </span>
+                    ) : null}
+                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/70">
+                      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="8.5" />
+                        <path d="M12 7.5v5l3 2" />
+                      </svg>
+                      {hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}
+                    </span>
+                    {getGameTimestamp(currentGame) ? (
+                      <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/55">
+                        <span aria-hidden="true" className="h-3.5 w-px bg-white/25" />
+                        {formatShortDate(getGameTimestamp(currentGame))}
+                      </span>
+                    ) : null}
+                  </div>
+                  {showFirstJourneyPlaceholder ? (
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-2" style={{ borderColor: currentGameTheme.accent }}>
+                      <span className="text-xs font-bold text-white">Jornada de Estreia</span>
+                      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        Em andamento
+                      </span>
+                      <span className="basis-full text-[11px] leading-snug text-white/55 sm:basis-auto">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
+                    </div>
+                  ) : null}
+                </div>
+
+                {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
                   <div
-                    className="min-w-0 pt-1"
+                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3 sm:col-span-2 lg:col-span-1"
+                    style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.20)", backgroundColor: "rgba(0,0,0,0.24)" }}
                     aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[11px] font-bold text-white/80 sm:text-xs">
-                        {currentCounts.unlocked} / {currentCounts.total} conquistas
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-black text-white/90 sm:text-xs">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ color: currentGameTheme.accent }}>
+                          <path d="M8 4.5h8v4.7a4 4 0 0 1-8 0V4.5Z" />
+                          <path d="M8 6H5.5v2a3 3 0 0 0 3 3M16 6h2.5v2a3 3 0 0 1-3 3M12 13v4M8.5 20h7" />
+                        </svg>
+                        {currentCounts.unlocked} / {currentCounts.total}
                       </span>
                       <span className="shrink-0 text-xs font-black text-white sm:text-[13px]">{currentProgress}%</span>
                     </div>
-                    <div
-                      className="mt-2 h-[7px] w-full overflow-hidden rounded-full bg-black/35 ring-1 ring-white/[0.08] sm:h-[8px]"
-                      role="progressbar"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={currentProgress}
-                      aria-label={"Progresso de " + currentGame.title}
-                    >
-                      <div className="h-full rounded-full bg-[#FB2C36] shadow-[0_0_12px_rgba(251,44,54,0.26)] transition-[width] duration-300" style={{ width: currentProgress + "%" }} />
+                    <div className="mt-1.5 h-[7px] w-full overflow-hidden rounded-full bg-white/[0.14] sm:h-[8px]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={currentProgress} aria-label={"Progresso de " + currentGame.title}>
+                      <div className="h-full rounded-full transition-[width] duration-300" style={{ width: currentProgress + "%", backgroundColor: currentGameTheme.accent, boxShadow: "0 0 12px " + currentGameTheme.glow }} />
                     </div>
+                    {getGameTimestamp(currentGame) ? (
+                      <p className="mt-2 text-right text-[9px] font-semibold text-white/40">Atualizado em {formatShortDate(getGameTimestamp(currentGame))}</p>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
-            </div>
 
-            {!showFirstJourneyPlaceholder ? (
-              <div className="mt-3 border-t border-white/[0.12] pt-3 sm:mt-4 sm:pt-3.5">
-                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-                  <div className="flex shrink-0 items-center justify-between gap-3 sm:w-[170px] sm:flex-col sm:items-start sm:justify-center sm:gap-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.12em] text-white/80 sm:text-[10px]">Próximas conquistas</span>
-                    <span className="text-[9px] font-semibold text-white/40">{pendingCurrentAchievementList.length} pendentes</span>
+              {!showFirstJourneyPlaceholder ? (
+                <div
+                  className="mx-3 mb-3 grid grid-cols-1 gap-2.5 rounded-xl border bg-black/35 px-3 py-2.5 sm:mx-4 sm:mb-4 sm:grid-cols-[190px_minmax(0,1fr)_auto] sm:items-center sm:gap-3 sm:px-4 lg:mx-5"
+                  style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.38)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px " + currentGameTheme.glow }}
+                >
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-black/25" style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)", color: currentGameTheme.accent }}>
+                      <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="8.2" />
+                        <circle cx="12" cy="12" r="2.7" />
+                        <path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3" />
+                      </svg>
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[9px] font-black uppercase tracking-[0.09em] text-white sm:text-[10px]">Próximas conquistas</span>
+                      <span className="mt-0.5 block text-[9px] font-semibold text-white/45">{pendingCurrentAchievementList.length} pendentes</span>
+                    </span>
                   </div>
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {visibleCurrentAchievements.length ? (
-                        visibleCurrentAchievements.map((achievement, index) => (
-                          <AchievementPreviewLink
-                            key={currentGame.slug + ":preview:" + (achievement.id || index)}
-                            game={currentGame}
-                            achievement={achievement}
-                            index={index}
-                          />
-                        ))
-                      ) : (
-                        <p className="min-w-0 flex-1 text-[11px] text-white/45">
-                          {pendingCurrentAchievementList.length === 0
-                            ? "Todas as conquistas desta jornada já foram desbloqueadas."
-                            : "As miniaturas das próximas conquistas aparecerão aqui quando suas artes estiverem configuradas."}
-                        </p>
-                      )}
-                      {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewMobileCount ? (
-                        <Link href={"/games/" + currentGame.slug} className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.14] bg-black/25 px-2 text-[10px] font-black text-white/80 transition hover:border-red-500/45 hover:text-white sm:hidden">
-                          +{pendingCurrentAchievementList.length - currentPreviewMobileCount}
-                        </Link>
-                      ) : null}
-                      {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewTabletCount ? (
-                        <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border border-white/[0.14] bg-black/25 px-2 text-[10px] font-black text-white/80 transition hover:border-red-500/45 hover:text-white sm:flex lg:hidden">
-                          +{pendingCurrentAchievementList.length - currentPreviewTabletCount}
-                        </Link>
-                      ) : null}
-                      {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewDesktopCount ? (
-                        <Link href={"/games/" + currentGame.slug} className="hidden h-12 min-w-11 shrink-0 items-center justify-center rounded-md border border-white/[0.14] bg-black/25 px-2 text-[10px] font-black text-white/80 transition hover:border-red-500/45 hover:text-white lg:flex">
-                          +{pendingCurrentAchievementList.length - currentPreviewDesktopCount}
-                        </Link>
-                      ) : null}
-                    </div>
-                    <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 whitespace-nowrap text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">
-                      Ver todas <span aria-hidden="true">→</span>
-                    </Link>
+                  <div className="flex min-w-0 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {visibleCurrentAchievements.length ? (
+                      visibleCurrentAchievements.map((achievement, index) => (
+                        <AchievementPreviewLink key={currentGame.slug + ":preview:" + (achievement.id || index)} game={currentGame} achievement={achievement} index={index} />
+                      ))
+                    ) : (
+                      <p className="min-w-0 text-[10px] text-white/50">
+                        {pendingCurrentAchievementList.length === 0
+                          ? "Todas as conquistas desta jornada já foram desbloqueadas."
+                          : "As miniaturas aparecerão aqui quando as artes individuais estiverem configuradas."}
+                      </p>
+                    )}
+                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewMobileCount ? (
+                      <Link href={"/games/" + currentGame.slug} className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/85 sm:hidden" style={{ borderColor: currentGameTheme.border }}>+{pendingCurrentAchievementList.length - currentPreviewMobileCount}</Link>
+                    ) : null}
+                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewTabletCount ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/85 sm:flex lg:hidden" style={{ borderColor: currentGameTheme.border }}>+{pendingCurrentAchievementList.length - currentPreviewTabletCount}</Link>
+                    ) : null}
+                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewDesktopCount ? (
+                      <Link href={"/games/" + currentGame.slug} className="hidden h-12 min-w-11 shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/85 lg:flex" style={{ borderColor: currentGameTheme.border }}>+{pendingCurrentAchievementList.length - currentPreviewDesktopCount}</Link>
+                    ) : null}
                   </div>
+                  <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 whitespace-nowrap text-right text-[10px] font-black uppercase text-white/75 transition hover:text-white sm:text-left" style={{ color: currentGameTheme.accent }}>
+                    Ver todas <span aria-hidden="true">→</span>
+                  </Link>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
             </div>
-          </div>
+          </>
         ) : (
           <div className="p-5 sm:p-7">
             <h3 className="text-base font-black text-white">Nenhum jogo em andamento</h3>
