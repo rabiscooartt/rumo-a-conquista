@@ -505,7 +505,9 @@ function AchievementPreviewLink({
   index: number;
   onUnavailable?: (key: string) => void;
 }) {
-  const imageSources = getIndividualAchievementImages(achievement);
+  const individualImages = getIndividualAchievementImages(achievement);
+  const fallbackImage = getAchievementFallbackImage(achievement);
+  const imageSources = Array.from(new Set([...individualImages, fallbackImage]));
   const [sourceIndex, setSourceIndex] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -514,13 +516,14 @@ function AchievementPreviewLink({
   const title = getAchievementTitle(achievement, index);
   const unlocked = isHomeAchievementUnlocked(game, achievement);
   const theme = getCurrentGameTheme(game);
+  const showingFallback = sourceIndex >= individualImages.length;
 
   return (
     <Link
       href={"/games/" + game.slug}
       title={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
       aria-label={title + (unlocked ? " — desbloqueada" : " — bloqueada")}
-      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11]/90 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (index >= 6 ? "hidden lg:flex " : index >= 4 ? "hidden sm:flex " : "") + (unlocked ? "border-emerald-400/40" : "border-white/20 opacity-95 grayscale-[0.45]")}
+      className={"group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[#0b0d11]/90 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition sm:h-11 sm:w-11 lg:h-12 lg:w-12 " + (unlocked ? "border-emerald-400/40" : "border-white/20 opacity-95 grayscale-[0.35]")}
       style={!unlocked ? { borderColor: theme.border } : undefined}
     >
       <img
@@ -537,7 +540,7 @@ function AchievementPreviewLink({
             onUnavailable?.(readText(achievement.id, title || String(index)));
           }
         }}
-        className="h-full w-full object-contain"
+        className={"h-full w-full object-contain " + (showingFallback ? "p-1 opacity-80" : "")}
       />
       {!unlocked ? (
         <span aria-hidden="true" className="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center rounded-tl bg-[#05070b]/95" style={{ color: theme.accent }}>
@@ -889,6 +892,8 @@ export default function LandingHome() {
     [gamesByUpdated]
   );
   const [unavailableCurrentAchievementKeys, setUnavailableCurrentAchievementKeys] = useState<string[]>([]);
+  const currentAchievementRailRef = useRef<HTMLDivElement | null>(null);
+  const [currentAchievementRailCapacity, setCurrentAchievementRailCapacity] = useState(4);
   useEffect(() => {
     setUnavailableCurrentAchievementKeys([]);
   }, [currentGame?.slug]);
@@ -955,21 +960,49 @@ export default function LandingHome() {
         return !manuallyUnlocked && !isHomeAchievementUnlocked(currentGame, achievement);
       })
     : [];
-  // A prévia mostra apenas artes individuais; não replica o troféu genérico como imagem de conquistas.
-  const visibleCurrentAchievements = pendingCurrentAchievementList
-    .filter((achievement) => getIndividualAchievementImages(achievement).length > 0)
-    .slice(0, 8);
+  // Todas as conquistas pendentes entram na faixa: usa a arte individual e, quando não existe,
+  // a miniatura padrão da categoria de troféu (bronze, prata, ouro ou maestria).
+  const visibleCurrentAchievements = pendingCurrentAchievementList;
   const unavailableCurrentAchievementSet = new Set(unavailableCurrentAchievementKeys);
   const loadedCurrentAchievementCandidates = visibleCurrentAchievements.filter((achievement, index) => {
     const key = readText(achievement.id, getAchievementTitle(achievement, index));
     return !unavailableCurrentAchievementSet.has(key);
   });
-  const currentPreviewMobileCount = Math.min(4, loadedCurrentAchievementCandidates.length);
-  const currentPreviewTabletCount = Math.min(6, loadedCurrentAchievementCandidates.length);
-  const currentPreviewDesktopCount = loadedCurrentAchievementCandidates.length;
+  const visibleCurrentAchievementCount = Math.min(currentAchievementRailCapacity, loadedCurrentAchievementCandidates.length);
+  const remainingCurrentAchievementCount = Math.max(0, pendingCurrentAchievementList.length - visibleCurrentAchievementCount);
   // During the active debut journey, preparation replaces progress and trophy previews.
   const showFirstJourneyPlaceholder =
     currentGame?.firstJourney?.status === "in_progress";
+
+  useEffect(() => {
+    const rail = currentAchievementRailRef.current;
+    if (!rail || showFirstJourneyPlaceholder || typeof ResizeObserver === "undefined") return;
+
+    const updateCapacity = () => {
+      const width = rail.getBoundingClientRect().width;
+      if (width <= 0) return;
+
+      const tileSize = window.innerWidth >= 1024 ? 48 : window.innerWidth >= 640 ? 44 : 40;
+      const gap = 8;
+      const availableSlots = Math.max(1, Math.floor((width + gap) / (tileSize + gap)));
+      const total = loadedCurrentAchievementCandidates.length;
+      const needsMoreTile = total > availableSlots;
+      const visibleCount = needsMoreTile
+        ? Math.max(1, availableSlots - 1)
+        : Math.min(total, availableSlots);
+
+      setCurrentAchievementRailCapacity((current) => current === visibleCount ? current : visibleCount);
+    };
+
+    updateCapacity();
+    const observer = new ResizeObserver(updateCapacity);
+    observer.observe(rail);
+    window.addEventListener("resize", updateCapacity);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateCapacity);
+    };
+  }, [loadedCurrentAchievementCandidates.length, showFirstJourneyPlaceholder, currentGame?.slug]);
   const trophySummary = useMemo(() => getHomeTrophySummary(allGames), [allGames]);
 
   return (
@@ -1325,26 +1358,32 @@ export default function LandingHome() {
                       <span className="mt-0.5 block text-[9px] font-semibold text-white/45">{pendingCurrentAchievementList.length} pendentes</span>
                     </span>
                   </div>
-                  <div className="flex min-w-0 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {visibleCurrentAchievements.length ? (
-                      loadedCurrentAchievementCandidates.map((achievement, index) => (
-                        <AchievementPreviewLink key={currentGame.slug + ":preview:" + (achievement.id || index)} game={currentGame} achievement={achievement} index={index} onUnavailable={(key) => setUnavailableCurrentAchievementKeys((current) => current.includes(key) ? current : [...current, key])} />
-                      ))
-                    ) : (
-                      <p className="min-w-0 text-[10px] text-white/50">
-                        {pendingCurrentAchievementList.length === 0
-                          ? "Todas as conquistas desta jornada já foram desbloqueadas."
-                          : "As miniaturas aparecerão aqui quando as artes individuais estiverem configuradas."}
-                      </p>
-                    )}
-                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewMobileCount ? (
-                      <Link href={"/games/" + currentGame.slug} className="flex h-10 min-w-10 shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/85 sm:hidden" style={{ borderColor: currentGameTheme.border }}>+{pendingCurrentAchievementList.length - currentPreviewMobileCount}</Link>
+                  <div
+                    ref={currentAchievementRailRef}
+                    className="flex min-w-0 items-center gap-2 overflow-hidden py-0.5"
+                    aria-label="Miniaturas das próximas conquistas"
+                  >
+                    {loadedCurrentAchievementCandidates.slice(0, visibleCurrentAchievementCount).map((achievement, index) => (
+                      <AchievementPreviewLink
+                        key={currentGame.slug + ":preview:" + (achievement.id || index)}
+                        game={currentGame}
+                        achievement={achievement}
+                        index={index}
+                        onUnavailable={(key) => setUnavailableCurrentAchievementKeys((current) => current.includes(key) ? current : [...current, key])}
+                      />
+                    ))}
+                    {pendingCurrentAchievementList.length === 0 ? (
+                      <p className="min-w-0 text-[10px] text-white/50">Todas as conquistas desta jornada já foram desbloqueadas.</p>
                     ) : null}
-                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewTabletCount ? (
-                      <Link href={"/games/" + currentGame.slug} className="hidden h-11 min-w-10 shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/85 sm:flex lg:hidden" style={{ borderColor: currentGameTheme.border }}>+{pendingCurrentAchievementList.length - currentPreviewTabletCount}</Link>
-                    ) : null}
-                    {visibleCurrentAchievements.length > 0 && pendingCurrentAchievementList.length > currentPreviewDesktopCount ? (
-                      <Link href={"/games/" + currentGame.slug} className="hidden h-12 min-w-11 shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/85 lg:flex" style={{ borderColor: currentGameTheme.border }}>+{pendingCurrentAchievementList.length - currentPreviewDesktopCount}</Link>
+                    {remainingCurrentAchievementCount > 0 ? (
+                      <Link
+                        href={"/games/" + currentGame.slug}
+                        aria-label={remainingCurrentAchievementCount + " conquistas restantes. Ver todas."}
+                        className="flex h-10 min-w-[48px] shrink-0 items-center justify-center rounded-md border bg-black/30 px-2 text-[10px] font-black text-white/90 transition hover:bg-black/50 sm:h-11 sm:min-w-[50px] lg:h-12 lg:min-w-[54px]"
+                        style={{ borderColor: currentGameTheme.border, color: currentGameTheme.accent }}
+                      >
+                        +{remainingCurrentAchievementCount}
+                      </Link>
                     ) : null}
                   </div>
                   <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 whitespace-nowrap text-right text-[10px] font-black uppercase text-white/75 transition hover:text-white sm:text-left" style={{ color: currentGameTheme.accent }}>
