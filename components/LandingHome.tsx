@@ -609,13 +609,13 @@ function RecentAchievementMiniatures({ items }: { items: RecentAchievementPrevie
 
   const hiddenCount = items.length - visibleCount;
   if (availableWidth <= 0) {
-    return <div ref={containerRef} className="mt-1.5 h-9 w-full min-w-0" aria-hidden="true" />;
+    return <div ref={containerRef} className="mt-2.5 h-9 w-full min-w-0" aria-hidden="true" />;
   }
 
   return (
     <div
       ref={containerRef}
-      className="mt-1.5 flex min-w-0 w-full items-center gap-1 overflow-hidden"
+      className="mt-2.5 flex min-w-0 w-full items-center gap-1 overflow-hidden"
       aria-label={items.length + " conquistas desbloqueadas"}
     >
       {items.slice(0, visibleCount).map((item) => (
