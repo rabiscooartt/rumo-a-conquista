@@ -1677,12 +1677,7 @@ export default function LandingHome() {
               )}
             </div>
 
-            <div className="flex items-center gap-3 px-3.5 pb-3.5">
-              <div className="h-[60px] w-[60px] shrink-0 overflow-visible">
-                <div className={"-mt-3 origin-top-left scale-[0.714] " + (!liveStreams.length && liveStatusLoaded ? "[&>div]:grayscale [&>div]:opacity-45" : "")}>
-                  <ProfileAvatar />
-                </div>
-              </div>
+            <div className="flex items-center justify-between gap-3 px-3.5 pb-3.5">
               <div className="min-w-0 flex-1">
                 <h3 className={"text-xs font-black leading-snug sm:text-sm " + (liveStreams.length > 0 ? "text-white" : "text-white/75")}>
                   {liveStreams.length > 0 ? "Rabiisco está ao vivo!" : liveStatusLoaded ? "Rabiisco está offline." : "Verificando transmissão…"}
@@ -1696,24 +1691,28 @@ export default function LandingHome() {
                         ? "Nenhuma transmissão no momento."
                         : "Consultando os canais do YouTube e da Twitch."}
                 </p>
-                {liveStreams.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {liveStreams.map((stream) => (
-                      <button
-                        key={stream.platform}
-                        type="button"
-                        onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
-                        aria-expanded={expandedLivePlatform === stream.platform}
-                        aria-controls="live-player-panel"
-                        className={"inline-flex min-w-0 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-[9px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/50 bg-red-500/15 text-white" : "border-red-500/25 bg-red-500/[0.06] text-red-200 hover:border-red-500/45 hover:bg-red-500/10 hover:text-white")}
-                      >
-                        <span aria-hidden="true">▶</span>
-                        {expandedLivePlatform === stream.platform ? "Fechar player" : "Assistir " + (stream.platform === "youtube" ? "YouTube" : "Twitch") + " →"}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
               </div>
+              {liveStreams.length > 0 ? (
+                <div className="flex shrink-0 flex-col gap-1.5">
+                  {liveStreams.map((stream) => (
+                    <button
+                      key={stream.platform}
+                      type="button"
+                      onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
+                      aria-expanded={expandedLivePlatform === stream.platform}
+                      aria-controls="live-player-panel"
+                      className={"inline-flex min-w-0 items-center justify-center gap-1 rounded-md border px-2.5 py-1.5 text-[9px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/50 bg-red-500/15 text-white" : "border-red-500/25 bg-red-500/[0.06] text-red-200 hover:border-red-500/45 hover:bg-red-500/10 hover:text-white")}
+                    >
+                      <span aria-hidden="true">▶</span>
+                      {expandedLivePlatform === stream.platform
+                        ? "Fechar"
+                        : liveStreams.length === 1
+                          ? "Assistir agora →"
+                          : stream.platform === "youtube" ? "YouTube →" : "Twitch →"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             {activeLivePlayer ? (
