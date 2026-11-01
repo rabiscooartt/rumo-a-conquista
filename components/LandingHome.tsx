@@ -1343,7 +1343,7 @@ export default function LandingHome() {
                   </span>
                   <span className="min-w-0">
                     <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
-                    <p className="mt-0.5 hidden text-[10px] leading-snug text-white/60 sm:block">Sua jornada em andamento. Conquiste, explore e complete!</p>
+                    <p className="mt-0.5 hidden text-[11px] leading-snug text-white/70 sm:block">Sua jornada em andamento. Conquiste, explore e complete!</p>
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -1514,9 +1514,9 @@ export default function LandingHome() {
             <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
               <span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos recentes
             </h2>
-            <p className="mt-1 text-[10px] text-white/45 sm:text-xs">Conquistas já desbloqueadas nas suas jornadas recentes.</p>
+            <p className="mt-1 text-[11px] text-white/60 sm:text-xs">Conquistas já desbloqueadas nas suas jornadas recentes.</p>
           </div>
-          <Link href="/biblioteca" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todos <span aria-hidden="true">→</span></Link>
+          <Link href="/biblioteca" className="shrink-0 text-[11px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todos <span aria-hidden="true">→</span></Link>
         </div>
 
         {recentGames.length ? (
@@ -1570,7 +1570,7 @@ export default function LandingHome() {
                             className="h-[14px] !text-[12px] !tracking-[-0.04em]"
                           />
                         ) : null}
-                        <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] " + statusClass}>
+                        <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] " + statusClass}>
                           {statusLabel}
                         </span>
                       </div>
@@ -1714,7 +1714,7 @@ export default function LandingHome() {
           <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="next-mastery-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="next-mastery-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
-              <Link href="/backlog" className="shrink-0 text-[10px] font-bold text-white/45 transition hover:text-white">Fila →</Link>
+              <Link href="/backlog" className="shrink-0 text-[11px] font-bold text-white/55 transition hover:text-white">Fila →</Link>
             </div>
             {nextMastery ? (
               <>
@@ -1724,12 +1724,12 @@ export default function LandingHome() {
                   </Link>
                   <div className="min-w-0">
                     <h3 className="text-xs font-black leading-snug text-white sm:text-sm">{nextMastery.title}</h3>
-                    <p className="mt-1 text-[10px] text-white/55">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
+                    <p className="mt-1 text-[11px] text-white/65">{nextCounts?.unlocked ?? 0} / {nextCounts?.total ?? 0} conquistas</p>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
-                      <span className="text-[10px] font-black text-white">{nextProgress}%</span>
+                      <span className="text-[11px] font-black text-white">{nextProgress}%</span>
                     </div>
-                    <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
+                    <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[11px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
                   </div>
                 </div>
               </>
@@ -1745,7 +1745,7 @@ export default function LandingHome() {
           <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="recent-content-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="recent-content-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conteúdo recente</h2>
-              <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos →</Link>
+              <Link href="/conteudo" className="shrink-0 text-[11px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos →</Link>
             </div>
             {sidebarRecentVideos.length ? (
               <div className="p-3">
@@ -1756,10 +1756,11 @@ export default function LandingHome() {
                         <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
                       ) : null}
                       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-80" />
+                      <span className="absolute right-2 top-2 rounded border border-white/15 bg-black/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.08em] text-white/80 shadow-sm">Vídeo</span>
                       <span className="absolute bottom-2 left-2 flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-[#FB2C36] text-xs text-white shadow-lg transition group-hover:scale-105">▶</span>
                     </div>
-                    <h3 className="mt-2.5 line-clamp-2 text-[11px] font-bold leading-snug text-white/90 transition group-hover:text-white">{video.title}</h3>
-                    <div className="mt-2 flex min-w-0 items-center gap-1.5 text-[9px] text-white/45">
+                    <h3 className="mt-2.5 line-clamp-2 text-[12px] font-bold leading-snug text-white/95 transition group-hover:text-white">{video.title}</h3>
+                    <div className="mt-2 flex min-w-0 items-center gap-1.5 text-[10px] text-white/60">
                       <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-[#FB2C36] text-[8px] text-white">▶</span>
                       <span className="font-semibold text-white/65">YouTube</span>
                       <span aria-hidden="true" className="text-white/25">·</span>
