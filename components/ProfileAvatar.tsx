@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { homeImageSrc } from "@/lib/homeImages";
 
 type AvatarSettings = {
   x: number;
@@ -120,6 +121,7 @@ export default function ProfileAvatar() {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [failedLightImage, setFailedLightImage] = useState("");
 
   useEffect(() => {
     setPortalTarget(document.body);
@@ -197,7 +199,10 @@ export default function ProfileAvatar() {
     };
   }, [isOpen, isSaving, settings]);
 
-  const visibleImageUrl = selectedImagePreview || settings.imageUrl || DEFAULT_AVATAR;
+  // O editor segue usando o arquivo original; só a exibição na barra lateral usa a cópia leve.
+  const originalImageUrl = settings.imageUrl || DEFAULT_AVATAR;
+  const lightImageUrl = homeImageSrc(originalImageUrl);
+  const visibleImageUrl = selectedImagePreview || (lightImageUrl === failedLightImage ? originalImageUrl : lightImageUrl);
   const previewImageUrl = selectedImagePreview || draft.imageUrl || DEFAULT_AVATAR;
   const maxOffset = Math.max(0, (draft.zoom - 1) * 50);
 
@@ -330,7 +335,11 @@ export default function ProfileAvatar() {
           zoom={settings.zoom}
           className="h-full w-full"
           onImageError={() => {
-            if (settings.imageUrl) setSettings((current) => ({ ...current, imageUrl: "" }));
+            if (visibleImageUrl !== originalImageUrl) {
+              setFailedLightImage(visibleImageUrl);
+            } else if (settings.imageUrl) {
+              setSettings((current) => ({ ...current, imageUrl: "" }));
+            }
           }}
         />
         {isLoaded && isAdmin ? (

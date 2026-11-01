@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "home-images:generate": "node scripts/home-images.mjs generate",
+    "home-images:check": "node scripts/home-images.mjs check"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.6",

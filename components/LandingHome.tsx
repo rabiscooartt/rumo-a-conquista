@@ -8,6 +8,7 @@ import PlatformIcon from "@/components/PlatformIcon";
 import StarRating from "@/components/StarRating";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
+import { homeImageSrc } from "@/lib/homeImages";
 
 type HomeGame = SiteGame & {
   mastery?: string;
@@ -684,7 +685,7 @@ function RecentAchievementMiniatures({ items }: { items: RecentAchievementPrevie
           <span aria-hidden="true">{item.fallback}</span>
           {item.image ? (
             <img
-              src={item.image}
+              src={homeImageSrc(item.image)}
               alt=""
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"
@@ -1303,7 +1304,7 @@ export default function LandingHome() {
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               <img
                 key={currentGame.slug + ":ambient"}
-                src={currentGame.image || currentGame.cardImage || ""}
+                src={homeImageSrc(currentGame.image || currentGame.cardImage || "")}
                 alt=""
                 loading="eager"
                 decoding="async"
@@ -1363,7 +1364,7 @@ export default function LandingHome() {
                   style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)" }}
                 >
                   <img
-                    src={currentGame.image || currentGame.cardImage || ""}
+                    src={homeImageSrc(currentGame.image || currentGame.cardImage || "")}
                     alt={currentGame.title + " — arte do jogo"}
                     loading="eager"
                     decoding="async"
@@ -1528,7 +1529,7 @@ export default function LandingHome() {
               const counts = getAchievementCounts(game);
               const completed = getGameStatus(game) === "completed";
               const progress = completed ? 100 : Math.max(0, Math.min(100, Number(game.progress) || 0));
-              const emblem = getGameEmblemImage(game) || "/images/games/emblem.png";
+              const emblem = homeImageSrc(getGameEmblemImage(game) || "/images/games/emblem.png");
               const date = getRecentGameDate(game);
               const rating = getRecentGameRating(game);
               const platform = readText(game.platform, "").trim() || "Steam";
@@ -1551,7 +1552,7 @@ export default function LandingHome() {
                   <div className="grid grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
                     <div className="h-[121px] w-[94px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
-                        src={game.cardImage || game.image || ""}
+                        src={homeImageSrc(game.cardImage || game.image || "")}
                         alt={game.title + " — capa"}
                         loading="lazy"
                         className="h-full w-full object-cover object-center transition duration-700 group-hover/recent-row:scale-105"
