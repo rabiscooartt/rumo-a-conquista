@@ -1117,8 +1117,8 @@ function GameRow({
       href={`/games/${gameSlug}`}
       className="group/row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025]"
     >
-      <div className="grid grid-cols-[84px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[92px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[100px_minmax(0,1fr)_108px]">
-        <div className="h-[108px] w-[84px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[118px] sm:w-[92px] lg:h-[128px] lg:w-[100px]">
+      <div className="grid grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+        <div className="h-[121px] w-[94px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
           <GameCoverImage src={cardImage} title={gameTitle} imageClassName="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover/row:scale-105 group-hover/row:brightness-105" />
         </div>
 
