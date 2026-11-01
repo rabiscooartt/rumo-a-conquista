@@ -343,7 +343,7 @@ function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string;
   return (
     <div className="flex items-center justify-between gap-3">
       <h2 className="min-w-0 text-sm font-black uppercase tracking-[0.06em] text-white sm:text-[15px]">{title}</h2>
-      {href ? <Link href={href} className="shrink-0 text-[11px] font-bold text-white/55 transition hover:text-white">{linkLabel} <span className="text-[#FB2C36]">→</span></Link> : null}
+      {href ? <Link href={href} className="shrink-0 text-[11px] font-bold text-white/55 transition hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">{linkLabel} <span className="text-[#FB2C36]">→</span></Link> : null}
     </div>
   );
 }
@@ -838,6 +838,117 @@ function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "c
   );
 }
 
+function HomeSocialLinks({ className, linkClassName = "" }: { className: string; linkClassName?: string }) {
+  return (
+    <div className={className} role="group" aria-label="Redes sociais do Rabiisco">
+        <a href="https://www.youtube.com/@orabiisco" target="_blank" rel="noreferrer" aria-label="YouTube do Rabiisco" title="YouTube" className={linkClassName + " text-[#FB2C36] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+            <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/orabiisco/" target="_blank" rel="noreferrer" aria-label="Instagram do Rabiisco" title="Instagram" className={linkClassName + " text-[#E879B9] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+          </svg>
+        </a>
+        <a href="https://www.twitch.tv/orabiisco" target="_blank" rel="noreferrer" aria-label="Twitch do Rabiisco" title="Twitch" className={linkClassName + " text-[#BF94FF] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+            <path d="M4.3 2 1 5.3v14.1h5.4V22h3.3l2.6-2.6h4.1L23 12.7V2H4.3Zm16.4 9.6-3.3 3.3h-4.1l-2.6 2.6v-2.6H6.4V4.1h14.3v7.5ZM16 6.8h2.1v6.1H16V6.8Zm-5.7 0h2.1v6.1h-2.1V6.8Z" />
+          </svg>
+        </a>
+        <a href="https://kick.com/orabiisco" target="_blank" rel="noreferrer" aria-label="Kick do Rabiisco" title="Kick" className={linkClassName + " text-[#53E0A0] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+            <path d="M4 3h5v6l6-6h6l-7.2 8L21 21h-6l-4.5-6L9 17v4H4V3Z" />
+          </svg>
+        </a>
+    </div>
+  );
+}
+
+function HomeRanksGrid({ summary, isLoaded }: { summary: HomeTrophySummary; isLoaded: boolean }) {
+  return (
+    <div className="mt-3 grid grid-cols-4 gap-1.5">
+    {HOME_TROPHY_TIERS.map((tier) => {
+      const count = summary[tier.key];
+      const countLabel = isLoaded ? String(count.unlocked) : "—";
+      const countDescription = isLoaded
+        ? `${tier.label}: ${count.unlocked} desbloqueadas de ${count.total}`
+        : `${tier.label}: carregando contagens`;
+
+      return (
+        <div
+          key={tier.key}
+          title={countDescription}
+          aria-label={countDescription}
+          className={`flex min-w-0 flex-col items-center justify-center rounded-md border px-0.5 py-1.5 ${tier.border} ${tier.background}`}
+        >
+          <img
+            src={tier.image}
+            alt={tier.label}
+            loading="eager"
+            className="h-8 w-8 max-w-full object-contain"
+          />
+          <p className="mt-1 whitespace-nowrap text-[13px] font-black leading-none text-white">
+            {countLabel}
+          </p>
+        </div>
+      );
+    })}
+    </div>
+  );
+}
+
+const HOME_SETUP_ITEMS = [
+    { name: "RTX 3060 12GB", type: "GPU", icon: "gpu" },
+    { name: "i5-12400F", type: "CPU", icon: "chip" },
+    { name: "32 GB", type: "RAM", icon: "ram" },
+    { name: '27" 75Hz', type: "Monitor", icon: "monitor" },
+];
+
+function HomeSetupList({ className = "", itemClassName }: { className?: string; itemClassName: (index: number) => string }) {
+  return (
+    <div className={className}>
+      {HOME_SETUP_ITEMS.map((item, index) => (
+      <div
+        key={item.name}
+        className={itemClassName(index)}
+      >
+        <div className="flex h-5 w-5 shrink-0 items-center justify-center text-red-500">
+          {item.icon === "gpu" ? (
+            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3.5" y="5" width="17" height="14" rx="2" />
+              <path d="M7 15.5l3-3 2.2 2.2 2.3-2.3 2.5 2.6M7 8.5h.01M10 8.5h.01" />
+            </svg>
+          ) : item.icon === "chip" ? (
+            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
+              <path d="M9 1.8v3M12 1.8v3M15 1.8v3M9 19.2v3M12 19.2v3M15 19.2v3M1.8 9h3M1.8 12h3M1.8 15h3M19.2 9h3M19.2 12h3M19.2 15h3" />
+            </svg>
+          ) : item.icon === "ram" ? (
+            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3.5" y="7" width="17" height="10" rx="1.5" />
+              <path d="M7 10v4M10 10v4M13 10v4M16 10v4M6 17v2M9 17v2M12 17v2M15 17v2M18 17v2" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3.5" y="5" width="17" height="12" rx="2" />
+              <path d="M8 20h8M12 17v3" />
+            </svg>
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-black leading-tight text-white">{item.name}</p>
+          <p className="mt-0.5 text-[10px] font-medium leading-tight text-white/50">{item.type}</p>
+        </div>
+      </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LandingHome() {
   const { gamesList, isLoaded } = useSiteGames();
   const [backlogEntries, setBacklogEntries] = useState<BacklogEntry[]>([]);
@@ -1124,30 +1235,7 @@ export default function LandingHome() {
               <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
               <p className="mt-2 max-w-[180px] text-[11px] italic leading-relaxed text-white/50">Jogador por paixão. Conquistas por propósito.</p>
 
-              <div className="mt-4 flex items-center justify-center gap-4" role="group" aria-label="Redes sociais do Rabiisco">
-                <a href="https://www.youtube.com/@orabiisco" target="_blank" rel="noreferrer" aria-label="YouTube do Rabiisco" title="YouTube" className="text-[#FB2C36] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z" />
-                  </svg>
-                </a>
-                <a href="https://www.instagram.com/orabiisco/" target="_blank" rel="noreferrer" aria-label="Instagram do Rabiisco" title="Instagram" className="text-[#E879B9] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="5" />
-                    <circle cx="12" cy="12" r="4" />
-                    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-                  </svg>
-                </a>
-                <a href="https://www.twitch.tv/orabiisco" target="_blank" rel="noreferrer" aria-label="Twitch do Rabiisco" title="Twitch" className="text-[#BF94FF] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                    <path d="M4.3 2 1 5.3v14.1h5.4V22h3.3l2.6-2.6h4.1L23 12.7V2H4.3Zm16.4 9.6-3.3 3.3h-4.1l-2.6 2.6v-2.6H6.4V4.1h14.3v7.5ZM16 6.8h2.1v6.1H16V6.8Zm-5.7 0h2.1v6.1h-2.1V6.8Z" />
-                  </svg>
-                </a>
-                <a href="https://kick.com/orabiisco" target="_blank" rel="noreferrer" aria-label="Kick do Rabiisco" title="Kick" className="text-[#53E0A0] transition hover:scale-110 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                    <path d="M4 3h5v6l6-6h6l-7.2 8L21 21h-6l-4.5-6L9 17v4H4V3Z" />
-                  </svg>
-                </a>
-              </div>
+              <HomeSocialLinks className="mt-4 flex items-center justify-center gap-4" />
             </div>
           </div>
           <div className="mt-5 border-b border-white/[0.08] pb-5">
@@ -1156,34 +1244,7 @@ export default function LandingHome() {
               <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Ranks conquistados</h2>
             </div>
 
-            <div className="mt-3 grid grid-cols-4 gap-1.5">
-              {HOME_TROPHY_TIERS.map((tier) => {
-                const count = trophySummary[tier.key];
-                const countLabel = isLoaded ? String(count.unlocked) : "—";
-                const countDescription = isLoaded
-                  ? `${tier.label}: ${count.unlocked} desbloqueadas de ${count.total}`
-                  : `${tier.label}: carregando contagens`;
-
-                return (
-                  <div
-                    key={tier.key}
-                    title={countDescription}
-                    aria-label={countDescription}
-                    className={`flex min-w-0 flex-col items-center justify-center rounded-md border px-0.5 py-1.5 ${tier.border} ${tier.background}`}
-                  >
-                    <img
-                      src={tier.image}
-                      alt={tier.label}
-                      loading="eager"
-                      className="h-8 w-8 max-w-full object-contain"
-                    />
-                    <p className="mt-1 whitespace-nowrap text-[13px] font-black leading-none text-white">
-                      {countLabel}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+            <HomeRanksGrid summary={trophySummary} isLoaded={isLoaded} />
           </div>
 
           <div className="mt-6">
@@ -1192,61 +1253,22 @@ export default function LandingHome() {
               <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">SETUP</h2>
             </div>
 
-            <div className="mt-3">
-              {[
-                { name: "RTX 3060 12GB", type: "GPU", icon: "gpu" },
-                { name: "i5-12400F", type: "CPU", icon: "chip" },
-                { name: "32 GB", type: "RAM", icon: "ram" },
-                { name: '27" 75Hz', type: "Monitor", icon: "monitor" },
-              ].map((item, index) => (
-                <div
-                  key={item.name}
-                  className={`flex items-center gap-3 py-2.5 ${
-                    index > 0 ? "border-t border-white/[0.05]" : ""
-                  }`}
-                >
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center text-red-500">
-                    {item.icon === "gpu" ? (
-                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <rect x="3.5" y="5" width="17" height="14" rx="2" />
-                        <path d="M7 15.5l3-3 2.2 2.2 2.3-2.3 2.5 2.6M7 8.5h.01M10 8.5h.01" />
-                      </svg>
-                    ) : item.icon === "chip" ? (
-                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
-                        <path d="M9 1.8v3M12 1.8v3M15 1.8v3M9 19.2v3M12 19.2v3M15 19.2v3M1.8 9h3M1.8 12h3M1.8 15h3M19.2 9h3M19.2 12h3M19.2 15h3" />
-                      </svg>
-                    ) : item.icon === "ram" ? (
-                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <rect x="3.5" y="7" width="17" height="10" rx="1.5" />
-                        <path d="M7 10v4M10 10v4M13 10v4M16 10v4M6 17v2M9 17v2M12 17v2M15 17v2M18 17v2" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <rect x="3.5" y="5" width="17" height="12" rx="2" />
-                        <path d="M8 20h8M12 17v3" />
-                      </svg>
-                    )}
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="truncate text-[11px] font-black leading-tight text-white">{item.name}</p>
-                    <p className="mt-0.5 text-[10px] font-medium leading-tight text-white/50">{item.type}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <HomeSetupList
+              className="mt-3"
+              itemClassName={(index) => `flex items-center gap-3 py-2.5 ${index > 0 ? "border-t border-white/[0.05]" : ""}`}
+            />
           </div>
         </div>
       </aside>
 
       <div className="min-w-0 px-4 pb-12 pt-4 sm:px-5 lg:px-5 lg:pt-5">
-        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="min-w-0 space-y-4">
+        {/* Abaixo de xl as colunas se dissolvem (contents) e cada seção define sua posição com order. */}
+        <div className="grid items-start gap-4 sm:max-xl:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 max-xl:contents xl:space-y-4">
       {/* Banner principal integrado com as estatísticas, seguindo o padrão visual de Jogos e Conteúdo */}
       <section
         aria-label="Banner principal e resumo da jornada"
-        className="relative isolate overflow-hidden rounded-xl border border-white/[0.10] bg-[#050609] shadow-[0_6px_22px_rgba(0,0,0,0.16)]"
+        className="relative isolate overflow-hidden rounded-xl border border-white/[0.10] bg-[#050609] shadow-[0_6px_22px_rgba(0,0,0,0.16)] max-xl:order-2 sm:max-xl:col-span-2"
       >
         <BannerBackground
           bannerKey="home"
@@ -1292,9 +1314,35 @@ export default function LandingHome() {
         </div>
       </section>
 
+      {/* Perfil compacto: substitui a barra lateral abaixo de lg sem esconder informações */}
+      <section
+        aria-label="Perfil do Rabiisco"
+        className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95 p-3.5 max-xl:order-3 sm:max-xl:col-span-2 lg:hidden"
+      >
+        <div className="flex items-center gap-3">
+          <ProfileAvatar className="mt-2 h-16 w-16 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-black leading-tight text-white">Rabiisco</h2>
+            <p className="mt-0.5 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
+            <p className="mt-0.5 text-[11px] italic leading-relaxed text-white/50">Jogador por paixão. Conquistas por propósito.</p>
+          </div>
+        </div>
+        <HomeSocialLinks
+          className="mt-2 flex items-center justify-center gap-1 sm:justify-start"
+          linkClassName="inline-flex h-11 w-11 items-center justify-center rounded-lg"
+        />
+        <div className="mt-2 border-t border-white/[0.08] pt-3">
+          <div className="flex items-center gap-2">
+            <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+            <h2 className="text-[11px] font-black uppercase tracking-[0.12em] text-white">Ranks conquistados</h2>
+          </div>
+          <HomeRanksGrid summary={trophySummary} isLoaded={isLoaded} />
+        </div>
+      </section>
+
       {/* Jogo atual: estrutura horizontal temática inspirada na referência */}
       <section
-        className="relative isolate overflow-hidden rounded-2xl border bg-[#06090e] shadow-[0_12px_34px_rgba(0,0,0,0.30)]"
+        className="relative isolate overflow-hidden rounded-2xl border bg-[#06090e] shadow-[0_12px_34px_rgba(0,0,0,0.30)] max-xl:order-4 sm:max-xl:col-span-2"
         style={{ borderColor: currentGameTheme.border, boxShadow: "0 0 22px " + currentGameTheme.glow + ", 0 12px 34px rgba(0,0,0,0.30)" }}
         aria-labelledby="current-game-title"
       >
@@ -1349,7 +1397,7 @@ export default function LandingHome() {
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentGameTheme.accent, boxShadow: "0 0 8px " + currentGameTheme.glow }} />
                     Em andamento
                   </span>
-                  <Link href={"/games/" + currentGame.slug} className="whitespace-nowrap text-[9px] font-bold text-white/55 transition hover:text-white sm:text-[10px]">
+                  <Link href={"/games/" + currentGame.slug} className="whitespace-nowrap text-[9px] font-bold text-white/55 transition hover:text-white sm:text-[10px] max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">
                     Abrir jogo <span style={{ color: currentGameTheme.accent }}>→</span>
                   </Link>
                 </div>
@@ -1505,13 +1553,13 @@ export default function LandingHome() {
           <div className="p-5 sm:p-7">
             <h3 className="text-base font-black text-white">Nenhum jogo em andamento</h3>
             <p className="mt-2 text-sm text-white/55">Selecione uma jornada na Biblioteca para definir o jogo atual.</p>
-            <Link href="/biblioteca" className="mt-3 inline-flex text-xs font-bold text-red-300 hover:text-white">Abrir biblioteca →</Link>
+            <Link href="/biblioteca" className="mt-3 inline-flex text-xs font-bold text-red-300 hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Abrir biblioteca →</Link>
           </div>
         )}
       </section>
 
       {/* Jogos recentes em linhas horizontais, seguindo a lista de jornadas já existente */}
-      <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="recent-games-title">
+      <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95 max-sm:order-6 sm:max-xl:order-5 sm:max-xl:col-span-2" aria-labelledby="recent-games-title">
         <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-4 py-3 sm:px-5">
           <div>
             <h2 id="recent-games-title" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-white sm:text-base">
@@ -1519,7 +1567,7 @@ export default function LandingHome() {
             </h2>
             <p className="mt-1 text-[11px] text-white/60 sm:text-xs">Conquistas já desbloqueadas nas suas jornadas recentes.</p>
           </div>
-          <Link href="/biblioteca" className="shrink-0 text-[11px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs">Ver todos <span aria-hidden="true">→</span></Link>
+          <Link href="/biblioteca" className="shrink-0 text-[11px] font-bold text-[#FB2C36] transition hover:text-white sm:text-xs max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Ver todos <span aria-hidden="true">→</span></Link>
         </div>
 
         {recentGames.length ? (
@@ -1653,10 +1701,10 @@ export default function LandingHome() {
 
           </div>
 
-          <aside className="min-w-0 space-y-3" aria-label="Painel lateral da jornada">
+          <aside className="min-w-0 max-xl:contents xl:space-y-3" aria-label="Painel lateral da jornada">
           {liveStreams.length > 0 ? (
             <section
-              className="overflow-hidden rounded-lg border border-red-500/20 bg-[#07090d]/95 shadow-[0_0_18px_rgba(251,44,54,0.035)]"
+              className="overflow-hidden rounded-lg border border-red-500/20 bg-[#07090d]/95 shadow-[0_0_18px_rgba(251,44,54,0.035)] max-xl:order-1 sm:max-xl:col-span-2"
               aria-label="Transmissão ao vivo"
               aria-live="polite"
             >
@@ -1716,10 +1764,10 @@ export default function LandingHome() {
               ) : null}
             </section>
           ) : null}
-          <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="next-mastery-title">
+          <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95 max-sm:order-5 sm:max-xl:order-6 sm:max-xl:self-stretch" aria-labelledby="next-mastery-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="next-mastery-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
-              <Link href="/backlog" className="shrink-0 text-[11px] font-bold text-white/55 transition hover:text-white">Fila →</Link>
+              <Link href="/backlog" className="shrink-0 text-[11px] font-bold text-white/55 transition hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Fila →</Link>
             </div>
             {nextMastery ? (
               <>
@@ -1734,7 +1782,7 @@ export default function LandingHome() {
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.10]"><div className="h-full rounded-full bg-amber-400" style={{ width: nextProgress + "%" }} /></div>
                       <span className="text-[11px] font-black text-white">{nextProgress}%</span>
                     </div>
-                    <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[11px] font-bold text-[#FB2C36] transition hover:text-white">Ver detalhes <span className="ml-1">→</span></Link>
+                    <Link href={"/games/" + nextMastery.slug} className="mt-3 inline-flex text-[11px] font-bold text-[#FB2C36] transition hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Ver detalhes <span className="ml-1">→</span></Link>
                   </div>
                 </div>
               </>
@@ -1746,15 +1794,15 @@ export default function LandingHome() {
               <div className="p-3.5">
                 <p className="text-xs font-bold text-white">Sua próxima Maestria ainda não foi definida.</p>
                 <p className="mt-1 text-[10px] leading-relaxed text-white/50">Escolha um jogo na fila para destacá-lo aqui.</p>
-                <Link href="/backlog" className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white">Organizar fila →</Link>
+                <Link href="/backlog" className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Organizar fila →</Link>
               </div>
             )}
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="recent-content-title">
+          <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95 max-xl:order-7 sm:max-xl:self-stretch" aria-labelledby="recent-content-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="recent-content-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Conteúdo recente</h2>
-              <Link href="/conteudo" className="shrink-0 text-[11px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos →</Link>
+              <Link href="/conteudo" className="shrink-0 text-[11px] font-bold text-[#FB2C36] transition hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Ver todos →</Link>
             </div>
             {sidebarRecentVideos.length ? (
               <div className="p-3">
@@ -1781,9 +1829,23 @@ export default function LandingHome() {
             ) : (
               <div className="p-3.5">
                 <p className="text-[10px] text-white/50">{youtubeFailed ? "Não foi possível carregar o conteúdo do canal agora." : youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o conteúdo do canal…"}</p>
-                <Link href="/conteudo" className="mt-2 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white">Abrir Conteúdo →</Link>
+                <Link href="/conteudo" className="mt-2 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white max-lg:inline-flex max-lg:min-h-6 max-lg:items-center">Abrir Conteúdo →</Link>
               </div>
             )}
+          </section>
+
+          <section
+            className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95 p-3.5 max-xl:order-8 sm:max-xl:col-span-2 lg:hidden"
+            aria-labelledby="home-setup-title"
+          >
+            <div className="flex items-center gap-2">
+              <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+              <h2 id="home-setup-title" className="text-[12px] font-black uppercase tracking-[0.12em] text-white">SETUP</h2>
+            </div>
+            <HomeSetupList
+              className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 md:grid-cols-4"
+              itemClassName={() => "flex min-w-0 items-center gap-3"}
+            />
           </section>
           </aside>
         </div>

@@ -17,6 +17,7 @@ type AvatarApiResponse = Partial<AvatarSettings> & {
 
 const DEFAULT_AVATAR = "/images/avatar.jpg";
 const AUTH_CHANGED_EVENT = "rumo-admin-auth-changed";
+const AVATAR_UPDATED_EVENT = "rumo-profile-avatar-updated";
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 
@@ -26,6 +27,25 @@ const DEFAULT_SETTINGS: AvatarSettings = {
   zoom: 1,
   imageUrl: "",
 };
+
+// A Início monta o avatar na barra lateral e no perfil compacto; ambos dividem a mesma requisição.
+let pendingAvatarRequest: Promise<AvatarApiResponse> | null = null;
+
+function requestAvatarSettings() {
+  pendingAvatarRequest ??= fetch("/api/profile-avatar", {
+    method: "GET",
+    cache: "no-store",
+  })
+    .then((response) => {
+      if (!response.ok) throw new Error("Não foi possível carregar o perfil.");
+      return response.json() as Promise<AvatarApiResponse>;
+    })
+    .finally(() => {
+      pendingAvatarRequest = null;
+    });
+
+  return pendingAvatarRequest;
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -105,7 +125,11 @@ function AvatarArtwork({
   );
 }
 
-export default function ProfileAvatar() {
+export default function ProfileAvatar({
+  className = "mt-3 h-[84px] w-[84px]",
+}: {
+  className?: string;
+}) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
@@ -138,13 +162,7 @@ export default function ProfileAvatar() {
 
   const loadSettings = useCallback(async () => {
     try {
-      const response = await fetch("/api/profile-avatar", {
-        method: "GET",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Não foi possível carregar o perfil.");
-
-      const data = (await response.json()) as AvatarApiResponse;
+      const data = await requestAvatarSettings();
       const loaded = normalizeSettings({
         x: data.x,
         y: data.y,
@@ -170,7 +188,11 @@ export default function ProfileAvatar() {
     }
 
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
-    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    window.addEventListener(AVATAR_UPDATED_EVENT, handleAuthChanged);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+      window.removeEventListener(AVATAR_UPDATED_EVENT, handleAuthChanged);
+    };
   }, [loadSettings]);
 
   useEffect(() => {
@@ -312,7 +334,7 @@ export default function ProfileAvatar() {
       setDraft(saved);
       setSelectedImageFile(null);
       setIsOpen(false);
-      window.dispatchEvent(new Event("rumo-profile-avatar-updated"));
+      window.dispatchEvent(new Event(AVATAR_UPDATED_EVENT));
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Não foi possível salvar a foto.");
     } finally {
@@ -322,7 +344,7 @@ export default function ProfileAvatar() {
 
   return (
     <>
-      <div className="relative mt-3 h-[84px] w-[84px] overflow-visible">
+      <div className={`relative overflow-visible ${className}`}>
         <AvatarArtwork
           imageUrl={visibleImageUrl}
           x={settings.x}
