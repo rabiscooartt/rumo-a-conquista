@@ -731,6 +731,85 @@ function getRecentGameDate(game: HomeGame) {
   return date.toLocaleDateString("pt-BR");
 }
 
+function parseRecentGameTimestamp(value: unknown) {
+  const raw = readText(value, "").trim();
+  if (!raw) return Number.NaN;
+
+  const brazilianDate = raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  if (brazilianDate) {
+    const [, day, month, year] = brazilianDate;
+    return new Date(`${year}-${month}-${day}T23:59:59`).getTime();
+  }
+
+  const timestamp = Date.parse(raw);
+  return Number.isFinite(timestamp) ? timestamp : Number.NaN;
+}
+
+function getLatestRecentAchievementTimestamp(game: HomeGame) {
+  const achievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList as AchievementLike[]
+    : [];
+  const manualStates = readLocalJson<Record<string, SavedAchievementState>>(
+    `rumo-a-conquista-achievements-${game.slug}`,
+    {}
+  );
+
+  let latest = Number.NaN;
+  achievements.forEach((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    const directDate = parseRecentGameTimestamp(achievement.earnedDate);
+    const savedDate = parseRecentGameTimestamp(manualStates[title]?.date);
+    const timestamp = Number.isNaN(directDate) ? savedDate : directDate;
+
+    if (!Number.isNaN(timestamp) && (Number.isNaN(latest) || timestamp > latest)) {
+      latest = timestamp;
+    }
+  });
+
+  return latest;
+}
+
+function getHomeCompletionTimestamp(game: HomeGame) {
+  const explicitDates = [
+    game.firstJourney?.completedAt,
+    game["completionDate"],
+    game["completedAt"],
+    game["completedDate"],
+    game["finishedAt"],
+    game["concludedAt"],
+  ];
+
+  for (const value of explicitDates) {
+    const timestamp = parseRecentGameTimestamp(value);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  const displayedDate = getRecentGameDate(game);
+  if (displayedDate.includes("→")) {
+    const completionDate = displayedDate.split("→").pop()?.trim();
+    const timestamp = parseRecentGameTimestamp(completionDate);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  const latestAchievement = getLatestRecentAchievementTimestamp(game);
+  if (!Number.isNaN(latestAchievement)) return latestAchievement;
+
+  return parseRecentGameTimestamp(game.updatedAt || game.createdAt);
+}
+
+function getHomeRecentActivityTimestamp(game: HomeGame) {
+  const latestAchievement = getLatestRecentAchievementTimestamp(game);
+  if (!Number.isNaN(latestAchievement)) return latestAchievement;
+  return parseRecentGameTimestamp(game.updatedAt || game.createdAt);
+}
+
+function compareRecentTimestampsDescending(a: number, b: number) {
+  if (Number.isNaN(a) && Number.isNaN(b)) return 0;
+  if (Number.isNaN(a)) return 1;
+  if (Number.isNaN(b)) return -1;
+  return b - a;
+}
+
 function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "calendar"; className: string }) {
   if (type === "trophy") {
     return (
@@ -913,10 +992,34 @@ export default function LandingHome() {
 
   const recentGames = useMemo(() => {
     const reserved = new Set([currentGame?.slug, nextMastery?.slug].filter((slug): slug is string => Boolean(slug)));
-    return gamesByUpdated.filter((game) => {
+    const eligibleGames = gamesByUpdated.filter((game) => {
       const status = getGameStatus(game);
       return !reserved.has(game.slug) && (status === "progress" || status === "completed");
-    }).slice(0, 6);
+    });
+
+    // Keep the Home aligned with Biblioteca > Recentes:
+    // other active journeys first, then completed games by completion date.
+    const progressGames = eligibleGames
+      .filter((game) => getGameStatus(game) === "progress")
+      .sort((a, b) => {
+        const order = compareRecentTimestampsDescending(
+          getHomeRecentActivityTimestamp(a),
+          getHomeRecentActivityTimestamp(b)
+        );
+        return order || readText(a.title, "").localeCompare(readText(b.title, ""), "pt-BR");
+      });
+
+    const completedGames = eligibleGames
+      .filter((game) => getGameStatus(game) === "completed")
+      .sort((a, b) => {
+        const order = compareRecentTimestampsDescending(
+          getHomeCompletionTimestamp(a),
+          getHomeCompletionTimestamp(b)
+        );
+        return order || readText(a.title, "").localeCompare(readText(b.title, ""), "pt-BR");
+      });
+
+    return [...progressGames, ...completedGames].slice(0, 3);
   }, [gamesByUpdated, currentGame, nextMastery]);
 
   const summary = useMemo(() => {
