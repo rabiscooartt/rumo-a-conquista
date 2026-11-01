@@ -2642,14 +2642,6 @@ export default function BibliotecaPage() {
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
-              <Link
-                href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45 transition hover:text-white"
-              >
-                <IconTarget className="h-4 w-4" />
-                Configurações
-              </Link>
-
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new Event("rumo-admin-open-login"))}

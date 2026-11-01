@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
 import { games as baseGames } from "@/data/games";
@@ -1329,14 +1328,6 @@ export default function ConteudoPage() {
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
-              <Link
-                href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[10px] font-bold text-white/45 transition hover:text-white"
-              >
-                <span className="text-white/35">⚙</span>
-                Configurações
-              </Link>
-
               <a
                 href="https://www.youtube.com/@orabiisco"
                 target="_blank"
@@ -1353,7 +1344,7 @@ export default function ConteudoPage() {
         {/* CONTEÚDO CENTRAL */}
         <div className="min-w-0 px-4 py-5 md:px-5 lg:px-6">
           <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-            <BannerBackground bannerKey="conteudo" imageUrl="/images/content-banner-bg.png" adminButtonClassName="" />
+            <BannerBackground bannerKey="conteudo" imageUrl="/images/content-banner-bg.webp" adminButtonClassName="" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.96)_34%,rgba(5,6,9,0.70)_58%,rgba(5,6,9,0.42)_78%,rgba(5,6,9,0.74)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.16),transparent_42%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.96)_100%)]" />
