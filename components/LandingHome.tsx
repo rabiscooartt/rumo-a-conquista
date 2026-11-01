@@ -847,6 +847,7 @@ export default function LandingHome() {
   const [twitchLive, setTwitchLive] = useState<TwitchLiveItem | null>(null);
   const [expandedLivePlatform, setExpandedLivePlatform] = useState<LivePlatform | null>(null);
   const [youtubeLoaded, setYoutubeLoaded] = useState(false);
+  const [liveStatusLoaded, setLiveStatusLoaded] = useState(false);
 
   const liveStreams = useMemo<LiveStream[]>(() => {
     const streams: LiveStream[] = [];
@@ -945,6 +946,7 @@ export default function LandingHome() {
     async function refreshLiveStatus() {
       await Promise.all([loadFeaturedContent(), loadTwitchStatus()]);
       if (!controller.signal.aborted) {
+        setLiveStatusLoaded(true);
         refreshTimer = setTimeout(refreshLiveStatus, 60_000);
       }
     }
@@ -1647,72 +1649,96 @@ export default function LandingHome() {
           </div>
 
           <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
-          {liveStreams.length > 0 ? (
-            <section className="overflow-hidden rounded-xl border border-red-500/30 bg-[#07090d]/95 shadow-[0_0_24px_rgba(251,44,54,0.06)]" aria-labelledby="live-now-title">
-              <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
-                <h2 id="live-now-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm">
+          <section
+            className={"overflow-hidden rounded-xl border bg-[#07090d]/95 transition-colors " + (liveStreams.length > 0 ? "border-red-500/30 shadow-[0_0_24px_rgba(251,44,54,0.06)]" : "border-white/[0.09]")}
+            aria-labelledby="live-now-title"
+            aria-live="polite"
+          >
+            <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+              <h2 id="live-now-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm">
+                {liveStreams.length > 0 ? (
                   <span aria-hidden="true" className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
                   </span>
-                  Ao vivo agora
-                </h2>
-                <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-300">Ao vivo</span>
+                ) : (
+                  <span aria-hidden="true" className={"h-2.5 w-2.5 rounded-full " + (liveStatusLoaded ? "bg-white/30" : "animate-pulse bg-amber-300/70")} />
+                )}
+                {liveStreams.length > 0 ? "Ao vivo agora" : liveStatusLoaded ? "Offline" : "Verificando transmissão"}
+              </h2>
+              {liveStreams.length > 0 ? (
+                <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-300">
+                  {liveStreams.length > 1 ? "YouTube + Twitch" : liveStreams[0].platform === "youtube" ? "YouTube" : "Twitch"}
+                </span>
+              ) : (
+                <span className={"rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide " + (liveStatusLoaded ? "border-white/[0.09] bg-white/[0.03] text-white/35" : "border-amber-300/15 bg-amber-300/[0.05] text-amber-200/60")}>
+                  {liveStatusLoaded ? "OFF" : "…"}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 px-3.5 pb-3.5">
+              <div className="h-[60px] w-[60px] shrink-0 overflow-visible">
+                <div className={"-mt-3 origin-top-left scale-[0.714] " + (!liveStreams.length && liveStatusLoaded ? "[&>div]:grayscale [&>div]:opacity-45" : "")}>
+                  <ProfileAvatar />
+                </div>
               </div>
-              <div className="p-3">
-                <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3">
-                  <div className="relative aspect-video overflow-hidden rounded-md border border-white/[0.08] bg-black/50">
-                    {liveStreams[0].thumbnail ? (
-                      <img src={liveStreams[0].thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" />
-                    ) : currentGame?.cardImage || currentGame?.image ? (
-                      <img src={currentGame.cardImage || currentGame.image || ""} alt="" loading="lazy" className="h-full w-full object-cover" />
-                    ) : null}
-                    <span className="absolute bottom-1 left-1 rounded bg-[#FB2C36] px-1.5 py-0.5 text-[8px] font-black uppercase text-white">Ao vivo</span>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="line-clamp-2 text-xs font-black leading-snug text-white">{currentGame?.title || liveStreams[0].title}</h3>
-                    <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-white/50">
-                      {liveStreams.length > 1 ? "Transmissão confirmada no YouTube e na Twitch." : "Transmissão confirmada no " + (liveStreams[0].platform === "youtube" ? "YouTube." : "Twitch.")}
-                    </p>
-                  </div>
-                </div>
-                <div className={"mt-3 grid gap-2 " + (liveStreams.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
-                  {liveStreams.map((stream) => (
-                    <button
-                      key={stream.platform}
-                      type="button"
-                      onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
-                      aria-expanded={expandedLivePlatform === stream.platform}
-                      className={"inline-flex min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 py-2 text-[10px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/50 bg-red-500/15 text-white" : "border-white/[0.10] bg-white/[0.03] text-white/75 hover:border-red-500/30 hover:bg-white/[0.06] hover:text-white")}
-                    >
-                      <span aria-hidden="true">▶</span>
-                      {expandedLivePlatform === stream.platform ? "Fechar player" : stream.platform === "youtube" ? "Assistir no YouTube" : "Assistir na Twitch"}
-                    </button>
-                  ))}
-                </div>
-                {activeLivePlayer ? (
-                  <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.10] bg-black">
-                    <div className="aspect-video w-full">
-                      <iframe
-                        key={activeLivePlayer.platform + "-" + activeLivePlayer.id}
-                        src={activeLivePlayer.platform === "youtube"
-                          ? "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(activeLivePlayer.id) + "?autoplay=1&playsinline=1&rel=0"
-                          : "https://player.twitch.tv/?channel=orabiisco&parent=rumo-a-conquista.vercel.app&autoplay=true&muted=false"}
-                        title={"Transmissão ao vivo no " + (activeLivePlayer.platform === "youtube" ? "YouTube" : "Twitch")}
-                        className="h-full w-full"
-                        allow="autoplay; fullscreen; picture-in-picture"
-                        allowFullScreen
-                        referrerPolicy="strict-origin-when-cross-origin"
-                      />
-                    </div>
-                    <a href={activeLivePlayer.url} target="_blank" rel="noreferrer" className="block px-3 py-2 text-center text-[10px] font-bold text-[#FB2C36] transition hover:text-white">
-                      Abrir na plataforma ↗
-                    </a>
+              <div className="min-w-0 flex-1">
+                <h3 className={"text-xs font-black leading-snug sm:text-sm " + (liveStreams.length > 0 ? "text-white" : "text-white/75")}>
+                  {liveStreams.length > 0 ? "Rabiisco está ao vivo!" : liveStatusLoaded ? "Rabiisco está offline." : "Verificando transmissão…"}
+                </h3>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/45">
+                  {liveStreams.length > 1
+                    ? "Transmissão disponível no YouTube e na Twitch."
+                    : liveStreams.length === 1
+                      ? "Transmissão no " + (liveStreams[0].platform === "youtube" ? "YouTube." : "Twitch.")
+                      : liveStatusLoaded
+                        ? "Nenhuma transmissão no momento."
+                        : "Consultando os canais do YouTube e da Twitch."}
+                </p>
+                {liveStreams.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {liveStreams.map((stream) => (
+                      <button
+                        key={stream.platform}
+                        type="button"
+                        onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
+                        aria-expanded={expandedLivePlatform === stream.platform}
+                        aria-controls="live-player-panel"
+                        className={"inline-flex min-w-0 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-[9px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/50 bg-red-500/15 text-white" : "border-red-500/25 bg-red-500/[0.06] text-red-200 hover:border-red-500/45 hover:bg-red-500/10 hover:text-white")}
+                      >
+                        <span aria-hidden="true">▶</span>
+                        {expandedLivePlatform === stream.platform ? "Fechar player" : "Assistir " + (stream.platform === "youtube" ? "YouTube" : "Twitch") + " →"}
+                      </button>
+                    ))}
                   </div>
                 ) : null}
               </div>
-            </section>
-          ) : null}
+            </div>
+
+            {activeLivePlayer ? (
+              <div id="live-player-panel" className="border-t border-white/[0.08] p-3">
+                <div className="overflow-hidden rounded-lg border border-white/[0.10] bg-black">
+                  <div className="aspect-video w-full">
+                    <iframe
+                      key={activeLivePlayer.platform + "-" + activeLivePlayer.id}
+                      src={activeLivePlayer.platform === "youtube"
+                        ? "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(activeLivePlayer.id) + "?autoplay=1&playsinline=1&rel=0"
+                        : "https://player.twitch.tv/?channel=orabiisco&parent=rumo-a-conquista.vercel.app&autoplay=true&muted=false"}
+                      title={"Transmissão ao vivo no " + (activeLivePlayer.platform === "youtube" ? "YouTube" : "Twitch")}
+                      className="h-full w-full"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  </div>
+                  <a href={activeLivePlayer.url} target="_blank" rel="noreferrer" className="block px-3 py-2 text-center text-[10px] font-bold text-[#FB2C36] transition hover:text-white">
+                    Abrir na plataforma ↗
+                  </a>
+                </div>
+              </div>
+            ) : null}
+          </section>
           <section className="overflow-hidden rounded-xl border border-white/[0.09] bg-[#07090d]/95" aria-labelledby="next-mastery-title">
             <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-3.5 py-3">
               <h2 id="next-mastery-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm"><span aria-hidden="true" className="h-4 w-1 rounded-full bg-[#FB2C36]" /> Próxima Maestria</h2>
