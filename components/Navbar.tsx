@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import AdminAvatarLogin, { AUTH_CHANGED_EVENT } from "@/components/AdminAvatarLogin";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import AdminAvatarLogin, {
+  AUTH_CHANGED_EVENT,
+  LOGOUT_EVENT,
+  OPEN_LOGIN_EVENT,
+} from "@/components/AdminAvatarLogin";
 
 type IconProps = {
   className?: string;
@@ -185,6 +190,43 @@ function ReviewIcon({ className = "" }: IconProps) {
   );
 }
 
+function MenuIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    >
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className = "" }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    >
+      <path d="m6 6 12 12" />
+      <path d="M18 6 6 18" />
+    </svg>
+  );
+}
+
+const MOBILE_MENU_ID = "mobile-navigation-menu";
+
 const navLinks = [
   {
     label: "Início",
@@ -240,6 +282,11 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [isAdminMode, setIsAdminMode] = useState(false);
+  // Guarda a rota em que o menu foi aberto: ao navegar, ele se fecha sozinho.
+  const [menuOpenedAt, setMenuOpenedAt] = useState<string | null>(null);
+  const isMenuOpen = menuOpenedAt === pathname;
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const menuPanelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function loadAdminStatus() {
@@ -262,6 +309,54 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const menuButton = menuButtonRef.current;
+    const panel = menuPanelRef.current;
+    const previousOverflow = document.body.style.overflow;
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+
+    function closeMenu() {
+      setMenuOpenedAt(null);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeMenu();
+        return;
+      }
+
+      if (event.key !== "Tab" || !panel) return;
+
+      const focusable = panel.querySelectorAll<HTMLElement>("a[href], button");
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+    desktopQuery.addEventListener("change", closeMenu);
+    panel?.querySelector<HTMLElement>("button")?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      desktopQuery.removeEventListener("change", closeMenu);
+      // Não rouba o foco de quem já o recebeu, como o campo do login aberto pelo menu.
+      if (document.activeElement === document.body) menuButton?.focus();
+    };
+  }, [isMenuOpen]);
+
   function isActiveLink(href: string) {
     if (href === "/") {
       return pathname === "/";
@@ -270,31 +365,41 @@ export default function Navbar() {
     return pathname.startsWith(href);
   }
 
+  const visibleLinks = navLinks
+    .filter((link) => (!("adminOnly" in link) || !link.adminOnly || isAdminMode) && (link.href !== "/backlog" || isAdminMode))
+    .map((link) => ({
+      ...link,
+      targetHref: isAdminMode && link.adminHref ? link.adminHref : link.href,
+      displayLabel: isAdminMode && link.href === "/backlog" ? "Editar Fila" : link.label,
+    }));
+
+  function handleMenuAuthAction() {
+    setMenuOpenedAt(null);
+    window.dispatchEvent(new Event(isAdminMode ? LOGOUT_EVENT : OPEN_LOGIN_EVENT));
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#05070a]/90 backdrop-blur-xl">
-      <nav className="mx-auto flex h-[64px] w-full max-w-[1500px] items-center justify-between px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 shadow-[0_0_24px_rgba(239,68,68,0.12)]">
+      <nav className="mx-auto flex h-[64px] w-full max-w-[1500px] items-center justify-between px-4 sm:px-5 lg:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 shadow-[0_0_24px_rgba(239,68,68,0.12)]">
             <LogoTrophyIcon className="h-5 w-5" />
           </span>
 
-          <span className="text-2xl font-black tracking-tight text-white">
+          <span className="whitespace-nowrap text-lg font-black tracking-tight text-white sm:text-2xl">
             Rumo à <span className="text-red-500">Conquista</span>
           </span>
         </Link>
 
         <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
-          {navLinks
-            .filter((link) => (!("adminOnly" in link) || !link.adminOnly || isAdminMode) && (link.href !== "/backlog" || isAdminMode))
-            .map((link) => {
-            const targetHref =
-              isAdminMode && link.adminHref ? link.adminHref : link.href;
+          {visibleLinks.map((link) => {
+            const targetHref = link.targetHref;
             const isActive = isActiveLink(targetHref);
             const Icon = link.icon;
 
             return (
               <Link
-                key={link.href}
+                key={link.label}
                 href={targetHref}
                 className={`group relative flex items-center gap-1.5 whitespace-nowrap py-5 text-[11px] font-black leading-none transition xl:gap-2 xl:text-xs 2xl:text-sm ${
                   isActive
@@ -310,7 +415,7 @@ export default function Navbar() {
                   }`}
                 />
 
-                <span className="whitespace-nowrap">{isAdminMode && link.href === "/backlog" ? "Editar Fila" : link.label}</span>
+                <span className="whitespace-nowrap">{link.displayLabel}</span>
 
                 <span
                   className={`absolute bottom-0 left-0 h-[3px] rounded-full bg-red-500 transition-all ${
@@ -322,46 +427,91 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="hidden items-center gap-2.5 lg:flex">
-          <AdminAvatarLogin showLabel />
-        </div>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <AdminAvatarLogin showLabel labelDisplayClassName="hidden sm:inline-flex" />
 
-        <div className="flex items-center gap-3 lg:hidden">
-          <AdminAvatarLogin showLabel />
-
-          <Link
-            href={isAdminMode ? "/admin/jogos" : "/biblioteca"}
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white/70"
+          <button
+            ref={menuButtonRef}
+            type="button"
+            onClick={() => setMenuOpenedAt(pathname)}
+            aria-label="Abrir menu"
+            aria-haspopup="dialog"
+            aria-expanded={isMenuOpen}
+            aria-controls={MOBILE_MENU_ID}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/80 transition hover:border-red-500/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 lg:hidden"
           >
-            Jogos
-          </Link>
-
-          {isAdminMode && (
-            <Link
-              href="/admin/sorteio-jogos"
-              className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white/70"
-            >
-              Banco
-            </Link>
-          )}
-          <Link
-            href="/sagas"
-            className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-black text-red-300"
-          >
-            Emblemas
-          </Link>
-          <Link
-            href="/reviews"
-            className={`rounded-xl border px-3 py-2 text-xs font-black transition ${
-              isActiveLink("/reviews")
-                ? "border-red-500/30 bg-red-500/10 text-red-300"
-                : "border-white/10 bg-white/[0.03] text-white/70"
-            }`}
-          >
-            Review
-          </Link>
+            <MenuIcon className="h-5 w-5" />
+          </button>
         </div>
       </nav>
+
+      {/* Portal: o backdrop-blur do header limitaria um elemento fixed à altura da barra. */}
+      {isMenuOpen ? createPortal(
+        <div className="fixed inset-0 z-[9000] lg:hidden">
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Fechar menu"
+            onClick={() => setMenuOpenedAt(null)}
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+          />
+
+          <div
+            ref={menuPanelRef}
+            id={MOBILE_MENU_ID}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navegação"
+            className="absolute inset-y-0 right-0 flex w-[min(84vw,320px)] flex-col overflow-y-auto border-l border-red-500/20 bg-[#080a0e] shadow-2xl"
+          >
+            <div className="flex h-[64px] shrink-0 items-center justify-between border-b border-white/10 px-4">
+              <span className="text-sm font-black uppercase tracking-[0.12em] text-white">Menu</span>
+              <button
+                type="button"
+                onClick={() => setMenuOpenedAt(null)}
+                aria-label="Fechar menu"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/80 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              >
+                <CloseIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1 p-3">
+              <button
+                type="button"
+                onClick={handleMenuAuthAction}
+                className="mb-2 flex min-h-12 items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 text-left text-[11px] font-black uppercase tracking-[0.12em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              >
+                <span aria-hidden="true" className="text-sm leading-none">{isAdminMode ? "↪" : "↳"}</span>
+                {isAdminMode ? "Sair" : "Entrar"}
+              </button>
+
+              {visibleLinks.map((link) => {
+                const isActive = isActiveLink(link.targetHref);
+                const Icon = link.icon;
+
+                return (
+                  <Link
+                    key={link.label}
+                    href={link.targetHref}
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={() => setMenuOpenedAt(null)}
+                    className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 text-sm font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${
+                      isActive
+                        ? "border-red-500/30 bg-red-500/10 text-red-300"
+                        : "border-transparent text-white/75 hover:bg-white/[0.04] hover:text-white"
+                    }`}
+                  >
+                    <Icon className={`h-[18px] w-[18px] shrink-0 ${isActive ? "text-red-400" : "text-white/55"}`} />
+                    {link.displayLabel}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      ) : null}
     </header>
   );
 }

@@ -1,20 +1,25 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 
 const AVATAR_SRC = "/images/avatar.png";
 const AUTH_CHANGED_EVENT = "rumo-admin-auth-changed";
 const OPEN_LOGIN_EVENT = "rumo-admin-open-login";
+const LOGOUT_EVENT = "rumo-admin-logout";
 
-export { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT };
+export { AUTH_CHANGED_EVENT, LOGOUT_EVENT, OPEN_LOGIN_EVENT };
 
 type AdminAvatarLoginProps = {
   showLabel?: boolean;
+  /** Display classes for the labeled button; the modal keeps working if it is hidden. */
+  labelDisplayClassName?: string;
 };
 
 export default function AdminAvatarLogin({
   showLabel = false,
+  labelDisplayClassName = "inline-flex",
 }: AdminAvatarLoginProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -56,12 +61,18 @@ export default function AdminAvatarLogin({
       setIsOpen(true);
     }
 
+    function handleLogoutRequest() {
+      void handleLogout();
+    }
+
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
     window.addEventListener(OPEN_LOGIN_EVENT, handleOpenLogin);
+    window.addEventListener(LOGOUT_EVENT, handleLogoutRequest);
 
     return () => {
       window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
       window.removeEventListener(OPEN_LOGIN_EVENT, handleOpenLogin);
+      window.removeEventListener(LOGOUT_EVENT, handleLogoutRequest);
     };
   }, []);
 
@@ -181,7 +192,7 @@ export default function AdminAvatarLogin({
         disabled={isSubmitting}
         className={
           showLabel
-            ? "inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/15 disabled:cursor-wait disabled:opacity-60"
+            ? labelDisplayClassName + " items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/15 disabled:cursor-wait disabled:opacity-60"
             : "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-red-500/35 bg-red-500/10 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition hover:scale-105 hover:border-red-400/60 disabled:cursor-wait disabled:opacity-60"
         }
         title={isAuthenticated ? "Sair do modo Admin" : "Entrar no modo Admin"}
@@ -208,7 +219,7 @@ export default function AdminAvatarLogin({
         )}
       </button>
 
-      {isOpen && !isAuthenticated ? (
+      {isOpen && !isAuthenticated ? createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center px-6 py-8">
           <button
             type="button"
@@ -284,7 +295,8 @@ export default function AdminAvatarLogin({
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       ) : null}
     </>
   );
