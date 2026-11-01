@@ -847,6 +847,7 @@ export default function LandingHome() {
   const [twitchLive, setTwitchLive] = useState<TwitchLiveItem | null>(null);
   const [expandedLivePlatform, setExpandedLivePlatform] = useState<LivePlatform | null>(null);
   const [youtubeLoaded, setYoutubeLoaded] = useState(false);
+  const [youtubeFailed, setYoutubeFailed] = useState(false);
   const [liveStatusLoaded, setLiveStatusLoaded] = useState(false);
 
   const liveStreams = useMemo<LiveStream[]>(() => {
@@ -918,11 +919,13 @@ export default function LandingHome() {
         setRecentVideos(Array.from(uniqueVideos.values()).slice(0, 4));
         setFeaturedVideo(live || videos[0] || null);
         setIsLive(Boolean(live));
+        setYoutubeFailed(false);
       } catch {
         if (!controller.signal.aborted) {
           setFeaturedVideo(null);
           setRecentVideos([]);
           setIsLive(false);
+          setYoutubeFailed(true);
         }
       } finally {
         if (!controller.signal.aborted) setYoutubeLoaded(true);
@@ -1234,11 +1237,6 @@ export default function LandingHome() {
               ))}
             </div>
           </div>
-          <div className="mt-auto pt-8">
-            <Link href="/configuracoes" className="flex items-center gap-3 px-2 py-2 text-[11px] font-bold text-white/50 transition hover:text-white">
-              <span aria-hidden="true" className="text-red-400">⚙</span> Configurações
-            </Link>
-          </div>
         </div>
       </aside>
 
@@ -1498,6 +1496,11 @@ export default function LandingHome() {
               ) : null}
             </div>
           </>
+        ) : !isLoaded ? (
+          <div className="p-5 sm:p-7" role="status">
+            <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
+            <p className="mt-2 text-sm text-white/55">Carregando a jornada atual…</p>
+          </div>
         ) : (
           <div className="p-5 sm:p-7">
             <h3 className="text-base font-black text-white">Nenhum jogo em andamento</h3>
@@ -1642,7 +1645,9 @@ export default function LandingHome() {
             })}
           </div>
         ) : (
-          <p className="p-5 text-sm text-white/50">Os jogos recentes aparecerão aqui conforme o progresso for registrado.</p>
+          <p className="p-5 text-sm text-white/50" role={isLoaded ? undefined : "status"}>
+            {isLoaded ? "Os jogos recentes aparecerão aqui conforme o progresso for registrado." : "Carregando os jogos recentes…"}
+          </p>
         )}
       </section>
 
@@ -1733,6 +1738,10 @@ export default function LandingHome() {
                   </div>
                 </div>
               </>
+            ) : !isLoaded ? (
+              <div className="p-3.5" role="status">
+                <p className="text-[10px] text-white/50">Carregando a próxima Maestria…</p>
+              </div>
             ) : (
               <div className="p-3.5">
                 <p className="text-xs font-bold text-white">Sua próxima Maestria ainda não foi definida.</p>
@@ -1771,7 +1780,7 @@ export default function LandingHome() {
               </div>
             ) : (
               <div className="p-3.5">
-                <p className="text-[10px] text-white/50">{youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o conteúdo do canal…"}</p>
+                <p className="text-[10px] text-white/50">{youtubeFailed ? "Não foi possível carregar o conteúdo do canal agora." : youtubeLoaded ? "Nenhum conteúdo recente foi localizado agora." : "Buscando o conteúdo do canal…"}</p>
                 <Link href="/conteudo" className="mt-2 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white">Abrir Conteúdo →</Link>
               </div>
             )}
