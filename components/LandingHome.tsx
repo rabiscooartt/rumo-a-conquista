@@ -1650,73 +1650,81 @@ export default function LandingHome() {
 
           <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
           <section
-            className={"overflow-hidden rounded-xl border bg-[#07090d]/95 transition-colors " + (liveStreams.length > 0 ? "border-red-500/30 shadow-[0_0_24px_rgba(251,44,54,0.06)]" : "border-white/[0.09]")}
+            className={"relative isolate overflow-hidden rounded-xl border bg-[#08090e] transition-colors " + (liveStreams.length > 0 ? "border-red-500/30 shadow-[0_0_24px_rgba(251,44,54,0.08)]" : "border-white/[0.10] shadow-[0_8px_24px_rgba(0,0,0,0.18)]")}
             aria-labelledby="live-now-title"
             aria-live="polite"
           >
-            <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
-              <h2 id="live-now-title" className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-white sm:text-sm">
-                {liveStreams.length > 0 ? (
-                  <span aria-hidden="true" className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FB2C36] opacity-60" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FB2C36]" />
-                  </span>
-                ) : (
-                  <span aria-hidden="true" className={"h-2.5 w-2.5 rounded-full " + (liveStatusLoaded ? "bg-white/30" : "animate-pulse bg-amber-300/70")} />
-                )}
-                {liveStreams.length > 0 ? "Ao vivo agora" : liveStatusLoaded ? "Offline" : "Verificando transmissão"}
-              </h2>
-              {liveStreams.length > 0 ? (
-                <span className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-red-300">
-                  {liveStreams.length > 1 ? "YouTube + Twitch" : liveStreams[0].platform === "youtube" ? "YouTube" : "Twitch"}
-                </span>
-              ) : (
-                <span className={"rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide " + (liveStatusLoaded ? "border-white/[0.09] bg-white/[0.03] text-white/35" : "border-amber-300/15 bg-amber-300/[0.05] text-amber-200/60")}>
-                  {liveStatusLoaded ? "OFF" : "…"}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between gap-3 px-3.5 pb-3.5">
-              <div className="min-w-0 flex-1">
-                <h3 className={"text-xs font-black leading-snug sm:text-sm " + (liveStreams.length > 0 ? "text-white" : "text-white/75")}>
-                  {liveStreams.length > 0 ? "Rabiisco está ao vivo!" : liveStatusLoaded ? "Rabiisco está offline." : "Verificando transmissão…"}
-                </h3>
-                <p className="mt-1 text-[10px] leading-relaxed text-white/45">
-                  {liveStreams.length > 1
-                    ? "Transmissão disponível no YouTube e na Twitch."
-                    : liveStreams.length === 1
-                      ? "Transmissão no " + (liveStreams[0].platform === "youtube" ? "YouTube." : "Twitch.")
-                      : liveStatusLoaded
-                        ? "Nenhuma transmissão no momento."
-                        : "Consultando os canais do YouTube e da Twitch."}
-                </p>
-              </div>
-              {liveStreams.length > 0 ? (
-                <div className="flex shrink-0 flex-col gap-1.5">
-                  {liveStreams.map((stream) => (
-                    <button
-                      key={stream.platform}
-                      type="button"
-                      onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
-                      aria-expanded={expandedLivePlatform === stream.platform}
-                      aria-controls="live-player-panel"
-                      className={"inline-flex min-w-0 items-center justify-center gap-1 rounded-md border px-2.5 py-1.5 text-[9px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/50 bg-red-500/15 text-white" : "border-red-500/25 bg-red-500/[0.06] text-red-200 hover:border-red-500/45 hover:bg-red-500/10 hover:text-white")}
-                    >
-                      <span aria-hidden="true">▶</span>
-                      {expandedLivePlatform === stream.platform
-                        ? "Fechar"
-                        : liveStreams.length === 1
-                          ? "Assistir agora →"
-                          : stream.platform === "youtube" ? "YouTube →" : "Twitch →"}
-                    </button>
-                  ))}
+            <div
+              aria-hidden="true"
+              className={"pointer-events-none absolute -right-9 -top-14 h-36 w-36 rounded-full blur-2xl " + (liveStreams.length > 0 ? "bg-red-500/[0.13]" : "bg-red-500/[0.07]")}
+            />
+            <div aria-hidden="true" className="pointer-events-none absolute -bottom-12 right-7 h-24 w-24 rounded-full border border-white/[0.035]" />
+            <div className="relative p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className={"flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border " + (liveStreams.length > 0 ? "border-red-500/35 bg-red-500/[0.10] text-red-300 shadow-[0_0_16px_rgba(251,44,54,0.12)]" : "border-white/[0.10] bg-white/[0.035] text-white/55")}>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+                      <path d="M7.8 7.8a5.95 5.95 0 0 0 0 8.4M16.2 7.8a5.95 5.95 0 0 1 0 8.4" />
+                      <path d="M4.95 4.95a9.95 9.95 0 0 0 0 14.1M19.05 4.95a9.95 9.95 0 0 1 0 14.1" opacity=".55" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h2 id="live-now-title" className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-white/55">
+                      Central de transmissão
+                    </h2>
+                    <p className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-white/30">
+                      Rabiisco · canal oficial
+                    </p>
+                  </div>
                 </div>
-              ) : null}
+                <span className={"inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] " + (liveStreams.length > 0 ? "border-red-500/30 bg-red-500/[0.10] text-red-300" : liveStatusLoaded ? "border-white/[0.10] bg-white/[0.035] text-white/40" : "border-amber-300/20 bg-amber-300/[0.06] text-amber-200/70")}>
+                  <span aria-hidden="true" className={"h-1.5 w-1.5 rounded-full " + (liveStreams.length > 0 ? "animate-pulse bg-[#FB2C36] shadow-[0_0_8px_rgba(251,44,54,0.85)]" : liveStatusLoaded ? "bg-white/30" : "animate-pulse bg-amber-300/70")} />
+                  {liveStreams.length > 0 ? "Ao vivo" : liveStatusLoaded ? "Offline" : "Verificando"}
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-end justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className={"text-[12px] font-black leading-snug sm:text-[13px] " + (liveStreams.length > 0 ? "text-white" : "text-white/80")}>
+                    {liveStreams.length > 0 ? "Rabiisco está ao vivo!" : liveStatusLoaded ? "Nenhuma live no ar" : "Conectando ao canal…"}
+                  </h3>
+                  <p className="mt-1 text-[9px] leading-relaxed text-white/45">
+                    {liveStreams.length > 1
+                      ? "Escolha onde quer acompanhar."
+                      : liveStreams.length === 1
+                        ? "Transmissão ativa no " + (liveStreams[0].platform === "youtube" ? "YouTube." : "Twitch.")
+                        : liveStatusLoaded
+                          ? "A próxima transmissão aparecerá aqui."
+                          : "Verificando YouTube e Twitch."}
+                  </p>
+                </div>
+                {liveStreams.length > 0 ? (
+                  <div className="flex shrink-0 flex-col gap-1.5">
+                    {liveStreams.map((stream) => (
+                      <button
+                        key={stream.platform}
+                        type="button"
+                        onClick={() => setExpandedLivePlatform((current) => current === stream.platform ? null : stream.platform)}
+                        aria-expanded={expandedLivePlatform === stream.platform}
+                        aria-controls="live-player-panel"
+                        className={"inline-flex items-center justify-center gap-1 rounded-md border px-2.5 py-1.5 text-[9px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (expandedLivePlatform === stream.platform ? "border-red-500/45 bg-red-500/15 text-white" : "border-red-500/30 bg-red-500/[0.08] text-red-200 hover:border-red-500/55 hover:bg-red-500/[0.14] hover:text-white")}
+                      >
+                        <span aria-hidden="true">▶</span>
+                        {expandedLivePlatform === stream.platform
+                          ? "Fechar"
+                          : liveStreams.length === 1
+                            ? "Assistir agora"
+                            : stream.platform === "youtube" ? "YouTube" : "Twitch"}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {activeLivePlayer ? (
-              <div id="live-player-panel" className="border-t border-white/[0.08] p-3">
+              <div id="live-player-panel" className="relative border-t border-white/[0.08] bg-black/25 p-3">
                 <div className="overflow-hidden rounded-lg border border-white/[0.10] bg-black">
                   <div className="aspect-video w-full">
                     <iframe
