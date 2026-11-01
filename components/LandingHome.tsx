@@ -1252,7 +1252,7 @@ export default function LandingHome() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(210px,0.95fr)_minmax(0,1.05fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(220px,1fr)_minmax(320px,1.35fr)_minmax(180px,0.85fr)] lg:gap-4 lg:px-5">
+              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(230px,1fr)_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(242px,1.1fr)_minmax(300px,1.3fr)_minmax(180px,0.85fr)] lg:gap-4 lg:px-5">
                 <Link
                   href={"/games/" + currentGame.slug}
                   aria-label={"Abrir jogo: " + currentGame.title}
