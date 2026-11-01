@@ -1264,7 +1264,7 @@ export default function LandingHome() {
                     alt={currentGame.title + " — arte do jogo"}
                     loading="eager"
                     decoding="async"
-                    className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.025]"
+                    className="h-full w-full object-cover object-center brightness-[1.08] contrast-[1.05] saturate-[1.08] transition duration-500 group-hover:scale-[1.025]"
                     onError={(event) => {
                       const fallback = currentGame.cardImage;
                       if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
@@ -1273,7 +1273,7 @@ export default function LandingHome() {
                       }
                     }}
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-white/[0.04]" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/[0.02]" />
                 </Link>
 
                 <div className="flex min-w-0 flex-col justify-center gap-2.5 sm:gap-3">
