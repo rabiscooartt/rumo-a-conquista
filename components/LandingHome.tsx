@@ -1446,7 +1446,7 @@ export default function LandingHome() {
                         src={game.cardImage || game.image || ""}
                         alt={game.title + " — capa"}
                         loading="lazy"
-                        className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover/recent-row:scale-105 group-hover/recent-row:brightness-105"
+                        className="h-full w-full object-cover object-center transition duration-700 group-hover/recent-row:scale-105"
                       />
                     </div>
 
