@@ -2227,14 +2227,6 @@ export default function AtividadePage() {
             </div>
 
             <div className="mt-auto space-y-2 pt-8">
-              <Link
-                href="/configuracoes"
-                className="flex items-center gap-3 px-2.5 py-2 text-[12px] font-bold text-white/55"
-              >
-                <IconTarget className="h-4 w-4" />
-                Configurações
-              </Link>
-
               {isAdminStatusLoaded && isAdminMode ? (
                 <button
                   type="button"

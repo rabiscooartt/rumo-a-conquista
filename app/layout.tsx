@@ -26,23 +26,6 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-BR">
-      <head>
-        <link
-          rel="preload"
-          as="image"
-          href="/images/content-banner-bg.png"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href="/images/activity-banner-bg.png"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href="/images/jogos-bg.png"
-        />
-      </head>
       <body className={inter.className}>
         <BannerSettingsProvider initialSettings={bannerSettings}>
           {children}
