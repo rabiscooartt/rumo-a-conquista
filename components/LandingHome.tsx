@@ -1748,23 +1748,25 @@ export default function LandingHome() {
               <Link href="/conteudo" className="shrink-0 text-[10px] font-bold text-[#FB2C36] transition hover:text-white">Ver todos →</Link>
             </div>
             {sidebarRecentVideos.length ? (
-              <div className="divide-y divide-white/[0.08]">
-                {sidebarRecentVideos.map((video) => {
-                  const liveItem = Boolean(isLive && featuredVideo?.id === video.id);
-                  return (
-                    <a key={video.id} href={video.url} target="_blank" rel="noreferrer" className="group flex min-w-0 gap-2.5 p-3 transition hover:bg-white/[0.025]">
-                      <div className="relative aspect-video w-[104px] shrink-0 overflow-hidden rounded-md border border-white/[0.08] bg-black/45">
-                        {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : null}
-                        <span className={"absolute left-1 top-1 rounded px-1 py-0.5 text-[7px] font-black uppercase text-white " + (liveItem ? "bg-[#FB2C36]" : "bg-black/75")}>{liveItem ? "Ao vivo" : "YouTube"}</span>
-                        <span className="absolute bottom-1 left-1 flex h-5 w-5 items-center justify-center rounded bg-[#FB2C36] text-[10px] text-white">▶</span>
-                      </div>
-                      <div className="min-w-0 flex-1 self-center">
-                        <h3 className="line-clamp-3 text-[10px] font-bold leading-snug text-white/85 transition group-hover:text-white">{video.title}</h3>
-                        <p className="mt-1.5 line-clamp-1 text-[9px] text-white/40">{formatPublishedDate(video.publishedAt) || "Canal Rabiisco"}</p>
-                      </div>
-                    </a>
-                  );
-                })}
+              <div className="p-3">
+                {sidebarRecentVideos.slice(0, 1).map((video) => (
+                  <a key={video.id} href={video.url} target="_blank" rel="noreferrer" className="group block min-w-0 rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md border border-white/[0.09] bg-black/50">
+                      {video.thumbnail ? (
+                        <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
+                      ) : null}
+                      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-80" />
+                      <span className="absolute bottom-2 left-2 flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-[#FB2C36] text-xs text-white shadow-lg transition group-hover:scale-105">▶</span>
+                    </div>
+                    <h3 className="mt-2.5 line-clamp-2 text-[11px] font-bold leading-snug text-white/90 transition group-hover:text-white">{video.title}</h3>
+                    <div className="mt-2 flex min-w-0 items-center gap-1.5 text-[9px] text-white/45">
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-[#FB2C36] text-[8px] text-white">▶</span>
+                      <span className="font-semibold text-white/65">YouTube</span>
+                      <span aria-hidden="true" className="text-white/25">·</span>
+                      <span className="truncate">{formatPublishedDate(video.publishedAt) || "Canal Rabiisco"}</span>
+                    </div>
+                  </a>
+                ))}
               </div>
             ) : (
               <div className="p-3.5">
