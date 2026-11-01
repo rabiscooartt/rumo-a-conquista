@@ -735,7 +735,7 @@ function parseRecentGameTimestamp(value: unknown) {
   const raw = readText(value, "").trim();
   if (!raw) return Number.NaN;
 
-  const brazilianDate = raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  const brazilianDate = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (brazilianDate) {
     const [, day, month, year] = brazilianDate;
     return new Date(`${year}-${month}-${day}T23:59:59`).getTime();
