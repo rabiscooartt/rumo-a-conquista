@@ -109,7 +109,8 @@ export async function POST(request: NextRequest) {
         .from(BUCKET)
         .getPublicUrl(path);
 
-      const image = publicUrlData.publicUrl;
+      // A versão muda a URL a cada envio: evita o cache de um ano e cópias antigas da Início.
+      const image = `${publicUrlData.publicUrl}?v=${Date.now()}`;
 
       const { error: updateError } = await client
         .from("achievements")
