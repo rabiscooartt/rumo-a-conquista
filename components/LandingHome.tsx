@@ -1575,7 +1575,7 @@ export default function LandingHome() {
                         </span>
                       </div>
 
-                      <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
+                      <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] font-medium text-white/65">
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <PlatformIcon platform={platform} className="h-[18px] w-[18px] text-white/65" />
                           {platform}
@@ -1648,7 +1648,7 @@ export default function LandingHome() {
 
           </div>
 
-          <aside className="min-w-0 space-y-4" aria-label="Painel lateral da jornada">
+          <aside className="min-w-0 space-y-3" aria-label="Painel lateral da jornada">
           {liveStreams.length > 0 ? (
             <section
               className="overflow-hidden rounded-lg border border-red-500/20 bg-[#07090d]/95 shadow-[0_0_18px_rgba(251,44,54,0.035)]"
@@ -1756,7 +1756,7 @@ export default function LandingHome() {
                         <img src={video.thumbnail} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
                       ) : null}
                       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-80" />
-                      <span className="absolute right-2 top-2 rounded border border-white/15 bg-black/85 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.08em] text-white/80 shadow-sm">Vídeo</span>
+                      <span className="absolute right-2 top-2 rounded-sm bg-black/75 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-[0.06em] text-white/75">Vídeo</span>
                       <span className="absolute bottom-2 left-2 flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-[#FB2C36] text-xs text-white shadow-lg transition group-hover:scale-105">▶</span>
                     </div>
                     <h3 className="mt-2.5 line-clamp-2 text-[12px] font-bold leading-snug text-white/95 transition group-hover:text-white">{video.title}</h3>
