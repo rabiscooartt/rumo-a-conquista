@@ -4,7 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import {
   loadBacklogOrders,
   readBacklogPosition,
-  saveBacklogPosition,
+  saveGameWithBacklogPosition,
 } from "@/lib/backlogOrder";
 import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { games as legacyGames } from "@/data/games";
@@ -1451,6 +1451,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Publicar a review finaliza o jogo e pode tirá-lo da fila.
+      revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
+
       return NextResponse.json({
         ok: true,
         slug,
@@ -1485,15 +1488,23 @@ export async function POST(request: NextRequest) {
       review: reviewForSave,
     });
 
-    const { error: gameError } = await client
-      .from("games")
-      .upsert(game, { onConflict: "slug" });
+    if (body.backlogPosition !== undefined) {
+      const backlogPosition = readBacklogPosition(body.backlogPosition);
 
-    if (gameError) throw gameError;
+      if (backlogPosition === null || game.status !== "planned") {
+        return NextResponse.json(
+          { error: "A posição na fila vale somente para Próxima Maestria e deve ser um número inteiro positivo." },
+          { status: 400 }
+        );
+      }
 
-    const backlogPosition = readBacklogPosition(body.backlogPosition);
-    if (backlogPosition !== null) {
-      await saveBacklogPosition(client, slug, backlogPosition);
+      await saveGameWithBacklogPosition(client, game, backlogPosition);
+    } else {
+      const { error: gameError } = await client
+        .from("games")
+        .upsert(game, { onConflict: "slug" });
+
+      if (gameError) throw gameError;
     }
 
     await syncAchievements(client, slug, body.achievementsList);
@@ -1571,11 +1582,6 @@ export async function PUT(request: NextRequest) {
       .eq("slug", slug);
 
     if (gameError) throw gameError;
-
-    const backlogPosition = readBacklogPosition(body.backlogPosition);
-    if (backlogPosition !== null) {
-      await saveBacklogPosition(client, slug, backlogPosition);
-    }
 
     await syncAchievements(
       client,
@@ -1676,6 +1682,8 @@ export async function DELETE(request: NextRequest) {
       .eq("slug", slug);
 
     if (gameError) throw gameError;
+
+    revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
 
     const enrichedGame = await fetchEnrichedGame(
       client,
