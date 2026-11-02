@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       .upload(SETTINGS_PATH, settingsFile, {
         contentType: "application/json",
         upsert: true,
-        cacheControl: "60",
+        cacheControl: "0",
       });
 
     if (settingsError) throw settingsError;

@@ -56,12 +56,12 @@ export async function getStoredAvatarSettings(
   client: ReturnType<typeof createAdminSupabaseClient>
 ): Promise<AvatarSettings> {
   try {
-    const { data, error } = await client.storage
-      .from(AVATAR_BUCKET)
-      .download(AVATAR_SETTINGS_PATH);
-    if (error || !data) return DEFAULT_AVATAR_SETTINGS;
+    // Endereço único a cada leitura: o cache do Storage devolveria o enquadramento anterior após salvar.
+    const { data } = client.storage.from(AVATAR_BUCKET).getPublicUrl(AVATAR_SETTINGS_PATH);
+    const response = await fetch(`${data.publicUrl}?v=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return DEFAULT_AVATAR_SETTINGS;
 
-    const parsed = JSON.parse(await data.text()) as Record<string, unknown>;
+    const parsed = (await response.json()) as Record<string, unknown>;
     return normalizeAvatarSettings(parsed);
   } catch {
     return DEFAULT_AVATAR_SETTINGS;
