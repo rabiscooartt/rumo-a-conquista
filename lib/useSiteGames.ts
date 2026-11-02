@@ -161,6 +161,9 @@ export type HomeGamesCatalog = {
   achievementsBySlug: Record<string, unknown[]>;
 };
 
+/** Acima disso, o dado do servidor pode vir do cache e o navegador confere em segundo plano. */
+export const HOME_DATA_MAX_AGE_MS = 10_000;
+
 export const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 export const ACHIEVEMENTS_UPDATED_EVENT =
   "rumo-a-conquista-achievements-updated";
@@ -1286,7 +1289,7 @@ export function useSiteGames({
 }: {
   publicOnly?: boolean;
   /** Dados lidos no servidor: a primeira renderização já sai completa. */
-  initialCatalog?: HomeGamesCatalog | null;
+  initialCatalog?: (HomeGamesCatalog & { generatedAt?: number }) | null;
 } = {}) {
   const baseGamesMap = useMemo(() => {
     const entries = Object.entries(
@@ -1300,6 +1303,7 @@ export function useSiteGames({
   }, []);
 
   const hasInitialCatalog = initialCatalog !== null;
+  const initialGeneratedAt = initialCatalog?.generatedAt ?? 0;
   const [loadFailed, setLoadFailed] = useState(false);
   const [customGames, setCustomGames] = useState<Record<string, SiteGame>>(() =>
     initialCatalog ? composeCatalogGames(baseGamesMap, initialCatalog) : {}
@@ -1371,8 +1375,9 @@ export function useSiteGames({
   }, [baseGamesMap, publicOnly]);
 
   useEffect(() => {
-    // Com dados do servidor, a leitura volta a acontecer só nos eventos abaixo.
-    if (!hasInitialCatalog) void loadGames();
+    // Dados recentes do servidor dispensam nova leitura; os do cache são conferidos sem apagar a tela.
+    const catalogAge = Date.now() - initialGeneratedAt;
+    if (!hasInitialCatalog || catalogAge > HOME_DATA_MAX_AGE_MS) void loadGames();
 
     const handleUpdate = () => {
       void loadGames();
@@ -1389,7 +1394,7 @@ export function useSiteGames({
       window.removeEventListener("storage", handleUpdate);
       window.removeEventListener("focus", handleUpdate);
     };
-  }, [hasInitialCatalog, loadGames]);
+  }, [hasInitialCatalog, initialGeneratedAt, loadGames]);
 
   function emitUpdate() {
     window.dispatchEvent(new Event(GAMES_UPDATED_EVENT));

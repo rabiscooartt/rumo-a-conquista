@@ -1,4 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { HOME_AVATAR_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import {
@@ -123,6 +125,8 @@ export async function POST(request: NextRequest) {
       });
 
     if (settingsError) throw settingsError;
+
+    revalidateTag(HOME_AVATAR_CACHE_TAG, { expire: 0 });
 
     return NextResponse.json({
       ok: true,

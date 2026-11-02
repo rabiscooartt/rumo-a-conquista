@@ -1,21 +1,16 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import { loadStoredAvatar } from "@/lib/profileAvatarStorage";
 import { loadPublicCatalog } from "@/lib/publicCatalog";
 
+export const HOME_AVATAR_CACHE_TAG = "home-avatar";
+
 const INITIAL_DATA_TIMEOUT_MS = 2500;
-
-// Um limite curto mantém a página abrindo; o navegador assume a leitura se o servidor demorar.
-function withTimeout<T>(task: Promise<T>) {
-  let timer: ReturnType<typeof setTimeout>;
-  const timeout = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), INITIAL_DATA_TIMEOUT_MS);
-  });
-
-  return Promise.race([task.catch(() => null), timeout]).finally(() => clearTimeout(timer));
-}
+const HOME_CACHE_SECONDS = 60;
 
 /** A Início só usa a nota; o restante da review não precisa ir no HTML. */
 function keepHomeReviewFields(review: unknown) {
@@ -25,23 +20,84 @@ function keepHomeReviewFields(review: unknown) {
   return { nota, __achievementsListExplicitlyCleared };
 }
 
+const getCachedCatalog = unstable_cache(
+  async () => {
+    const catalog = await loadPublicCatalog({ includeAchievements: true });
+
+    return {
+      achievementsBySlug: catalog.achievementsBySlug ?? {},
+      games: catalog.games.map((game) => ({
+        ...game,
+        review: keepHomeReviewFields(game.review),
+      })),
+      generatedAt: Date.now(),
+    };
+  },
+  ["home-public-catalog"],
+  { revalidate: HOME_CACHE_SECONDS }
+);
+
+const getCachedAvatar = unstable_cache(
+  async () => ({ ...(await loadStoredAvatar()), generatedAt: Date.now() }),
+  ["home-avatar"],
+  { revalidate: HOME_CACHE_SECONDS, tags: [HOME_AVATAR_CACHE_TAG] }
+);
+
+async function timedRead<T>(label: string, task: Promise<T>) {
+  const startedAt = Date.now();
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), INITIAL_DATA_TIMEOUT_MS);
+  });
+
+  try {
+    // Quem perde a corrida segue em segundo plano de propósito: ao terminar, preenche o cache.
+    const result = await Promise.race([task, timeout]);
+    console.info(`[Home] ${label}: ${result === "timeout" ? "excedeu o limite" : "ok"} em ${Date.now() - startedAt} ms`);
+    return result === "timeout" ? null : result;
+  } catch (error) {
+    console.error(`[Home] ${label}: falhou em ${Date.now() - startedAt} ms`, error);
+    return null;
+  } finally {
+    clearTimeout(timer!);
+  }
+}
+
+// TEMPORÁRIO: mede a leitura real, sem cache, depois da resposta. Remover após a validação na Preview.
+function logUncachedTimings() {
+  after(async () => {
+    for (const [label, read] of [
+      ["catálogo sem cache", () => loadPublicCatalog({ includeAchievements: true })],
+      ["avatar sem cache", () => loadStoredAvatar()],
+    ] as const) {
+      const startedAt = Date.now();
+      try {
+        await read();
+        console.info(`[Home] ${label}: ok em ${Date.now() - startedAt} ms`);
+      } catch (error) {
+        console.error(`[Home] ${label}: falhou em ${Date.now() - startedAt} ms`, error);
+      }
+    }
+  });
+}
+
 export async function loadHomeInitialData() {
+  const startedAt = Date.now();
+  logUncachedTimings();
+
   const [catalog, avatar, authenticated] = await Promise.all([
-    withTimeout(loadPublicCatalog({ includeAchievements: true })),
-    withTimeout(loadStoredAvatar()),
-    cookies().then((store) => verifyAdminSession(store.get(ADMIN_SESSION_COOKIE)?.value)),
+    timedRead("catálogo", getCachedCatalog()),
+    timedRead("avatar", getCachedAvatar()),
+    timedRead(
+      "sessão",
+      cookies().then((store) => verifyAdminSession(store.get(ADMIN_SESSION_COOKIE)?.value))
+    ),
   ]);
 
+  console.info(`[Home] dados iniciais prontos em ${Date.now() - startedAt} ms`);
+
   return {
-    catalog: catalog?.achievementsBySlug
-      ? {
-          achievementsBySlug: catalog.achievementsBySlug,
-          games: catalog.games.map((game) => ({
-            ...game,
-            review: keepHomeReviewFields(game.review),
-          })),
-        }
-      : null,
-    avatar: avatar ? { ...avatar, authenticated } : null,
+    catalog,
+    avatar: avatar ? { ...avatar, authenticated: authenticated === true } : null,
   };
 }

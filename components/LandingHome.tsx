@@ -850,7 +850,7 @@ export default function LandingHome({
   initialCatalog,
   initialAvatar,
 }: {
-  initialCatalog: HomeGamesCatalog | null;
+  initialCatalog: (HomeGamesCatalog & { generatedAt: number }) | null;
   initialAvatar: InitialAvatar | null;
 }) {
   const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
