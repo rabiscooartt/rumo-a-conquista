@@ -76,6 +76,8 @@ export type SiteGame = {
   createdAt?: string;
   updatedAt?: string;
   manualTotalPlayedMinutes?: number | null;
+  /** Posição na fila da Próxima Maestria; null quando o jogo está fora dela. */
+  backlogOrder?: number | null;
   firstJourney?: FirstJourneyState;
   finalBadge?: {
     title: string;
@@ -144,6 +146,7 @@ type DatabaseGame = {
   created_at: string;
   updated_at: string;
   manual_total_played_minutes: number | null;
+  backlog_order?: number | null;
   review?: unknown;
   youtubePlaylistUrl?: string;
   youtubeFirstLiveUrl?: string;
@@ -912,6 +915,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         image: game.image ?? "",
         manualTotalPlayedMinutes:
           game.manual_total_played_minutes ?? null,
+        backlogOrder: game.backlog_order ?? null,
         firstJourney:
           (game as DatabaseGame).firstJourney ??
           (game as DatabaseGame).first_journey,
@@ -997,7 +1001,7 @@ async function requestGameApi<T>(
 
 async function saveGameToSupabase(
   game: SiteGame,
-  options?: { isHidden?: boolean; isDeleted?: boolean }
+  options?: { isHidden?: boolean; isDeleted?: boolean; backlogPosition?: number }
 ) {
   return requestGameApi<{
     ok: boolean;
@@ -1022,6 +1026,7 @@ async function saveGameToSupabase(
     manualTotalPlayedMinutes:
       game.manualTotalPlayedMinutes ?? null,
     firstJourney: game.firstJourney,
+    backlogPosition: options?.backlogPosition,
     isHidden: options?.isHidden === true,
     isDeleted: options?.isDeleted === true,
   });
@@ -1272,6 +1277,9 @@ function composePublicGame(
         typeof publicGame.manualTotalPlayedMinutes === "number"
           ? publicGame.manualTotalPlayedMinutes
           : seed.manualTotalPlayedMinutes,
+      // Sem herdar a ordem de data/games.ts: a fila só existe no banco.
+      backlogOrder:
+        typeof publicGame.backlogOrder === "number" ? publicGame.backlogOrder : null,
       createdAt: readText(publicGame.createdAt, seed.createdAt || ""),
       updatedAt: readText(publicGame.updatedAt, seed.updatedAt || ""),
       isHidden: false,
@@ -1694,6 +1702,7 @@ const hiddenGamesList = useMemo(() => {
         await saveGameToSupabase(nextGame, {
           isHidden: hiddenGameSlugs.includes(slug),
           isDeleted: false,
+          backlogPosition: update.backlogOrder ?? undefined,
         });
       }
     } catch (error) {

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { loadBacklogOrders } from "@/lib/backlogOrder";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 const OWNER_KEY = "default";
@@ -87,11 +88,14 @@ export async function loadPublicCatalog({
 
   if (error) throw error;
 
+  const backlogOrders = await loadBacklogOrders(client);
+
   const games = (data ?? []).map((game) => ({
     slug: game.slug,
     title: game.title,
     subtitle: game.subtitle ?? "",
     status: game.status ?? "progress",
+    backlogOrder: backlogOrders.get(game.slug) ?? null,
     progress: game.progress ?? 0,
     hours: game.hours ?? "0h",
     currentObjective: game.current_objective ?? "",

@@ -1,5 +1,12 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import {
+  loadBacklogOrders,
+  readBacklogPosition,
+  saveBacklogPosition,
+} from "@/lib/backlogOrder";
+import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { games as legacyGames } from "@/data/games";
 
 type IncomingAchievement = {
@@ -235,6 +242,8 @@ type GamePayload = {
   youtubeFirstLiveUrl?: string;
   youtubeFirstLiveEpisode?: string;
   manualTotalPlayedMinutes?: number | null;
+  /** Enviado só quando a posição na fila da Próxima Maestria muda. */
+  backlogPosition?: number;
   achievementsList?: IncomingAchievement[];
   isHidden?: boolean;
   isDeleted?: boolean;
@@ -910,8 +919,11 @@ async function fetchEnrichedGame(
     ])
   );
 
+  const backlogOrders = await loadBacklogOrders(client);
+
   return {
     ...game,
+    backlog_order: backlogOrders.get(slug) ?? null,
     firstJourney: extractFirstJourney(game.review),
     youtubePlaylistUrl: extractYoutubePlaylistUrl(game.review),
     youtubeFirstLiveUrl: extractYoutubeFirstLiveUrl(game.review),
@@ -1181,11 +1193,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const backlogOrders = await loadBacklogOrders(client);
+
     const enrichedGames = gameRows.map((game) => {
       const repairedReview = reviewRepairOverrides.get(game.slug);
       const review = repairedReview ?? game.review;
       return {
         ...game,
+        backlog_order: backlogOrders.get(game.slug) ?? null,
         ...(reviewPublicationFinalizations.has(game.slug)
           ? { status: "completed" }
           : {}),
@@ -1476,7 +1491,13 @@ export async function POST(request: NextRequest) {
 
     if (gameError) throw gameError;
 
+    const backlogPosition = readBacklogPosition(body.backlogPosition);
+    if (backlogPosition !== null) {
+      await saveBacklogPosition(client, slug, backlogPosition);
+    }
+
     await syncAchievements(client, slug, body.achievementsList);
+    revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
 
     const enrichedGame = await fetchEnrichedGame(
       client,
@@ -1551,11 +1572,17 @@ export async function PUT(request: NextRequest) {
 
     if (gameError) throw gameError;
 
+    const backlogPosition = readBacklogPosition(body.backlogPosition);
+    if (backlogPosition !== null) {
+      await saveBacklogPosition(client, slug, backlogPosition);
+    }
+
     await syncAchievements(
       client,
       slug,
       body.achievementsList
     );
+    revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
 
     const enrichedGame = await fetchEnrichedGame(
       client,
