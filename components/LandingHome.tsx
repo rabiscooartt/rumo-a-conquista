@@ -42,6 +42,7 @@ type LiveStream = { platform: LivePlatform; id: string; title: string; thumbnail
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
 const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
+const GAMES_UNAVAILABLE_MESSAGE = "Não foi possível carregar os jogos agora. Tente atualizar a página.";
 
 function normalizeKey(value: unknown) {
   return String(value ?? "").toLowerCase().normalize("NFD")
@@ -840,7 +841,7 @@ function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "c
 }
 
 export default function LandingHome() {
-  const { gamesList, isLoaded } = useSiteGames();
+  const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true });
   const [backlogEntries, setBacklogEntries] = useState<BacklogEntry[]>([]);
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
   const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
@@ -885,6 +886,8 @@ export default function LandingHome() {
     () => (gamesList || []).filter((game) => Boolean(game.slug && game.title)) as HomeGame[],
     [gamesList]
   );
+  const gamesUnavailable = isLoaded && loadFailed && allGames.length === 0;
+  const hasGameData = isLoaded && !gamesUnavailable;
 
   useEffect(() => {
     function refreshBacklog() { setBacklogEntries(readBacklogEntries()); }
@@ -1160,10 +1163,10 @@ export default function LandingHome() {
             <div className="mt-3 grid grid-cols-4 gap-1.5">
               {HOME_TROPHY_TIERS.map((tier) => {
                 const count = trophySummary[tier.key];
-                const countLabel = isLoaded ? String(count.unlocked) : "—";
-                const countDescription = isLoaded
+                const countLabel = hasGameData ? String(count.unlocked) : "—";
+                const countDescription = hasGameData
                   ? `${tier.label}: ${count.unlocked} desbloqueadas de ${count.total}`
-                  : `${tier.label}: carregando contagens`;
+                  : `${tier.label}: ${gamesUnavailable ? "contagens indisponíveis" : "carregando contagens"}`;
 
                 return (
                   <div
@@ -1285,10 +1288,10 @@ export default function LandingHome() {
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-5 md:left-6 md:right-6 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
-            <Stat symbol="library" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
-            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
-            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
-            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" divided />
+            <Stat symbol="library" value={hasGameData ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
+            <Stat symbol="check" value={hasGameData ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
+            <Stat symbol="trophy" value={hasGameData ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
+            <Stat symbol="clock" value={hasGameData ? summary.hours : "—"} label="Tempo de jogo" divided />
           </div>
         </div>
       </section>
@@ -1497,6 +1500,11 @@ export default function LandingHome() {
               ) : null}
             </div>
           </>
+        ) : gamesUnavailable ? (
+          <div className="p-5 sm:p-7" role="alert">
+            <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
+            <p className="mt-2 text-sm text-white/55">{GAMES_UNAVAILABLE_MESSAGE}</p>
+          </div>
         ) : !isLoaded ? (
           <div className="p-5 sm:p-7" role="status">
             <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
@@ -1647,7 +1655,7 @@ export default function LandingHome() {
           </div>
         ) : (
           <p className="p-5 text-sm text-white/50" role={isLoaded ? undefined : "status"}>
-            {isLoaded ? "Os jogos recentes aparecerão aqui conforme o progresso for registrado." : "Carregando os jogos recentes…"}
+            {gamesUnavailable ? GAMES_UNAVAILABLE_MESSAGE : isLoaded ? "Os jogos recentes aparecerão aqui conforme o progresso for registrado." : "Carregando os jogos recentes…"}
           </p>
         )}
       </section>
@@ -1739,6 +1747,10 @@ export default function LandingHome() {
                   </div>
                 </div>
               </>
+            ) : gamesUnavailable ? (
+              <div className="p-3.5" role="alert">
+                <p className="text-[10px] text-white/50">{GAMES_UNAVAILABLE_MESSAGE}</p>
+              </div>
             ) : !isLoaded ? (
               <div className="p-3.5" role="status">
                 <p className="text-[10px] text-white/50">Carregando a próxima Maestria…</p>

@@ -151,39 +151,44 @@ export async function loadAchievementsForGame(
   console.info("Usando SUPABASE");
   console.groupEnd();
 
+  return {
+    source: "supabase",
+    achievements: mapAchievementRows(data ?? []),
+  };
+}
+
+/** Converts database rows, with their progress, into the site's achievement format. */
+export function mapAchievementRows(rows: unknown[]) {
   const seenTitles = new Set<string>();
-  const uniqueRows = ((data ?? []) as DatabaseAchievement[]).filter((achievement) => {
+  const uniqueRows = (rows as DatabaseAchievement[]).filter((achievement) => {
     const key = normalizeTitle(achievement.title);
     if (!key || seenTitles.has(key)) return false;
     seenTitles.add(key);
     return true;
   });
 
-  return {
-    source: "supabase",
-    achievements: uniqueRows.map((achievement) => {
-      const progress = achievement.achievement_progress?.[0];
-      const rank = progress?.rank_override ?? achievement.rank;
+  return uniqueRows.map((achievement) => {
+    const progress = achievement.achievement_progress?.[0];
+    const rank = progress?.rank_override ?? achievement.rank;
 
-      return {
-        id: achievement.legacy_id || achievement.id,
-        title: achievement.title,
-        description: achievement.description,
-        trophy: achievement.trophy,
-        icon: achievement.trophy,
-        rank,
-        difficulty: rank,
-        status: progress?.status ?? "locked",
-        earnedDate: progress?.earned_at ?? "",
-        image: progress?.image_override || achievement.image,
-        source: achievement.source ?? "manual",
-        externalId: achievement.external_id ?? undefined,
-        officialImage: achievement.official_image ?? undefined,
-        isCustom: achievement.is_custom,
-        isHidden: achievement.is_hidden,
-      };
-    }),
-  };
+    return {
+      id: achievement.legacy_id || achievement.id,
+      title: achievement.title,
+      description: achievement.description,
+      trophy: achievement.trophy,
+      icon: achievement.trophy,
+      rank,
+      difficulty: rank,
+      status: progress?.status ?? "locked",
+      earnedDate: progress?.earned_at ?? "",
+      image: progress?.image_override || achievement.image,
+      source: achievement.source ?? "manual",
+      externalId: achievement.external_id ?? undefined,
+      officialImage: achievement.official_image ?? undefined,
+      isCustom: achievement.is_custom,
+      isHidden: achievement.is_hidden,
+    };
+  });
 }
 
 export async function saveAchievementsForGame(

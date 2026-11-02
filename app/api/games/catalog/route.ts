@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+
+const OWNER_KEY = "default";
 
 type ReviewRecord = Record<string, unknown>;
 
@@ -46,8 +48,32 @@ function reviewText(review: unknown, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function GET() {
+async function loadAchievementsBySlug(
+  client: ReturnType<typeof createAdminSupabaseClient>,
+  slugs: string[]
+) {
+  const { data, error } = await client
+    .from("achievements")
+    .select(
+      "game_slug, id, legacy_id, title, description, trophy, rank, image, source, external_id, official_image, sort_order, is_custom, is_hidden, achievement_progress(status, earned_at, rank_override, image_override)"
+    )
+    .in("game_slug", slugs)
+    .eq("achievement_progress.owner_key", OWNER_KEY)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+
+  const achievementsBySlug: Record<string, unknown[]> = {};
+  for (const achievement of data ?? []) {
+    (achievementsBySlug[achievement.game_slug] ??= []).push(achievement);
+  }
+
+  return achievementsBySlug;
+}
+
+export async function GET(request: NextRequest) {
   try {
+    const includeAchievements = request.nextUrl.searchParams.get("achievements") === "1";
     const client = createAdminSupabaseClient();
     const { data, error } = await client
       .from("games")
@@ -92,8 +118,12 @@ export async function GET() {
       isDeleted: false,
     }));
 
+    const achievementsBySlug = includeAchievements
+      ? await loadAchievementsBySlug(client, games.map((game) => game.slug))
+      : undefined;
+
     return NextResponse.json(
-      { ok: true, games },
+      { ok: true, games, ...(achievementsBySlug ? { achievementsBySlug } : {}) },
       { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {

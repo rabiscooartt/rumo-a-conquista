@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { games as baseGames } from "@/data/games";
-import { loadAchievementsForGame } from "@/lib/achievements/repository";
+import {
+  loadAchievementsForGame,
+  mapAchievementRows,
+} from "@/lib/achievements/repository";
 
 export type FlexibleAchievementInput = {
   id?: string;
@@ -150,6 +153,8 @@ type DatabaseGame = {
   achievementsList?: FlexibleAchievementInput[];
 };
 
+
+const PUBLIC_CATALOG_TIMEOUT_MS = 8000;
 
 export const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 export const ACHIEVEMENTS_UPDATED_EVENT =
@@ -1089,6 +1094,47 @@ async function loadPublicFallbackGames(
     console.warn("[Games] Catálogo público indisponível; usando dados locais:", error);
   }
 
+  return mergePublicGames(baseGamesMap, publicCatalog);
+}
+
+/**
+ * Reads games and achievements in a single request. Returns null when the
+ * catalog is unavailable, so the page can say so instead of showing old data.
+ */
+async function loadPublicGamesWithAchievements(
+  baseGamesMap: Record<string, SiteGame>
+): Promise<Record<string, SiteGame> | null> {
+  try {
+    const response = await fetch("/api/games/catalog?achievements=1", {
+      cache: "no-store",
+      signal: AbortSignal.timeout(PUBLIC_CATALOG_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const payload = (await response.json()) as {
+      games?: Array<Record<string, unknown>>;
+      achievementsBySlug?: Record<string, unknown[]>;
+    };
+    if (!Array.isArray(payload.games) || !payload.achievementsBySlug) {
+      throw new Error("Resposta incompleta do catálogo.");
+    }
+
+    return await mergePublicGames(
+      baseGamesMap,
+      payload.games,
+      payload.achievementsBySlug
+    );
+  } catch (error) {
+    console.error("[Games] Não foi possível carregar o catálogo público:", error);
+    return null;
+  }
+}
+
+async function mergePublicGames(
+  baseGamesMap: Record<string, SiteGame>,
+  publicCatalog: Array<Record<string, unknown>>,
+  achievementsBySlug?: Record<string, unknown[]>
+): Promise<Record<string, SiteGame>> {
   const publicGamesBySlug = new Map<string, Record<string, unknown>>();
   for (const game of publicCatalog) {
     const slug = readText(game.slug, "").trim();
@@ -1105,14 +1151,18 @@ async function loadPublicFallbackGames(
       const publicGame = publicGamesBySlug.get(slug);
       let achievements = (baseGame?.achievementsList ?? []) as FlexibleAchievementInput[];
 
-      try {
-        const result = await loadAchievementsForGame(
-          slug,
-          achievements as Parameters<typeof loadAchievementsForGame>[1]
-        );
-        achievements = result.achievements;
-      } catch {
-        // Preserve local achievements as a safe fallback if the public repository is unavailable.
+      if (achievementsBySlug) {
+        achievements = mapAchievementRows(achievementsBySlug[slug] ?? []);
+      } else {
+        try {
+          const result = await loadAchievementsForGame(
+            slug,
+            achievements as Parameters<typeof loadAchievementsForGame>[1]
+          );
+          achievements = result.achievements;
+        } catch {
+          // Preserve local achievements as a safe fallback if the public repository is unavailable.
+        }
       }
 
       const seed: Partial<SiteGame> = baseGame ?? {
@@ -1191,7 +1241,8 @@ async function loadPublicFallbackGames(
   return Object.fromEntries(entries);
 }
 
-export function useSiteGames() {
+export function useSiteGames({ publicOnly = false }: { publicOnly?: boolean } = {}) {
+  const [loadFailed, setLoadFailed] = useState(false);
   const [customGames, setCustomGames] = useState<Record<string, SiteGame>>({});
   const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
   const [deletedGameSlugs, setDeletedGameSlugs] = useState<string[]>([]);
@@ -1209,6 +1260,16 @@ export function useSiteGames() {
   }, []);
 
   const loadGames = useCallback(async () => {
+    if (publicOnly) {
+      const publicGames = await loadPublicGamesWithAchievements(baseGamesMap);
+
+      // Uma falha ao atualizar mantém o que já está na tela.
+      if (publicGames) setCustomGames(publicGames);
+      setLoadFailed(!publicGames);
+      setIsLoaded(true);
+      return;
+    }
+
     try {
       const supabaseGames = await loadGamesFromSupabase();
 
@@ -1258,7 +1319,7 @@ export function useSiteGames() {
       setDeletedGameSlugs([]);
       setIsLoaded(true);
     }
-  }, []);
+  }, [baseGamesMap, publicOnly]);
 
   useEffect(() => {
     void loadGames();
@@ -1725,6 +1786,7 @@ const hiddenGamesList = useMemo(() => {
 
   return {
     isLoaded,
+    loadFailed,
     gamesMap,
     gamesList,
     hiddenBaseGames,
