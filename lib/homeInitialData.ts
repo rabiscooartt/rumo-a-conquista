@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { after } from "next/server";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
+import { HOME_BACKLOG_CACHE_TAG, readBacklogQueue } from "@/lib/backlogQueue";
 import { loadStoredAvatar } from "@/lib/profileAvatarStorage";
 import { loadPublicCatalog } from "@/lib/publicCatalog";
 
@@ -41,6 +42,12 @@ const getCachedAvatar = unstable_cache(
   async () => ({ ...(await loadStoredAvatar()), generatedAt: Date.now() }),
   ["home-avatar"],
   { revalidate: HOME_CACHE_SECONDS, tags: [HOME_AVATAR_CACHE_TAG] }
+);
+
+const getCachedBacklog = unstable_cache(
+  async () => ({ items: await readBacklogQueue(), generatedAt: Date.now() }),
+  ["home-backlog"],
+  { revalidate: HOME_CACHE_SECONDS, tags: [HOME_BACKLOG_CACHE_TAG] }
 );
 
 async function timedRead<T>(label: string, task: Promise<T>) {
@@ -85,9 +92,10 @@ export async function loadHomeInitialData() {
   const startedAt = Date.now();
   logUncachedTimings();
 
-  const [catalog, avatar, authenticated] = await Promise.all([
+  const [catalog, avatar, backlog, authenticated] = await Promise.all([
     timedRead("catálogo", getCachedCatalog()),
     timedRead("avatar", getCachedAvatar()),
+    timedRead("fila", getCachedBacklog()),
     timedRead(
       "sessão",
       cookies().then((store) => verifyAdminSession(store.get(ADMIN_SESSION_COOKIE)?.value))
@@ -98,6 +106,7 @@ export async function loadHomeInitialData() {
 
   return {
     catalog,
+    backlog,
     avatar: avatar ? { ...avatar, authenticated: authenticated === true } : null,
   };
 }

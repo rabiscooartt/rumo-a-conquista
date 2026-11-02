@@ -6,7 +6,7 @@ import ProfileAvatar, { type InitialAvatar } from "@/components/ProfileAvatar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlatformIcon from "@/components/PlatformIcon";
 import StarRating from "@/components/StarRating";
-import { type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { HOME_DATA_MAX_AGE_MS, type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
 import { homeImageSrc } from "@/lib/homeImages";
 
@@ -42,6 +42,21 @@ type LiveStream = { platform: LivePlatform; id: string; title: string; thumbnail
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
 const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
+// Mesma lista do editor: vale até a primeira fila ser salva no site.
+const DEFAULT_BACKLOG_ENTRIES: BacklogEntry[] = [
+  "mouse-p-i-for-hire",
+  "song-of-nunu",
+  "hollow-knight",
+  "metro-last-light",
+  "the-surge",
+  "tom-clancy-s-the-division",
+  "hollow-knight-silksong",
+  "hades",
+  "tom-clancy-s-the-division-2",
+  "hades2",
+  "metro-2033-redux",
+  "metro-exodus",
+].map((slug, index) => ({ slug, order: index + 1, status: "future" }));
 // O servidor roda em outro fuso: um fuso fixo mantém as datas iguais às do HTML.
 const HOME_TIME_ZONE = "America/Sao_Paulo";
 const GAMES_UNAVAILABLE_MESSAGE = "Não foi possível carregar os jogos agora. Tente atualizar a página.";
@@ -338,7 +353,9 @@ function getAchievementSymbol(achievement: AchievementLike) {
   return readText(achievement.icon, "") || readText(achievement.trophy, "") || "🏆";
 }
 function readBacklogEntries(): BacklogEntry[] {
-  const saved = readLocalJson<Partial<BacklogEntry>[]>(BACKLOG_STORAGE_KEY, []);
+  return toBacklogEntries(readLocalJson<Partial<BacklogEntry>[]>(BACKLOG_STORAGE_KEY, []));
+}
+function toBacklogEntries(saved: Partial<BacklogEntry>[]): BacklogEntry[] {
   return saved.map((item, index) => ({
     id: item.id,
     slug: readText(item.slug, "").trim(),
@@ -849,14 +866,23 @@ function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "c
 export default function LandingHome({
   initialCatalog,
   initialAvatar,
+  initialBacklog,
 }: {
   initialCatalog: (HomeGamesCatalog & { generatedAt: number }) | null;
   initialAvatar: InitialAvatar | null;
+  initialBacklog: { items: Partial<BacklogEntry>[] | null; generatedAt: number } | null;
 }) {
   const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
-  const [backlogEntries, setBacklogEntries] = useState<BacklogEntry[]>([]);
-  // A fila só existe no navegador: até lê-la, a Início não afirma que ela está vazia.
-  const [backlogRead, setBacklogRead] = useState(false);
+  // undefined: fila do site ainda desconhecida; null: nenhuma fila foi salva no site.
+  const [siteBacklog, setSiteBacklog] = useState<BacklogEntry[] | null | undefined>(() =>
+    initialBacklog ? (initialBacklog.items ? toBacklogEntries(initialBacklog.items) : null) : undefined
+  );
+  const [localBacklog, setLocalBacklog] = useState<BacklogEntry[]>([]);
+  const backlogRead = siteBacklog !== undefined;
+  const backlogEntries = useMemo(
+    () => siteBacklog ?? (localBacklog.length > 0 ? localBacklog : DEFAULT_BACKLOG_ENTRIES),
+    [localBacklog, siteBacklog]
+  );
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
   const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
   const [isLive, setIsLive] = useState(false);
@@ -906,8 +932,25 @@ export default function LandingHome({
   useEffect(() => {
     localDataReady = true;
     function refreshBacklog() {
-      setBacklogEntries(readBacklogEntries());
-      setBacklogRead(true);
+      setLocalBacklog(readBacklogEntries());
+    }
+
+    async function refreshSiteBacklog() {
+      try {
+        const response = await fetch("/api/backlog", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const payload = (await response.json()) as { items?: Partial<BacklogEntry>[] | null };
+        setSiteBacklog(payload.items ? toBacklogEntries(payload.items) : null);
+      } catch (error) {
+        console.error("[Home] Não foi possível carregar a fila:", error);
+        setSiteBacklog((current) => (current === undefined ? null : current));
+      }
+    }
+
+    // A fila entregue pelo servidor pode vir do cache: confere em segundo plano quando já tem alguns segundos.
+    if (!initialBacklog || Date.now() - initialBacklog.generatedAt > HOME_DATA_MAX_AGE_MS) {
+      void refreshSiteBacklog();
     }
     refreshBacklog();
     window.addEventListener("storage", refreshBacklog);

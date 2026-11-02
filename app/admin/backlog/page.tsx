@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useSiteGames } from "@/lib/useSiteGames";
@@ -107,6 +107,19 @@ function readBacklogFromStorage() {
   }
 }
 
+async function saveBacklogToSite(items: BacklogItem[]) {
+  const response = await fetch("/api/admin/backlog", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error || "Não foi possível salvar a fila no site.");
+  }
+}
+
 function saveBacklogToStorage(items: BacklogItem[]) {
   if (typeof window === "undefined") {
     return;
@@ -150,6 +163,13 @@ export default function AdminBacklogPage() {
 
   const [items, setItems] = useState<BacklogItem[]>([]);
   const [selectedSlug, setSelectedSlug] = useState("");
+  // loading: consultando; site: fila publicada; local: lista só deste navegador ou padrão; error: site indisponível.
+  const [queueSource, setQueueSource] = useState<"loading" | "site" | "local" | "error">("loading");
+  const queueSourceRef = useRef(queueSource);
+
+  useEffect(() => {
+    queueSourceRef.current = queueSource;
+  }, [queueSource]);
 
   const gamesList = useMemo<BacklogGame[]>(() => {
     return (siteGamesList || [])
@@ -174,8 +194,29 @@ export default function AdminBacklogPage() {
     setItems(readBacklogFromStorage());
 
     function refreshBacklog() {
-      setItems(readBacklogFromStorage());
+      // Depois de publicada, a fila do site prevalece sobre a cópia deste navegador.
+      if (queueSourceRef.current !== "site") setItems(readBacklogFromStorage());
     }
+
+    async function loadSiteBacklog() {
+      try {
+        const response = await fetch("/api/backlog", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const payload = (await response.json()) as { items?: Partial<BacklogItem>[] | null };
+        if (payload.items) {
+          setItems(normalizeBacklogOrder(payload.items.map(normalizeBacklogItem)));
+          setQueueSource("site");
+        } else {
+          setQueueSource("local");
+        }
+      } catch (error) {
+        console.error("[Backlog] Não foi possível carregar a fila do site:", error);
+        setQueueSource("error");
+      }
+    }
+
+    void loadSiteBacklog();
 
     window.addEventListener(BACKLOG_UPDATED_EVENT, refreshBacklog);
     window.addEventListener("storage", refreshBacklog);
@@ -193,6 +234,16 @@ export default function AdminBacklogPage() {
 
     setItems(normalizedItems);
     saveBacklogToStorage(normalizedItems);
+    void publishItems(normalizedItems);
+  }
+
+  async function publishItems(nextItems: BacklogItem[]) {
+    try {
+      await saveBacklogToSite(nextItems);
+      setQueueSource("site");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Não foi possível salvar a fila no site.");
+    }
   }
 
   function addItem() {
@@ -356,6 +407,27 @@ export default function AdminBacklogPage() {
       <Navbar />
 
       <section className="mx-auto w-full max-w-[1560px] px-8 py-8">
+        {queueSource === "local" ? (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-yellow-300/20 bg-yellow-400/10 px-5 py-4 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm font-bold text-yellow-100">
+              Esta fila ainda não foi publicada: ela só existe neste navegador. Confira a ordem antes de publicar.
+            </p>
+            <button
+              type="button"
+              onClick={() => void publishItems(normalizeBacklogOrder(items))}
+              className="shrink-0 rounded-full border border-yellow-300/30 bg-yellow-400/15 px-4 py-2 text-sm font-black text-yellow-100 transition hover:bg-yellow-400/25"
+            >
+              Publicar esta fila no site
+            </button>
+          </div>
+        ) : null}
+
+        {queueSource === "error" ? (
+          <p className="mb-6 rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-200">
+            Não foi possível consultar a fila do site. Atualize a página antes de alterar a ordem.
+          </p>
+        ) : null}
+
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <Link
             href="/"
