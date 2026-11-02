@@ -71,17 +71,6 @@ export default function AdminShortcutButton() {
         </Link>
 
         <Link
-          href="/admin/backlog"
-          prefetch={false}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between rounded-2xl border border-cyan-400/30 bg-cyan-500/15 px-4 py-3 text-sm font-black text-cyan-100 transition hover:-translate-y-0.5 hover:bg-cyan-500/25"
-        >
-          <span>💎 Maestrias</span>
-          <span>↗</span>
-        </Link>
-
-        <Link
           href="/admin/jogos"
           prefetch={false}
           target="_blank"
