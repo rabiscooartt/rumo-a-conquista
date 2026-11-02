@@ -1,4 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 const BUCKET = "achievement-art";
@@ -120,12 +122,23 @@ export async function POST(request: NextRequest) {
 
       if (updateError) throw updateError;
 
+      // A imagem do progresso tem prioridade na exibição: sem isto, a arte antiga continuaria no site.
+      const { error: progressError } = await client
+        .from("achievement_progress")
+        .update({ image_override: image })
+        .eq("achievement_id", achievement.id)
+        .not("image_override", "is", null);
+
+      if (progressError) throw progressError;
+
       saved.push({
         filename: item.file.name,
         title: achievement.title,
         image,
       });
     }
+
+    revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
 
     return NextResponse.json({
       ok: true,

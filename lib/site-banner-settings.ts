@@ -1,12 +1,16 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import type {
   SiteBannerKey,
   SiteBannerSetting,
 } from "@/lib/banner-types";
 
+export const SITE_BANNER_CACHE_TAG = "site-banners";
+
 const BUCKET = "site-banners";
+const BANNER_CACHE_SECONDS = 60;
 const BANNER_KEYS: SiteBannerKey[] = [
   "home",
   "jogos",
@@ -65,7 +69,7 @@ async function getStoredBannerImageUrl(
   }
 }
 
-export async function loadSiteBannerSettings(): Promise<
+async function loadSiteBannerSettings(): Promise<
   Record<SiteBannerKey, SiteBannerSetting>
 > {
   const settings: Record<SiteBannerKey, SiteBannerSetting> = {
@@ -120,3 +124,10 @@ export async function loadSiteBannerSettings(): Promise<
 
   return settings;
 }
+
+// O layout lê isto em toda página; sem cache, cada abertura esperava 8 consultas antes do HTML.
+export const loadCachedSiteBannerSettings = unstable_cache(
+  loadSiteBannerSettings,
+  ["site-banner-settings"],
+  { revalidate: BANNER_CACHE_SECONDS, tags: [SITE_BANNER_CACHE_TAG] }
+);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BannerSettingsProvider from "@/components/BannerSettingsProvider";
-import { loadSiteBannerSettings } from "@/lib/site-banner-settings";
+import { loadCachedSiteBannerSettings } from "@/lib/site-banner-settings";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,7 +22,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const bannerSettings = await loadSiteBannerSettings();
+  const bannerSettings = await loadCachedSiteBannerSettings();
 
   return (
     <html lang="pt-BR">
