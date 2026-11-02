@@ -206,10 +206,14 @@ export default function NewGamesAdminPage() {
       return 0;
     };
 
-    // Stable grouping: in progress first, queue/next mastery second, completed last.
+    // Stable grouping: in progress first, next mastery queue second (by position), completed last.
     return matches
       .map((game, index) => ({ game, index }))
-      .sort((a, b) => statusOrder(a.game.status) - statusOrder(b.game.status) || a.index - b.index)
+      .sort((a, b) =>
+        statusOrder(a.game.status) - statusOrder(b.game.status) ||
+        (a.game.backlogOrder ?? 0) - (b.game.backlogOrder ?? 0) ||
+        a.index - b.index
+      )
       .map(({ game }) => game);
   }, [gamesList, search]);
 
