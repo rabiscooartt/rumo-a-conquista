@@ -2,7 +2,6 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
-import { after } from "next/server";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import { HOME_BACKLOG_CACHE_TAG, readBacklogQueue } from "@/lib/backlogQueue";
 import { loadStoredAvatar } from "@/lib/profileAvatarStorage";
@@ -60,8 +59,12 @@ async function timedRead<T>(label: string, task: Promise<T>) {
   try {
     // Quem perde a corrida segue em segundo plano de propósito: ao terminar, preenche o cache.
     const result = await Promise.race([task, timeout]);
-    console.info(`[Home] ${label}: ${result === "timeout" ? "excedeu o limite" : "ok"} em ${Date.now() - startedAt} ms`);
-    return result === "timeout" ? null : result;
+    if (result === "timeout") {
+      console.warn(`[Home] ${label}: excedeu ${INITIAL_DATA_TIMEOUT_MS} ms`);
+      return null;
+    }
+
+    return result;
   } catch (error) {
     console.error(`[Home] ${label}: falhou em ${Date.now() - startedAt} ms`, error);
     return null;
@@ -70,28 +73,7 @@ async function timedRead<T>(label: string, task: Promise<T>) {
   }
 }
 
-// TEMPORÁRIO: mede a leitura real, sem cache, depois da resposta. Remover após a validação na Preview.
-function logUncachedTimings() {
-  after(async () => {
-    for (const [label, read] of [
-      ["catálogo sem cache", () => loadPublicCatalog({ includeAchievements: true })],
-      ["avatar sem cache", () => loadStoredAvatar()],
-    ] as const) {
-      const startedAt = Date.now();
-      try {
-        await read();
-        console.info(`[Home] ${label}: ok em ${Date.now() - startedAt} ms`);
-      } catch (error) {
-        console.error(`[Home] ${label}: falhou em ${Date.now() - startedAt} ms`, error);
-      }
-    }
-  });
-}
-
 export async function loadHomeInitialData() {
-  const startedAt = Date.now();
-  logUncachedTimings();
-
   const [catalog, avatar, backlog, authenticated] = await Promise.all([
     timedRead("catálogo", getCachedCatalog()),
     timedRead("avatar", getCachedAvatar()),
@@ -101,8 +83,6 @@ export async function loadHomeInitialData() {
       cookies().then((store) => verifyAdminSession(store.get(ADMIN_SESSION_COOKIE)?.value))
     ),
   ]);
-
-  console.info(`[Home] dados iniciais prontos em ${Date.now() - startedAt} ms`);
 
   return {
     catalog,
