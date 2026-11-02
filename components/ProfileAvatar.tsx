@@ -106,15 +106,18 @@ function AvatarArtwork({
   );
 }
 
-export default function ProfileAvatar() {
+export type InitialAvatar = AvatarSettings & { authenticated: boolean };
+
+export default function ProfileAvatar({ initial = null }: { initial?: InitialAvatar | null }) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
-  const [settings, setSettings] = useState<AvatarSettings>(DEFAULT_SETTINGS);
-  const [draft, setDraft] = useState<AvatarSettings>(DEFAULT_SETTINGS);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const hasInitial = initial !== null;
+  const [settings, setSettings] = useState<AvatarSettings>(() => (initial ? normalizeSettings(initial) : DEFAULT_SETTINGS));
+  const [draft, setDraft] = useState<AvatarSettings>(() => (initial ? normalizeSettings(initial) : DEFAULT_SETTINGS));
+  const [isAdmin, setIsAdmin] = useState(initial?.authenticated === true);
+  const [isLoaded, setIsLoaded] = useState(hasInitial);
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -165,7 +168,7 @@ export default function ProfileAvatar() {
   }, []);
 
   useEffect(() => {
-    void loadSettings();
+    if (!hasInitial) void loadSettings();
 
     function handleAuthChanged() {
       void loadSettings();
@@ -173,7 +176,7 @@ export default function ProfileAvatar() {
 
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
-  }, [loadSettings]);
+  }, [hasInitial, loadSettings]);
 
   useEffect(() => {
     if (!isOpen) return;

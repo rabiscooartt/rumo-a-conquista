@@ -1,39 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
+import {
+  AVATAR_BUCKET as BUCKET,
+  AVATAR_PATH,
+  AVATAR_SETTINGS_PATH as SETTINGS_PATH,
+  DEFAULT_AVATAR_SETTINGS as DEFAULT_SETTINGS,
+  getStoredAvatarSettings as getStoredSettings,
+  getStoredAvatarUrl,
+  normalizeAvatarSettings as normalizeSettings,
+} from "@/lib/profileAvatarStorage";
 
-const BUCKET = "site-profile";
-const AVATAR_PATH = "profile/avatar";
-const SETTINGS_PATH = "profile/settings.json";
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const ALLOWED_BUCKET_TYPES = [...ALLOWED_IMAGE_TYPES, "application/json"];
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
-
-type AvatarSettings = {
-  x: number;
-  y: number;
-  zoom: number;
-};
-
-const DEFAULT_SETTINGS: AvatarSettings = { x: 0, y: 0, zoom: 1 };
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function normalizeSettings(input: Record<string, unknown>): AvatarSettings {
-  const rawZoom = Number(input.zoom);
-  const zoom = clamp(Number.isFinite(rawZoom) ? rawZoom : 1, 1, 2.5);
-  const maxOffset = (zoom - 1) * 50;
-  const rawX = Number(input.x);
-  const rawY = Number(input.y);
-
-  return {
-    x: clamp(Number.isFinite(rawX) ? rawX : 0, -maxOffset, maxOffset),
-    y: clamp(Number.isFinite(rawY) ? rawY : 0, -maxOffset, maxOffset),
-    zoom,
-  };
-}
 
 async function isAdmin(request: NextRequest) {
   const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
@@ -52,40 +32,6 @@ async function ensureBucket(client: ReturnType<typeof createAdminSupabaseClient>
 
   if (error && !/already exists|duplicate/i.test(error.message)) {
     throw error;
-  }
-}
-
-async function getStoredAvatarUrl(
-  client: ReturnType<typeof createAdminSupabaseClient>
-): Promise<string> {
-  try {
-    const { data: files, error } = await client.storage
-      .from(BUCKET)
-      .list("profile", { limit: 20 });
-
-    if (error || !files) return "";
-    const avatar = files.find((file) => file.name === "avatar");
-    if (!avatar) return "";
-
-    const { data } = client.storage.from(BUCKET).getPublicUrl(AVATAR_PATH);
-    const version = avatar.updated_at || avatar.created_at;
-    return version ? `${data.publicUrl}?v=${encodeURIComponent(version)}` : data.publicUrl;
-  } catch {
-    return "";
-  }
-}
-
-async function getStoredSettings(
-  client: ReturnType<typeof createAdminSupabaseClient>
-): Promise<AvatarSettings> {
-  try {
-    const { data, error } = await client.storage.from(BUCKET).download(SETTINGS_PATH);
-    if (error || !data) return DEFAULT_SETTINGS;
-
-    const parsed = JSON.parse(await data.text()) as Record<string, unknown>;
-    return normalizeSettings(parsed);
-  } catch {
-    return DEFAULT_SETTINGS;
   }
 }
 

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import BannerBackground from "@/components/BannerBackground";
-import ProfileAvatar from "@/components/ProfileAvatar";
+import ProfileAvatar, { type InitialAvatar } from "@/components/ProfileAvatar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlatformIcon from "@/components/PlatformIcon";
 import StarRating from "@/components/StarRating";
-import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
 import { homeImageSrc } from "@/lib/homeImages";
 
@@ -42,14 +42,19 @@ type LiveStream = { platform: LivePlatform; id: string; title: string; thumbnail
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
 const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
+// O servidor roda em outro fuso: um fuso fixo mantém as datas iguais às do HTML.
+const HOME_TIME_ZONE = "America/Sao_Paulo";
 const GAMES_UNAVAILABLE_MESSAGE = "Não foi possível carregar os jogos agora. Tente atualizar a página.";
 
 function normalizeKey(value: unknown) {
   return String(value ?? "").toLowerCase().normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
 }
+// Só depois da hidratação: o HTML do servidor não conhece os dados guardados no navegador.
+let localDataReady = false;
+
 function readLocalJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
+  if (typeof window === "undefined" || !localDataReady) return fallback;
   try {
     const value = window.localStorage.getItem(key);
     return value ? JSON.parse(value) as T : fallback;
@@ -323,7 +328,7 @@ function formatPublishedDate(value: string | undefined) {
 }
 function formatShortDate(timestamp: number) {
   if (!timestamp) return "";
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(timestamp)).replace(".", "");
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: HOME_TIME_ZONE }).format(new Date(timestamp)).replace(".", "");
 }
 function getAchievementSymbol(achievement: AchievementLike) {
   const rank = normalizeKey(achievement.rank || achievement.difficulty || achievement.trophy);
@@ -627,7 +632,8 @@ function getRecentAchievementPreviews(game: HomeGame): RecentAchievementPreviewI
 
 function RecentAchievementMiniatures({ items }: { items: RecentAchievementPreviewItem[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [availableWidth, setAvailableWidth] = useState(0);
+  // Estimativa até a medição real, para o HTML já trazer as miniaturas.
+  const [availableWidth, setAvailableWidth] = useState(360);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -730,7 +736,7 @@ function getRecentGameDate(game: HomeGame) {
   if (!raw) return "";
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("pt-BR");
+  return date.toLocaleDateString("pt-BR", { timeZone: HOME_TIME_ZONE });
 }
 
 function parseRecentGameTimestamp(value: unknown) {
@@ -740,7 +746,7 @@ function parseRecentGameTimestamp(value: unknown) {
   const brazilianDate = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (brazilianDate) {
     const [, day, month, year] = brazilianDate;
-    return new Date(`${year}-${month}-${day}T23:59:59`).getTime();
+    return new Date(`${year}-${month}-${day}T23:59:59-03:00`).getTime();
   }
 
   const timestamp = Date.parse(raw);
@@ -840,9 +846,17 @@ function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "c
   );
 }
 
-export default function LandingHome() {
-  const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true });
+export default function LandingHome({
+  initialCatalog,
+  initialAvatar,
+}: {
+  initialCatalog: HomeGamesCatalog | null;
+  initialAvatar: InitialAvatar | null;
+}) {
+  const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
   const [backlogEntries, setBacklogEntries] = useState<BacklogEntry[]>([]);
+  // A fila só existe no navegador: até lê-la, a Início não afirma que ela está vazia.
+  const [backlogRead, setBacklogRead] = useState(false);
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
   const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
   const [isLive, setIsLive] = useState(false);
@@ -890,7 +904,11 @@ export default function LandingHome() {
   const hasGameData = isLoaded && !gamesUnavailable;
 
   useEffect(() => {
-    function refreshBacklog() { setBacklogEntries(readBacklogEntries()); }
+    localDataReady = true;
+    function refreshBacklog() {
+      setBacklogEntries(readBacklogEntries());
+      setBacklogRead(true);
+    }
     refreshBacklog();
     window.addEventListener("storage", refreshBacklog);
     window.addEventListener(BACKLOG_UPDATED_EVENT, refreshBacklog);
@@ -1123,7 +1141,7 @@ export default function LandingHome() {
         <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
           <div className="border-b border-white/[0.08] pb-5 pt-2">
             <div className="flex flex-col items-center text-center">
-              <ProfileAvatar />
+              <ProfileAvatar initial={initialAvatar} />
               <h2 className="mt-3 text-lg font-black leading-tight text-white">Rabiisco</h2>
               <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
               <p className="mt-2 max-w-[180px] text-[11px] italic leading-relaxed text-white/50">Jogador por paixão. Conquistas por propósito.</p>
@@ -1756,7 +1774,7 @@ export default function LandingHome() {
                 <p className="text-[10px] text-white/50">Carregando a próxima Maestria…</p>
               </div>
             ) : (
-              <div className="p-3.5">
+              <div className={"p-3.5" + (backlogRead ? "" : " invisible")}>
                 <p className="text-xs font-bold text-white">Sua próxima Maestria ainda não foi definida.</p>
                 <p className="mt-1 text-[10px] leading-relaxed text-white/50">Escolha um jogo na fila para destacá-lo aqui.</p>
                 <Link href="/backlog" className="mt-3 inline-flex text-[10px] font-bold text-[#FB2C36] hover:text-white">Organizar fila →</Link>

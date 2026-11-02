@@ -156,6 +156,11 @@ type DatabaseGame = {
 
 const PUBLIC_CATALOG_TIMEOUT_MS = 8000;
 
+export type HomeGamesCatalog = {
+  games: Array<Record<string, unknown>>;
+  achievementsBySlug: Record<string, unknown[]>;
+};
+
 export const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 export const ACHIEVEMENTS_UPDATED_EVENT =
   "rumo-a-conquista-achievements-updated";
@@ -1119,27 +1124,54 @@ async function loadPublicGamesWithAchievements(
       throw new Error("Resposta incompleta do catálogo.");
     }
 
-    return await mergePublicGames(
-      baseGamesMap,
-      payload.games,
-      payload.achievementsBySlug
-    );
+    return composeCatalogGames(baseGamesMap, {
+      games: payload.games,
+      achievementsBySlug: payload.achievementsBySlug,
+    });
   } catch (error) {
     console.error("[Games] Não foi possível carregar o catálogo público:", error);
     return null;
   }
 }
 
-async function mergePublicGames(
-  baseGamesMap: Record<string, SiteGame>,
-  publicCatalog: Array<Record<string, unknown>>,
-  achievementsBySlug?: Record<string, unknown[]>
-): Promise<Record<string, SiteGame>> {
+function indexPublicGames(publicCatalog: Array<Record<string, unknown>>) {
   const publicGamesBySlug = new Map<string, Record<string, unknown>>();
   for (const game of publicCatalog) {
     const slug = readText(game.slug, "").trim();
     if (slug) publicGamesBySlug.set(slug, game);
   }
+
+  return publicGamesBySlug;
+}
+
+/** Monta os jogos de forma síncrona: a Início precisa deles já na primeira renderização. */
+function composeCatalogGames(
+  baseGamesMap: Record<string, SiteGame>,
+  catalog: HomeGamesCatalog
+): Record<string, SiteGame> {
+  const publicGamesBySlug = indexPublicGames(catalog.games);
+  const slugs = Array.from(
+    new Set([...Object.keys(baseGamesMap), ...publicGamesBySlug.keys()])
+  );
+
+  return Object.fromEntries(
+    slugs.map((slug) => [
+      slug,
+      composePublicGame(
+        slug,
+        baseGamesMap[slug],
+        publicGamesBySlug.get(slug),
+        mapAchievementRows(catalog.achievementsBySlug[slug] ?? [])
+      ),
+    ])
+  );
+}
+
+async function mergePublicGames(
+  baseGamesMap: Record<string, SiteGame>,
+  publicCatalog: Array<Record<string, unknown>>
+): Promise<Record<string, SiteGame>> {
+  const publicGamesBySlug = indexPublicGames(publicCatalog);
 
   const slugs = Array.from(
     new Set([...Object.keys(baseGamesMap), ...publicGamesBySlug.keys()])
@@ -1148,106 +1180,114 @@ async function mergePublicGames(
   const entries = await Promise.all(
     slugs.map(async (slug) => {
       const baseGame = baseGamesMap[slug];
-      const publicGame = publicGamesBySlug.get(slug);
       let achievements = (baseGame?.achievementsList ?? []) as FlexibleAchievementInput[];
 
-      if (achievementsBySlug) {
-        achievements = mapAchievementRows(achievementsBySlug[slug] ?? []);
-      } else {
-        try {
-          const result = await loadAchievementsForGame(
-            slug,
-            achievements as Parameters<typeof loadAchievementsForGame>[1]
-          );
-          achievements = result.achievements;
-        } catch {
-          // Preserve local achievements as a safe fallback if the public repository is unavailable.
-        }
-      }
-
-      const seed: Partial<SiteGame> = baseGame ?? {
-        slug,
-        title: readText(publicGame?.title, "Jogo sem nome"),
-        status: "progress",
-        progress: 0,
-        hours: "0h",
-        image: "",
-        cardImage: "",
-        platform: "Steam",
-      };
-
-      let merged: Partial<SiteGame> = {
-        ...seed,
-        slug,
-        achievementsList: achievements,
-      };
-
-      if (publicGame) {
-        const isObject = (value: unknown) =>
-          Boolean(value && typeof value === "object" && !Array.isArray(value));
-
-        merged = {
-          ...seed,
+      try {
+        const result = await loadAchievementsForGame(
           slug,
-          title: readText(publicGame.title, seed.title || "Jogo sem nome"),
-          subtitle: readText(publicGame.subtitle, seed.subtitle || ""),
-          status: readText(publicGame.status, seed.status || "progress"),
-          progress:
-            typeof publicGame.progress === "number"
-              ? publicGame.progress
-              : seed.progress ?? 0,
-          hours: readText(publicGame.hours, readText(seed.hours, "0h")),
-          currentObjective: readText(
-            publicGame.currentObjective,
-            seed.currentObjective || ""
-          ),
-          objective: readText(
-            publicGame.currentObjective ?? publicGame.objective,
-            seed.objective || seed.currentObjective || ""
-          ),
-          image: readText(publicGame.image, "") || seed.image || "",
-          cardImage: readText(publicGame.cardImage, "") || seed.cardImage || "",
-          platform: readText(publicGame.platform, seed.platform || "Steam"),
-          finalBadge: isObject(publicGame.finalBadge)
-            ? (publicGame.finalBadge as SiteGame["finalBadge"])
-            : seed.finalBadge,
-          emblem: isObject(publicGame.emblem)
-            ? (publicGame.emblem as GameEmblemInput)
-            : seed.emblem,
-          emblemConfigured: publicGame.emblemConfigured === true,
-          trophies: isObject(publicGame.trophies)
-            ? (publicGame.trophies as SiteGame["trophies"])
-            : seed.trophies,
-          review: publicGame.review ?? seed.review,
-          firstJourney: isObject(publicGame.firstJourney)
-            ? (publicGame.firstJourney as FirstJourneyState)
-            : seed.firstJourney,
-          manualTotalPlayedMinutes:
-            typeof publicGame.manualTotalPlayedMinutes === "number"
-              ? publicGame.manualTotalPlayedMinutes
-              : seed.manualTotalPlayedMinutes,
-          createdAt: readText(publicGame.createdAt, seed.createdAt || ""),
-          updatedAt: readText(publicGame.updatedAt, seed.updatedAt || ""),
-          isHidden: false,
-          isDeleted: false,
-          achievementsList: achievements,
-        };
+          achievements as Parameters<typeof loadAchievementsForGame>[1]
+        );
+        achievements = result.achievements;
+      } catch {
+        // Preserve local achievements as a safe fallback if the public repository is unavailable.
       }
 
-      return [slug, normalizeGame(slug, merged)] as const;
+      return [
+        slug,
+        composePublicGame(slug, baseGame, publicGamesBySlug.get(slug), achievements),
+      ] as const;
     })
   );
 
   return Object.fromEntries(entries);
 }
 
-export function useSiteGames({ publicOnly = false }: { publicOnly?: boolean } = {}) {
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [customGames, setCustomGames] = useState<Record<string, SiteGame>>({});
-  const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
-  const [deletedGameSlugs, setDeletedGameSlugs] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+function composePublicGame(
+  slug: string,
+  baseGame: SiteGame | undefined,
+  publicGame: Record<string, unknown> | undefined,
+  achievements: FlexibleAchievementInput[]
+) {
+  const seed: Partial<SiteGame> = baseGame ?? {
+    slug,
+    title: readText(publicGame?.title, "Jogo sem nome"),
+    status: "progress",
+    progress: 0,
+    hours: "0h",
+    image: "",
+    cardImage: "",
+    platform: "Steam",
+  };
 
+  let merged: Partial<SiteGame> = {
+    ...seed,
+    slug,
+    achievementsList: achievements,
+  };
+
+  if (publicGame) {
+    const isObject = (value: unknown) =>
+      Boolean(value && typeof value === "object" && !Array.isArray(value));
+
+    merged = {
+      ...seed,
+      slug,
+      title: readText(publicGame.title, seed.title || "Jogo sem nome"),
+      subtitle: readText(publicGame.subtitle, seed.subtitle || ""),
+      status: readText(publicGame.status, seed.status || "progress"),
+      progress:
+        typeof publicGame.progress === "number"
+          ? publicGame.progress
+          : seed.progress ?? 0,
+      hours: readText(publicGame.hours, readText(seed.hours, "0h")),
+      currentObjective: readText(
+        publicGame.currentObjective,
+        seed.currentObjective || ""
+      ),
+      objective: readText(
+        publicGame.currentObjective ?? publicGame.objective,
+        seed.objective || seed.currentObjective || ""
+      ),
+      image: readText(publicGame.image, "") || seed.image || "",
+      cardImage: readText(publicGame.cardImage, "") || seed.cardImage || "",
+      platform: readText(publicGame.platform, seed.platform || "Steam"),
+      finalBadge: isObject(publicGame.finalBadge)
+        ? (publicGame.finalBadge as SiteGame["finalBadge"])
+        : seed.finalBadge,
+      emblem: isObject(publicGame.emblem)
+        ? (publicGame.emblem as GameEmblemInput)
+        : seed.emblem,
+      emblemConfigured: publicGame.emblemConfigured === true,
+      trophies: isObject(publicGame.trophies)
+        ? (publicGame.trophies as SiteGame["trophies"])
+        : seed.trophies,
+      review: publicGame.review ?? seed.review,
+      firstJourney: isObject(publicGame.firstJourney)
+        ? (publicGame.firstJourney as FirstJourneyState)
+        : seed.firstJourney,
+      manualTotalPlayedMinutes:
+        typeof publicGame.manualTotalPlayedMinutes === "number"
+          ? publicGame.manualTotalPlayedMinutes
+          : seed.manualTotalPlayedMinutes,
+      createdAt: readText(publicGame.createdAt, seed.createdAt || ""),
+      updatedAt: readText(publicGame.updatedAt, seed.updatedAt || ""),
+      isHidden: false,
+      isDeleted: false,
+      achievementsList: achievements,
+    };
+  }
+
+  return normalizeGame(slug, merged);
+}
+
+export function useSiteGames({
+  publicOnly = false,
+  initialCatalog = null,
+}: {
+  publicOnly?: boolean;
+  /** Dados lidos no servidor: a primeira renderização já sai completa. */
+  initialCatalog?: HomeGamesCatalog | null;
+} = {}) {
   const baseGamesMap = useMemo(() => {
     const entries = Object.entries(
       baseGames as unknown as Record<string, Partial<SiteGame>>
@@ -1258,6 +1298,15 @@ export function useSiteGames({ publicOnly = false }: { publicOnly?: boolean } = 
       return acc;
     }, {});
   }, []);
+
+  const hasInitialCatalog = initialCatalog !== null;
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [customGames, setCustomGames] = useState<Record<string, SiteGame>>(() =>
+    initialCatalog ? composeCatalogGames(baseGamesMap, initialCatalog) : {}
+  );
+  const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
+  const [deletedGameSlugs, setDeletedGameSlugs] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(hasInitialCatalog);
 
   const loadGames = useCallback(async () => {
     if (publicOnly) {
@@ -1322,7 +1371,8 @@ export function useSiteGames({ publicOnly = false }: { publicOnly?: boolean } = 
   }, [baseGamesMap, publicOnly]);
 
   useEffect(() => {
-    void loadGames();
+    // Com dados do servidor, a leitura volta a acontecer só nos eventos abaixo.
+    if (!hasInitialCatalog) void loadGames();
 
     const handleUpdate = () => {
       void loadGames();
@@ -1339,7 +1389,7 @@ export function useSiteGames({ publicOnly = false }: { publicOnly?: boolean } = 
       window.removeEventListener("storage", handleUpdate);
       window.removeEventListener("focus", handleUpdate);
     };
-  }, [loadGames]);
+  }, [hasInitialCatalog, loadGames]);
 
   function emitUpdate() {
     window.dispatchEvent(new Event(GAMES_UPDATED_EVENT));
