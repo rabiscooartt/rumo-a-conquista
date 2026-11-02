@@ -127,27 +127,6 @@ function ScrollIcon({ className = "" }: IconProps) {
   );
 }
 
-function DiamondIcon({ className = "" }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 3h12l4 6-10 12L2 9l4-6Z" />
-      <path d="M2 9h20" />
-      <path d="m8 9 4 12 4-12" />
-      <path d="m6 3 2 6" />
-      <path d="m18 3-2 6" />
-    </svg>
-  );
-}
-
 function ShieldIcon({ className = "" }: IconProps) {
   return (
     <svg
@@ -211,12 +190,6 @@ const navLinks = [
     label: "Atividade",
     href: "/atividade",
     icon: ScrollIcon,
-  },
-  {
-    label: "Próximas Maestrias",
-    href: "/backlog",
-    adminHref: "/admin/backlog",
-    icon: DiamondIcon,
   },
   {
     label: "Emblemas",
@@ -285,7 +258,7 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-2.5 lg:flex xl:gap-3 2xl:gap-4">
           {navLinks
-            .filter((link) => (!("adminOnly" in link) || !link.adminOnly || isAdminMode) && (link.href !== "/backlog" || isAdminMode))
+            .filter((link) => (!("adminOnly" in link) || !link.adminOnly || isAdminMode))
             .map((link) => {
             const targetHref =
               isAdminMode && link.adminHref ? link.adminHref : link.href;
@@ -310,7 +283,7 @@ export default function Navbar() {
                   }`}
                 />
 
-                <span className="whitespace-nowrap">{isAdminMode && link.href === "/backlog" ? "Editar Fila" : link.label}</span>
+                <span className="whitespace-nowrap">{link.label}</span>
 
                 <span
                   className={`absolute bottom-0 left-0 h-[3px] rounded-full bg-red-500 transition-all ${

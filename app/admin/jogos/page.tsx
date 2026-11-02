@@ -59,6 +59,10 @@ function statusBadgeClass(status?: string) {
   return styles[statusTone(status)];
 }
 
+function isPlannedStatus(status?: string) {
+  return statusTone(status) === "planned";
+}
+
 function journeyActive(game: SiteGame) {
   return game.firstJourney?.status === "in_progress";
 }
@@ -202,10 +206,14 @@ export default function NewGamesAdminPage() {
       return 0;
     };
 
-    // Stable grouping: in progress first, queue/next mastery second, completed last.
+    // Stable grouping: in progress first, next mastery queue second (by position), completed last.
     return matches
       .map((game, index) => ({ game, index }))
-      .sort((a, b) => statusOrder(a.game.status) - statusOrder(b.game.status) || a.index - b.index)
+      .sort((a, b) =>
+        statusOrder(a.game.status) - statusOrder(b.game.status) ||
+        (a.game.backlogOrder ?? 0) - (b.game.backlogOrder ?? 0) ||
+        a.index - b.index
+      )
       .map(({ game }) => game);
   }, [gamesList, search]);
 
@@ -231,8 +239,13 @@ export default function NewGamesAdminPage() {
               ? "manual"
               : "automatic",
           youtubeFirstLiveEpisode: selectedGame.youtubeFirstLiveEpisode || "",
+          backlogPosition: selectedGame.backlogOrder ? String(selectedGame.backlogOrder) : "",
         }
     : null;
+
+  const nextQueuePosition = String(
+    gamesList.filter((game) => game.slug !== selectedGame?.slug && isPlannedStatus(game.status)).length + 1
+  );
 
   const savedReview =
     selectedGame?.review &&
@@ -581,6 +594,15 @@ export default function NewGamesAdminPage() {
 
   async function saveBasics() {
     if (!selectedGame || !values) return;
+
+    const planned = isPlannedStatus(values.status);
+    const backlogPosition = Number(values.backlogPosition);
+    if (planned && (!Number.isInteger(backlogPosition) || backlogPosition < 1)) {
+      window.alert("Informe a posição na fila com um número inteiro positivo.");
+      return;
+    }
+    const positionChanged = planned && backlogPosition !== selectedGame.backlogOrder;
+
     setSaving(true);
     try {
       const saved = await updateGame(selectedGame.slug, {
@@ -623,7 +645,9 @@ export default function NewGamesAdminPage() {
 
           return Object.keys(review).length > 0 ? review : null;
         })(),
+        ...(positionChanged ? { backlogOrder: backlogPosition } : {}),
       });
+      if (saved && positionChanged) setDraft(null);
       if (saved && String(values.status).trim().toLowerCase() === "planned") {
         removeQueuedGameFromPickerBank(formatGameTitle(values.title) || selectedGame.title);
       }
@@ -1000,7 +1024,7 @@ export default function NewGamesAdminPage() {
                       <div className="min-w-0">
                         <p className="truncate text-[12px] font-black">{game.title}</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
-                          <span className={statusBadgeClass(game.status)}>{statusLabel(game.status)}</span>
+                          <span className={statusBadgeClass(game.status)}>{isPlannedStatus(game.status) && game.backlogOrder ? "#" + game.backlogOrder + " " : ""}{statusLabel(game.status)}</span>
                           <span className={journeyActive(game) ? "rounded-full border border-orange-500/35 bg-orange-500/[0.10] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-orange-300" : "rounded-full border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.12em] text-white/30"}>Estreia {journeyActive(game) ? "Ativa" : "Desativada"}</span>
                         </div>
                       </div>
@@ -1133,7 +1157,14 @@ export default function NewGamesAdminPage() {
                       <select
                         value={values.status}
                         onChange={(event) =>
-                          setDraft({ ...values, status: event.target.value })
+                          setDraft({
+                            ...values,
+                            status: event.target.value,
+                            backlogPosition:
+                              isPlannedStatus(event.target.value) && !values.backlogPosition
+                                ? nextQueuePosition
+                                : values.backlogPosition,
+                          })
                         }
                         className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
                       >
@@ -1142,6 +1173,27 @@ export default function NewGamesAdminPage() {
                         <option value="completed">Finalizado</option>
                       </select>
                     </label>
+
+                    {isPlannedStatus(values.status) ? (
+                      <label>
+                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/30">
+                          Posição na fila
+                        </span>
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={values.backlogPosition}
+                          onChange={(event) =>
+                            setDraft({ ...values, backlogPosition: event.target.value })
+                          }
+                          className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-bold text-white outline-none focus:border-red-500/40"
+                        />
+                        <span className="mt-1.5 block text-[11px] leading-relaxed text-white/28">
+                          A posição 1 é o próximo jogo. Os demais são reorganizados ao salvar.
+                        </span>
+                      </label>
+                    ) : null}
                   </div>
 
                   <div className="mt-6 rounded-2xl border border-white/[0.08] bg-black/20 p-4">

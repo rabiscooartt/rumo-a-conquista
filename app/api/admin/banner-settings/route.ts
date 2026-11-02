@@ -1,6 +1,8 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
+import { SITE_BANNER_CACHE_TAG } from "@/lib/site-banner-settings";
 import type { SiteBannerKey } from "@/lib/banner-types";
 
 const BUCKET = "site-banners";
@@ -195,6 +197,8 @@ export async function POST(request: NextRequest) {
       );
 
     if (error) throw error;
+
+    revalidateTag(SITE_BANNER_CACHE_TAG, { expire: 0 });
 
     return NextResponse.json({
       ok: true,

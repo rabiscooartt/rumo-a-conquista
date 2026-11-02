@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import BannerBackground from "@/components/BannerBackground";
-import ProfileAvatar from "@/components/ProfileAvatar";
+import ProfileAvatar, { type InitialAvatar } from "@/components/ProfileAvatar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlatformIcon from "@/components/PlatformIcon";
 import StarRating from "@/components/StarRating";
-import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
+import { homeImageSrc } from "@/lib/homeImages";
 
 type HomeGame = SiteGame & {
   mastery?: string;
   isInBacklog?: boolean;
   backlogStatus?: "next" | "waiting" | "future";
-  backlogOrder?: number;
+  backlogOrder?: number | null;
 };
 type AchievementLike = {
   id?: string;
@@ -30,7 +31,6 @@ type AchievementLike = {
   [key: string]: unknown;
 };
 type SavedAchievementState = { status?: string; rank?: string; date?: string; image?: string };
-type BacklogEntry = { id?: string; slug: string; order: number; status: "next" | "waiting" | "future" };
 type YoutubeItem = { id: string; title: string; description?: string; publishedAt?: string; thumbnail: string; url: string };
 type YoutubePayload = { videos?: YoutubeItem[]; liveNow?: YoutubeItem | null; error?: string };
 type LivePlatform = "youtube" | "twitch";
@@ -38,16 +38,19 @@ type TwitchLiveItem = { id: string; title: string; gameName?: string; thumbnail:
 type TwitchPayload = { available?: boolean; live?: TwitchLiveItem | null; error?: string };
 type LiveStream = { platform: LivePlatform; id: string; title: string; thumbnail: string; url: string };
 
-const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
-const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
-const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
+// O servidor roda em outro fuso: um fuso fixo mantém as datas iguais às do HTML.
+const HOME_TIME_ZONE = "America/Sao_Paulo";
+const GAMES_UNAVAILABLE_MESSAGE = "Não foi possível carregar os jogos agora. Tente atualizar a página.";
 
 function normalizeKey(value: unknown) {
   return String(value ?? "").toLowerCase().normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
 }
+// Só depois da hidratação: o HTML do servidor não conhece os dados guardados no navegador.
+let localDataReady = false;
+
 function readLocalJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
+  if (typeof window === "undefined" || !localDataReady) return fallback;
   try {
     const value = window.localStorage.getItem(key);
     return value ? JSON.parse(value) as T : fallback;
@@ -321,7 +324,7 @@ function formatPublishedDate(value: string | undefined) {
 }
 function formatShortDate(timestamp: number) {
   if (!timestamp) return "";
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(timestamp)).replace(".", "");
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", timeZone: HOME_TIME_ZONE }).format(new Date(timestamp)).replace(".", "");
 }
 function getAchievementSymbol(achievement: AchievementLike) {
   const rank = normalizeKey(achievement.rank || achievement.difficulty || achievement.trophy);
@@ -329,15 +332,6 @@ function getAchievementSymbol(achievement: AchievementLike) {
   if (rank.includes("prata") || readText(achievement.trophy, "").includes("🥈")) return "🥈";
   if (rank.includes("diamante") || readText(achievement.trophy, "").includes("💎")) return "💎";
   return readText(achievement.icon, "") || readText(achievement.trophy, "") || "🏆";
-}
-function readBacklogEntries(): BacklogEntry[] {
-  const saved = readLocalJson<Partial<BacklogEntry>[]>(BACKLOG_STORAGE_KEY, []);
-  return saved.map((item, index) => ({
-    id: item.id,
-    slug: readText(item.slug, "").trim(),
-    order: Number(item.order ?? index + 1),
-    status: (item.status === "next" || item.status === "waiting" ? item.status : "future") as BacklogEntry["status"],
-  })).filter((item) => item.slug).sort((a, b) => a.order - b.order);
 }
 function SectionTitle({ title, href, linkLabel = "Ver todos" }: { title: string; href?: string; linkLabel?: string }) {
   return (
@@ -625,7 +619,8 @@ function getRecentAchievementPreviews(game: HomeGame): RecentAchievementPreviewI
 
 function RecentAchievementMiniatures({ items }: { items: RecentAchievementPreviewItem[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [availableWidth, setAvailableWidth] = useState(0);
+  // Estimativa até a medição real, para o HTML já trazer as miniaturas.
+  const [availableWidth, setAvailableWidth] = useState(360);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -684,7 +679,7 @@ function RecentAchievementMiniatures({ items }: { items: RecentAchievementPrevie
           <span aria-hidden="true">{item.fallback}</span>
           {item.image ? (
             <img
-              src={item.image}
+              src={homeImageSrc(item.image)}
               alt=""
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover"
@@ -728,7 +723,7 @@ function getRecentGameDate(game: HomeGame) {
   if (!raw) return "";
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("pt-BR");
+  return date.toLocaleDateString("pt-BR", { timeZone: HOME_TIME_ZONE });
 }
 
 function parseRecentGameTimestamp(value: unknown) {
@@ -738,7 +733,7 @@ function parseRecentGameTimestamp(value: unknown) {
   const brazilianDate = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (brazilianDate) {
     const [, day, month, year] = brazilianDate;
-    return new Date(`${year}-${month}-${day}T23:59:59`).getTime();
+    return new Date(`${year}-${month}-${day}T23:59:59-03:00`).getTime();
   }
 
   const timestamp = Date.parse(raw);
@@ -838,9 +833,14 @@ function RecentMetadataIcon({ type, className }: { type: "trophy" | "clock" | "c
   );
 }
 
-export default function LandingHome() {
-  const { gamesList, isLoaded } = useSiteGames();
-  const [backlogEntries, setBacklogEntries] = useState<BacklogEntry[]>([]);
+export default function LandingHome({
+  initialCatalog,
+  initialAvatar,
+}: {
+  initialCatalog: (HomeGamesCatalog & { generatedAt: number }) | null;
+  initialAvatar: InitialAvatar | null;
+}) {
+  const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
   const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
   const [isLive, setIsLive] = useState(false);
@@ -884,18 +884,11 @@ export default function LandingHome() {
     () => (gamesList || []).filter((game) => Boolean(game.slug && game.title)) as HomeGame[],
     [gamesList]
   );
+  const gamesUnavailable = isLoaded && loadFailed && allGames.length === 0;
+  const hasGameData = isLoaded && !gamesUnavailable;
 
   useEffect(() => {
-    function refreshBacklog() { setBacklogEntries(readBacklogEntries()); }
-    refreshBacklog();
-    window.addEventListener("storage", refreshBacklog);
-    window.addEventListener(BACKLOG_UPDATED_EVENT, refreshBacklog);
-    window.addEventListener(GAMES_UPDATED_EVENT, refreshBacklog);
-    return () => {
-      window.removeEventListener("storage", refreshBacklog);
-      window.removeEventListener(BACKLOG_UPDATED_EVENT, refreshBacklog);
-      window.removeEventListener(GAMES_UPDATED_EVENT, refreshBacklog);
-    };
+    localDataReady = true;
   }, []);
 
   useEffect(() => {
@@ -982,18 +975,12 @@ export default function LandingHome() {
     setUnavailableCurrentAchievementKeys([]);
   }, [currentGame?.slug]);
   const nextMastery = useMemo(() => {
-    const bySlug = new Map(allGames.map((game) => [game.slug, game]));
-    const eligibleQueue = backlogEntries
-      .map((item) => bySlug.get(item.slug))
-      .filter((game): game is HomeGame => Boolean(game) && getGameStatus(game as HomeGame) !== "completed");
-    const explicitNext = backlogEntries.find((item) => item.status === "next");
-    const chosenNext = explicitNext ? bySlug.get(explicitNext.slug) : undefined;
+    const queue = allGames
+      .filter((game) => getGameStatus(game) === "planned" && typeof game.backlogOrder === "number")
+      .sort((a, b) => Number(a.backlogOrder) - Number(b.backlogOrder));
 
-    if (chosenNext && getGameStatus(chosenNext) !== "completed") return chosenNext;
-    if (eligibleQueue.length > 0) return eligibleQueue[0];
-
-    return gamesByUpdated.find((game) => game.backlogStatus === "next" && getGameStatus(game) !== "completed") ?? null;
-  }, [allGames, backlogEntries, gamesByUpdated]);
+    return queue[0] ?? null;
+  }, [allGames]);
 
   const recentGames = useMemo(() => {
     const reserved = new Set([currentGame?.slug, nextMastery?.slug].filter((slug): slug is string => Boolean(slug)));
@@ -1119,7 +1106,7 @@ export default function LandingHome() {
         <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
           <div className="border-b border-white/[0.08] pb-5 pt-2">
             <div className="flex flex-col items-center text-center">
-              <ProfileAvatar />
+              <ProfileAvatar initial={initialAvatar} />
               <h2 className="mt-3 text-lg font-black leading-tight text-white">Rabiisco</h2>
               <p className="mt-1 text-[10px] font-semibold leading-relaxed text-white/60">Criador do Rumo à Conquista</p>
               <p className="mt-2 max-w-[180px] text-[11px] italic leading-relaxed text-white/50">Jogador por paixão. Conquistas por propósito.</p>
@@ -1159,10 +1146,10 @@ export default function LandingHome() {
             <div className="mt-3 grid grid-cols-4 gap-1.5">
               {HOME_TROPHY_TIERS.map((tier) => {
                 const count = trophySummary[tier.key];
-                const countLabel = isLoaded ? String(count.unlocked) : "—";
-                const countDescription = isLoaded
+                const countLabel = hasGameData ? String(count.unlocked) : "—";
+                const countDescription = hasGameData
                   ? `${tier.label}: ${count.unlocked} desbloqueadas de ${count.total}`
-                  : `${tier.label}: carregando contagens`;
+                  : `${tier.label}: ${gamesUnavailable ? "contagens indisponíveis" : "carregando contagens"}`;
 
                 return (
                   <div
@@ -1284,10 +1271,10 @@ export default function LandingHome() {
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-5 md:left-6 md:right-6 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
-            <Stat symbol="library" value={isLoaded ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
-            <Stat symbol="check" value={isLoaded ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
-            <Stat symbol="trophy" value={isLoaded ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
-            <Stat symbol="clock" value={isLoaded ? summary.hours : "—"} label="Tempo de jogo" divided />
+            <Stat symbol="library" value={hasGameData ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
+            <Stat symbol="check" value={hasGameData ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
+            <Stat symbol="trophy" value={hasGameData ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
+            <Stat symbol="clock" value={hasGameData ? summary.hours : "—"} label="Tempo de jogo" divided />
           </div>
         </div>
       </section>
@@ -1303,7 +1290,7 @@ export default function LandingHome() {
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               <img
                 key={currentGame.slug + ":ambient"}
-                src={currentGame.image || currentGame.cardImage || ""}
+                src={homeImageSrc(currentGame.image || currentGame.cardImage || "")}
                 alt=""
                 loading="eager"
                 decoding="async"
@@ -1363,7 +1350,7 @@ export default function LandingHome() {
                   style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)" }}
                 >
                   <img
-                    src={currentGame.image || currentGame.cardImage || ""}
+                    src={homeImageSrc(currentGame.image || currentGame.cardImage || "")}
                     alt={currentGame.title + " — arte do jogo"}
                     loading="eager"
                     decoding="async"
@@ -1496,6 +1483,11 @@ export default function LandingHome() {
               ) : null}
             </div>
           </>
+        ) : gamesUnavailable ? (
+          <div className="p-5 sm:p-7" role="alert">
+            <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
+            <p className="mt-2 text-sm text-white/55">{GAMES_UNAVAILABLE_MESSAGE}</p>
+          </div>
         ) : !isLoaded ? (
           <div className="p-5 sm:p-7" role="status">
             <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
@@ -1528,7 +1520,7 @@ export default function LandingHome() {
               const counts = getAchievementCounts(game);
               const completed = getGameStatus(game) === "completed";
               const progress = completed ? 100 : Math.max(0, Math.min(100, Number(game.progress) || 0));
-              const emblem = getGameEmblemImage(game) || "/images/games/emblem.png";
+              const emblem = homeImageSrc(getGameEmblemImage(game) || "/images/games/emblem.png");
               const date = getRecentGameDate(game);
               const rating = getRecentGameRating(game);
               const platform = readText(game.platform, "").trim() || "Steam";
@@ -1551,7 +1543,7 @@ export default function LandingHome() {
                   <div className="grid grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
                     <div className="h-[121px] w-[94px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
-                        src={game.cardImage || game.image || ""}
+                        src={homeImageSrc(game.cardImage || game.image || "")}
                         alt={game.title + " — capa"}
                         loading="lazy"
                         className="h-full w-full object-cover object-center transition duration-700 group-hover/recent-row:scale-105"
@@ -1646,7 +1638,7 @@ export default function LandingHome() {
           </div>
         ) : (
           <p className="p-5 text-sm text-white/50" role={isLoaded ? undefined : "status"}>
-            {isLoaded ? "Os jogos recentes aparecerão aqui conforme o progresso for registrado." : "Carregando os jogos recentes…"}
+            {gamesUnavailable ? GAMES_UNAVAILABLE_MESSAGE : isLoaded ? "Os jogos recentes aparecerão aqui conforme o progresso for registrado." : "Carregando os jogos recentes…"}
           </p>
         )}
       </section>
@@ -1738,6 +1730,10 @@ export default function LandingHome() {
                   </div>
                 </div>
               </>
+            ) : gamesUnavailable ? (
+              <div className="p-3.5" role="alert">
+                <p className="text-[10px] text-white/50">{GAMES_UNAVAILABLE_MESSAGE}</p>
+              </div>
             ) : !isLoaded ? (
               <div className="p-3.5" role="status">
                 <p className="text-[10px] text-white/50">Carregando a próxima Maestria…</p>

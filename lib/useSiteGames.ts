@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { games as baseGames } from "@/data/games";
-import { loadAchievementsForGame } from "@/lib/achievements/repository";
+import {
+  loadAchievementsForGame,
+  mapAchievementRows,
+} from "@/lib/achievements/repository";
 
 export type FlexibleAchievementInput = {
   id?: string;
@@ -73,6 +76,8 @@ export type SiteGame = {
   createdAt?: string;
   updatedAt?: string;
   manualTotalPlayedMinutes?: number | null;
+  /** Posição na fila da Próxima Maestria; null quando o jogo está fora dela. */
+  backlogOrder?: number | null;
   firstJourney?: FirstJourneyState;
   finalBadge?: {
     title: string;
@@ -141,6 +146,7 @@ type DatabaseGame = {
   created_at: string;
   updated_at: string;
   manual_total_played_minutes: number | null;
+  backlog_order?: number | null;
   review?: unknown;
   youtubePlaylistUrl?: string;
   youtubeFirstLiveUrl?: string;
@@ -150,6 +156,16 @@ type DatabaseGame = {
   achievementsList?: FlexibleAchievementInput[];
 };
 
+
+const PUBLIC_CATALOG_TIMEOUT_MS = 8000;
+
+export type HomeGamesCatalog = {
+  games: Array<Record<string, unknown>>;
+  achievementsBySlug: Record<string, unknown[]>;
+};
+
+/** Acima disso, o dado do servidor pode vir do cache e o navegador confere em segundo plano. */
+export const HOME_DATA_MAX_AGE_MS = 10_000;
 
 export const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 export const ACHIEVEMENTS_UPDATED_EVENT =
@@ -899,6 +915,7 @@ async function loadGamesFromSupabase(): Promise<Record<string, SiteGame>> {
         image: game.image ?? "",
         manualTotalPlayedMinutes:
           game.manual_total_played_minutes ?? null,
+        backlogOrder: game.backlog_order ?? null,
         firstJourney:
           (game as DatabaseGame).firstJourney ??
           (game as DatabaseGame).first_journey,
@@ -984,7 +1001,7 @@ async function requestGameApi<T>(
 
 async function saveGameToSupabase(
   game: SiteGame,
-  options?: { isHidden?: boolean; isDeleted?: boolean }
+  options?: { isHidden?: boolean; isDeleted?: boolean; backlogPosition?: number }
 ) {
   return requestGameApi<{
     ok: boolean;
@@ -1009,6 +1026,7 @@ async function saveGameToSupabase(
     manualTotalPlayedMinutes:
       game.manualTotalPlayedMinutes ?? null,
     firstJourney: game.firstJourney,
+    backlogPosition: options?.backlogPosition,
     isHidden: options?.isHidden === true,
     isDeleted: options?.isDeleted === true,
   });
@@ -1089,11 +1107,79 @@ async function loadPublicFallbackGames(
     console.warn("[Games] Catálogo público indisponível; usando dados locais:", error);
   }
 
+  return mergePublicGames(baseGamesMap, publicCatalog);
+}
+
+/**
+ * Reads games and achievements in a single request. Returns null when the
+ * catalog is unavailable, so the page can say so instead of showing old data.
+ */
+async function loadPublicGamesWithAchievements(
+  baseGamesMap: Record<string, SiteGame>
+): Promise<Record<string, SiteGame> | null> {
+  try {
+    const response = await fetch("/api/games/catalog?achievements=1", {
+      cache: "no-store",
+      signal: AbortSignal.timeout(PUBLIC_CATALOG_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const payload = (await response.json()) as {
+      games?: Array<Record<string, unknown>>;
+      achievementsBySlug?: Record<string, unknown[]>;
+    };
+    if (!Array.isArray(payload.games) || !payload.achievementsBySlug) {
+      throw new Error("Resposta incompleta do catálogo.");
+    }
+
+    return composeCatalogGames(baseGamesMap, {
+      games: payload.games,
+      achievementsBySlug: payload.achievementsBySlug,
+    });
+  } catch (error) {
+    console.error("[Games] Não foi possível carregar o catálogo público:", error);
+    return null;
+  }
+}
+
+function indexPublicGames(publicCatalog: Array<Record<string, unknown>>) {
   const publicGamesBySlug = new Map<string, Record<string, unknown>>();
   for (const game of publicCatalog) {
     const slug = readText(game.slug, "").trim();
     if (slug) publicGamesBySlug.set(slug, game);
   }
+
+  return publicGamesBySlug;
+}
+
+/** Monta os jogos de forma síncrona: a Início precisa deles já na primeira renderização. */
+function composeCatalogGames(
+  baseGamesMap: Record<string, SiteGame>,
+  catalog: HomeGamesCatalog
+): Record<string, SiteGame> {
+  const publicGamesBySlug = indexPublicGames(catalog.games);
+  const slugs = Array.from(
+    new Set([...Object.keys(baseGamesMap), ...publicGamesBySlug.keys()])
+  );
+
+  return Object.fromEntries(
+    slugs.map((slug) => [
+      slug,
+      composePublicGame(
+        slug,
+        baseGamesMap[slug],
+        publicGamesBySlug.get(slug),
+        mapAchievementRows(catalog.achievementsBySlug[slug] ?? [])
+      ),
+    ])
+  );
+}
+
+async function mergePublicGames(
+  baseGamesMap: Record<string, SiteGame>,
+  publicCatalog: Array<Record<string, unknown>>
+): Promise<Record<string, SiteGame>> {
+  const publicGamesBySlug = indexPublicGames(publicCatalog);
 
   const slugs = Array.from(
     new Set([...Object.keys(baseGamesMap), ...publicGamesBySlug.keys()])
@@ -1102,7 +1188,6 @@ async function loadPublicFallbackGames(
   const entries = await Promise.all(
     slugs.map(async (slug) => {
       const baseGame = baseGamesMap[slug];
-      const publicGame = publicGamesBySlug.get(slug);
       let achievements = (baseGame?.achievementsList ?? []) as FlexibleAchievementInput[];
 
       try {
@@ -1115,88 +1200,105 @@ async function loadPublicFallbackGames(
         // Preserve local achievements as a safe fallback if the public repository is unavailable.
       }
 
-      const seed: Partial<SiteGame> = baseGame ?? {
+      return [
         slug,
-        title: readText(publicGame?.title, "Jogo sem nome"),
-        status: "progress",
-        progress: 0,
-        hours: "0h",
-        image: "",
-        cardImage: "",
-        platform: "Steam",
-      };
-
-      let merged: Partial<SiteGame> = {
-        ...seed,
-        slug,
-        achievementsList: achievements,
-      };
-
-      if (publicGame) {
-        const isObject = (value: unknown) =>
-          Boolean(value && typeof value === "object" && !Array.isArray(value));
-
-        merged = {
-          ...seed,
-          slug,
-          title: readText(publicGame.title, seed.title || "Jogo sem nome"),
-          subtitle: readText(publicGame.subtitle, seed.subtitle || ""),
-          status: readText(publicGame.status, seed.status || "progress"),
-          progress:
-            typeof publicGame.progress === "number"
-              ? publicGame.progress
-              : seed.progress ?? 0,
-          hours: readText(publicGame.hours, readText(seed.hours, "0h")),
-          currentObjective: readText(
-            publicGame.currentObjective,
-            seed.currentObjective || ""
-          ),
-          objective: readText(
-            publicGame.currentObjective ?? publicGame.objective,
-            seed.objective || seed.currentObjective || ""
-          ),
-          image: readText(publicGame.image, "") || seed.image || "",
-          cardImage: readText(publicGame.cardImage, "") || seed.cardImage || "",
-          platform: readText(publicGame.platform, seed.platform || "Steam"),
-          finalBadge: isObject(publicGame.finalBadge)
-            ? (publicGame.finalBadge as SiteGame["finalBadge"])
-            : seed.finalBadge,
-          emblem: isObject(publicGame.emblem)
-            ? (publicGame.emblem as GameEmblemInput)
-            : seed.emblem,
-          emblemConfigured: publicGame.emblemConfigured === true,
-          trophies: isObject(publicGame.trophies)
-            ? (publicGame.trophies as SiteGame["trophies"])
-            : seed.trophies,
-          review: publicGame.review ?? seed.review,
-          firstJourney: isObject(publicGame.firstJourney)
-            ? (publicGame.firstJourney as FirstJourneyState)
-            : seed.firstJourney,
-          manualTotalPlayedMinutes:
-            typeof publicGame.manualTotalPlayedMinutes === "number"
-              ? publicGame.manualTotalPlayedMinutes
-              : seed.manualTotalPlayedMinutes,
-          createdAt: readText(publicGame.createdAt, seed.createdAt || ""),
-          updatedAt: readText(publicGame.updatedAt, seed.updatedAt || ""),
-          isHidden: false,
-          isDeleted: false,
-          achievementsList: achievements,
-        };
-      }
-
-      return [slug, normalizeGame(slug, merged)] as const;
+        composePublicGame(slug, baseGame, publicGamesBySlug.get(slug), achievements),
+      ] as const;
     })
   );
 
   return Object.fromEntries(entries);
 }
 
-export function useSiteGames() {
-  const [customGames, setCustomGames] = useState<Record<string, SiteGame>>({});
-  const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
-  const [deletedGameSlugs, setDeletedGameSlugs] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+function composePublicGame(
+  slug: string,
+  baseGame: SiteGame | undefined,
+  publicGame: Record<string, unknown> | undefined,
+  achievements: FlexibleAchievementInput[]
+) {
+  const seed: Partial<SiteGame> = baseGame ?? {
+    slug,
+    title: readText(publicGame?.title, "Jogo sem nome"),
+    status: "progress",
+    progress: 0,
+    hours: "0h",
+    image: "",
+    cardImage: "",
+    platform: "Steam",
+  };
 
+  let merged: Partial<SiteGame> = {
+    ...seed,
+    slug,
+    achievementsList: achievements,
+  };
+
+  if (publicGame) {
+    const isObject = (value: unknown) =>
+      Boolean(value && typeof value === "object" && !Array.isArray(value));
+
+    merged = {
+      ...seed,
+      slug,
+      title: readText(publicGame.title, seed.title || "Jogo sem nome"),
+      subtitle: readText(publicGame.subtitle, seed.subtitle || ""),
+      status: readText(publicGame.status, seed.status || "progress"),
+      progress:
+        typeof publicGame.progress === "number"
+          ? publicGame.progress
+          : seed.progress ?? 0,
+      hours: readText(publicGame.hours, readText(seed.hours, "0h")),
+      currentObjective: readText(
+        publicGame.currentObjective,
+        seed.currentObjective || ""
+      ),
+      objective: readText(
+        publicGame.currentObjective ?? publicGame.objective,
+        seed.objective || seed.currentObjective || ""
+      ),
+      image: readText(publicGame.image, "") || seed.image || "",
+      cardImage: readText(publicGame.cardImage, "") || seed.cardImage || "",
+      platform: readText(publicGame.platform, seed.platform || "Steam"),
+      finalBadge: isObject(publicGame.finalBadge)
+        ? (publicGame.finalBadge as SiteGame["finalBadge"])
+        : seed.finalBadge,
+      emblem: isObject(publicGame.emblem)
+        ? (publicGame.emblem as GameEmblemInput)
+        : seed.emblem,
+      emblemConfigured: publicGame.emblemConfigured === true,
+      trophies: isObject(publicGame.trophies)
+        ? (publicGame.trophies as SiteGame["trophies"])
+        : seed.trophies,
+      review: publicGame.review ?? seed.review,
+      firstJourney: isObject(publicGame.firstJourney)
+        ? (publicGame.firstJourney as FirstJourneyState)
+        : seed.firstJourney,
+      manualTotalPlayedMinutes:
+        typeof publicGame.manualTotalPlayedMinutes === "number"
+          ? publicGame.manualTotalPlayedMinutes
+          : seed.manualTotalPlayedMinutes,
+      // Sem herdar a ordem de data/games.ts: a fila só existe no banco.
+      backlogOrder:
+        typeof publicGame.backlogOrder === "number" ? publicGame.backlogOrder : null,
+      createdAt: readText(publicGame.createdAt, seed.createdAt || ""),
+      updatedAt: readText(publicGame.updatedAt, seed.updatedAt || ""),
+      isHidden: false,
+      isDeleted: false,
+      achievementsList: achievements,
+    };
+  }
+
+  return normalizeGame(slug, merged);
+}
+
+export function useSiteGames({
+  publicOnly = false,
+  initialCatalog = null,
+}: {
+  publicOnly?: boolean;
+  /** Dados lidos no servidor: a primeira renderização já sai completa. */
+  initialCatalog?: (HomeGamesCatalog & { generatedAt?: number }) | null;
+} = {}) {
   const baseGamesMap = useMemo(() => {
     const entries = Object.entries(
       baseGames as unknown as Record<string, Partial<SiteGame>>
@@ -1208,7 +1310,27 @@ export function useSiteGames() {
     }, {});
   }, []);
 
+  const hasInitialCatalog = initialCatalog !== null;
+  const initialGeneratedAt = initialCatalog?.generatedAt ?? 0;
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [customGames, setCustomGames] = useState<Record<string, SiteGame>>(() =>
+    initialCatalog ? composeCatalogGames(baseGamesMap, initialCatalog) : {}
+  );
+  const [hiddenGameSlugs, setHiddenGameSlugs] = useState<string[]>([]);
+  const [deletedGameSlugs, setDeletedGameSlugs] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(hasInitialCatalog);
+
   const loadGames = useCallback(async () => {
+    if (publicOnly) {
+      const publicGames = await loadPublicGamesWithAchievements(baseGamesMap);
+
+      // Uma falha ao atualizar mantém o que já está na tela.
+      if (publicGames) setCustomGames(publicGames);
+      setLoadFailed(!publicGames);
+      setIsLoaded(true);
+      return;
+    }
+
     try {
       const supabaseGames = await loadGamesFromSupabase();
 
@@ -1258,10 +1380,12 @@ export function useSiteGames() {
       setDeletedGameSlugs([]);
       setIsLoaded(true);
     }
-  }, []);
+  }, [baseGamesMap, publicOnly]);
 
   useEffect(() => {
-    void loadGames();
+    // Dados recentes do servidor dispensam nova leitura; os do cache são conferidos sem apagar a tela.
+    const catalogAge = Date.now() - initialGeneratedAt;
+    if (!hasInitialCatalog || catalogAge > HOME_DATA_MAX_AGE_MS) void loadGames();
 
     const handleUpdate = () => {
       void loadGames();
@@ -1278,7 +1402,7 @@ export function useSiteGames() {
       window.removeEventListener("storage", handleUpdate);
       window.removeEventListener("focus", handleUpdate);
     };
-  }, [loadGames]);
+  }, [hasInitialCatalog, initialGeneratedAt, loadGames]);
 
   function emitUpdate() {
     window.dispatchEvent(new Event(GAMES_UPDATED_EVENT));
@@ -1578,6 +1702,7 @@ const hiddenGamesList = useMemo(() => {
         await saveGameToSupabase(nextGame, {
           isHidden: hiddenGameSlugs.includes(slug),
           isDeleted: false,
+          backlogPosition: update.backlogOrder ?? undefined,
         });
       }
     } catch (error) {
@@ -1725,6 +1850,7 @@ const hiddenGamesList = useMemo(() => {
 
   return {
     isLoaded,
+    loadFailed,
     gamesMap,
     gamesList,
     hiddenBaseGames,

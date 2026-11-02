@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { homeImageSrc } from "@/lib/homeImages";
 
 type AvatarSettings = {
   x: number;
@@ -73,7 +74,7 @@ function AvatarArtwork({
   className = "",
   onImageError,
 }: {
-  imageUrl: string;
+  imageUrl: string | null;
   x: number;
   y: number;
   zoom: number;
@@ -84,7 +85,7 @@ function AvatarArtwork({
     <div className={`relative aspect-square overflow-visible ${className}`}>
       <div className="absolute inset-0 overflow-hidden rounded-xl border-2 border-red-500/70 bg-black/60 shadow-[0_0_20px_rgba(251,44,54,0.20)]">
         <div className="absolute inset-[2px] overflow-hidden rounded-lg bg-black/50">
-          <img
+          {imageUrl === null ? null : <img
             src={imageUrl || DEFAULT_AVATAR}
             alt="Avatar do Rabiisco"
             draggable={false}
@@ -97,7 +98,7 @@ function AvatarArtwork({
               top: `${50 + y}%`,
               transform: "translate(-50%, -50%)",
             }}
-          />
+          />}
         </div>
       </div>
       <Crown />
@@ -105,21 +106,28 @@ function AvatarArtwork({
   );
 }
 
-export default function ProfileAvatar() {
+export type InitialAvatar = AvatarSettings & { authenticated: boolean; generatedAt: number };
+
+const AVATAR_MAX_AGE_MS = 10_000;
+
+export default function ProfileAvatar({ initial = null }: { initial?: InitialAvatar | null }) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
-  const [settings, setSettings] = useState<AvatarSettings>(DEFAULT_SETTINGS);
-  const [draft, setDraft] = useState<AvatarSettings>(DEFAULT_SETTINGS);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const hasInitial = initial !== null;
+  const initialGeneratedAt = initial?.generatedAt ?? 0;
+  const [settings, setSettings] = useState<AvatarSettings>(() => (initial ? normalizeSettings(initial) : DEFAULT_SETTINGS));
+  const [draft, setDraft] = useState<AvatarSettings>(() => (initial ? normalizeSettings(initial) : DEFAULT_SETTINGS));
+  const [isAdmin, setIsAdmin] = useState(initial?.authenticated === true);
+  const [isLoaded, setIsLoaded] = useState(hasInitial);
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [failedLightImage, setFailedLightImage] = useState("");
 
   useEffect(() => {
     setPortalTarget(document.body);
@@ -163,7 +171,7 @@ export default function ProfileAvatar() {
   }, []);
 
   useEffect(() => {
-    void loadSettings();
+    if (!hasInitial || Date.now() - initialGeneratedAt > AVATAR_MAX_AGE_MS) void loadSettings();
 
     function handleAuthChanged() {
       void loadSettings();
@@ -171,7 +179,7 @@ export default function ProfileAvatar() {
 
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
-  }, [loadSettings]);
+  }, [hasInitial, initialGeneratedAt, loadSettings]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -197,7 +205,10 @@ export default function ProfileAvatar() {
     };
   }, [isOpen, isSaving, settings]);
 
-  const visibleImageUrl = selectedImagePreview || settings.imageUrl || DEFAULT_AVATAR;
+  // O editor segue usando o arquivo original; só a exibição na barra lateral usa a cópia leve.
+  const originalImageUrl = settings.imageUrl || DEFAULT_AVATAR;
+  const lightImageUrl = homeImageSrc(originalImageUrl);
+  const visibleImageUrl = selectedImagePreview || (lightImageUrl === failedLightImage ? originalImageUrl : lightImageUrl);
   const previewImageUrl = selectedImagePreview || draft.imageUrl || DEFAULT_AVATAR;
   const maxOffset = Math.max(0, (draft.zoom - 1) * 50);
 
@@ -324,13 +335,17 @@ export default function ProfileAvatar() {
     <>
       <div className="relative mt-3 h-[84px] w-[84px] overflow-visible">
         <AvatarArtwork
-          imageUrl={visibleImageUrl}
+          imageUrl={isLoaded || selectedImagePreview ? visibleImageUrl : null}
           x={settings.x}
           y={settings.y}
           zoom={settings.zoom}
           className="h-full w-full"
           onImageError={() => {
-            if (settings.imageUrl) setSettings((current) => ({ ...current, imageUrl: "" }));
+            if (visibleImageUrl !== originalImageUrl) {
+              setFailedLightImage(visibleImageUrl);
+            } else if (settings.imageUrl) {
+              setSettings((current) => ({ ...current, imageUrl: "" }));
+            }
           }}
         />
         {isLoaded && isAdmin ? (

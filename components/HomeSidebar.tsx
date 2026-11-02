@@ -166,12 +166,10 @@ type ActivityItem = {
   sortOrder: number;
 };
 
-const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
 
 const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
 const REVIEW_UPDATED_EVENT = "rumo-a-conquista-review-updated";
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
-const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
 
 const statusTheme: Record<
   BacklogStatus,
@@ -200,10 +198,6 @@ const rankIcon: Record<Rank, string> = {
   Ouro: "🥇",
   Diamante: "💎",
 };
-
-function createId() {
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
 
 function readText(value: unknown, fallback = "") {
   if (typeof value === "string") return value;
@@ -404,14 +398,7 @@ function getGameRecencyValue(
   return totalGames - gameIndex;
 }
 
-function getBacklogStatus(
-  game: SidebarGame,
-  savedItem?: BacklogItem
-): BacklogStatus {
-  if (savedItem?.status) {
-    return savedItem.status;
-  }
-
+function getBacklogStatus(game: SidebarGame): BacklogStatus {
   if (
     game.backlogStatus === "next" ||
     game.backlogStatus === "waiting" ||
@@ -423,15 +410,7 @@ function getBacklogStatus(
   return "future";
 }
 
-function getBacklogOrder(
-  game: SidebarGame,
-  savedItem?: BacklogItem,
-  index = 0
-) {
-  if (typeof savedItem?.order === "number") {
-    return savedItem.order;
-  }
-
+function getBacklogOrder(game: SidebarGame, index = 0) {
   if (typeof game.backlogOrder === "number") {
     return game.backlogOrder;
   }
@@ -441,15 +420,6 @@ function getBacklogOrder(
   }
 
   return index + 1;
-}
-
-function normalizeBacklogItem(item: Partial<BacklogItem>, index: number) {
-  return {
-    id: item.id ?? createId(),
-    slug: item.slug ?? "",
-    order: Number(item.order ?? index + 1),
-    status: item.status ?? "future",
-  } as BacklogItem;
 }
 
 function sortBacklog(items: BacklogItem[]) {
@@ -869,9 +839,6 @@ function LatestContentCard({ content }: { content: LatestContentItem }) {
 export default function HomeSidebar() {
   const { gamesList, isLoaded } = useSiteGames();
 
-  const [storedBacklog, setStoredBacklog] = useState<Record<string, BacklogItem>>(
-    {}
-  );
 
   const [refreshKey, setRefreshKey] = useState(0);
   const [youtubeLatestContent, setYoutubeLatestContent] =
@@ -896,24 +863,6 @@ export default function HomeSidebar() {
 
   useEffect(() => {
     function refreshSidebar() {
-      const savedBacklog = readLocalJson<Partial<BacklogItem>[]>(
-        BACKLOG_STORAGE_KEY,
-        []
-      );
-
-      const normalizedBacklog = savedBacklog
-        .map((item, index) => normalizeBacklogItem(item, index))
-        .filter((item) => item.slug);
-
-      const backlogMap = normalizedBacklog.reduce<Record<string, BacklogItem>>(
-        (acc, item) => {
-          acc[item.slug] = item;
-          return acc;
-        },
-        {}
-      );
-
-      setStoredBacklog(backlogMap);
       setRefreshKey((current) => current + 1);
     }
 
@@ -922,7 +871,6 @@ export default function HomeSidebar() {
     window.addEventListener(GAMES_UPDATED_EVENT, refreshSidebar);
     window.addEventListener(REVIEW_UPDATED_EVENT, refreshSidebar);
     window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshSidebar);
-    window.addEventListener(BACKLOG_UPDATED_EVENT, refreshSidebar);
     window.addEventListener("storage", refreshSidebar);
     window.addEventListener("focus", refreshSidebar);
 
@@ -930,7 +878,6 @@ export default function HomeSidebar() {
       window.removeEventListener(GAMES_UPDATED_EVENT, refreshSidebar);
       window.removeEventListener(REVIEW_UPDATED_EVENT, refreshSidebar);
       window.removeEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshSidebar);
-      window.removeEventListener(BACKLOG_UPDATED_EVENT, refreshSidebar);
       window.removeEventListener("storage", refreshSidebar);
       window.removeEventListener("focus", refreshSidebar);
     };
@@ -985,20 +932,6 @@ export default function HomeSidebar() {
   const visibleBacklogItems = useMemo(() => {
     const backlogMap = new Map<string, BacklogItem>();
 
-    Object.values(storedBacklog).forEach((item) => {
-      const game = gamesBySlug[item.slug];
-
-      if (!game) {
-        return;
-      }
-
-      backlogMap.set(item.slug, {
-        ...item,
-        status: getBacklogStatus(game, item),
-        order: getBacklogOrder(game, item),
-      });
-    });
-
     sidebarGames.forEach((game, index) => {
       const slug = readText(game.slug, "");
 
@@ -1006,18 +939,16 @@ export default function HomeSidebar() {
         return;
       }
 
-      const savedItem = storedBacklog[slug];
-
       backlogMap.set(slug, {
-        id: savedItem?.id ?? `auto-${slug}`,
+        id: `auto-${slug}`,
         slug,
-        order: getBacklogOrder(game, savedItem, index),
-        status: getBacklogStatus(game, savedItem),
+        order: getBacklogOrder(game, index),
+        status: getBacklogStatus(game),
       });
     });
 
     return sortBacklog(Array.from(backlogMap.values())).slice(0, 3);
-  }, [gamesBySlug, sidebarGames, storedBacklog, refreshKey]);
+  }, [sidebarGames, refreshKey]);
 
   const manualLatestContent = useMemo(() => {
     return sidebarGames

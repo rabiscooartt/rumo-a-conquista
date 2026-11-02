@@ -87,7 +87,8 @@ export async function POST(request: Request) {
     if (uploadError) throw uploadError;
 
     const { data: publicUrl } = client.storage.from(BUCKET).getPublicUrl(path);
-    const image = publicUrl.publicUrl;
+    // A versão muda a URL a cada envio: evita o cache de um ano e cópias antigas da Início.
+    const image = `${publicUrl.publicUrl}?v=${Date.now()}`;
 
     return NextResponse.json({
       ok: true,
