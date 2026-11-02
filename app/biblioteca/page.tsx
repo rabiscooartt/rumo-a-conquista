@@ -11,62 +11,6 @@ import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 
 
-type BacklogOrderItem = {
-  slug?: string;
-  order?: number;
-};
-
-const BACKLOG_STORAGE_KEY = "rumo-a-conquista-backlog";
-const BACKLOG_UPDATED_EVENT = "rumo-a-conquista-backlog-updated";
-
-const DEFAULT_BACKLOG_SLUGS = [
-  "mouse-p-i-for-hire",
-  "song-of-nunu",
-  "hollow-knight",
-  "metro-last-light",
-  "the-surge",
-  "tom-clancy-s-the-division",
-  "hollow-knight-silksong",
-  "hades",
-  "tom-clancy-s-the-division-2",
-  "hades2",
-  "metro-2033-redux",
-  "metro-exodus",
-];
-
-function readBacklogOrderFromStorage() {
-  if (typeof window === "undefined") {
-    return DEFAULT_BACKLOG_SLUGS;
-  }
-
-  const savedData = window.localStorage.getItem(BACKLOG_STORAGE_KEY);
-
-  if (!savedData) {
-    return DEFAULT_BACKLOG_SLUGS;
-  }
-
-  try {
-    const parsed = JSON.parse(savedData) as BacklogOrderItem[];
-
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return DEFAULT_BACKLOG_SLUGS;
-    }
-
-    const ordered = parsed
-      .map((item, index) => ({
-        slug: typeof item?.slug === "string" ? item.slug : "",
-        order: Number(item?.order ?? index + 1),
-      }))
-      .filter((item) => item.slug)
-      .sort((a, b) => a.order - b.order)
-      .map((item) => item.slug);
-
-    return ordered.length > 0 ? ordered : DEFAULT_BACKLOG_SLUGS;
-  } catch {
-    return DEFAULT_BACKLOG_SLUGS;
-  }
-}
-
 function SvgIcon({
   children,
   className = "h-4 w-4",
@@ -1871,7 +1815,6 @@ export default function BibliotecaPage() {
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
   const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>({});
-  const [backlogOrder, setBacklogOrder] = useState<string[]>(DEFAULT_BACKLOG_SLUGS);
 
   useEffect(() => {
     function syncFilterFromUrl() {
@@ -1954,23 +1897,6 @@ export default function BibliotecaPage() {
     };
   }, [refreshKey]);
 
-  useEffect(() => {
-    function refreshBacklogOrder() {
-      setBacklogOrder(readBacklogOrderFromStorage());
-    }
-
-    refreshBacklogOrder();
-    window.addEventListener(BACKLOG_UPDATED_EVENT, refreshBacklogOrder);
-    window.addEventListener("storage", refreshBacklogOrder);
-    window.addEventListener("focus", refreshBacklogOrder);
-
-    return () => {
-      window.removeEventListener(BACKLOG_UPDATED_EVENT, refreshBacklogOrder);
-      window.removeEventListener("storage", refreshBacklogOrder);
-      window.removeEventListener("focus", refreshBacklogOrder);
-    };
-  }, []);
-
   function handleFilterChange(filter: FilterType) {
     setActiveFilter(filter);
     updateUrlFilter(filter);
@@ -1991,6 +1917,16 @@ export default function BibliotecaPage() {
       };
     });
   }, [gamesList, genresBySlug, refreshKey]);
+
+  // A fila oficial vem das posições salvas em cada jogo.
+  const backlogOrder = useMemo(
+    () =>
+      bibliotecaGames
+        .filter((game) => typeof game.backlogOrder === "number")
+        .sort((a, b) => Number(a.backlogOrder) - Number(b.backlogOrder))
+        .map((game) => readText(game.slug, "")),
+    [bibliotecaGames]
+  );
 
   const activitySummaryByGame = useMemo(() => {
     const summary = new Map<string, ActivitySummary>();
