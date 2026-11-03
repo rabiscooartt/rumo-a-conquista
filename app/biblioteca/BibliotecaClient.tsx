@@ -79,6 +79,16 @@ function IconCalendar(props: { className?: string }) {
   );
 }
 
+function IconMedal(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="8.5" r="5.2" stroke="currentColor" strokeWidth="1.9" />
+      <path d="M8.7 12.5L7 20.5L12 17.8L17 20.5L15.3 12.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 8.5L11.3 9.8L14.2 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </SvgIcon>
+  );
+}
+
 function IconClock(props: { className?: string }) {
   return (
     <SvgIcon {...props}>
@@ -2864,25 +2874,57 @@ export default function BibliotecaClient({
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconGamepad className="h-[16px] w-[16px] shrink-0 text-red-500" />
-                    <span className="text-[16px] font-black leading-none text-white">{annualGamesCount}</span>
+                <div className="mt-4 grid grid-cols-4 gap-1.5">
+                  <div
+                    role="img"
+                    aria-label={`${annualGamesCount} jogos registrados no ano selecionado`}
+                    title="Jogos: quantidade de jogos com atividade ou conclusão registrada neste ano."
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                  >
+                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                      <IconGamepad className="h-[17px] w-[17px]" />
+                    </span>
+                    <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualGamesCount}</span>
+                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Jogos</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconTrophy className="h-[16px] w-[16px] shrink-0 text-red-500" />
-                    <span className="text-[16px] font-black leading-none text-white">{annualAchievementsCount}</span>
+                  <div
+                    role="img"
+                    aria-label={`${annualAchievementsCount} conquistas desbloqueadas no ano selecionado`}
+                    title="Conquistas: total de conquistas desbloqueadas durante o ano selecionado."
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                  >
+                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                      <IconTrophy className="h-[17px] w-[17px]" />
+                    </span>
+                    <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualAchievementsCount}</span>
+                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Conquistas</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconTarget className="h-[16px] w-[16px] shrink-0 text-red-500" />
-                    <span className="text-[16px] font-black leading-none text-white">{annualEmblemsCount}</span>
+                  <div
+                    role="img"
+                    aria-label={`${annualEmblemsCount} emblemas conquistados no ano selecionado`}
+                    title="Emblemas: quantidade de emblemas de jogos conquistados neste ano."
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                  >
+                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                      <IconMedal className="h-[17px] w-[17px]" />
+                    </span>
+                    <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualEmblemsCount}</span>
+                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Emblemas</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center justify-center gap-1.5">
-                    <IconClock className="h-[16px] w-[16px] shrink-0 text-red-500" />
-                    <span className="whitespace-nowrap text-[15px] font-black leading-none text-white">{annualHours}</span>
+                  <div
+                    role="img"
+                    aria-label={`${annualHours} de jogo no ano selecionado`}
+                    title="Tempo jogado: tempo total registrado na Jornada durante o ano selecionado."
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                  >
+                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                      <IconClock className="h-[17px] w-[17px]" />
+                    </span>
+                    <span className="mt-1.5 whitespace-nowrap text-[15px] font-black leading-none tabular-nums text-white">{annualHours}</span>
+                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Tempo jogado</span>
                   </div>
                 </div>
 
