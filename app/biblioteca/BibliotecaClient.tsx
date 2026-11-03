@@ -1554,7 +1554,7 @@ function PlayingNowGame({
       href={`/games/${gameSlug}`}
       className="group/playing flex min-w-0 gap-3.5 rounded-xl border border-white/[0.06] bg-white/[0.015] p-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.035]"
     >
-      <div className="h-[84px] w-[62px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black shadow-[0_4px_14px_rgba(0,0,0,0.28)]">
+      <div className="h-[112px] w-[86px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black shadow-[0_4px_14px_rgba(0,0,0,0.28)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
       </div>
 
