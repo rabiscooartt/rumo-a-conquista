@@ -16,6 +16,7 @@ const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex");
 
 function presetFor(src) {
   if (src.includes("/achievements/")) return { width: 128, height: 128, quality: 85 };
+  if (src.includes("/activity-summary-icons/")) return { width: 128, height: 128, quality: 90 };
   if (src.includes("/emblem.")) return { width: 384, height: 384, quality: 90 };
   if (src.includes("/cover.")) return { width: 480, height: 480, quality: 84 };
   if (src.includes("/banner.")) return { width: 1280, height: 1280, quality: 82 };
