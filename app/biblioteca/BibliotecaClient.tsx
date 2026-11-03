@@ -1646,9 +1646,7 @@ function AnnualRecentGame({
             {gameTitle}
           </h3>
           {isCompleted && rating > 0 ? (
-            <span className="shrink-0 text-[9px] leading-none" aria-label={`Avaliação ${rating} de 5`}>
-              <GameRating rating={rating} />
-            </span>
+            <StarRating rating={rating} size="medium" className="shrink-0" />
           ) : null}
         </div>
 
@@ -2485,13 +2483,29 @@ export default function BibliotecaClient({
         });
 
         const recentTimestamp = candidates.length > 0 ? Math.max(...candidates) : getRecentTimestamp(game, activitySummaryByGame.get(slug));
-        return { game, recentTimestamp };
+        const hasActivity = activitySummaryByGame.has(slug);
+        const orderGroup = isProgressGame(game, hasActivity)
+          ? 0
+          : !isCompletedGame(game) && isBacklogGame(game)
+            ? 1
+            : isCompletedGame(game)
+              ? 2
+              : 3;
+        return { game, recentTimestamp, orderGroup };
       })
       .sort((a, b) => {
-        if (Number.isNaN(a.recentTimestamp) && Number.isNaN(b.recentTimestamp)) return 0;
+        // Keep the same automatic grouping as Biblioteca > Recentes:
+        // in progress → backlog → completed → other, newest activity first within each group.
+        if (a.orderGroup !== b.orderGroup) return a.orderGroup - b.orderGroup;
+        if (Number.isNaN(a.recentTimestamp) && Number.isNaN(b.recentTimestamp)) {
+          return readText(a.game.title, "").localeCompare(readText(b.game.title, ""), "pt-BR");
+        }
         if (Number.isNaN(a.recentTimestamp)) return 1;
         if (Number.isNaN(b.recentTimestamp)) return -1;
-        return b.recentTimestamp - a.recentTimestamp;
+        return (
+          b.recentTimestamp - a.recentTimestamp ||
+          readText(a.game.title, "").localeCompare(readText(b.game.title, ""), "pt-BR")
+        );
       })
       .slice(0, 3);
   }, [annualGameSlugs, annualJourneyEntries, annualYear, activitySummaryByGame, bibliotecaGames, refreshKey]);
