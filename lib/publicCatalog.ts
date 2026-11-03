@@ -80,7 +80,7 @@ export async function loadPublicCatalog({
   const { data, error } = await client
     .from("games")
     .select(
-      "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted, created_at, updated_at"
+      "slug, title, subtitle, status, progress, hours, current_objective, image, card_image, platform, genres, final_badge, emblem, trophies, review, manual_total_played_minutes, is_hidden, is_deleted, created_at, updated_at"
     )
     .eq("is_deleted", false)
     .eq("is_hidden", false)
@@ -103,6 +103,7 @@ export async function loadPublicCatalog({
     image: game.image ?? "",
     cardImage: game.card_image ?? "",
     platform: game.platform ?? "Steam",
+    genres: game.genres ?? null,
     finalBadge: game.final_badge ?? undefined,
     emblem: game.emblem ?? undefined,
     emblemConfigured: Boolean(

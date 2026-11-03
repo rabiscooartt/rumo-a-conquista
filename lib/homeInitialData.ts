@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import { loadStoredAvatar } from "@/lib/profileAvatarStorage";
 import { loadPublicCatalog } from "@/lib/publicCatalog";
+import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 export const HOME_AVATAR_CACHE_TAG = "home-avatar";
 export const HOME_CATALOG_CACHE_TAG = "home-catalog";
@@ -43,6 +44,21 @@ const getCachedAvatar = unstable_cache(
   { revalidate: HOME_CACHE_SECONDS, tags: [HOME_AVATAR_CACHE_TAG] }
 );
 
+// O navegador relê a Jornada ao abrir; esta cópia só evita mostrar a Biblioteca sem atividade.
+const getCachedJourneyRows = unstable_cache(
+  async () => {
+    const { data, error } = await createAdminSupabaseClient()
+      .from("journey_entries")
+      .select("*")
+      .order("date", { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []) as Record<string, unknown>[];
+  },
+  ["library-journey-rows"],
+  { revalidate: HOME_CACHE_SECONDS }
+);
+
 async function timedRead<T>(label: string, task: Promise<T>) {
   const startedAt = Date.now();
   let timer: ReturnType<typeof setTimeout>;
@@ -65,6 +81,15 @@ async function timedRead<T>(label: string, task: Promise<T>) {
   } finally {
     clearTimeout(timer!);
   }
+}
+
+export async function loadLibraryInitialData() {
+  const [catalog, journeyRows] = await Promise.all([
+    timedRead("catálogo", getCachedCatalog()),
+    timedRead("jornada", getCachedJourneyRows()),
+  ]);
+
+  return { catalog, journeyRows };
 }
 
 export async function loadHomeInitialData() {

@@ -1,0 +1,3009 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import Navbar from "@/components/Navbar";
+import StarRating from "@/components/StarRating";
+import BannerBackground from "@/components/BannerBackground";
+import IconPlatform from "@/components/PlatformIcon";
+import { formatGameGenreLabel, type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { homeImageSrc } from "@/lib/homeImages";
+import { games as baseGames } from "@/data/games";
+import { useJourneyEntries } from "@/lib/useJourneyEntries";
+
+
+function SvgIcon({
+  children,
+  className = "h-4 w-4",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
+function IconGamepad(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M7.2 8.5H16.8C19.2 8.5 20.5 10.7 20.8 13.4L21.3 17.2C21.6 19.5 18.8 20.2 17.4 18.5L15.4 16H8.6L6.6 18.5C5.2 20.2 2.4 19.5 2.7 17.2L3.2 13.4C3.5 10.7 4.8 8.5 7.2 8.5Z" stroke="currentColor" strokeWidth="2.15" strokeLinejoin="round" />
+    </SvgIcon>
+  );
+}
+
+function IconTrophy(props: { className?: string; filled?: boolean }) {
+  const { filled = false, className } = props;
+
+  return (
+    <SvgIcon className={className}>
+      <path d="M8 4.25H16V9.25C16 12.35 14.45 14.65 12 14.65C9.55 14.65 8 12.35 8 9.25V4.25Z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
+      <path d="M8 6.25H5.8C4.8 6.25 4.25 6.9 4.25 7.8V8.3C4.25 10.65 5.9 12.25 8 12.45M16 6.25H18.2C19.2 6.25 19.75 6.9 19.75 7.8V8.3C19.75 10.65 18.1 12.25 16 12.45" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 14.65V18.2M8.3 20H15.7" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+    </SvgIcon>
+  );
+}
+
+function IconTarget(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="5.1" stroke="currentColor" strokeWidth="1.7" opacity="0.75" />
+      <path d="M12 7.3V16.7M7.3 12H16.7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.5" />
+      <path d="M12 9.2L14.8 12L12 14.8L9.2 12L12 9.2Z" fill="currentColor" />
+    </SvgIcon>
+  );
+}
+
+function IconTrend(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="4" y="14" width="3" height="5.5" rx="1" fill="currentColor" opacity="0.4" />
+      <rect x="10.5" y="10" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.7" />
+      <rect x="17" y="5.5" width="3" height="14" rx="1" fill="currentColor" />
+      <path d="M4.5 10.8L9.2 6.9L13 9.8L19.5 4.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 4.5H19.5V8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+    </SvgIcon>
+  );
+}
+
+function IconCalendar(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="3" stroke="currentColor" strokeWidth="1.9" />
+      <path d="M7.5 3.8V7.1M16.5 3.8V7.1M4.5 9.5H19.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M8 13H8.01M12 13H12.01M16 13H16.01M8 16.5H8.01M12 16.5H12.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    </SvgIcon>
+  );
+}
+
+function IconClock(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.9" />
+      <path d="M12 7.5V12L15 14" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+    </SvgIcon>
+  );
+}
+
+function IconGrid(props: { className?: string }) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="4" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="14" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="4" y="14" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="14" y="14" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.7" />
+    </SvgIcon>
+  );
+}
+
+type FilterType = "all" | "progress" | "mastery" | "backlog";
+type SortMode = "recent" | "alphabetical" | "playtime" | "rating" | "progress" | "startDate" | "completionDate";
+
+type AchievementSummary =
+  | string
+  | number
+  | {
+      completed?: number;
+      unlocked?: number;
+      total?: number;
+    };
+
+type AchievementStorageState = {
+  status?: string;
+  rank?: string;
+  date?: string;
+  image?: string;
+};
+
+type AchievementLike = {
+  id?: string;
+  title?: string;
+  description?: string;
+  trophy?: string;
+  icon?: string;
+  difficulty?: string;
+  rank?: string;
+  status?: string;
+  earnedDate?: string;
+  image?: string;
+  isCustom?: boolean;
+  [key: string]: unknown;
+};
+
+type BibliotecaGame = SiteGame & {
+  genres?: string[];
+  mastery?: string;
+  isInBacklog?: boolean;
+  nextMission?: string;
+  achievements?: AchievementSummary;
+  achievementsUnlocked?: number;
+  achievementsTotal?: number;
+  achievementsList?: AchievementLike[];
+  finalBadge?: {
+    title?: string;
+    icon?: string;
+    image?: string;
+  };
+};
+
+type AchievementStats = {
+  completed: number;
+  total: number;
+};
+
+type FinalMasteryData = {
+  title: string;
+  icon: string;
+  image: string;
+};
+
+type JourneyHighlight = {
+  label: string;
+  value: string;
+  labelClass: string;
+  boxClass: string;
+  mastery?: FinalMasteryData;
+};
+
+const filters: { label: string; value: FilterType }[] = [
+  { label: "Todos", value: "all" },
+  { label: "Em progresso", value: "progress" },
+  { label: "Fila", value: "backlog" },
+  { label: "Finalizados", value: "mastery" },
+];
+
+const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
+const GAMES_UPDATED_EVENT = "rumo-a-conquista-games-updated";
+
+function isValidFilter(value: string | null): value is FilterType {
+  return (
+    value === "all" ||
+    value === "progress" ||
+    value === "mastery" ||
+    value === "backlog"
+  );
+}
+
+// O servidor roda em outro fuso: um fuso fixo mantém as datas iguais às do HTML.
+const LIBRARY_TIME_ZONE = "America/Sao_Paulo";
+const GAMES_UNAVAILABLE_MESSAGE = "Não foi possível carregar os jogos agora. Tente atualizar a página.";
+
+function getFilterFromUrl(): FilterType {
+  if (typeof window === "undefined") {
+    return "all";
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const filtro = params.get("filtro") ?? params.get("filter");
+
+  return isValidFilter(filtro) ? filtro : "all";
+}
+
+function updateUrlFilter(filter: FilterType) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+
+  if (filter === "all") {
+    url.searchParams.delete("filtro");
+    url.searchParams.delete("filter");
+  } else {
+    url.searchParams.set("filtro", filter);
+    url.searchParams.delete("filter");
+  }
+
+  window.history.replaceState(null, "", url.toString());
+}
+
+function normalizeText(text?: string) {
+  return (text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function readText(value: unknown, fallback = "") {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+
+  return fallback;
+}
+
+function readNumber(value: unknown, fallback = 0) {
+  const numberValue = Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return numberValue;
+}
+
+// Só depois da hidratação: o HTML do servidor não conhece os dados guardados no navegador.
+let localDataReady = false;
+
+function readLocalJson<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined" || !localDataReady) return fallback;
+
+  const savedData = localStorage.getItem(key);
+
+  if (!savedData) return fallback;
+
+  try {
+    return JSON.parse(savedData) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeAchievementStatus(status?: string) {
+  const normalized = normalizeText(status);
+
+  if (
+    normalized === "completed" ||
+    normalized === "concluido" ||
+    normalized === "concluida" ||
+    normalized === "desbloqueado" ||
+    normalized === "desbloqueada"
+  ) {
+    return "completed";
+  }
+
+  if (
+    normalized === "progress" ||
+    normalized === "emprogresso" ||
+    normalized === "emandamento"
+  ) {
+    return "progress";
+  }
+
+  return "locked";
+}
+
+function normalizeRank(value?: string, trophy?: string) {
+  const rank = normalizeText(value);
+  const trophyText = trophy ?? "";
+
+  if (
+    rank === "diamante" ||
+    rank === "extrema" ||
+    trophyText.includes("💎")
+  ) {
+    return "Diamante";
+  }
+
+  if (
+    rank === "ouro" ||
+    rank === "dificil" ||
+    trophyText.includes("🥇") ||
+    trophyText.includes("🏆")
+  ) {
+    return "Ouro";
+  }
+
+  if (rank === "prata" || rank === "media" || trophyText.includes("🥈")) {
+    return "Prata";
+  }
+
+  return "Bronze";
+}
+
+function getRankIcon(rank?: string) {
+  if (rank === "Diamante") return "💎";
+  if (rank === "Ouro") return "🥇";
+  if (rank === "Prata") return "🥈";
+
+  return "🥉";
+}
+
+function isCompletedGame(game: BibliotecaGame) {
+  const status = normalizeText(game.status);
+  const mastery = normalizeText(game.mastery);
+
+  return (
+    readNumber(game.progress) >= 100 ||
+    status === "finalizado" ||
+    status === "completed" ||
+    status === "concluido" ||
+    status === "concluida" ||
+    mastery === "concluida" ||
+    mastery === "concluido"
+  );
+}
+
+function isProgressGame(game: BibliotecaGame, hasActivity = false) {
+  const status = normalizeText(game.status);
+  const progress = readNumber(game.progress);
+
+  if (isCompletedGame(game)) return false;
+
+  if (hasActivity) return true;
+
+  if (
+    status === "progress" ||
+    status === "emprogresso" ||
+    status === "emandamento" ||
+    status === "jogando" ||
+    status === "playing" ||
+    status === "active"
+  ) {
+    return true;
+  }
+
+  return progress > 0 && progress < 100;
+}
+
+function isBacklogGame(game: BibliotecaGame) {
+  const status = normalizeText(game.status);
+
+  return (
+    Boolean(game.isInBacklog) ||
+    status === "backlog" ||
+    status === "planned" ||
+    status === "planejado" ||
+    status === "futuro" ||
+    status === "future"
+  );
+}
+
+function getStatusLabel(game: BibliotecaGame) {
+  if (isCompletedGame(game)) return "Finalizado";
+  if (isProgressGame(game)) return "Em progresso";
+  if (isBacklogGame(game)) return "Na fila";
+
+  return game.status || "Não definido";
+}
+
+function getObjective(game: BibliotecaGame) {
+  return (
+    game.currentObjective ||
+    game.objective ||
+    game.nextMission ||
+    "Definir próximo objetivo"
+  );
+}
+
+function getAchievementTitle(achievement: AchievementLike, index: number) {
+  return readText(achievement.title, `Conquista ${index + 1}`);
+}
+
+function isMasteryAchievement(
+  achievement: AchievementLike,
+  manualState?: AchievementStorageState
+) {
+  const title = normalizeText(readText(achievement.title, ""));
+  const rank = normalizeRank(
+    manualState?.rank ??
+      readText(achievement.rank, readText(achievement.difficulty, "")),
+    readText(achievement.trophy, readText(achievement.icon, ""))
+  );
+
+  return (
+    rank === "Diamante" ||
+    title.includes("maestria") ||
+    title.includes("mastery")
+  );
+}
+
+function getFinalMastery(game: BibliotecaGame): FinalMasteryData {
+  const achievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    `rumo-a-conquista-achievements-${game.slug}`,
+    {}
+  );
+
+  const completedMastery = achievements.find((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    const manualState = manualStates[title];
+
+    const status = normalizeAchievementStatus(
+      manualState?.status ?? achievement.status
+    );
+
+    return (
+      status === "completed" && isMasteryAchievement(achievement, manualState)
+    );
+  });
+
+  const anyMastery = achievements.find((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    const manualState = manualStates[title];
+
+    return isMasteryAchievement(achievement, manualState);
+  });
+
+  const masteryAchievement = completedMastery ?? anyMastery;
+
+  if (masteryAchievement) {
+    const title = readText(masteryAchievement.title, "Maestria conquistada");
+    const manualState = manualStates[title];
+
+    const rank = normalizeRank(
+      manualState?.rank ??
+        readText(
+          masteryAchievement.rank,
+          readText(masteryAchievement.difficulty, "Diamante")
+        ),
+      readText(masteryAchievement.trophy, readText(masteryAchievement.icon, ""))
+    );
+
+    return {
+      title,
+      icon:
+        readText(masteryAchievement.icon, "") ||
+        readText(masteryAchievement.trophy, "") ||
+        getRankIcon(rank),
+      image:
+        readText(manualState?.image, "") ||
+        readText(masteryAchievement.image, "") ||
+        readText(game.finalBadge?.image, "") ||
+        `/images/games/${game.slug}/achievements/maestria-final.png`,
+    };
+  }
+
+  const mastery = readText(game.mastery, "").trim();
+  const normalizedMastery = normalizeText(mastery);
+
+  if (
+    mastery &&
+    normalizedMastery !== "concluida" &&
+    normalizedMastery !== "concluido"
+  ) {
+    return {
+      title: mastery,
+      icon: "💎",
+      image:
+        readText(game.finalBadge?.image, "") ||
+        `/images/games/${game.slug}/achievements/maestria-final.png`,
+    };
+  }
+
+  return {
+    icon: readText(game.finalBadge?.icon, "💎"),
+    title: readText(game.finalBadge?.title, "Maestria conquistada"),
+    image:
+      readText(game.finalBadge?.image, "") ||
+      `/images/games/${game.slug}/achievements/maestria-final.png`,
+  };
+}
+
+function getJourneyHighlight(game: BibliotecaGame): JourneyHighlight {
+  if (isCompletedGame(game)) {
+    const mastery = getFinalMastery(game);
+
+    return {
+      label: "Maestria final",
+      value: mastery.title,
+      mastery,
+      labelClass: "text-emerald-300",
+      boxClass:
+        "border-emerald-400/25 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_45%),rgba(16,185,129,0.04)]",
+    };
+  }
+
+  if (isBacklogGame(game)) {
+    return {
+      label: "Próxima maestria",
+      value: getObjective(game),
+      labelClass: "text-cyan-300",
+      boxClass:
+        "border-cyan-400/25 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_45%),rgba(34,211,238,0.04)]",
+    };
+  }
+
+  return {
+    label: "Objetivo atual",
+    value: getObjective(game),
+    labelClass: "text-red-300",
+    boxClass:
+      "border-red-500/20 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.14),transparent_45%),rgba(239,68,68,0.04)]",
+  };
+}
+
+function getAchievementStats(game: BibliotecaGame): AchievementStats {
+  if (
+    typeof game.achievementsUnlocked === "number" ||
+    typeof game.achievementsTotal === "number"
+  ) {
+    return {
+      completed: game.achievementsUnlocked ?? 0,
+      total: game.achievementsTotal ?? game.achievementsUnlocked ?? 0,
+    };
+  }
+
+  if (game.achievements && typeof game.achievements === "object") {
+    const completed =
+      game.achievements.completed ?? game.achievements.unlocked ?? 0;
+    const total = game.achievements.total ?? completed;
+
+    return {
+      completed,
+      total,
+    };
+  }
+
+  if (typeof game.achievements === "string") {
+    const [completed, total] = game.achievements.split("/");
+
+    return {
+      completed: Number(completed) || 0,
+      total: Number(total) || Number(completed) || 0,
+    };
+  }
+
+  if (typeof game.achievements === "number") {
+    return {
+      completed: game.achievements,
+      total: game.achievements,
+    };
+  }
+
+  const achievements: AchievementLike[] = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    `rumo-a-conquista-achievements-${game.slug}`,
+    {}
+  );
+
+  const hiddenAchievementTitles = readLocalJson<string[]>(
+    `rumo-a-conquista-hidden-achievements-${game.slug}`,
+    []
+  );
+
+  const visibleAchievements = achievements.filter((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+
+    return !hiddenAchievementTitles.includes(title);
+  });
+
+  const completed = visibleAchievements.filter((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    const manualStatus = manualStates[title]?.status;
+    const achievementStatus = readText(achievement.status, "locked");
+
+    return (
+      normalizeAchievementStatus(manualStatus) === "completed" ||
+      normalizeAchievementStatus(achievementStatus) === "completed"
+    );
+  }).length;
+
+  return {
+    completed,
+    total: visibleAchievements.length,
+  };
+}
+
+function getProgressPercent(game: BibliotecaGame, stats: AchievementStats) {
+  if (isCompletedGame(game)) return 100;
+
+  const progress = readNumber(game.progress);
+
+  if (progress > 0) {
+    return Math.min(100, Math.max(0, progress));
+  }
+
+  if (stats.total > 0) {
+    return Math.round((stats.completed / stats.total) * 100);
+  }
+
+  return 0;
+}
+
+function GameCoverImage({
+  src,
+  title,
+  imageClassName,
+}: {
+  src?: string;
+  title: string;
+  imageClassName?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (!src || hasError) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-black/50 text-sm font-black text-white/35">
+        Sem imagem
+      </div>
+    );
+  }
+
+  return (
+    <img
+      key={src}
+      src={homeImageSrc(src)}
+      alt={title}
+      className={imageClassName ?? "h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105"}
+      onError={() => setHasError(true)}
+    />
+  );
+}
+function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [mastery.image]);
+
+  if (mastery.image && !hasError) {
+    return (
+      <img
+        key={mastery.image}
+        src={mastery.image}
+        alt={mastery.title}
+        className="h-full w-full object-cover"
+        onError={() => setHasError(true)}
+      />
+    );
+  }
+
+  return <span className="text-lg">{mastery.icon || "💎"}</span>;
+}
+
+function getGameEmblem(game: BibliotecaGame) {
+  const gameWithEmblem = game as BibliotecaGame & {
+    emblem?: { title?: string; image?: string };
+    gameEmblem?: { title?: string; image?: string };
+  };
+
+  const slug = readText(game.slug, "");
+  const baseGame = (baseGames as unknown as Record<string, {
+    emblem?: { title?: string; image?: string };
+    gameEmblem?: { title?: string; image?: string };
+  }>)[slug];
+
+  const image =
+    readText(gameWithEmblem.emblem?.image, "") ||
+    readText(gameWithEmblem.gameEmblem?.image, "") ||
+    readText(baseGame?.emblem?.image, "") ||
+    readText(baseGame?.gameEmblem?.image, "");
+
+  const title =
+    readText(gameWithEmblem.emblem?.title, "") ||
+    readText(gameWithEmblem.gameEmblem?.title, "") ||
+    readText(baseGame?.emblem?.title, "") ||
+    readText(baseGame?.gameEmblem?.title, "") ||
+    `${readText(game.title, "Jogo")} — Emblema`;
+
+  return { image, title };
+}
+
+function GameEmblem({ game, className }: { game: BibliotecaGame; className?: string }) {
+  const emblem = getGameEmblem(game);
+  const isUnlocked = isCompletedGame(game);
+  const emblemImage = emblem.image || "/images/games/emblem.png";
+
+  return (
+    <div className={`relative flex shrink-0 items-center justify-center overflow-visible ${className ?? "h-[100px] w-[78px] sm:h-[115px] sm:w-[90px]"}`}>
+      <div
+        className={`relative h-full w-full transition duration-300 ${
+          isUnlocked
+            ? "scale-[1.30]"
+            : "scale-[0.98] opacity-25 blur-[5px] grayscale saturate-0 brightness-[0.45]"
+        }`}
+      >
+        <img
+          src={homeImageSrc(emblemImage)}
+          alt={emblem.title}
+          className="h-full w-full object-contain"
+          onError={(event) => {
+            event.currentTarget.src = "/images/games/emblem.png";
+          }}
+        />
+      </div>
+
+      {!isUnlocked ? (
+        <div className="pointer-events-none absolute right-0 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/75 text-sm shadow-[0_0_18px_rgba(0,0,0,0.5)] backdrop-blur-sm">
+          🔒
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+
+type AchievementPreviewItem = {
+  key: string;
+  title: string;
+  image?: string;
+  fallback: string;
+};
+
+function isAchievementImageSource(value: string) {
+  const source = value.trim().toLowerCase();
+  return source.startsWith("https://") ||
+    source.startsWith("http://") ||
+    source.startsWith("/") ||
+    source.startsWith("data:image/");
+}
+
+function getUnlockedAchievementPreviewItems(game: BibliotecaGame): AchievementPreviewItem[] {
+  const achievements: AchievementLike[] = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    "rumo-a-conquista-achievements-" + game.slug,
+    {}
+  );
+  const hiddenAchievementTitles = readLocalJson<string[]>(
+    "rumo-a-conquista-hidden-achievements-" + game.slug,
+    []
+  );
+
+  return achievements.flatMap((achievement, index) => {
+    const title = getAchievementTitle(achievement, index);
+    if (Boolean(achievement.isHidden) || hiddenAchievementTitles.includes(title)) {
+      return [];
+    }
+
+    const manualState = manualStates[title];
+    const isCompleted =
+      normalizeAchievementStatus(manualState?.status) === "completed" ||
+      normalizeAchievementStatus(readText(achievement.status, "locked")) === "completed";
+    if (!isCompleted) return [];
+
+    const imageCandidates = [
+      readText(manualState?.image, ""),
+      readText(achievement.image, ""),
+      readText(achievement.officialImage, ""),
+      readText(achievement.icon, ""),
+      readText(achievement.trophy, ""),
+    ];
+    const image = imageCandidates.find(isAchievementImageSource) || "";
+    const fallbackCandidate = [
+      readText(achievement.icon, ""),
+      readText(achievement.trophy, ""),
+    ].find((value) => value && !isAchievementImageSource(value) && value.length <= 6);
+    const rank = normalizeRank(
+      manualState?.rank ??
+        readText(achievement.rank, readText(achievement.difficulty, "")),
+      readText(achievement.trophy, "")
+    );
+
+    return [{
+      key: readText(achievement.id, title + "-" + index),
+      title,
+      image: image || undefined,
+      fallback: fallbackCandidate || getRankIcon(rank),
+    }];
+  });
+}
+
+function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const measure = () => setAvailableWidth(element.getBoundingClientRect().width);
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [items.length]);
+
+  if (items.length === 0) return null;
+
+  const itemSize = 36;
+  const gap = 4;
+  const moreMinimumWidth = 34;
+  const capacityWithoutMore = Math.max(
+    0,
+    Math.floor((availableWidth + gap) / (itemSize + gap))
+  );
+
+  let visibleCount = Math.min(items.length, capacityWithoutMore);
+  if (items.length > capacityWithoutMore) {
+    visibleCount = Math.max(0, capacityWithoutMore - 1);
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const hiddenCount = items.length - visibleCount;
+      const moreWidth = Math.max(
+        moreMinimumWidth,
+        25 + String(hiddenCount).length * 6
+      );
+      const nextVisibleCount = Math.max(
+        0,
+        Math.floor((availableWidth - moreWidth + gap) / (itemSize + gap))
+      );
+
+      if (nextVisibleCount === visibleCount) break;
+      visibleCount = nextVisibleCount;
+    }
+  }
+
+  const hiddenCount = items.length - visibleCount;
+  if (availableWidth <= 0) {
+    return <div ref={containerRef} className="mt-1.5 h-9 w-full min-w-0" aria-hidden="true" />;
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="mt-1.5 flex min-w-0 w-full items-center gap-1 overflow-hidden"
+      aria-label={items.length + " conquistas desbloqueadas"}
+    >
+      {items.slice(0, visibleCount).map((item) => (
+        <span
+          key={item.key}
+          title={item.title}
+          aria-label={item.title}
+          className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-white/15 bg-[#17191f] text-sm"
+        >
+          <span aria-hidden="true">{item.fallback}</span>
+          {item.image ? (
+            <img
+              src={item.image}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          ) : null}
+        </span>
+      ))}
+      {hiddenCount > 0 ? (
+        <span
+          title={hiddenCount + " conquistas adicionais"}
+          className="inline-flex h-9 min-w-[34px] shrink-0 items-center justify-center rounded-[4px] border border-white/10 bg-white/[0.07] px-1.5 text-[10px] font-black text-white/75"
+        >
+          +{hiddenCount}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function MiniStatCard({
+  label,
+  value,
+  icon,
+  accent = "white",
+}: {
+  label: string;
+  value: string;
+  icon?: string;
+  accent?: "white" | "green" | "red" | "cyan";
+}) {
+  const valueColor =
+    accent === "green"
+      ? "text-emerald-300"
+      : accent === "cyan"
+      ? "text-cyan-300"
+      : accent === "red"
+      ? "text-red-300"
+      : "text-white";
+
+  const glowClass =
+    accent === "green"
+      ? "group-hover/card:border-emerald-400/25 group-hover/card:bg-emerald-500/[0.04]"
+      : accent === "cyan"
+      ? "group-hover/card:border-cyan-400/25 group-hover/card:bg-cyan-500/[0.04]"
+      : accent === "red"
+      ? "group-hover/card:border-red-400/25 group-hover/card:bg-red-500/[0.04]"
+      : "group-hover/card:border-white/20 group-hover/card:bg-white/[0.05]";
+
+  return (
+    <div
+      className={`min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 transition ${glowClass}`}
+    >
+      <p className="truncate text-[9px] font-black uppercase tracking-[0.22em] text-white/35">
+        {label}
+      </p>
+
+      <div className="mt-3 flex min-w-0 items-center gap-2">
+        {icon ? (
+          <span className="shrink-0 text-xl leading-none">{icon}</span>
+        ) : null}
+
+        <p
+          className={`min-w-0 truncate text-[18px] font-black leading-none tracking-tight ${valueColor}`}
+          title={value}
+        >
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function getGameRating(game: BibliotecaGame) {
+  const directReview = (game as BibliotecaGame & { review?: { nota?: unknown } }).review;
+  const directRating = readNumber(directReview?.nota, 0);
+
+  if (directRating > 0) {
+    return Math.min(5, Math.max(0, directRating / 2));
+  }
+
+  const slug = readText(game.slug, "");
+  const baseGame = (baseGames as unknown as Record<string, { review?: { nota?: unknown } }>)[slug];
+  const baseRating = readNumber(baseGame?.review?.nota, 0);
+
+  return Math.min(5, Math.max(0, baseRating / 2));
+}
+
+function GameRating({ rating, compact = false }: { rating: number; compact?: boolean }) {
+  return (
+    <StarRating
+      rating={rating}
+      size="small"
+      className={compact ? "h-[12px] !text-[11px] !tracking-[-0.05em]" : "h-[14px] !text-[12px] !tracking-[-0.04em]"}
+    />
+  );
+}
+
+
+function getPlatformLabel(game: BibliotecaGame) {
+  const value = readText((game as BibliotecaGame & { platform?: string }).platform, "").trim();
+  return value || "Steam";
+}
+
+function formatGameDate(game: BibliotecaGame) {
+  const title = normalizeText(readText(game.title, ""));
+
+  if (title === "crisoltheaterofidols") {
+    return "27/03/2026 → 06/04/2026";
+  }
+
+  if (title === "hogwartslegacy") {
+    return "25/01/2026 → 10/02/2026";
+  }
+
+  const raw = readText(game.updatedAt, "") || readText(game.createdAt, "");
+  if (!raw) return "";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("pt-BR", { timeZone: LIBRARY_TIME_ZONE });
+}
+
+type ActivitySummary = {
+  totalMinutes: number;
+  firstDate: string;
+  lastDate: string;
+};
+
+function formatMinutesAsGameTime(minutes: number) {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const mins = safeMinutes % 60;
+
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}min`;
+}
+
+function formatActivityDate(dateValue: string) {
+  if (!dateValue) return "";
+
+  const date = new Date(`${dateValue}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("pt-BR", { timeZone: LIBRARY_TIME_ZONE });
+}
+
+
+function GameRow({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const unlockedAchievementPreviews = getUnlockedAchievementPreviewItems(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const isCompleted = isCompletedGame(game);
+  const hasActivity = Boolean(activitySummary);
+  const isProgress = isProgressGame(game, hasActivity);
+  const isBacklog = !isCompleted && isBacklogGame(game) && !isProgress;
+  const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Em progresso" : isBacklog ? "Na fila" : (game.status || "Não definido");
+  const rating = getGameRating(game);
+  const platform = getPlatformLabel(game);
+  const date = isBacklog || isProgress ? "" : formatGameDate(game);
+  const playedTime = isBacklog
+    ? "—"
+    : isProgress && activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+
+  const statusClass = isCompleted
+    ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
+    : isBacklog
+    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-300"
+    : "border-red-500/25 bg-red-500/10 text-red-300";
+
+  const progressClass = isCompleted
+    ? "bg-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.55)]"
+    : "bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.45)]";
+
+  return (
+    <Link
+      prefetch={false}
+      href={`/games/${gameSlug}`}
+      className="group/row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025]"
+    >
+      <div className="grid grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+        <div className="h-[121px] w-[94px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
+          <GameCoverImage src={cardImage} title={gameTitle} imageClassName="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover/row:scale-105 group-hover/row:brightness-105" />
+        </div>
+
+        <div className="min-w-0 pt-0.5">
+          <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
+            <h2
+              className="min-w-0 max-w-[72%] shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
+              title={gameTitle}
+            >
+              {gameTitle}
+            </h2>
+
+            {isCompleted ? <GameRating rating={rating} /> : null}
+
+            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] ${statusClass}`}>
+              {statusLabel}
+            </span>
+          </div>
+
+          <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-medium text-white/55">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <IconPlatform platform={platform} className="h-[18px] w-[18px] text-white/65" />
+              {platform}
+            </span>
+
+            <span className="hidden h-4 w-px bg-white/15 sm:block" />
+
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <IconTrophy className="h-[18px] w-[18px] text-amber-400" filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total} />
+              {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}
+            </span>
+
+            <span className="hidden h-4 w-px bg-white/15 sm:block" />
+
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <IconClock className="h-[16px] w-[16px] text-sky-400" />
+              {playedTime}
+            </span>
+
+            {date ? (
+              <>
+                <span className="hidden h-4 w-px bg-white/15 sm:block" />
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <IconCalendar className="h-[16px] w-[16px] text-violet-400" />
+                  {date}
+                </span>
+              </>
+            ) : null}
+          </div>
+
+          <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2.5 gap-y-0">
+            <div className="h-[5px] min-w-0 overflow-hidden rounded-full bg-white/[0.07]">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${progressClass}`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className={`w-10 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
+              {progress}%
+            </span>
+            <div className="col-start-1 row-start-2 min-w-0">
+              <AchievementMiniatures items={unlockedAchievementPreviews} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex h-[100px] w-[78px] items-center justify-end sm:h-[115px] sm:w-[90px]">
+          <GameEmblem game={game} />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function GameGridCard({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const isCompleted = isCompletedGame(game);
+  const hasActivity = Boolean(activitySummary);
+  const isProgress = isProgressGame(game, hasActivity);
+  const isBacklog = !isCompleted && isBacklogGame(game) && !isProgress;
+  const statusLabel = isCompleted
+    ? "Finalizado"
+    : isProgress
+    ? "Em progresso"
+    : isBacklog
+    ? "Na fila"
+    : readText(game.status, "Não definido");
+  const rating = getGameRating(game);
+  const platform = getPlatformLabel(game);
+  const playedTime = isBacklog
+    ? "—"
+    : isProgress && activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+
+  const statusClass = isCompleted
+    ? "bg-emerald-500/65 text-white"
+    : isBacklog
+    ? "bg-cyan-500/65 text-white"
+    : "bg-red-500/65 text-white";
+
+  const progressClass = isCompleted
+    ? "bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
+    : "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.35)]";
+
+  return (
+    <Link
+      prefetch={false}
+      href={`/games/${gameSlug}`}
+      aria-label={`Abrir ${gameTitle}. Status: ${statusLabel}. ${isBacklog ? "Conquistas ainda não contabilizadas." : `${achievementStats.completed} de ${achievementStats.total} conquistas.`} Progresso de ${progress}%.`}
+      className="group/card flex h-full w-full min-w-0 flex-col rounded-xl border border-white/[0.07] bg-transparent p-2 transition duration-300 hover:border-white/10 hover:bg-white/[0.015]"
+    >
+      <div className="relative aspect-[5/6] overflow-hidden rounded-lg bg-black">
+        <GameCoverImage src={cardImage} title={gameTitle} />
+
+        {normalizeText(platform) === "steam" ? (
+          <div className="absolute left-2 top-2 h-[26px] w-[26px] overflow-hidden rounded-md">
+            <IconPlatform platform={platform} className="h-[26px] w-[26px]" />
+          </div>
+        ) : (
+          <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-black/75 backdrop-blur-sm">
+            <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/75" />
+          </div>
+        )}
+
+        <span className={`absolute bottom-2 left-2 rounded-md border border-transparent px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-[0.03em] backdrop-blur-sm ${statusClass}`}>
+          {statusLabel}
+        </span>
+
+        {isCompleted ? (
+          <div className="absolute right-2 top-2 z-10 rounded bg-black/50 px-1 py-0 opacity-85 shadow-sm backdrop-blur-sm">
+            <GameRating rating={rating} compact />
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex min-w-0 flex-col pt-2">
+        <div className="group/title relative min-w-0">
+          <h3
+            className="h-4 truncate text-[12.5px] font-bold leading-4 text-white"
+            title={gameTitle}
+          >
+            {gameTitle}
+          </h3>
+          <span
+            role="tooltip"
+            className="pointer-events-none invisible absolute left-0 top-full z-30 mt-1 w-max max-w-[260px] whitespace-normal break-words rounded-md border border-white/15 bg-[#101116] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-white opacity-0 shadow-xl transition-opacity duration-150 group-hover/title:visible group-hover/title:opacity-100 group-focus-visible/card:visible group-focus-visible/card:opacity-100"
+          >
+            {gameTitle}
+          </span>
+        </div>
+
+        <div className="mt-1 flex items-center gap-2">
+          <div
+            className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]"
+            role="progressbar"
+            aria-label={`Progresso de ${gameTitle}`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          >
+            <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
+          </div>
+          <span className={`w-8 shrink-0 text-right text-[9px] font-bold tabular-nums ${isCompleted ? "text-emerald-300" : isBacklog ? "text-cyan-200" : "text-white/70"}`}>
+            {progress}%
+          </span>
+        </div>
+
+        <div className="mt-0.5 flex h-4 min-w-0 items-center justify-center gap-2 text-[10px] font-medium leading-none text-white/55">
+          <span
+            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap"
+            title={isBacklog ? "Conquistas ainda não contabilizadas" : "Conquistas desbloqueadas"}
+          >
+            <IconTrophy
+              className="h-3.5 w-3.5 shrink-0 text-amber-500"
+              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
+            />
+            <span>{isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}</span>
+          </span>
+          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap" title="Tempo de jogo">
+            <IconClock className="h-3.5 w-3.5 shrink-0 text-sky-500" />
+            <span className="truncate">{playedTime}</span>
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function GameSection({
+  eyebrow,
+  title,
+  description,
+  games,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  games: BibliotecaGame[];
+}) {
+  if (games.length === 0) {
+    return null;
+  }
+
+  return (
+    <section>
+      <div className="mb-5 flex items-end justify-between gap-5 border-b border-white/10 pb-4">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
+            {eyebrow}
+          </p>
+
+          <h2 className="mt-2 text-3xl font-black text-white">{title}</h2>
+
+          <p className="mt-2 max-w-[720px] text-sm leading-relaxed text-white/45">
+            {description}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/35">
+            Total
+          </p>
+
+          <p className="mt-1 text-2xl font-black text-white">{games.length}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(370px,430px))] gap-8">
+        {games.map((game) => (
+          <GameRow key={game.slug} game={game} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+function GenresRadar({
+  games,
+}: {
+  games: BibliotecaGame[];
+}) {
+  const genreData = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    const addGenre = (value: unknown) => {
+      if (typeof value !== "string") return;
+
+      value
+        .split(/[,;/|]+/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .forEach((genre) => {
+          const normalized = normalizeText(genre);
+          if (!normalized) return;
+
+          const label =
+            normalized === "rpg"
+              ? "RPG"
+              : normalized === "acao" || normalized === "action"
+                ? "Ação"
+                : normalized === "aventura" || normalized === "adventure"
+                  ? "Aventura"
+                  : normalized === "plataforma" || normalized === "platformer"
+                    ? "Plataforma"
+                    : normalized === "estrategia" || normalized === "strategy"
+                      ? "Estratégia"
+                      : normalized === "puzzle"
+                        ? "Puzzle"
+                        : normalized === "indie"
+                          ? "Indie"
+                          : formatGameGenreLabel(genre);
+
+          counts.set(label, (counts.get(label) ?? 0) + 1);
+        });
+    };
+
+    for (const game of games) {
+      const source = game as BibliotecaGame & {
+        genre?: unknown;
+        genres?: unknown;
+        tags?: unknown;
+        category?: unknown;
+        categories?: unknown;
+      };
+
+      if (Array.isArray(source.genres)) {
+        source.genres.forEach(addGenre);
+      } else {
+        addGenre(source.genres);
+      }
+
+      addGenre(source.genre);
+      addGenre(source.category);
+
+      if (Array.isArray(source.categories)) {
+        source.categories.forEach(addGenre);
+      } else {
+        addGenre(source.categories);
+      }
+
+      if (Array.isArray(source.tags)) {
+        source.tags.forEach(addGenre);
+      }
+    }
+
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt-BR"))
+      .slice(0, 5);
+  }, [games]);
+
+  if (genreData.length === 0) {
+    return (
+      <p className="py-4 text-center text-[9px] font-semibold text-white/30">
+        Ainda não há gêneros registrados.
+      </p>
+    );
+  }
+
+  // Área do gráfico calibrada para manter os espaçamentos visuais da referência:
+  // 8px no topo e na base e 12px nas laterais da área útil.
+  // A geometria foi ajustada para manter “Estratégia” inteira e legível.
+  const size = 232;
+  const centerX = 132;
+  const centerY = 95;
+  const radius = 70;
+  const maxValue = genreData[0]?.[1] ?? 1;
+  const angleStep = (Math.PI * 2) / genreData.length;
+  const labelDistance = 87;
+
+  const pointFor = (index: number, value: number) => {
+    const angle = -Math.PI / 2 + index * angleStep;
+    const distance = radius * (value / maxValue);
+
+    return {
+      x: centerX + Math.cos(angle) * distance,
+      y: centerY + Math.sin(angle) * distance,
+    };
+  };
+
+  const polygonPoints = (scale: number) =>
+    genreData
+      .map((_, index) => {
+        const point = pointFor(index, maxValue * scale);
+        return `${point.x},${point.y}`;
+      })
+      .join(" ");
+
+  const valuePoints = genreData
+    .map(([, value], index) => {
+      const point = pointFor(index, value);
+      return `${point.x},${point.y}`;
+    })
+    .join(" ");
+
+  return (
+    <div className="mt-[8px] mb-[8px] flex h-[174px] w-full translate-y-[2px] justify-center px-[12px]">
+      <svg
+        viewBox={`0 0 ${size} 174`}
+        className="h-[174px] w-full max-w-[232px]"
+        role="img"
+        aria-label="Gráfico dos principais gêneros da biblioteca"
+      >
+        {[0.25, 0.5, 0.75, 1].map((scale) => (
+          <polygon
+            key={scale}
+            points={polygonPoints(scale)}
+            fill="none"
+            stroke="rgba(255,255,255,0.14)"
+            strokeWidth="1"
+          />
+        ))}
+
+        {genreData.map((_, index) => {
+          const outer = pointFor(index, maxValue);
+
+          return (
+            <line
+              key={`axis-${index}`}
+              x1={centerX}
+              y1={centerY}
+              x2={outer.x}
+              y2={outer.y}
+              stroke="rgba(255,255,255,0.11)"
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        <polygon
+          points={valuePoints}
+          fill="rgba(239,68,68,0.16)"
+          stroke="rgb(239,68,68)"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+
+        {genreData.map(([, value], index) => {
+          const point = pointFor(index, value);
+
+          return (
+            <circle
+              key={`point-${index}`}
+              cx={point.x}
+              cy={point.y}
+              r="3.2"
+              fill="rgb(239,68,68)"
+              stroke="#090b0f"
+              strokeWidth="1.5"
+            />
+          );
+        })}
+
+        {genreData.map(([label], index) => {
+          const angle = -Math.PI / 2 + index * angleStep;
+          const isTopOrBottom = Math.abs(Math.cos(angle)) < 0.2;
+          const isLeft = Math.cos(angle) < 0;
+          const horizontalInset = 10;
+          const x =
+            centerX +
+            Math.cos(angle) * labelDistance +
+            (isTopOrBottom ? 0 : isLeft ? horizontalInset : -horizontalInset);
+          const y = centerY + Math.sin(angle) * labelDistance;
+
+          return (
+            <text
+              key={`label-${label}`}
+              x={x}
+              y={y}
+              textAnchor={isTopOrBottom ? "middle" : isLeft ? "end" : "start"}
+              dominantBaseline="middle"
+              fill="rgba(255,255,255,0.92)"
+              fontSize="10.5"
+              fontWeight="800"
+              stroke="#090b0f"
+              strokeWidth="2"
+              paintOrder="stroke"
+            >
+              {label}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function PlayingNowGame({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const isBacklog = isBacklogGame(game);
+  const platform = getPlatformLabel(game);
+  const playedTime = activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+
+  return (
+    <Link
+      prefetch={false}
+      href={`/games/${gameSlug}`}
+      className="group/playing flex min-w-0 gap-3.5 rounded-xl border border-white/[0.06] bg-white/[0.015] p-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.035]"
+    >
+      <div className="h-[84px] w-[62px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black shadow-[0_4px_14px_rgba(0,0,0,0.28)]">
+        <GameCoverImage src={cardImage} title={gameTitle} />
+      </div>
+
+      <div className="min-w-0 flex-1 py-0.5">
+        <h3
+          className="line-clamp-2 text-[14px] font-black leading-[1.15] tracking-tight text-white"
+          title={gameTitle}
+        >
+          {gameTitle}
+        </h3>
+
+        <div className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-white/45">
+          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap">
+            <IconPlatform platform={platform} className="h-3.5 w-3.5 text-white/60" />
+            <span className="truncate">{platform}</span>
+          </span>
+
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconClock className="h-3.5 w-3.5 text-sky-400" />
+            {playedTime}
+          </span>
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-2">
+          <div className="h-[4px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div
+              className="h-full rounded-full bg-red-500 transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="w-7 shrink-0 text-right text-[9px] font-black text-white/50">
+            {progress}%
+          </span>
+        </div>
+
+        <p className="mt-1.5 text-[9px] font-semibold text-white/30">
+          {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`} conquistas
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function AnnualRecentGame({
+  game,
+  activitySummary,
+}: {
+  game: BibliotecaGame;
+  activitySummary?: ActivitySummary;
+}) {
+  const gameSlug = readText(game.slug, "");
+  const gameTitle = readText(game.title, "Jogo");
+  const cardImage = readText(game.cardImage, "") || readText(game.image, "");
+  const achievementStats = getAchievementStats(game);
+  const progress = getProgressPercent(game, achievementStats);
+  const isCompleted = isCompletedGame(game);
+  const isProgress = isProgressGame(game, Boolean(activitySummary));
+  const isBacklog = !isCompleted && isBacklogGame(game) && !isProgress;
+  const statusLabel = isCompleted ? "Finalizado" : isProgress ? "Jogando" : "Na fila";
+  const statusClass = isCompleted
+    ? "border-purple-500/20 bg-purple-500/10 text-purple-300"
+    : isProgress
+    ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-300"
+    : "border-white/10 bg-white/[0.05] text-white/50";
+  const playedTime = isProgress && activitySummary
+    ? formatMinutesAsGameTime(activitySummary.totalMinutes)
+    : readText(game.hours, "0h");
+  const platform = getPlatformLabel(game);
+  const rating = getGameRating(game);
+
+  return (
+    <Link
+      prefetch={false}
+      href={`/games/${gameSlug}`}
+      className="group/recent flex min-w-0 gap-2.5 border-b border-white/[0.06] py-2.5 last:border-b-0"
+    >
+      <div className="h-[54px] w-[40px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black">
+        <GameCoverImage src={cardImage} title={gameTitle} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3
+            className="min-w-0 flex-1 truncate text-[12px] font-black leading-tight text-white group-hover/recent:text-white"
+            title={gameTitle}
+          >
+            {gameTitle}
+          </h3>
+          {isCompleted && rating > 0 ? (
+            <span className="shrink-0 text-[9px] leading-none" aria-label={`Avaliação ${rating} de 5`}>
+              <GameRating rating={rating} />
+            </span>
+          ) : null}
+        </div>
+
+        <span className={`mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.05em] ${statusClass}`}>
+          {statusLabel}
+        </span>
+
+        <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[9px] font-semibold text-white/45">
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconPlatform platform={platform} className="h-3 w-3 text-white/60" />
+            {platform}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <IconTrophy
+              className="h-3 w-3 text-amber-400"
+              filled={achievementStats.total > 0 && achievementStats.completed >= achievementStats.total}
+            />
+            {isBacklog ? "—" : `${achievementStats.completed}/${achievementStats.total}`}
+          </span>
+          <span className="h-3 w-px shrink-0 bg-white/10" />
+          <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap">
+            <IconClock className="h-3 w-3 text-sky-400" />
+            {playedTime}
+          </span>
+        </div>
+
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div
+              className={`h-full rounded-full ${isCompleted ? "bg-emerald-400" : "bg-cyan-400"}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="w-7 shrink-0 text-right text-[8px] font-black text-white/40">{progress}%</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function parsePlaytimeMinutes(value: unknown) {
+  const text = readText(value, "").toLowerCase();
+  const h = text.match(/(\d+)\s*h/);
+  const m = text.match(/(\d+)\s*m/);
+  return (h ? Number(h[1]) : 0) * 60 + (m ? Number(m[1]) : 0);
+}
+
+function parseDateTimestamp(value: unknown) {
+  const text = readText(value, "").trim();
+  if (!text) return Number.NaN;
+
+  const brazilianDate = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (brazilianDate) {
+    const [, day, month, year] = brazilianDate;
+    return new Date(`${year}-${month}-${day}T23:59:59`).getTime();
+  }
+
+  return Date.parse(text);
+}
+
+function compareDateValues(a: unknown, b: unknown, descending = false) {
+  const aTime = parseDateTimestamp(a);
+  const bTime = parseDateTimestamp(b);
+  if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+  if (Number.isNaN(aTime)) return 1;
+  if (Number.isNaN(bTime)) return -1;
+  return descending ? bTime - aTime : aTime - bTime;
+}
+
+function getAchievementEarnedTimestamp(
+  game: BibliotecaGame,
+  achievement: AchievementLike,
+  index: number
+) {
+  const directDate = parseDateTimestamp(achievement.earnedDate);
+  if (!Number.isNaN(directDate)) return directDate;
+
+  const title = getAchievementTitle(achievement, index);
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    `rumo-a-conquista-achievements-${game.slug}`,
+    {}
+  );
+
+  return parseDateTimestamp(manualStates[title]?.date);
+}
+
+function getLatestAchievementDate(game: BibliotecaGame) {
+  const achievements = Array.isArray(game.achievementsList)
+    ? game.achievementsList
+    : [];
+
+  let latest = Number.NaN;
+
+  achievements.forEach((achievement, index) => {
+    const earnedDate = getAchievementEarnedTimestamp(game, achievement, index);
+    if (Number.isNaN(earnedDate)) return;
+
+    if (Number.isNaN(latest) || earnedDate > latest) {
+      latest = earnedDate;
+    }
+  });
+
+  return latest;
+}
+
+function getRecentTimestamp(
+  game: BibliotecaGame,
+  activitySummary?: ActivitySummary
+) {
+  const candidates: number[] = [];
+
+  const lastActivity = parseDateTimestamp(activitySummary?.lastDate);
+  if (!Number.isNaN(lastActivity)) candidates.push(lastActivity);
+
+  // "Recentes" representa atividade/conclusão do jogo.
+  // A data de desbloqueio do emblema não participa desta ordenação.
+  const latestAchievement = getLatestAchievementDate(game);
+  if (!Number.isNaN(latestAchievement)) candidates.push(latestAchievement);
+
+  if (candidates.length > 0) {
+    return Math.max(...candidates);
+  }
+
+  const fallback = parseDateTimestamp(game.updatedAt ?? game.createdAt);
+  return fallback;
+}
+
+function getCompletionTimestamp(
+  game: BibliotecaGame,
+  activitySummary?: ActivitySummary
+) {
+  // Prefer dates saved explicitly for game completion, when available.
+  const explicitDates = [
+    game.firstJourney?.completedAt,
+    game.completionDate,
+    game.completedAt,
+    game.completedDate,
+    game.finishedAt,
+    game.concludedAt,
+  ];
+
+  for (const value of explicitDates) {
+    const timestamp = parseDateTimestamp(value);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  // Some game records expose a displayed interval (start → completion).
+  // In that case, use its end date for ordering.
+  const displayedDate = formatGameDate(game);
+  if (displayedDate.includes("→")) {
+    const completionDate = displayedDate.split("→").pop()?.trim();
+    const timestamp = parseDateTimestamp(completionDate);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  // For other records, the latest dated achievement/activity is the best
+  // available proxy for completion; fall back to the game's saved timestamps.
+  const latestAchievement = getLatestAchievementDate(game);
+  if (!Number.isNaN(latestAchievement)) return latestAchievement;
+
+  const lastActivity = parseDateTimestamp(activitySummary?.lastDate);
+  if (!Number.isNaN(lastActivity)) return lastActivity;
+
+  return parseDateTimestamp(game.updatedAt ?? game.createdAt);
+}
+
+export default function BibliotecaClient({
+  initialCatalog,
+  initialJourneyRows,
+  initialFilter,
+}: {
+  initialCatalog: (HomeGamesCatalog & { generatedAt: number }) | null;
+  initialJourneyRows: Record<string, unknown>[] | null;
+  initialFilter: string | null;
+}) {
+  const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
+  const { entries: journeyEntries } = useJourneyEntries(initialJourneyRows);
+  const [activeFilter, setActiveFilter] = useState<FilterType>(
+    isValidFilter(initialFilter) ? initialFilter : "all"
+  );
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [search, setSearch] = useState("");
+  const [platformFilter, setPlatformFilter] = useState("all");
+  const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+  const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>(() =>
+    Object.fromEntries(
+      (initialCatalog?.games ?? []).flatMap((game) =>
+        Array.isArray(game.genres) ? [[String(game.slug), game.genres as string[]]] : []
+      )
+    )
+  );
+  const genresReady =
+    initialCatalog !== null && initialCatalog.games.every((game) => Array.isArray(game.genres));
+
+  useEffect(() => {
+    function syncFilterFromUrl() {
+      setActiveFilter(getFilterFromUrl());
+    }
+
+    syncFilterFromUrl();
+    window.addEventListener("popstate", syncFilterFromUrl);
+    window.addEventListener("focus", syncFilterFromUrl);
+
+    return () => {
+      window.removeEventListener("popstate", syncFilterFromUrl);
+      window.removeEventListener("focus", syncFilterFromUrl);
+    };
+  }, []);
+
+  useEffect(() => {
+    function refreshData() {
+      setRefreshKey((current) => current + 1);
+    }
+
+    localDataReady = true;
+    refreshData();
+    window.addEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshData);
+    window.addEventListener(GAMES_UPDATED_EVENT, refreshData);
+    window.addEventListener("storage", refreshData);
+    window.addEventListener("focus", refreshData);
+
+    return () => {
+      window.removeEventListener(ACHIEVEMENTS_UPDATED_EVENT, refreshData);
+      window.removeEventListener(GAMES_UPDATED_EVENT, refreshData);
+      window.removeEventListener("storage", refreshData);
+      window.removeEventListener("focus", refreshData);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Com todos os gêneros no HTML, a rota só serve para enriquecer jogos pendentes.
+    if (genresReady) return;
+
+    let cancelled = false;
+    const timers: number[] = [];
+
+    async function loadGenres(attempt = 0) {
+      try {
+        const response = await fetch("/api/admin/games/genres", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          ok?: boolean;
+          genresBySlug?: Record<string, string[]>;
+          pendingSlugs?: string[];
+        };
+
+        if (cancelled) return;
+
+        if (payload.ok && payload.genresBySlug) {
+          setGenresBySlug(payload.genresBySlug);
+        }
+
+        // O endpoint agora entrega os gêneros já salvos imediatamente e
+        // enriquece os pendentes em segundo plano. Fazemos até duas tentativas
+        // curtas para capturar esses resultados sem segurar a Biblioteca.
+        if ((payload.pendingSlugs?.length ?? 0) > 0 && attempt < 2) {
+          const timer = window.setTimeout(() => {
+            void loadGenres(attempt + 1);
+          }, attempt === 0 ? 1200 : 2400);
+
+          timers.push(timer);
+        }
+      } catch (error) {
+        console.warn("[Biblioteca] Não foi possível carregar os gêneros:", error);
+      }
+    }
+
+    void loadGenres();
+
+    return () => {
+      cancelled = true;
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [genresReady]);
+
+  function handleFilterChange(filter: FilterType) {
+    setActiveFilter(filter);
+    updateUrlFilter(filter);
+  }
+
+  const bibliotecaGames = useMemo(() => {
+    return (gamesList as BibliotecaGame[]).map((game) => {
+      const slug = readText(game.slug, "");
+      const detectedGenres = genresBySlug[slug];
+
+      if (!detectedGenres || detectedGenres.length === 0) {
+        return game;
+      }
+
+      return {
+        ...game,
+        genres: detectedGenres,
+      };
+    });
+  }, [gamesList, genresBySlug, refreshKey]);
+
+  // A fila oficial vem das posições salvas em cada jogo.
+  const backlogOrder = useMemo(
+    () =>
+      bibliotecaGames
+        .filter((game) => typeof game.backlogOrder === "number")
+        .sort((a, b) => Number(a.backlogOrder) - Number(b.backlogOrder))
+        .map((game) => readText(game.slug, "")),
+    [bibliotecaGames]
+  );
+
+  const activitySummaryByGame = useMemo(() => {
+    const summary = new Map<string, ActivitySummary>();
+
+    for (const entry of journeyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      const date = readText(entry.date, "").trim();
+      if (!slug || !date) continue;
+
+      const playedMinutes = Math.max(0, readNumber(entry.playedMinutes, 0));
+      const current = summary.get(slug);
+
+      if (!current) {
+        summary.set(slug, {
+          totalMinutes: playedMinutes,
+          firstDate: date,
+          lastDate: date,
+        });
+        continue;
+      }
+
+      current.totalMinutes += playedMinutes;
+      if (new Date(date).getTime() < new Date(current.firstDate).getTime()) {
+        current.firstDate = date;
+      }
+      if (new Date(date).getTime() > new Date(current.lastDate).getTime()) {
+        current.lastDate = date;
+      }
+    }
+
+    return summary;
+  }, [journeyEntries]);
+
+  const progressGames = useMemo(
+    () =>
+      bibliotecaGames.filter((game) =>
+        isProgressGame(game, activitySummaryByGame.has(readText(game.slug, "")))
+      ),
+    [activitySummaryByGame, bibliotecaGames]
+  );
+  const backlogGames = useMemo(() => {
+    const orderMap = new Map(backlogOrder.map((slug, index) => [slug, index]));
+
+    const backlogCandidates = bibliotecaGames.filter(
+      (game) =>
+        orderMap.has(readText(game.slug, "")) &&
+        isBacklogGame(game) &&
+        !isProgressGame(game, activitySummaryByGame.has(readText(game.slug, ""))) &&
+        !isCompletedGame(game)
+    );
+
+    return [...backlogCandidates].sort((a, b) => {
+      const aSlug = readText(a.slug, "");
+      const bSlug = readText(b.slug, "");
+      const aOrder = orderMap.get(aSlug);
+      const bOrder = orderMap.get(bSlug);
+
+      if (aOrder !== undefined && bOrder !== undefined) {
+        return aOrder - bOrder;
+      }
+      if (aOrder !== undefined) return -1;
+      if (bOrder !== undefined) return 1;
+
+      return 1;
+    });
+  }, [activitySummaryByGame, backlogOrder, bibliotecaGames]);
+  const completedGames = useMemo(() => bibliotecaGames.filter((game) => isCompletedGame(game)), [bibliotecaGames]);
+
+  const platformOptions = useMemo(() => {
+    const values = new Set<string>();
+    bibliotecaGames.forEach((game) => {
+      const platform = getPlatformLabel(game);
+      if (platform) values.add(platform);
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [bibliotecaGames]);
+
+
+
+  const filteredGames = useMemo(() => {
+    const term = normalizeText(search);
+
+    const matchingGames = bibliotecaGames.filter((game) => {
+      const gameHasActivity = activitySummaryByGame.has(readText(game.slug, ""));
+
+      if (
+        activeFilter === "progress" &&
+        !isProgressGame(game, gameHasActivity)
+      ) {
+        return false;
+      }
+      if (activeFilter === "mastery" && !isCompletedGame(game)) return false;
+      if (
+        activeFilter === "backlog" &&
+        (
+          !backlogOrder.includes(readText(game.slug, "")) ||
+          !isBacklogGame(game) ||
+          isProgressGame(game, gameHasActivity) ||
+          isCompletedGame(game)
+        )
+      ) {
+        return false;
+      }
+
+      if (
+        platformFilter !== "all" &&
+        normalizeText(getPlatformLabel(game)) !== normalizeText(platformFilter)
+      ) {
+        return false;
+      }
+
+      if (!term) return true;
+      return normalizeText(readText(game.title, "")).includes(term);
+    });
+
+    const getActivity = (game: BibliotecaGame) =>
+      activitySummaryByGame.get(readText(game.slug, ""));
+    const hasActivity = (game: BibliotecaGame) =>
+      activitySummaryByGame.has(readText(game.slug, ""));
+    const compareRecent = (a: BibliotecaGame, b: BibliotecaGame) => {
+      const aRecent = getRecentTimestamp(a, getActivity(a));
+      const bRecent = getRecentTimestamp(b, getActivity(b));
+
+      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) {
+        return readText(a.title, "").localeCompare(readText(b.title, ""), "pt-BR");
+      }
+      if (Number.isNaN(aRecent)) return 1;
+      if (Number.isNaN(bRecent)) return -1;
+      return bRecent - aRecent;
+    };
+
+    // "Recentes" tem uma regra de grupos explícita para evitar que um jogo
+    // marcado como progress pelo banco, mas com 100%, apareça antes da fila.
+    // Em progresso → Na fila (ordem personalizada) → Finalizados → outros.
+    if (sortMode === "recent") {
+      const progress = matchingGames
+        .filter((game) => isProgressGame(game, hasActivity(game)))
+        .sort(compareRecent);
+
+      const backlog = matchingGames
+        .filter(
+          (game) =>
+            !isCompletedGame(game) &&
+            !isProgressGame(game, hasActivity(game)) &&
+            isBacklogGame(game)
+        )
+        .sort((a, b) => {
+          const aOrder = backlogOrder.indexOf(readText(a.slug, ""));
+          const bOrder = backlogOrder.indexOf(readText(b.slug, ""));
+
+          if (aOrder !== -1 && bOrder !== -1) return aOrder - bOrder;
+          if (aOrder !== -1) return -1;
+          if (bOrder !== -1) return 1;
+          return compareRecent(a, b);
+        });
+
+      const completed = matchingGames
+        .filter((game) => isCompletedGame(game))
+        .sort((a, b) => {
+          const aDate = getCompletionTimestamp(a, getActivity(a));
+          const bDate = getCompletionTimestamp(b, getActivity(b));
+
+          // Mais recente primeiro: novos finalizados entram antes do Mouse,
+          // seguidos por Mouse, Crisol e Hogwarts conforme suas datas.
+          if (Number.isNaN(aDate) && Number.isNaN(bDate)) {
+            return readText(a.title, "").localeCompare(readText(b.title, ""), "pt-BR");
+          }
+          if (Number.isNaN(aDate)) return 1;
+          if (Number.isNaN(bDate)) return -1;
+          return bDate - aDate;
+        });
+
+      const other = matchingGames
+        .filter(
+          (game) =>
+            !isCompletedGame(game) &&
+            !isProgressGame(game, hasActivity(game)) &&
+            !isBacklogGame(game)
+        )
+        .sort(compareRecent);
+
+      return [...progress, ...backlog, ...completed, ...other];
+    }
+
+    // Os outros modos de ordenação continuam funcionando em toda a biblioteca.
+    return matchingGames.sort((a, b) => {
+      const aActivity = getActivity(a);
+      const bActivity = getActivity(b);
+      const aTitle = normalizeText(readText(a.title, ""));
+      const bTitle = normalizeText(readText(b.title, ""));
+
+      if (sortMode === "alphabetical") return aTitle.localeCompare(bTitle, "pt-BR");
+      if (sortMode === "playtime") {
+        const aMinutes = aActivity?.totalMinutes ?? parsePlaytimeMinutes(a.hours);
+        const bMinutes = bActivity?.totalMinutes ?? parsePlaytimeMinutes(b.hours);
+        return bMinutes - aMinutes;
+      }
+      if (sortMode === "rating") return getGameRating(b) - getGameRating(a);
+      if (sortMode === "progress") {
+        return getProgressPercent(b, getAchievementStats(b)) -
+          getProgressPercent(a, getAchievementStats(a));
+      }
+      if (sortMode === "startDate") {
+        return compareDateValues(
+          aActivity?.firstDate ?? a.createdAt,
+          bActivity?.firstDate ?? b.createdAt,
+          true
+        );
+      }
+      if (sortMode === "completionDate") {
+        return compareDateValues(
+          getCompletionTimestamp(b, bActivity),
+          getCompletionTimestamp(a, aActivity)
+        );
+      }
+      return aTitle.localeCompare(bTitle, "pt-BR");
+    });
+  }, [activeFilter, activitySummaryByGame, backlogOrder, bibliotecaGames, platformFilter, search, sortMode]);
+
+  const currentHeroGame = progressGames[0] ?? completedGames[0] ?? backlogGames[0];
+
+  const playingNowGames = useMemo(() => {
+    return [...progressGames].sort((a, b) => {
+      const aActivity = activitySummaryByGame.get(readText(a.slug, ""));
+      const bActivity = activitySummaryByGame.get(readText(b.slug, ""));
+      const aRecent = getRecentTimestamp(a, aActivity);
+      const bRecent = getRecentTimestamp(b, bActivity);
+
+      if (Number.isNaN(aRecent) && Number.isNaN(bRecent)) return 0;
+      if (Number.isNaN(aRecent)) return 1;
+      if (Number.isNaN(bRecent)) return -1;
+      return bRecent - aRecent;
+    });
+  }, [activitySummaryByGame, progressGames]);
+  const totalAchievementStats = useMemo(() => {
+    return bibliotecaGames.reduce(
+      (acc, game) => {
+        const stats = getAchievementStats(game);
+        acc.completed += stats.completed;
+        acc.total += stats.total;
+        return acc;
+      },
+      { completed: 0, total: 0 }
+    );
+  }, [bibliotecaGames]);
+
+  const totalHours = useMemo(() => {
+    let minutes = 0;
+    for (const game of bibliotecaGames) {
+      if (isBacklogGame(game)) continue;
+
+      const activitySummary = activitySummaryByGame.get(readText(game.slug, ""));
+      if (isProgressGame(game, Boolean(activitySummary)) && activitySummary) {
+        minutes += activitySummary.totalMinutes;
+        continue;
+      }
+
+      const value = readText(game.hours, "").toLowerCase();
+      const h = value.match(/(\d+)\s*h/);
+      const m = value.match(/(\d+)\s*m/);
+      minutes += (h ? Number(h[1]) : 0) * 60 + (m ? Number(m[1]) : 0);
+    }
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins ? `${hours}h ${mins}min` : `${hours}h`;
+  }, [activitySummaryByGame, bibliotecaGames]);
+
+  const overallAchievementProgress = totalAchievementStats.total
+    ? Math.round((totalAchievementStats.completed / totalAchievementStats.total) * 100)
+    : 0;
+
+  const currentAnnualYear = new Date().getFullYear();
+  const [selectedAnnualYear, setSelectedAnnualYear] = useState(currentAnnualYear);
+  const [showAnnualRecentGames, setShowAnnualRecentGames] = useState(false);
+  const [showPlayingNow, setShowPlayingNow] = useState(false);
+
+  const getGameCompletionTimestamp = (game: BibliotecaGame) => {
+    if (!isCompletedGame(game)) return Number.NaN;
+
+    const formattedDate = formatGameDate(game);
+    const completionText = formattedDate.split("→")[1]?.trim() || formattedDate.trim();
+    return parseDateTimestamp(completionText);
+  };
+
+  const availableAnnualYears = useMemo(() => {
+    const years = new Set<number>([currentAnnualYear]);
+
+    for (const entry of journeyEntries) {
+      const timestamp = parseDateTimestamp(entry.date);
+      if (!Number.isNaN(timestamp)) years.add(new Date(timestamp).getFullYear());
+    }
+
+    for (const game of bibliotecaGames) {
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      if (!Number.isNaN(completionTimestamp)) {
+        years.add(new Date(completionTimestamp).getFullYear());
+      }
+
+      const achievements = Array.isArray(game.achievementsList)
+        ? game.achievementsList
+        : [];
+
+      achievements.forEach((achievement, index) => {
+        const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
+        if (!Number.isNaN(earnedTimestamp)) {
+          years.add(new Date(earnedTimestamp).getFullYear());
+        }
+      });
+    }
+
+    return Array.from(years).sort((a, b) => b - a);
+  }, [bibliotecaGames, currentAnnualYear, journeyEntries, refreshKey]);
+
+  useEffect(() => {
+    if (!availableAnnualYears.includes(selectedAnnualYear)) {
+      setSelectedAnnualYear(availableAnnualYears[0] ?? currentAnnualYear);
+    }
+  }, [availableAnnualYears, currentAnnualYear, selectedAnnualYear]);
+
+  const annualYear = selectedAnnualYear;
+
+  const annualJourneyEntries = useMemo(() => {
+    return journeyEntries.filter((entry) => {
+      const timestamp = parseDateTimestamp(entry.date);
+      if (Number.isNaN(timestamp)) return false;
+      return new Date(timestamp).getFullYear() === annualYear;
+    });
+  }, [annualYear, journeyEntries]);
+
+  const annualJourneyByGame = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const entry of annualJourneyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      if (!slug) continue;
+      map.set(
+        slug,
+        (map.get(slug) ?? 0) + Math.max(0, readNumber(entry.playedMinutes, 0))
+      );
+    }
+
+    return map;
+  }, [annualJourneyEntries]);
+
+  const annualGameSlugs = useMemo(() => {
+    const slugs = new Set<string>();
+
+    for (const entry of annualJourneyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      if (slug) slugs.add(slug);
+    }
+
+    for (const game of bibliotecaGames) {
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      if (
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear
+      ) {
+        const slug = readText(game.slug, "").trim();
+        if (slug) slugs.add(slug);
+      }
+    }
+
+    return slugs;
+  }, [annualJourneyEntries, annualYear, bibliotecaGames]);
+
+  const annualGamesCount = annualGameSlugs.size;
+
+  const annualAchievementsCount = useMemo(() => {
+    let count = 0;
+
+    for (const game of bibliotecaGames) {
+      const achievements = Array.isArray(game.achievementsList)
+        ? game.achievementsList
+        : [];
+
+      let datedCompletedCount = 0;
+
+      achievements.forEach((achievement, index) => {
+        if (normalizeAchievementStatus(achievement.status) !== "completed") return;
+
+        const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
+        if (
+          !Number.isNaN(earnedTimestamp) &&
+          new Date(earnedTimestamp).getFullYear() === annualYear
+        ) {
+          datedCompletedCount += 1;
+        }
+      });
+
+      if (datedCompletedCount > 0) {
+        count += datedCompletedCount;
+        continue;
+      }
+
+      // Hogwarts Legacy, Crisol e outros jogos concluídos no ano podem ter
+      // a lista de conquistas completa sem earnedDate individual. Nesses casos,
+      // a conclusão do próprio jogo é a referência temporal e contamos as
+      // conquistas realmente concluídas desse jogo.
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      if (
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear
+      ) {
+        count += getAchievementStats(game).completed;
+      }
+    }
+
+    return count;
+  }, [annualYear, bibliotecaGames, refreshKey]);
+
+  const annualEmblemsCount = useMemo(() => {
+    let count = 0;
+
+    for (const game of bibliotecaGames) {
+      if (!isCompletedGame(game)) continue;
+
+      const gameWithEmblem = game as BibliotecaGame & {
+        emblem?: { unlockedAt?: string; image?: string };
+        gameEmblem?: { unlockedAt?: string; image?: string };
+      };
+
+      const slug = readText(game.slug, "");
+      const baseGame = (baseGames as unknown as Record<string, {
+        emblem?: { unlockedAt?: string; image?: string };
+        gameEmblem?: { unlockedAt?: string; image?: string };
+      }>)[slug];
+
+      const unlockedAt =
+        readText(gameWithEmblem.emblem?.unlockedAt, "") ||
+        readText(gameWithEmblem.gameEmblem?.unlockedAt, "") ||
+        readText(baseGame?.emblem?.unlockedAt, "") ||
+        readText(baseGame?.gameEmblem?.unlockedAt, "");
+
+      const emblemTimestamp = parseDateTimestamp(unlockedAt);
+      const fallbackTimestamp = getGameCompletionTimestamp(game);
+      const timestamp = !Number.isNaN(emblemTimestamp)
+        ? emblemTimestamp
+        : fallbackTimestamp;
+
+      if (
+        !Number.isNaN(timestamp) &&
+        new Date(timestamp).getFullYear() === annualYear
+      ) {
+        count += 1;
+      }
+    }
+
+    return count;
+  }, [annualYear, bibliotecaGames, refreshKey]);
+
+  const annualPlayedMinutes = useMemo(() => {
+    let minutes = 0;
+
+    for (const game of bibliotecaGames) {
+      const slug = readText(game.slug, "").trim();
+      if (!annualGameSlugs.has(slug)) continue;
+
+      const annualJourneyMinutes = annualJourneyByGame.get(slug) ?? 0;
+      const completionTimestamp = getGameCompletionTimestamp(game);
+      const completedThisYear =
+        !Number.isNaN(completionTimestamp) &&
+        new Date(completionTimestamp).getFullYear() === annualYear;
+
+      // Para jogos concluídos no próprio ano, o campo hours representa o
+      // tempo total real da jornada. Para jogos ainda em progresso, usamos
+      // somente o tempo registrado na Jornada durante o ano.
+      if (completedThisYear) {
+        const gameMinutes = parsePlaytimeMinutes(game.hours);
+        minutes += gameMinutes > 0 ? gameMinutes : annualJourneyMinutes;
+        continue;
+      }
+
+      minutes += annualJourneyMinutes;
+    }
+
+    return minutes;
+  }, [annualGameSlugs, annualJourneyByGame, annualYear, bibliotecaGames]);
+
+  const annualHours = useMemo(() => {
+    return `${Math.floor(annualPlayedMinutes / 60)}h`;
+  }, [annualPlayedMinutes]);
+
+  const annualRecentGames = useMemo(() => {
+    const annualLastActivityByGame = new Map<string, number>();
+
+    for (const entry of annualJourneyEntries) {
+      const slug = readText(entry.gameSlug, "").trim();
+      const timestamp = parseDateTimestamp(entry.date);
+      if (!slug || Number.isNaN(timestamp)) continue;
+
+      const current = annualLastActivityByGame.get(slug) ?? Number.NaN;
+      if (Number.isNaN(current) || timestamp > current) {
+        annualLastActivityByGame.set(slug, timestamp);
+      }
+    }
+
+    return bibliotecaGames
+      .filter((game) => annualGameSlugs.has(readText(game.slug, "").trim()))
+      .map((game) => {
+        const slug = readText(game.slug, "").trim();
+        const candidates: number[] = [];
+        const activityTimestamp = annualLastActivityByGame.get(slug);
+        if (activityTimestamp !== undefined && !Number.isNaN(activityTimestamp)) {
+          candidates.push(activityTimestamp);
+        }
+
+        const completionTimestamp = getGameCompletionTimestamp(game);
+        if (!Number.isNaN(completionTimestamp) && new Date(completionTimestamp).getFullYear() === annualYear) {
+          candidates.push(completionTimestamp);
+        }
+
+        const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
+        achievements.forEach((achievement, index) => {
+          const earnedTimestamp = getAchievementEarnedTimestamp(game, achievement, index);
+          if (!Number.isNaN(earnedTimestamp) && new Date(earnedTimestamp).getFullYear() === annualYear) {
+            candidates.push(earnedTimestamp);
+          }
+        });
+
+        const recentTimestamp = candidates.length > 0 ? Math.max(...candidates) : getRecentTimestamp(game, activitySummaryByGame.get(slug));
+        return { game, recentTimestamp };
+      })
+      .sort((a, b) => {
+        if (Number.isNaN(a.recentTimestamp) && Number.isNaN(b.recentTimestamp)) return 0;
+        if (Number.isNaN(a.recentTimestamp)) return 1;
+        if (Number.isNaN(b.recentTimestamp)) return -1;
+        return b.recentTimestamp - a.recentTimestamp;
+      })
+      .slice(0, 3);
+  }, [annualGameSlugs, annualJourneyEntries, annualYear, activitySummaryByGame, bibliotecaGames, refreshKey]);
+
+  const latestCompletedGame = useMemo(() => {
+    return [...completedGames].sort((a, b) => {
+      const aTime = getGameCompletionTimestamp(a);
+      const bTime = getGameCompletionTimestamp(b);
+
+      if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return bTime - aTime;
+    })[0] ?? null;
+  }, [completedGames]);
+
+  return (
+    <main className="min-h-screen bg-[#050608] text-white">
+      <Navbar />
+
+      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+        {/* SIDEBAR — estrutura-base compartilhada entre as páginas */}
+        <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block">
+          <div className="sticky top-20 flex min-h-[calc(100vh-94px)] flex-col">
+            <div>
+              <div className="border-t border-white/[0.08] border-b border-white/[0.08] pb-5 pt-5">
+                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <IconGamepad className="h-4 w-4 text-red-400" />
+                  Jogos
+                </div>
+              </div>
+
+              <div className="mt-6 border-b border-white/[0.08] pb-6">
+                <Link href="/sagas" className="block">
+                  <div className="flex items-center gap-2">
+                    <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                    <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">ÚLTIMO EMBLEMA</h2>
+                  </div>
+
+                  {latestCompletedGame ? (
+                    <>
+                      <div className="mt-3 flex items-center justify-center overflow-visible">
+                        <GameEmblem game={latestCompletedGame} className="h-[150px] w-[118px]" />
+                      </div>
+
+                      <p
+                        className="mt-2 truncate text-center text-[12px] font-black leading-tight text-white"
+                        title={readText(latestCompletedGame.title, "Jogo")}
+                      >
+                        {readText(latestCompletedGame.title, "Jogo")}
+                      </p>
+
+                      <div className="mt-1.5 flex items-center justify-center gap-1.5">
+                        <span className="shrink-0 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-300">
+                          Finalizado
+                        </span>
+                        <span className="shrink-0 text-[9px] font-semibold text-white/35">
+                          {formatGameDate(latestCompletedGame).split("→")[1]?.trim() || formatGameDate(latestCompletedGame)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-3 text-[10px] font-medium leading-relaxed text-white/30">
+                      Nenhum jogo finalizado ainda.
+                    </p>
+                  )}
+                </Link>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[12px] font-black uppercase tracking-[0.12em] text-white">SETUP</h2>
+                </div>
+
+                <div className="mt-3">
+                  {[
+                    { name: "RTX 3060 12GB", type: "GPU", icon: "gpu" },
+                    { name: "i5-12400F", type: "CPU", icon: "chip" },
+                    { name: "32 GB", type: "RAM", icon: "ram" },
+                    { name: '27" 75Hz', type: "Monitor", icon: "monitor" },
+                  ].map((item, index) => (
+                    <div
+                      key={item.name}
+                      className={`flex items-center gap-3 py-2.5 ${
+                        index > 0 ? "border-t border-white/[0.05]" : ""
+                      }`}
+                    >
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center text-red-500">
+                        {item.icon === "gpu" ? (
+                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="3.5" y="5" width="17" height="14" rx="2" />
+                            <path d="M7 15.5l3-3 2.2 2.2 2.3-2.3 2.5 2.6M7 8.5h.01M10 8.5h.01" />
+                          </svg>
+                        ) : item.icon === "chip" ? (
+                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
+                            <path d="M9 1.8v3M12 1.8v3M15 1.8v3M9 19.2v3M12 19.2v3M15 19.2v3M1.8 9h3M1.8 12h3M1.8 15h3M19.2 9h3M19.2 12h3M19.2 15h3" />
+                          </svg>
+                        ) : item.icon === "ram" ? (
+                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="3.5" y="7" width="17" height="10" rx="1.5" />
+                            <path d="M7 10v4M10 10v4M13 10v4M16 10v4M6 17v2M9 17v2M12 17v2M15 17v2M18 17v2" />
+                          </svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="3.5" y="5" width="17" height="12" rx="2" />
+                            <path d="M8 20h8M12 17v3" />
+                          </svg>
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-[11px] font-black leading-tight text-white">{item.name}</p>
+                        <p className="mt-0.5 text-[9px] font-medium leading-tight text-white/35">{item.type}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto space-y-2 pt-8">
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event("rumo-admin-open-login"))}
+                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[10px] font-black text-white transition hover:bg-red-500"
+              >
+                Entrar
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN */}
+        <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="min-w-0">
+            <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
+              <BannerBackground bannerKey="jogos" imageUrl="/images/jogos-bg.png" adminButtonClassName="" />
+
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
+
+              <div className="relative min-h-[195px] px-7 py-5 md:px-7 md:py-5">
+                <div className="max-w-[470px]">
+                  <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+                    <span className="text-[10px] leading-none">✣</span>
+                    Sua jornada em jogos
+                  </p>
+
+                  <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                    JOGOS DA JORNADA
+                  </h1>
+
+                  <p className="mt-2 max-w-[430px] text-[11px] font-medium leading-[1.35] text-white/65">
+                    Acompanhe seu progresso, conquistas e o caminho até a Maestria.
+                  </p>
+                </div>
+
+                <div className="absolute bottom-6 left-7 right-7 grid grid-cols-3">
+                  <div className="flex min-w-0 items-center gap-2.5 pr-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                      <IconGamepad className="h-[24px] w-[24px]" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{bibliotecaGames.length}</p>
+                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Jogos na biblioteca</p>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                      <IconTrophy className="h-[24px] w-[24px]" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{completedGames.length}</p>
+                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Finalizados</p>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                      <IconTarget className="h-[24px] w-[24px]" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{backlogGames.length}</p>
+                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Na fila</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
+              <div className="border-b border-white/[0.08] px-3 py-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode((current) => (current === "list" ? "grid" : "list"))}
+                    aria-label={viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
+                    title={viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition ${viewMode === "grid" ? "border-red-500/35 bg-red-500/10 text-red-300" : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"}`}
+                  >
+                    <IconGrid className="h-[18px] w-[18px]" />
+                  </button>
+
+                  <div className="relative min-w-0 flex-1">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Buscar por nome do jogo..."
+                      className="h-10 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-red-500/40 focus:bg-white/[0.04]"
+                    />
+                  </div>
+
+                </div>
+
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setFilterMenu(filterMenu === "status" ? null : "status")}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${activeFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
+                    >
+                      <IconTarget className="h-3.5 w-3.5" />
+                      Status
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "status" ? (
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[170px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        {filters.map((filter) => (
+                          <button key={filter.value} type="button" onClick={() => { handleFilterChange(filter.value); setFilterMenu(null); }} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${activeFilter === filter.value ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>
+                            <span>{filter.label}</span>
+                            <span className="text-white/25">{filter.value === "all" ? bibliotecaGames.length : filter.value === "progress" ? progressGames.length : filter.value === "backlog" ? backlogGames.length : completedGames.length}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="relative">
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "platform" ? null : "platform")} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${platformFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}>
+                      <IconGamepad className="h-3.5 w-3.5" />
+                      Plataformas
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "platform" ? (
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[190px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        <button type="button" onClick={() => { setPlatformFilter("all"); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === "all" ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>Todas as plataformas</button>
+                        {platformOptions.map((platform) => (
+                          <button key={platform} type="button" onClick={() => { setPlatformFilter(platform); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === platform ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>{platform}</button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="relative ml-auto">
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "sort" ? null : "sort")} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-[10px] font-black text-white/65 transition hover:border-white/20 hover:text-white">
+                      <IconTrend className="h-3.5 w-3.5" />
+                      {sortMode === "recent" ? "Recentes" : sortMode === "alphabetical" ? "Alfabético" : sortMode === "playtime" ? "Tempo de Jogo" : sortMode === "rating" ? "Avaliação" : sortMode === "progress" ? "Progresso" : sortMode === "startDate" ? "Data de Início" : "Data de Conclusão"}
+                      <span className="text-white/30">⌄</span>
+                    </button>
+                    {filterMenu === "sort" ? (
+                      <div className="absolute right-0 top-full z-50 mt-2 min-w-[175px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                        {([
+                          ["recent", "Recentes"], ["alphabetical", "Alfabético"], ["playtime", "Tempo de Jogo"], ["rating", "Avaliação"], ["progress", "Progresso"], ["startDate", "Data de Início"], ["completionDate", "Data de Conclusão"],
+                        ] as [SortMode, string][]).map(([value, label]) => (
+                          <button key={value} type="button" onClick={() => { setSortMode(value); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${sortMode === value ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-3 sm:px-4">
+                {!isLoaded ? (
+                  <div className="py-10 text-center text-sm text-white/40">Carregando biblioteca...</div>
+                ) : loadFailed && bibliotecaGames.length === 0 ? (
+                  <div className="py-10 text-center text-sm text-white/40" role="alert">{GAMES_UNAVAILABLE_MESSAGE}</div>
+                ) : filteredGames.length === 0 ? (
+                  <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
+                ) : (
+                  viewMode === "grid" ? (
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-3 pt-[8px] pb-[8px] sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                      {filteredGames.map((game) => (
+                        <GameGridCard
+                          key={game.slug}
+                          game={game}
+                          activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    filteredGames.map((game) => (
+                      <GameRow
+                        key={game.slug}
+                        game={game}
+                        activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                      />
+                    ))
+                  )
+                )}
+              </div>
+            </section>
+            </div>
+
+            <aside className="space-y-3 xl:sticky xl:top-20 xl:self-start">
+            <section
+              className="cursor-pointer rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5"
+              onClick={() => setShowAnnualRecentGames((current) => !current)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setShowAnnualRecentGames((current) => !current);
+                }
+              }}
+              aria-expanded={showAnnualRecentGames}
+              aria-label={showAnnualRecentGames ? "Ocultar jogos mais recentes do ano" : "Mostrar jogos mais recentes do ano"}
+            >
+              <div className="mb-3 flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Resumo do Ano</h2>
+              </div>
+
+              <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
+                <div className="flex items-center justify-center gap-2">
+                  <IconCalendar className="h-[15px] w-[15px] text-red-500" />
+                  <div className="relative flex items-center">
+                    <select
+                      value={selectedAnnualYear}
+                      onClick={(event) => event.stopPropagation()}
+                      onChange={(event) => setSelectedAnnualYear(Number(event.target.value))}
+                      aria-label="Selecionar ano do resumo"
+                      className="appearance-none bg-transparent pr-4 text-[19px] font-black leading-none tracking-tight text-white outline-none cursor-pointer"
+                    >
+                      {availableAnnualYears.map((year) => (
+                        <option key={year} value={year} className="bg-[#090b0f] text-white">
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-0 top-1/2 h-[5px] w-[5px] -translate-y-[65%] rotate-45 border-b border-r border-white/45" aria-hidden="true" />
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconGamepad className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="text-[16px] font-black leading-none text-white">{annualGamesCount}</span>
+                  </div>
+
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconTrophy className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="text-[16px] font-black leading-none text-white">{annualAchievementsCount}</span>
+                  </div>
+
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconTarget className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="text-[16px] font-black leading-none text-white">{annualEmblemsCount}</span>
+                  </div>
+
+                  <div className="flex min-w-0 items-center justify-center gap-1.5">
+                    <IconClock className="h-[16px] w-[16px] shrink-0 text-red-500" />
+                    <span className="whitespace-nowrap text-[15px] font-black leading-none text-white">{annualHours}</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/40 transition-colors duration-200" aria-hidden="true">
+                  <span
+                    className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${showAnnualRecentGames ? "translate-y-[1px] rotate-[225deg]" : "-translate-y-[1px] rotate-45"}`}
+                  />
+                </div>
+
+                {showAnnualRecentGames ? (
+                  <div
+                    className="mt-1 border-t border-white/[0.04] pt-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {annualRecentGames.length > 0 ? (
+                      annualRecentGames.map(({ game }) => (
+                        <AnnualRecentGame
+                          key={readText(game.slug, game.title)}
+                          game={game}
+                          activitySummary={annualJourneyByGame.has(readText(game.slug, "").trim())
+                            ? {
+                                totalMinutes: annualJourneyByGame.get(readText(game.slug, "").trim()) ?? 0,
+                                firstDate: "",
+                                lastDate: "",
+                              }
+                            : undefined}
+                        />
+                      ))
+                    ) : (
+                      <p className="py-3 text-center text-[9px] font-semibold text-white/35">
+                        Nenhum jogo registrado neste ano.
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                  Jogando Agora
+                </h2>
+              </div>
+
+              {playingNowGames.length > 0 ? (
+                <div className="mt-3">
+                  <PlayingNowGame
+                    game={playingNowGames[0]}
+                    activitySummary={activitySummaryByGame.get(readText(playingNowGames[0].slug, ""))}
+                  />
+
+                  {playingNowGames.length > 1 ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setShowPlayingNow((current) => !current)}
+                        aria-expanded={showPlayingNow}
+                        aria-label={showPlayingNow ? "Ocultar outros jogos em andamento" : "Mostrar outros jogos em andamento"}
+                        className="mt-2 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/35 transition hover:text-white/70"
+                      >
+                        <span
+                          className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${
+                            showPlayingNow
+                              ? "translate-y-[1px] rotate-[225deg]"
+                              : "-translate-y-[1px] rotate-45"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      </button>
+
+                      {showPlayingNow ? (
+                        <div className="mt-2 space-y-2">
+                          {playingNowGames.slice(1).map((game) => (
+                            <PlayingNowGame
+                              key={readText(game.slug, game.title)}
+                              game={game}
+                              activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                            />
+                          ))}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="mt-4 px-1 text-[10px] font-semibold leading-relaxed text-white/30">
+                  Nenhum jogo em andamento.
+                </p>
+              )}
+            </section>
+
+            <section className="h-[240px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-1 flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <div className="min-w-0">
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                    Mapa de Estilos
+                  </h2>
+                </div>
+              </div>
+
+              <GenresRadar games={bibliotecaGames} />
+            </section>
+
+            <section className="h-[320px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Próximos na Fila</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPlatformFilter("all");
+                    setSortMode("recent");
+                    setFilterMenu(null);
+                    handleFilterChange("backlog");
+                  }}
+                  className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 transition hover:text-red-300"
+                >
+                  Ver fila
+                </button>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {backlogGames.slice(0, 2).map((game) => (
+                  <PlayingNowGame
+                    key={readText(game.slug, game.title)}
+                    game={game}
+                    activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                  />
+                ))}
+                {backlogGames.length === 0 ? <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p> : null}
+              </div>
+            </section>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+

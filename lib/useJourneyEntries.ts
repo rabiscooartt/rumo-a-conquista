@@ -114,8 +114,10 @@ async function requestAdminJourney<T>(
   return payload as T;
 }
 
-export function useJourneyEntries() {
-  const [entries, setEntries] = useState<JourneyEntry[]>([]);
+export function useJourneyEntries(initialRows?: Record<string, unknown>[] | null) {
+  const [entries, setEntries] = useState<JourneyEntry[]>(() =>
+    initialRows ? sortEntries(initialRows.map(mapDatabaseEntry)) : []
+  );
   const [isLoaded, setIsLoaded] = useState(false);
 
   const loadEntries = useCallback(async () => {
