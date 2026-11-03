@@ -2238,6 +2238,7 @@ export default function BibliotecaClient({
   const [selectedAnnualYear, setSelectedAnnualYear] = useState(currentAnnualYear);
   const [showAnnualRecentGames, setShowAnnualRecentGames] = useState(false);
   const [showPlayingNow, setShowPlayingNow] = useState(false);
+  const [showBacklogQueue, setShowBacklogQueue] = useState(false);
 
   const getGameCompletionTimestamp = (game: BibliotecaGame) => {
     if (!isCompletedGame(game)) return Number.NaN;
@@ -2969,7 +2970,7 @@ export default function BibliotecaClient({
               <GenresRadar games={bibliotecaGames} />
             </section>
 
-            <section className="h-[320px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+            <section className="overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
                 <div className="flex items-center gap-2">
                   <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
@@ -2990,15 +2991,51 @@ export default function BibliotecaClient({
                 </button>
               </div>
 
-              <div className="mt-3 space-y-2">
-                {backlogGames.slice(0, 2).map((game) => (
-                  <PlayingNowGame
-                    key={readText(game.slug, game.title)}
-                    game={game}
-                    activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
-                  />
-                ))}
-                {backlogGames.length === 0 ? <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p> : null}
+              <div className="mt-3">
+                {backlogGames.length > 0 ? (
+                  <>
+                    <PlayingNowGame
+                      key={readText(backlogGames[0].slug, backlogGames[0].title)}
+                      game={backlogGames[0]}
+                      activitySummary={activitySummaryByGame.get(readText(backlogGames[0].slug, ""))}
+                    />
+
+                    {backlogGames.length > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setShowBacklogQueue((current) => !current)}
+                          aria-expanded={showBacklogQueue}
+                          aria-label={showBacklogQueue ? "Ocultar os próximos jogos da fila" : "Mostrar os próximos jogos da fila"}
+                          className="mt-2 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/35 transition hover:text-white/70"
+                        >
+                          <span
+                            className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${
+                              showBacklogQueue
+                                ? "translate-y-[1px] rotate-[225deg]"
+                                : "-translate-y-[1px] rotate-45"
+                            }`}
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        {showBacklogQueue ? (
+                          <div className="mt-2 space-y-2">
+                            {backlogGames.slice(1).map((game) => (
+                              <PlayingNowGame
+                                key={readText(game.slug, game.title)}
+                                game={game}
+                                activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                              />
+                            ))}
+                          </div>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p>
+                )}
               </div>
             </section>
             </aside>
