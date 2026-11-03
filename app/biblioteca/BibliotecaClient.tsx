@@ -3018,19 +3018,6 @@ export default function BibliotecaClient({
               )}
             </section>
 
-            <section className="h-[240px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
-              <div className="mb-1 flex items-center gap-2 px-1">
-                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
-                <div className="min-w-0">
-                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
-                    Mapa de Estilos
-                  </h2>
-                </div>
-              </div>
-
-              <GenresRadar games={bibliotecaGames} />
-            </section>
-
             <section className="overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
                 <div className="flex items-center gap-2">
@@ -3098,6 +3085,19 @@ export default function BibliotecaClient({
                   <p className="py-3 text-xs text-white/30">Nenhum jogo na fila.</p>
                 )}
               </div>
+            </section>
+
+            <section className="h-[240px] overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] p-3.5">
+              <div className="mb-1 flex items-center gap-2 px-1">
+                <div className="h-[20px] w-[2px] shrink-0 bg-red-500" />
+                <div className="min-w-0">
+                  <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">
+                    Mapa de Estilos
+                  </h2>
+                </div>
+              </div>
+
+              <GenresRadar games={bibliotecaGames} />
             </section>
             </aside>
           </div>
