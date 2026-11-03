@@ -1952,6 +1952,8 @@ export default function BibliotecaClient({
     });
   }, [gamesList, genresBySlug, refreshKey]);
 
+  const hasGameData = isLoaded && !(loadFailed && bibliotecaGames.length === 0);
+
   // A fila oficial vem das posições salvas em cada jogo.
   const backlogOrder = useMemo(
     () =>
@@ -2655,7 +2657,7 @@ export default function BibliotecaClient({
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{bibliotecaGames.length}</p>
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? bibliotecaGames.length : "—"}</p>
                       <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Jogos na biblioteca</p>
                     </div>
                   </div>
@@ -2665,7 +2667,7 @@ export default function BibliotecaClient({
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{completedGames.length}</p>
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? completedGames.length : "—"}</p>
                       <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Finalizados</p>
                     </div>
                   </div>
@@ -2675,7 +2677,7 @@ export default function BibliotecaClient({
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{backlogGames.length}</p>
+                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? backlogGames.length : "—"}</p>
                       <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Na fila</p>
                     </div>
                   </div>
@@ -2771,7 +2773,7 @@ export default function BibliotecaClient({
               <div className="px-3 sm:px-4">
                 {!isLoaded ? (
                   <div className="py-10 text-center text-sm text-white/40">Carregando biblioteca...</div>
-                ) : loadFailed && bibliotecaGames.length === 0 ? (
+                ) : !hasGameData ? (
                   <div className="py-10 text-center text-sm text-white/40" role="alert">{GAMES_UNAVAILABLE_MESSAGE}</div>
                 ) : filteredGames.length === 0 ? (
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
