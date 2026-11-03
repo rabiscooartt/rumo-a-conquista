@@ -2885,7 +2885,7 @@ export default function BibliotecaClient({
                       <IconGamepad className="h-[17px] w-[17px]" />
                     </span>
                     <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualGamesCount}</span>
-                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Jogos</span>
+                    <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Jogos</span>
                   </div>
 
                   <div
@@ -2898,7 +2898,7 @@ export default function BibliotecaClient({
                       <IconTrophy className="h-[17px] w-[17px]" />
                     </span>
                     <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualAchievementsCount}</span>
-                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Conquistas</span>
+                    <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Conquistas</span>
                   </div>
 
                   <div
@@ -2911,7 +2911,7 @@ export default function BibliotecaClient({
                       <IconMedal className="h-[17px] w-[17px]" />
                     </span>
                     <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualEmblemsCount}</span>
-                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Emblemas</span>
+                    <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Emblemas</span>
                   </div>
 
                   <div
@@ -2924,7 +2924,7 @@ export default function BibliotecaClient({
                       <IconClock className="h-[17px] w-[17px]" />
                     </span>
                     <span className="mt-1.5 whitespace-nowrap text-[15px] font-black leading-none tabular-nums text-white">{annualHours}</span>
-                    <span className="mt-1 text-[8px] font-bold leading-none text-white/45">Tempo jogado</span>
+                    <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Tempo jogado</span>
                   </div>
                 </div>
 
