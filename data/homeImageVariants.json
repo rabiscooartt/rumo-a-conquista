@@ -46,5 +46,12 @@
   "/images/games/monster-hunter-world-iceborne/banner.jpg": "/images/home/monster-hunter-world-iceborne-banner.webp",
   "/images/avatar.jpg": "/images/home/avatar.webp",
   "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/site-profile/profile/avatar?v=2026-10-25T18%3A38%3A23.346Z": "/images/home/site-profile-profile-avatar.webp",
-  "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/01-mestre-dos-macetes.png?v=1793662305750": "/images/home/mouse-p-i-for-hire-01-mestre-dos-macetes.webp"
+  "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/01-mestre-dos-macetes.png?v=1793662305750": "/images/home/mouse-p-i-for-hire-01-mestre-dos-macetes.webp",
+  "/images/games/hollow-knight/cover.jpg": "/images/home/hollow-knight-cover.webp",
+  "/images/games/song-of-nunu/cover.jpg": "/images/home/song-of-nunu-cover.webp",
+  "/images/games/hades/cover.jpg": "/images/home/hades-cover.webp",
+  "/images/games/the-surge/cover.jpg": "/images/home/the-surge-cover.webp",
+  "/images/games/tom-clancy-s-the-division/cover.jpg": "/images/home/tom-clancy-s-the-division-cover.webp",
+  "/images/games/metro-last-light/cover.jpg": "/images/home/metro-last-light-cover.webp",
+  "/images/games/monster-hunter-world-iceborne/cover.jpg": "/images/home/monster-hunter-world-iceborne-cover.webp"
 }
