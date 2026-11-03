@@ -1646,7 +1646,21 @@ function AnnualRecentGame({
             {gameTitle}
           </h3>
           {isCompleted && rating > 0 ? (
-            <StarRating rating={rating} size="medium" className="shrink-0" />
+            <span
+              className="inline-flex shrink-0 items-center gap-1.5"
+              title={`Nota final: ${(rating * 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}
+            >
+              <StarRating
+                rating={rating}
+                size="small"
+                className="!text-[17px] !tracking-[-0.03em]"
+                ariaLabel={`Nota ${(rating * 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 10`}
+                title={`Nota final: ${(rating * 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}
+              />
+              <span className="text-[11px] font-semibold tabular-nums text-white/75">
+                {(rating * 2).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
+              </span>
+            </span>
           ) : null}
         </div>
 
