@@ -53,5 +53,11 @@
   "/images/games/the-surge/cover.jpg": "/images/home/the-surge-cover.webp",
   "/images/games/tom-clancy-s-the-division/cover.jpg": "/images/home/tom-clancy-s-the-division-cover.webp",
   "/images/games/metro-last-light/cover.jpg": "/images/home/metro-last-light-cover.webp",
-  "/images/games/monster-hunter-world-iceborne/cover.jpg": "/images/home/monster-hunter-world-iceborne-cover.webp"
+  "/images/games/monster-hunter-world-iceborne/cover.jpg": "/images/home/monster-hunter-world-iceborne-cover.webp",
+  "/images/games/crisol-theater-of-idols/achievements/maestria-final.png": "/images/home/crisol-theater-of-idols-maestria-final.webp",
+  "/images/games/howgarts-legacy/achievements/maestria-final.png": "/images/home/howgarts-legacy-maestria-final.webp",
+  "/images/games/mouse-p-i-for-hire/achievements/maestria-final.png": "/images/home/mouse-p-i-for-hire-maestria-final.webp",
+  "/images/activity-summary-icons/flame.png": "/images/home/activity-summary-flame.webp",
+  "/images/activity-summary-icons/trophy.png": "/images/home/activity-summary-trophy.webp",
+  "/images/activity-summary-icons/target.png": "/images/home/activity-summary-target.webp"
 }

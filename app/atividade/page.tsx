@@ -14,6 +14,7 @@ import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
 import { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT } from "@/components/AdminAvatarLogin";
 import { formatAchievementDescription, formatAchievementTitle, useSiteGames } from "@/lib/useSiteGames";
+import { homeImageSrc } from "@/lib/homeImages";
 import {
   type JourneyEntry,
   type JourneyEntryInput,
@@ -1306,7 +1307,7 @@ function ActivityRow({
         <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
           {cover ? (
             <img
-              src={cover}
+              src={homeImageSrc(cover)}
               alt={normalizeGameTitle(entry.gameTitle)}
               className="h-full w-full object-cover"
             />
@@ -2899,7 +2900,7 @@ export default function AtividadePage() {
                               <Link href={gameHref} aria-label={"Abrir " + (achievement.title || "conquista") + " na página de " + achievement.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                                 <div className="flex h-[62px] w-[45px] shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-[#080808] sm:h-[64px] sm:w-[48px]">
                                   {cover ? (
-                                    <img src={cover} alt={"Capa de " + (achievement.gameTitle || "jogo")} className="h-full w-full object-cover" loading="lazy" />
+                                    <img src={homeImageSrc(cover)} alt={"Capa de " + (achievement.gameTitle || "jogo")} className="h-full w-full object-cover" loading="lazy" />
                                   ) : (
                                     <div className="flex h-full w-full items-center justify-center text-white/30"><IconGamepad className="h-4 w-4" /></div>
                                   )}
@@ -2908,7 +2909,7 @@ export default function AtividadePage() {
                                 <div className="relative h-[52px] w-[52px] shrink-0 transition-transform duration-200 ease-out group-hover:z-20 group-hover:scale-[1.08] group-focus-visible:scale-[1.08] sm:h-[56px] sm:w-[56px]">
                                   <div className="flex h-full w-full items-center justify-center overflow-hidden border border-white/10 bg-[#080808]">
                                     {achievementImage ? (
-                                      <img src={achievementImage} alt={achievement.title || "Conquista"} className="h-full w-full object-cover" loading="lazy" />
+                                      <img src={homeImageSrc(achievementImage)} alt={achievement.title || "Conquista"} className="h-full w-full object-cover" loading="lazy" />
                                     ) : (
                                       <IconTrophy className="h-5 w-5 text-amber-400" />
                                     )}
@@ -2991,7 +2992,7 @@ export default function AtividadePage() {
                                     <Link href={href} aria-label={"Abrir review de " + item.gameTitle} className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70 sm:gap-3.5">
                                       <div className="h-[68px] w-[48px] shrink-0 overflow-hidden rounded-[4px] border border-white/10 bg-[#080808] sm:h-[76px] sm:w-[54px]">
                                         {item.cover ? (
-                                          <img src={item.cover} alt={"Capa de " + item.gameTitle} className="h-full w-full object-cover" loading="lazy" />
+                                          <img src={homeImageSrc(item.cover)} alt={"Capa de " + item.gameTitle} className="h-full w-full object-cover" loading="lazy" />
                                         ) : (
                                           <div className="flex h-full w-full items-center justify-center text-white/25"><IconGamepad className="h-4 w-4" /></div>
                                         )}
@@ -3089,7 +3090,7 @@ export default function AtividadePage() {
                   {[
                     [
                       <img
-                        src="/images/activity-summary-icons/flame.png"
+                        src={homeImageSrc("/images/activity-summary-icons/flame.png")}
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
                       />,
@@ -3098,7 +3099,7 @@ export default function AtividadePage() {
                     ],
                     [
                       <img
-                        src="/images/activity-summary-icons/trophy.png"
+                        src={homeImageSrc("/images/activity-summary-icons/trophy.png")}
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
                       />,
@@ -3107,7 +3108,7 @@ export default function AtividadePage() {
                     ],
                     [
                       <img
-                        src="/images/activity-summary-icons/target.png"
+                        src={homeImageSrc("/images/activity-summary-icons/target.png")}
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
                       />,
