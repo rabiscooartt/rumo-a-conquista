@@ -177,19 +177,14 @@ const navLinks = [
     icon: GamepadIcon,
   },
   {
-    label: "Histórico",
-    href: "/historico",
-    icon: HistoryIcon,
+    label: "Atividade",
+    href: "/atividade",
+    icon: ScrollIcon,
   },
   {
     label: "Conteúdo",
     href: "/conteudo",
     icon: PlayIcon,
-  },
-  {
-    label: "Atividade",
-    href: "/atividade",
-    icon: ScrollIcon,
   },
   {
     label: "Emblemas",
