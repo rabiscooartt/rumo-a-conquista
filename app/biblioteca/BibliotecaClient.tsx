@@ -3021,13 +3021,13 @@ export default function BibliotecaClient({
 
                         {showBacklogQueue ? (
                           <div className="mt-2 space-y-2">
-                            {backlogGames.slice(1).map((game) => (
+                            {backlogGames[1] ? (
                               <PlayingNowGame
-                                key={readText(game.slug, game.title)}
-                                game={game}
-                                activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                                key={readText(backlogGames[1].slug, backlogGames[1].title)}
+                                game={backlogGames[1]}
+                                activitySummary={activitySummaryByGame.get(readText(backlogGames[1].slug, ""))}
                               />
-                            ))}
+                            ) : null}
                           </div>
                         ) : null}
                       </>
