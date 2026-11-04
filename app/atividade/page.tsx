@@ -121,14 +121,24 @@ function formatPlayedTimeForGame(minutes: number) {
   return `${hours}h - ${mins}m`;
 }
 
+// "sexta-feira" → "Sexta-feira". Também corrige na tela os registros antigos salvos em minúsculas.
+function capitalizeWeekDay(value: string) {
+  const text = value.trim();
+  return text ? text.charAt(0).toLocaleUpperCase("pt-BR") + text.slice(1) : "";
+}
+
 function getWeekDay(dateValue: string) {
   const parsed = new Date(`${dateValue}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return "";
 
-  return parsed.toLocaleDateString("pt-BR", {
-    weekday: "long",
-  });
+  return capitalizeWeekDay(
+    parsed.toLocaleDateString("pt-BR", {
+      weekday: "long",
+    })
+  );
 }
+
+const GAME_SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
 function normalizeKey(value?: string) {
   return (value || "")
@@ -1289,6 +1299,22 @@ function ActivityRow({
   const normalizedTitle = normalizeKey(entry.gameTitle);
 
   const platform = getActivityEntryPlatform(entry, game);
+  // Só jogos encontrados no catálogo ganham link, para não levar a uma página inexistente.
+  const gameSlug = game ? String(game.slug || entry.gameSlug || "").trim() : "";
+  const gameHref = GAME_SLUG_PATTERN.test(gameSlug) ? `/games/${gameSlug}` : null;
+  const gameTitle = normalizeGameTitle(entry.gameTitle);
+
+  const coverArt = cover ? (
+    <img
+      src={homeImageSrc(cover)}
+      alt={gameTitle}
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center text-[8px] font-black text-white/25">
+      RC
+    </div>
+  );
 
   return (
     <article className="border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:px-4">
@@ -1304,31 +1330,42 @@ function ActivityRow({
       </div>
 
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
-          {cover ? (
-            <img
-              src={homeImageSrc(cover)}
-              alt={normalizeGameTitle(entry.gameTitle)}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-[8px] font-black text-white/25">
-              RC
-            </div>
-          )}
-        </div>
+        {gameHref ? (
+          <Link
+            href={gameHref}
+            aria-label={`Abrir ${gameTitle}`}
+            className="block h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg transition hover:border-red-400/50 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+          >
+            {coverArt}
+          </Link>
+        ) : (
+          <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
+            {coverArt}
+          </div>
+        )}
 
         <div className="min-w-0">
           <h3 className="truncate text-[17px] font-black text-white md:text-[18px]">
-            {normalizeGameTitle(entry.gameTitle)}
+            {gameHref ? (
+              <Link
+                href={gameHref}
+                className="rounded-sm transition hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+              >
+                {gameTitle}
+              </Link>
+            ) : (
+              gameTitle
+            )}
           </h3>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-white/65 md:text-[13px]">
             <span>
-              {entry.weekDay ||
-                date.toLocaleDateString("pt-BR", {
-                  weekday: "long",
-                })}
+              {capitalizeWeekDay(
+                entry.weekDay ||
+                  date.toLocaleDateString("pt-BR", {
+                    weekday: "long",
+                  })
+              )}
             </span>
           </div>
         </div>
