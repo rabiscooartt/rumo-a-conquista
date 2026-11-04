@@ -12,13 +12,15 @@ import type {
 
 export function useSiteAchievements(
   gameSlug: string,
-  baseAchievements: SiteAchievement[]
+  baseAchievements: SiteAchievement[],
+  serverSource?: AchievementLoadResult["source"]
 ) {
+  // Com a fonte informada pelo servidor, as conquistas já são as atuais e não precisam ser buscadas de novo.
   const [result, setResult] = useState<AchievementLoadResult>({
     achievements: baseAchievements,
-    source: "base",
+    source: serverSource ?? "base",
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!serverSource);
 
   const reload = useCallback(async () => {
     if (!gameSlug) return;
@@ -29,12 +31,14 @@ export function useSiteAchievements(
   }, [baseAchievements, gameSlug]);
 
   useEffect(() => {
+    if (serverSource) return;
+
     const timeout = window.setTimeout(() => {
       void reload();
     }, 0);
 
     return () => window.clearTimeout(timeout);
-  }, [reload]);
+  }, [reload, serverSource]);
 
   const save = useCallback(
     async (achievements: SiteAchievement[]) => {

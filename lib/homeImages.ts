@@ -9,3 +9,8 @@ const variants: Record<string, string> = homeImageVariants;
 export function homeImageSrc(src: string) {
   return variants[src] ?? src;
 }
+
+/** Larger copy for images shown big, such as the game page cover and emblem. */
+export function largeImageSrc(src: string) {
+  return variants[src + "#large"] ?? src;
+}

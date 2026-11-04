@@ -233,6 +233,7 @@ async function loadPublicGamePageUncached(slug: string): Promise<SiteGame | null
         ? game.manual_total_played_minutes
         : null,
     achievementsList,
+    achievementsSource: rows.length > 0 ? "supabase" : "base",
   } as SiteGame;
 }
 

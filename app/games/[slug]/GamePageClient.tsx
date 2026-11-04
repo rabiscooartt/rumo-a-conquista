@@ -274,6 +274,7 @@ export default function GamePageClient({
       youtubeFirstLiveUrl: readText(game.youtubeFirstLiveUrl, ""),
       youtubeFirstLiveEpisode: readText(game.youtubeFirstLiveEpisode, ""),
       achievementsList,
+      achievementsSource: (game as { achievementsSource?: "supabase" | "base" }).achievementsSource,
       firstJourney:
         game.firstJourney && typeof game.firstJourney === "object"
           ? {

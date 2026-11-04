@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { inferPrimaryGenre } from "@/lib/gameGenres";
 
@@ -252,6 +253,22 @@ async function fromSteam(title: string): Promise<Metadata | null> {
   };
 }
 
+const METADATA_CACHE_SECONDS = 60 * 60 * 24;
+
+class EmptyMetadataError extends Error {}
+
+// Steam e IGDB mudam raramente: guardar o resultado evita repetir as consultas externas a cada visita.
+const getCachedMetadata = unstable_cache(
+  async (title: string, platformHint: string) => {
+    const metadata = await lookupMetadata(title, platformHint);
+    // Lançar impede que uma falha momentânea fique guardada por um dia.
+    if (!metadata) throw new EmptyMetadataError();
+    return metadata;
+  },
+  ["game-metadata"],
+  { revalidate: METADATA_CACHE_SECONDS }
+);
+
 export async function GET(request: NextRequest) {
   const title = request.nextUrl.searchParams.get("title")?.trim() ?? "";
   if (!title) {
@@ -259,45 +276,12 @@ export async function GET(request: NextRequest) {
   }
 
   const platformHint = request.nextUrl.searchParams.get("platform")?.trim() ?? "";
-  const preferSteam = /steam/i.test(platformHint);
-
-  if (preferSteam) {
-    try {
-      const steam = await fromSteam(title);
-      if (
-        steam &&
-        (steam.genres.length ||
-          steam.developer ||
-          steam.releaseYear ||
-          steam.platforms.length)
-      ) {
-        return NextResponse.json({
-          ok: true,
-          metadata: { ...steam, platforms: ["Steam"] },
-        });
-      }
-    } catch (error) {
-      console.warn("[Game Metadata] Steam falhou:", error);
-    }
-  }
 
   try {
-    const igdb = await fromIgdb(title);
-    if (igdb && (igdb.genres.length || igdb.platforms.length || igdb.developer || igdb.releaseYear)) {
-      return NextResponse.json({ ok: true, metadata: igdb });
-    }
+    return NextResponse.json({ ok: true, metadata: await getCachedMetadata(title, platformHint) });
   } catch (error) {
-    console.warn("[Game Metadata] IGDB falhou:", error);
-  }
-
-  if (!preferSteam) {
-    try {
-      const steam = await fromSteam(title);
-      if (steam) {
-        return NextResponse.json({ ok: true, metadata: steam });
-      }
-    } catch (error) {
-      console.warn("[Game Metadata] Steam falhou:", error);
+    if (!(error instanceof EmptyMetadataError)) {
+      console.warn("[Game Metadata] Falha ao consultar metadados:", error);
     }
   }
 
@@ -312,4 +296,47 @@ export async function GET(request: NextRequest) {
       source: "none",
     } satisfies Metadata,
   });
+}
+
+async function lookupMetadata(title: string, platformHint: string): Promise<Metadata | null> {
+  const preferSteam = /steam/i.test(platformHint);
+
+  if (preferSteam) {
+    try {
+      const steam = await fromSteam(title);
+      if (
+        steam &&
+        (steam.genres.length ||
+          steam.developer ||
+          steam.releaseYear ||
+          steam.platforms.length)
+      ) {
+        return { ...steam, platforms: ["Steam"] };
+      }
+    } catch (error) {
+      console.warn("[Game Metadata] Steam falhou:", error);
+    }
+  }
+
+  try {
+    const igdb = await fromIgdb(title);
+    if (igdb && (igdb.genres.length || igdb.platforms.length || igdb.developer || igdb.releaseYear)) {
+      return igdb;
+    }
+  } catch (error) {
+    console.warn("[Game Metadata] IGDB falhou:", error);
+  }
+
+  if (!preferSteam) {
+    try {
+      const steam = await fromSteam(title);
+      if (steam) {
+        return steam;
+      }
+    } catch (error) {
+      console.warn("[Game Metadata] Steam falhou:", error);
+    }
+  }
+
+  return null;
 }

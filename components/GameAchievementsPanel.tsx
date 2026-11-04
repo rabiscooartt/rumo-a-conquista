@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSiteAchievements } from "@/lib/useSiteAchievements";
+import { homeImageSrc } from "@/lib/homeImages";
 import type { SiteAchievement } from "@/lib/achievements/types";
 import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useSiteGames";
 
@@ -46,6 +47,8 @@ type CustomAchievement = AchievementInput & {
 
 type GameAchievementsPanelProps = {
   slug?: string;
+  /** Fonte das conquistas já entregues pelo servidor; com ela, o painel não repete a consulta. */
+  achievementsSource?: "supabase" | "base";
   gameSlug?: string;
   gameTitle?: string;
   title?: string;
@@ -502,14 +505,35 @@ function AchievementImage({
   fallback: string;
   locked: boolean;
 }) {
+  // A cópia leve vem primeiro; se falhar, o original continua como alternativa.
+  const candidates = useMemo(
+    () =>
+      sources.flatMap((source) => {
+        const light = homeImageSrc(source);
+        return light !== source ? [light, source] : [source];
+      }),
+    [sources]
+  );
+  const candidatesKey = candidates.join("|");
   const [sourceIndex, setSourceIndex] = useState(0);
-  const src = sources[sourceIndex] ?? "";
+  const src = candidates[sourceIndex] ?? "";
   const [hasError, setHasError] = useState(false);
+  const [loadedKey, setLoadedKey] = useState(candidatesKey);
 
-  useEffect(() => {
+  // Reinicia só quando as imagens mudam, sem apagar uma falha que já aconteceu.
+  if (loadedKey !== candidatesKey) {
+    setLoadedKey(candidatesKey);
     setSourceIndex(0);
     setHasError(false);
-  }, [sources.join("|")]);
+  }
+
+  function handleFailure() {
+    if (sourceIndex < candidates.length - 1) {
+      setSourceIndex((current) => current + 1);
+      return;
+    }
+    setHasError(true);
+  }
 
   if (!src || hasError) {
     return (
@@ -527,16 +551,16 @@ function AchievementImage({
     <img
       src={src}
       alt=""
+      loading="lazy"
+      decoding="async"
+      // A falha pode acontecer antes da hidratação, quando onError ainda não existe.
+      ref={(image) => {
+        if (image?.complete && image.naturalWidth === 0) handleFailure();
+      }}
       className={`h-full w-full object-cover ${
         locked ? "opacity-35 grayscale" : ""
       }`}
-      onError={() => {
-        if (sourceIndex < sources.length - 1) {
-          setSourceIndex((current) => current + 1);
-          return;
-        }
-        setHasError(true);
-      }}
+      onError={handleFailure}
     />
   );
 }
@@ -591,7 +615,8 @@ export default function GameAchievementsPanel(
     save: saveToSupabase,
   } = useSiteAchievements(
     gameSlug,
-    legacyBaseAchievements as SiteAchievement[]
+    legacyBaseAchievements as SiteAchievement[],
+    props.achievementsSource
   );
 
   // O Supabase é a fonte quando realmente possui conquistas para este jogo.
@@ -1250,7 +1275,7 @@ export default function GameAchievementsPanel(
             </div>
             <div className="flex shrink-0 flex-col items-center justify-end">
               <img
-                src="/images/trophies/todos.png"
+                src={homeImageSrc("/images/trophies/todos.png")}
                 alt=""
                 aria-hidden="true"
                 className="h-12 w-12 object-contain"

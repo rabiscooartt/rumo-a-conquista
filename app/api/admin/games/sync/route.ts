@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
 type GamePayload = {
   slug?: string;
@@ -309,6 +310,8 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
+    invalidatePublicGameData();
+
     return NextResponse.json({ ok: true, game: data });
   } catch (error) {
     console.error("Erro criando jogo:", error);
@@ -369,6 +372,8 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    invalidatePublicGameData();
 
     return NextResponse.json({ ok: true, game: data });
   } catch (error) {
@@ -466,6 +471,8 @@ export async function DELETE(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    invalidatePublicGameData();
 
     return NextResponse.json({ ok: true, game: data });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
 type FinalBadgePayload = {
   title?: unknown;
@@ -97,6 +98,8 @@ export async function POST(request: NextRequest) {
 
       if (achievementDeleteError) throw achievementDeleteError;
     }
+
+    invalidatePublicGameData();
 
     return NextResponse.json({
       ok: true,

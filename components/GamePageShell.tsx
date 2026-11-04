@@ -13,6 +13,7 @@ import GameAchievementsPanel, {
 } from "@/components/GameAchievementsPanel";
 import type { ReviewInput } from "@/components/GameReviewPanel";
 import { inferPrimaryGenre } from "@/lib/gameGenres";
+import { homeImageSrc, largeImageSrc } from "@/lib/homeImages";
 
 export type GamePageShellInput = {
   title: string;
@@ -27,6 +28,7 @@ export type GamePageShellInput = {
   currentObjective?: string;
   objective?: string;
   achievementsList: AchievementInput[];
+  achievementsSource?: "supabase" | "base";
   review?: ReviewInput;
   platform?: string;
   /** Explicit Admin override; when empty the site picks one genre from metadata. */
@@ -343,8 +345,9 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
   const reviewScoreDisplay = reviewScoreValid
     ? String(Math.round(reviewScore))
     : "—";
+  // Mesma casa decimal das estrelas: 7/10 é 3,5 estrelas, não 4.
   const reviewRatingText = reviewScoreValid
-    ? String(Math.round(reviewRatingValue))
+    ? reviewRatingValue.toLocaleString("pt-BR", { maximumFractionDigits: 1 })
     : "—";
   const status =
     resolvedFirstJourney?.status === "in_progress"
@@ -559,7 +562,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                   <div className="absolute inset-x-6 bottom-8 h-24 rounded-full bg-black/60 blur-2xl" />
                   <div className="relative h-[330px] w-[245px] rotate-[3deg] overflow-hidden rounded-[16px] border border-white/[0.10] bg-[#090909] shadow-[0_30px_90px_rgba(0,0,0,0.65)] sm:h-[400px] sm:w-[295px]">
                     <img
-                      src={cover}
+                      src={largeImageSrc(cover)}
                       alt={game.title}
                       className="h-full w-full object-cover"
                     />
@@ -592,7 +595,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
               <div className="grid gap-0 sm:grid-cols-[150px_minmax(0,1fr)]">
                 <div className="relative hidden min-h-[260px] overflow-hidden bg-black sm:block">
                   <img
-                    src={cover}
+                    src={largeImageSrc(cover)}
                     alt=""
                     aria-hidden="true"
                     className="absolute inset-0 h-full w-full object-cover opacity-55"
@@ -659,7 +662,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                       <div className="border-b border-white/[0.08] pb-6">
                         <div className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090909] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
                           {cover ? (
-                            <img src={cover} alt={game.title} className="aspect-[3/4] w-full object-cover" />
+                            <img src={largeImageSrc(cover)} alt={game.title} className="aspect-[3/4] w-full object-cover" />
                           ) : (
                             <div className="flex aspect-[3/4] items-center justify-center text-[10px] font-black uppercase text-white/25">Sem capa</div>
                           )}
@@ -760,6 +763,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                     <GameAchievementsPanel
                       slug={slug}
                       achievements={achievements}
+                      achievementsSource={game.achievementsSource}
                       journeyPreview={showFirstJourneyPreview}
                       journeyLockActive={journeyLockActive}
                       journeyIds={journeyIds}
@@ -821,7 +825,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
 
                       <section className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090909] p-5">
                         <img
-                          src={cover}
+                          src={largeImageSrc(cover)}
                           alt=""
                           aria-hidden="true"
                           className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.24]"
@@ -878,7 +882,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                               />
                             )}
                             <img
-                              src={emblem?.image || `/images/games/${slug}/emblem.png`}
+                              src={largeImageSrc(emblem?.image || `/images/games/${slug}/emblem.png`)}
                               alt={emblem?.title || "Emblema"}
                               className={`pointer-events-none absolute left-1/2 top-1/2 h-[125%] w-[125%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain transition-all duration-300 ${
                                 emblemUnlocked
@@ -924,7 +928,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                             <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
                               {nextAchievementImage ? (
                                 <img
-                                  src={nextAchievementImage}
+                                  src={homeImageSrc(nextAchievementImage)}
                                   alt={nextAchievement?.title || objective}
                                   className="h-full w-full object-contain"
                                 />

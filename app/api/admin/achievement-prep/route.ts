@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
 export const maxDuration = 110;
 
@@ -1073,6 +1074,8 @@ async function buildAchievementPreparation(
   } catch (rankSyncError) {
     console.error("[Achievement Prep Rank Sync]", rankSyncError);
   }
+
+  invalidatePublicGameData();
 
   return NextResponse.json({
     ok: true,

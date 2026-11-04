@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
 type IncomingAchievement = {
   id?: string;
@@ -587,6 +588,8 @@ export async function POST(request: NextRequest) {
 
     const enrichedGame = await fetchEnrichedGame(client, slug);
 
+    invalidatePublicGameData();
+
     return NextResponse.json({
       ok: true,
       game: enrichedGame,
@@ -638,6 +641,8 @@ export async function PUT(request: NextRequest) {
     await syncAchievements(client, slug, body.achievementsList);
 
     const enrichedGame = await fetchEnrichedGame(client, slug);
+
+    invalidatePublicGameData();
 
     return NextResponse.json({
       ok: true,
@@ -728,6 +733,8 @@ export async function DELETE(request: NextRequest) {
     if (gameError) throw gameError;
 
     const enrichedGame = await fetchEnrichedGame(client, slug);
+
+    invalidatePublicGameData();
 
     return NextResponse.json({
       ok: true,

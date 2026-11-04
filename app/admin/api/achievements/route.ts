@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
 type IncomingAchievement = {
   id?: string;
@@ -191,6 +192,8 @@ export async function PUT(request: NextRequest) {
       .upsert(progress, { onConflict: "owner_key,achievement_id" });
 
     if (progressError) throw progressError;
+
+    invalidatePublicGameData();
 
     return NextResponse.json({
       ok: true,

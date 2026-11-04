@@ -11,12 +11,17 @@ const root = process.cwd();
 const variantsPath = join(root, "data/homeImageVariants.json");
 const sourcesPath = join(root, "scripts/home-image-sources.json");
 const variants = JSON.parse(readFileSync(variantsPath, "utf8"));
+// "#large" marca uma segunda cópia, maior, do mesmo original (capas e emblemas exibidos em destaque).
+const LARGE_SUFFIX = "#large";
+const originalOf = (src) => (src.endsWith(LARGE_SUFFIX) ? src.slice(0, -LARGE_SUFFIX.length) : src);
 const isLocal = (src) => src.startsWith("/");
 const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex");
 
 function presetFor(src) {
+  if (src.endsWith(LARGE_SUFFIX)) return { width: 768, height: 768, quality: 88 };
   if (src.includes("/achievements/")) return { width: 128, height: 128, quality: 85 };
   if (src.includes("/activity-summary-icons/")) return { width: 128, height: 128, quality: 90 };
+  if (src.includes("/trophies/")) return { width: 128, height: 128, quality: 90 };
   if (src.includes("/emblem.")) return { width: 384, height: 384, quality: 90 };
   if (src.includes("/cover.")) return { width: 480, height: 480, quality: 84 };
   if (src.includes("/banner.")) return { width: 1280, height: 1280, quality: 82 };
@@ -26,7 +31,7 @@ function presetFor(src) {
 }
 
 async function readSource(src) {
-  if (isLocal(src)) return readFileSync(join(root, "public", src));
+  if (isLocal(src)) return readFileSync(join(root, "public", originalOf(src)));
 
   const response = await fetch(src);
   if (!response.ok) throw new Error(`${response.status} ao baixar ${src}`);
@@ -60,7 +65,7 @@ function check() {
     if (!existsSync(join(root, "public", variant))) problems.push(`Cópia ausente: ${variant}`);
     if (!isLocal(src)) continue;
 
-    const file = join(root, "public", src);
+    const file = join(root, "public", originalOf(src));
     if (!existsSync(file)) problems.push(`Original ausente: ${src}`);
     else if (sha256(readFileSync(file)) !== hashes[src]) problems.push(`Original alterado: ${src}`);
   }

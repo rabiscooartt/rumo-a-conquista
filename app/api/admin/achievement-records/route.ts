@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
 const OWNER_KEY = "default";
 
@@ -218,6 +219,8 @@ export async function POST(request: Request) {
 
         if (reviewUpdateError) throw reviewUpdateError;
       }
+
+      invalidatePublicGameData();
 
       return NextResponse.json({
         ok: true,
@@ -442,6 +445,8 @@ export async function POST(request: Request) {
       .eq("slug", slug);
 
     if (reviewUpdateError) throw reviewUpdateError;
+
+    invalidatePublicGameData();
 
     return NextResponse.json({
       ok: true,
