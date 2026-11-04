@@ -94,6 +94,10 @@ export async function loadGamePageJourneyRows() {
   }
 }
 
+export async function loadPublicCatalogInitialData() {
+  return timedRead("catálogo", getCachedCatalog());
+}
+
 export async function loadLibraryInitialData() {
   const [catalog, journeyRows] = await Promise.all([
     timedRead("catálogo", getCachedCatalog()),

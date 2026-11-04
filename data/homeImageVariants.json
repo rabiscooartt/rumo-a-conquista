@@ -85,5 +85,19 @@
   "/images/games/the-surge/emblem.png#large": "/images/game-page/the-surge-emblem.webp",
   "/images/games/tom-clancy-s-the-division/cover.jpg#large": "/images/game-page/tom-clancy-s-the-division-cover.webp",
   "/images/games/tom-clancy-s-the-division/emblem.png#large": "/images/game-page/tom-clancy-s-the-division-emblem.webp",
-  "/images/games/tom-clancy-s-the-division-2/cover.jpg#large": "/images/game-page/tom-clancy-s-the-division-2-cover.webp"
+  "/images/games/tom-clancy-s-the-division-2/cover.jpg#large": "/images/game-page/tom-clancy-s-the-division-2-cover.webp",
+  "/images/games/crisol-theater-of-idols/banner.jpg": "/images/home/crisol-theater-of-idols-banner.webp",
+  "/images/games/hades/banner.jpg": "/images/home/hades-banner.webp",
+  "/images/games/hades-2/banner.jpg": "/images/home/hades-2-banner.webp",
+  "/images/games/hollow-knight/banner.jpg": "/images/home/hollow-knight-banner.webp",
+  "/images/games/hollow-knight-silksong/banner.jpg": "/images/home/hollow-knight-silksong-banner.webp",
+  "/images/games/howgarts-legacy/banner.jpg": "/images/home/howgarts-legacy-banner.webp",
+  "/images/games/metro-2033-redux/banner.jpg": "/images/home/metro-2033-redux-banner.webp",
+  "/images/games/metro-exodus/banner.jpg": "/images/home/metro-exodus-banner.webp",
+  "/images/games/metro-last-light/banner.jpg": "/images/home/metro-last-light-banner.webp",
+  "/images/games/mouse-p-i-for-hire/banner.jpg": "/images/home/mouse-p-i-for-hire-banner.webp",
+  "/images/games/song-of-nunu/banner.jpg": "/images/home/song-of-nunu-banner.webp",
+  "/images/games/the-surge/banner.jpg": "/images/home/the-surge-banner.webp",
+  "/images/games/tom-clancy-s-the-division/banner.jpg": "/images/home/tom-clancy-s-the-division-banner.webp",
+  "/images/games/tom-clancy-s-the-division-2/banner.jpg": "/images/home/tom-clancy-s-the-division-2-banner.webp"
 }
