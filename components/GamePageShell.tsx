@@ -62,6 +62,7 @@ export type GamePageShellInput = {
 type Props = {
   slug: string;
   game: GamePageShellInput;
+  initialJourneyRows?: Record<string, unknown>[] | null;
 };
 
 function normalizeText(value?: string) {
@@ -211,9 +212,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function GamePageShell({ slug, game }: Props) {
-  const [publicFirstJourney, setPublicFirstJourney] = useState<GamePageShellInput["firstJourney"] | null>(null);
-  const { entries: activityEntries } = useJourneyEntries();
+export default function GamePageShell({ slug, game, initialJourneyRows }: Props) {
+  const { entries: activityEntries } = useJourneyEntries(initialJourneyRows);
   const [manualStates, setManualStates] = useState<Record<string, ManualAchievementState>>({});
   const [automaticMetadata, setAutomaticMetadata] = useState<{
     genres: string[];
@@ -222,37 +222,6 @@ export default function GamePageShell({ slug, game }: Props) {
     developer: string;
     releaseYear: string;
   } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadPublicFirstJourney() {
-      try {
-        const query = new URLSearchParams({ slug });
-        const response = await fetch(`/api/games/journey?${query.toString()}`, {
-          cache: "no-store",
-        });
-
-        if (!response.ok) return;
-
-        const payload = (await response.json()) as {
-          firstJourney?: GamePageShellInput["firstJourney"];
-        };
-
-        if (!cancelled) {
-          setPublicFirstJourney(payload.firstJourney ?? null);
-        }
-      } catch {
-        // Mantém o estado recebido pelo objeto do jogo como fallback.
-      }
-    }
-
-    loadPublicFirstJourney();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [slug]);
 
   useEffect(() => {
     let cancelled = false;
@@ -302,7 +271,7 @@ export default function GamePageShell({ slug, game }: Props) {
   }, [game.title, game.platform]);
 
   const achievements = Array.isArray(game.achievementsList) ? game.achievementsList : [];
-  const resolvedFirstJourney = publicFirstJourney ?? game.firstJourney;
+  const resolvedFirstJourney = game.firstJourney
   const journeyIdList = Array.isArray(resolvedFirstJourney?.achievementIds)
     ? resolvedFirstJourney.achievementIds.map((id) => String(id).trim()).filter(Boolean)
     : [];
@@ -827,6 +796,7 @@ export default function GamePageShell({ slug, game }: Props) {
                             <StarRating
                               rating={reviewScoreValid ? reviewRatingValue : 0}
                               size="medium"
+                              tone="vivid"
                               className="mt-2"
                               ariaLabel={reviewScoreValid ? `Nota ${reviewScoreDisplay} de 10, equivalente a ${reviewRatingText} estrelas de 5` : "Nota ainda não cadastrada"}
                               title={reviewScoreValid ? `${reviewScoreDisplay}/10 · ${reviewRatingText}/5 estrelas` : "Nota pendente"}

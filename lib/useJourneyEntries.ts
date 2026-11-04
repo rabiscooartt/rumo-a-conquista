@@ -118,7 +118,7 @@ export function useJourneyEntries(initialRows?: Record<string, unknown>[] | null
   const [entries, setEntries] = useState<JourneyEntry[]>(() =>
     initialRows ? sortEntries(initialRows.map(mapDatabaseEntry)) : []
   );
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(initialRows !== undefined && initialRows !== null);
 
   const loadEntries = useCallback(async () => {
     const { data, error } = await supabase

@@ -5,6 +5,7 @@ type StarRatingProps = {
   className?: string;
   ariaLabel?: string;
   title?: string;
+  tone?: "default" | "vivid";
 };
 
 export default function StarRating({
@@ -13,6 +14,7 @@ export default function StarRating({
   className = "",
   ariaLabel,
   title,
+  tone = "default",
 }: StarRatingProps) {
   const safeRating = Number.isFinite(rating)
     ? Math.min(5, Math.max(0, rating))
@@ -32,12 +34,32 @@ export default function StarRating({
         const fill = Math.max(0, Math.min(1, safeRating - index));
         const fillPercent = fill * 100;
 
+        if (tone === "vivid") {
+          return (
+            <span
+              key={index}
+              aria-hidden="true"
+              className="relative inline-block shrink-0 leading-none"
+            >
+              <span className="inline-block text-[#361618]">★</span>
+              {fillPercent > 0 ? (
+                <span
+                  className="absolute left-0 top-0 inline-block h-full overflow-hidden whitespace-nowrap text-[#ef4444]"
+                  style={{ width: fillPercent + "%" }}
+                >
+                  ★
+                </span>
+              ) : null}
+            </span>
+          );
+        }
+
         return (
           <span
             key={index}
             aria-hidden="true"
             style={{
-              backgroundImage: `linear-gradient(90deg, #ef4444 ${fillPercent}%, rgba(239, 68, 68, 0.2) ${fillPercent}%)`,
+              backgroundImage: "linear-gradient(90deg, #ef4444 " + fillPercent + "%, rgba(239, 68, 68, 0.2) " + fillPercent + "%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",

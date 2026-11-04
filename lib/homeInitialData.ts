@@ -83,6 +83,17 @@ async function timedRead<T>(label: string, task: Promise<T>) {
   }
 }
 
+export async function loadGamePageJourneyRows() {
+  try {
+    return await timedRead(
+      "jornada da página do jogo",
+      getCachedJourneyRows()
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function loadLibraryInitialData() {
   const [catalog, journeyRows] = await Promise.all([
     timedRead("catálogo", getCachedCatalog()),
