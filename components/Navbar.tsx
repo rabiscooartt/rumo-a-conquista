@@ -101,13 +101,11 @@ function SearchForm({
 
 const navLinks = [
   { label: "Início", href: "/" },
-  { label: "Perfil", href: "/perfil" },
   { label: "Biblioteca", adminLabel: "Jogos", href: "/biblioteca", adminHref: "/admin/jogos" },
   { label: "Atividade", href: "/atividade" },
   { label: "Emblemas", href: "/sagas" },
   { label: "Conteúdo", href: "/conteudo" },
   { label: "Reviews", href: "/reviews" },
-  { label: "Histórico", href: "/historico" },
   { label: "Banco de Jogos", href: "/admin/sorteio-jogos", adminOnly: true },
 ];
 
