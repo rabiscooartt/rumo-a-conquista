@@ -178,7 +178,7 @@ export default function Navbar() {
           mobile
             ? "group flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "border-red-500/35 bg-red-500/12 text-white" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.04] hover:text-white")
-            : "group relative flex min-h-[clamp(36px,2.35vw,42px)] items-center justify-center whitespace-nowrap rounded-lg border px-[clamp(12px,0.95vw,18px)] text-[clamp(12px,0.82vw,15px)] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
+            : "group relative flex min-h-[clamp(36px,2.35vw,42px)] items-center justify-center whitespace-nowrap rounded-lg border px-[clamp(12px,0.95vw,18px)] text-[clamp(12px,0.76vw,14px)] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "border-red-500/45 bg-[linear-gradient(180deg,rgba(127,20,31,.56),rgba(60,8,16,.52))] text-white shadow-[inset_0_0_12px_rgba(239,35,52,.12)]" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.045] hover:text-white")
         }
       >
@@ -206,7 +206,7 @@ export default function Navbar() {
         <div className="hidden h-8 w-px shrink-0 bg-white/15 min-[1080px]:block" />
         <nav
           aria-label="Navegação principal"
-          className="hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1080px]:flex"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1080px]:relative min-[1080px]:left-3 min-[1080px]:flex"
         >
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
