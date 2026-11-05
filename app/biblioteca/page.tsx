@@ -6,17 +6,20 @@ export default async function BibliotecaPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ catalog, journeyRows }, { filtro, filter }] = await Promise.all([
+  const [{ catalog, journeyRows }, params] = await Promise.all([
     loadLibraryInitialData(),
     searchParams,
   ]);
-  const initialFilter = filtro ?? filter;
+  const initialFilter = params.filtro ?? params.filter;
+  const query = params.q;
+  const initialSearch = typeof query === "string" ? query.trim() : "";
 
   return (
     <BibliotecaClient
       initialCatalog={catalog}
       initialJourneyRows={journeyRows}
       initialFilter={typeof initialFilter === "string" ? initialFilter : null}
+      initialSearch={initialSearch}
     />
   );
 }

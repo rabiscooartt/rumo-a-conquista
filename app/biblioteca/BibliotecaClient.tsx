@@ -1833,10 +1833,12 @@ export default function BibliotecaClient({
   initialCatalog,
   initialJourneyRows,
   initialFilter,
+  initialSearch,
 }: {
   initialCatalog: (HomeGamesCatalog & { generatedAt: number }) | null;
   initialJourneyRows: Record<string, unknown>[] | null;
   initialFilter: string | null;
+  initialSearch: string;
 }) {
   const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
   const { entries: journeyEntries } = useJourneyEntries(initialJourneyRows);
@@ -1844,7 +1846,7 @@ export default function BibliotecaClient({
     isValidFilter(initialFilter) ? initialFilter : "all"
   );
   const [refreshKey, setRefreshKey] = useState(0);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [platformFilter, setPlatformFilter] = useState("all");
   const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
@@ -3106,4 +3108,3 @@ export default function BibliotecaClient({
     </main>
   );
 }
-
