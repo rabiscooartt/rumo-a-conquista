@@ -194,7 +194,7 @@ export default function Navbar() {
 
 
   return (
-    <header className="sticky top-0 z-50 isolate mx-auto mt-0 w-[calc(100%-24px)] overflow-visible rounded-b-xl border border-t-0 border-white/10 bg-[#03060B]/[.97] shadow-[0_10px_32px_rgba(0,0,0,.48)] backdrop-blur-xl sm:w-[calc(100%-48px)] min-[1080px]:w-[84vw] min-[1080px]:max-w-[1620px]">
+    <header className="sticky top-0 z-50 isolate mx-auto mt-0 w-[84vw] max-w-[1620px] overflow-visible rounded-b-xl border border-t-0 border-white/10 bg-[#03060B]/[.97] shadow-[0_10px_32px_rgba(0,0,0,.48)] backdrop-blur-xl" style={{ width: "84vw", maxWidth: "1620px" }}>
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-b-xl" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(25,39,55,.30),transparent_68%)]" />
         <div className="absolute inset-y-0 left-0 w-[24%] bg-[linear-gradient(90deg,rgba(145,19,33,.11),transparent)]" />
