@@ -204,8 +204,21 @@ export default function Navbar() {
           <Image src="/images/brand/rac-logo-reference.webp" alt="Rumo à Conquista" width={74} height={42} priority className="h-[42px] w-[74px] object-contain" />
         </Link>
         <div className="hidden h-8 w-px shrink-0 bg-white/15 min-[1080px]:block" />
-        <nav aria-label="Navegação principal" className="hidden min-w-0 flex-1 items-center justify-between gap-2 min-[1080px]:flex 2xl:gap-2.5">
-          {visibleLinks.map((link) => renderLink(link))}
+        <nav aria-label="Navegação principal" className="hidden min-w-0 flex-1 items-center gap-0 min-[1080px]:flex">
+          {visibleLinks.map((link, index) => (
+            <div
+              key={link.href}
+              className={`flex min-w-0 flex-1 basis-0 items-center ${
+                index === 0
+                  ? "justify-start"
+                  : index === visibleLinks.length - 1
+                    ? "justify-end"
+                    : "justify-center"
+              }`}
+            >
+              {renderLink(link)}
+            </div>
+          ))}
         </nav>
         <div className="ml-auto hidden shrink-0 items-center gap-2 min-[1080px]:flex">
           <SearchForm value={searchQuery} onChange={setSearchQuery} />
