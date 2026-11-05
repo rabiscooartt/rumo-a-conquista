@@ -192,7 +192,7 @@ export default function Navbar() {
           mobile
             ? "group flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "border-red-500/35 bg-red-500/12 text-white" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.04] hover:text-white")
-            : "group relative flex min-h-8 items-center justify-center whitespace-nowrap rounded-md border px-1.5 text-[9px] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 2xl:px-2 2xl:text-[9px] " +
+            : "group relative flex min-h-8 items-center justify-center whitespace-nowrap rounded-md border px-1 text-[9px] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 2xl:px-2 2xl:text-[9px] " +
               (active ? "border-red-500/45 bg-[linear-gradient(180deg,rgba(127,20,31,.56),rgba(60,8,16,.52))] text-white shadow-[inset_0_0_12px_rgba(239,35,52,.12)]" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.045] hover:text-white")
         }
       >
@@ -220,7 +220,7 @@ export default function Navbar() {
           className="group flex h-[44px] shrink-0 items-center gap-1.5 rounded-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
         >
           <BrandCrown className="h-[19px] w-[23px] shrink-0 drop-shadow-[0_0_7px_rgba(220,38,55,.35)]" />
-          <span className="whitespace-nowrap font-serif text-[11px] font-black leading-none tracking-[0.015em] text-white sm:text-[12px] 2xl:text-[13px]">
+          <span className="whitespace-nowrap font-serif text-[11px] font-black leading-none tracking-[0.015em] text-white sm:text-[12px] min-[1080px]:text-[10px] min-[1400px]:text-[12px] 2xl:text-[13px]">
             RUMO À CONQUISTA
           </span>
         </Link>
