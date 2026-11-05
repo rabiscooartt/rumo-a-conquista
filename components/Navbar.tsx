@@ -29,50 +29,21 @@ function IconBase({
   );
 }
 
-function TrophyCrest({ className = "" }: IconProps) {
+function BrandCrown({ className = "" }: IconProps) {
   return (
-    <svg
-      viewBox="0 0 72 72"
-      aria-hidden="true"
-      className={className}
-      fill="none"
-    >
-      <path
-        d="M14 52C5 42 4 29 10 18M18 55C11 46 10 36 13 27M58 52c9-10 10-23 4-34M54 55c7-9 8-19 5-28"
-        stroke="#E53B48"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-      <path
-        d="m8 27 7 2-2-8M12 41l7-1-4-7M18 53l6-4-6-4M64 27l-7 2 2-8M60 41l-7-1 4-7M54 53l-6-4 6-4"
-        stroke="#E53B48"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M36 5 40 11 47 8 46 16 36 20 26 16 25 8 32 11 36 5Z"
-        fill="#D92D3C"
-        stroke="#FF7A83"
-        strokeWidth="1"
-      />
-      <path
-        d="M24 20h24v13c0 9-5.3 15-12 15s-12-6-12-15V20Z"
-        fill="#B92332"
-        stroke="#FF737D"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M24 24h-6c-1 9 3 14 11 15M48 24h6c1 9-3 14-11 15"
-        stroke="#FF737D"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-      />
-      <path d="M36 48v8M28 59h16" stroke="#FF737D" strokeWidth="2.4" strokeLinecap="round" />
-      <path
-        d="m36 24 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7L36 24Z"
-        fill="#FFD1A0"
-      />
+    <svg viewBox="0 0 76 32" aria-hidden="true" className={className} fill="none">
+      <path d="M8 9 20 17 30 5 38 17 48 5 58 17 68 9 62 27H14L8 9Z" fill="url(#rac-crown-fill)" stroke="#FF6B75" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M15 23H61M19 29H57" stroke="#B91C2C" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="8" cy="8.5" r="2.6" fill="#FF9299" />
+      <circle cx="30" cy="4.5" r="2.6" fill="#FF9299" />
+      <circle cx="48" cy="4.5" r="2.6" fill="#FF9299" />
+      <circle cx="68" cy="8.5" r="2.6" fill="#FF9299" />
+      <defs>
+        <linearGradient id="rac-crown-fill" x1="38" y1="4" x2="38" y2="28" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FF5965" />
+          <stop offset="1" stopColor="#9F1423" />
+        </linearGradient>
+      </defs>
     </svg>
   );
 }
@@ -266,7 +237,7 @@ export default function Navbar() {
                   ? "border-red-500/35 bg-red-500/12 text-white"
                   : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.04] hover:text-white"
               }`
-            : `group relative flex min-h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 text-[10px] font-extrabold tracking-[0.015em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 2xl:gap-2 2xl:px-3 2xl:text-[11px] ${
+            : `group relative flex min-h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 text-[11px] font-extrabold tracking-[0.015em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 2xl:gap-2.5 2xl:px-3.5 2xl:text-[12px] ${
                 active
                   ? "border-red-500/45 bg-[linear-gradient(180deg,rgba(127,20,31,.56),rgba(60,8,16,.52))] text-white shadow-[inset_0_0_18px_rgba(239,35,52,.12),0_0_18px_rgba(239,35,52,.10)]"
                   : "border-transparent text-white/70 hover:border-white/10 hover:bg-white/[0.045] hover:text-white"
@@ -274,7 +245,7 @@ export default function Navbar() {
         }
       >
         <Icon
-          className={`h-[16px] w-[16px] shrink-0 transition-colors 2xl:h-[17px] 2xl:w-[17px] ${
+          className={`h-[17px] w-[17px] shrink-0 transition-colors 2xl:h-[18px] 2xl:w-[18px] ${
             active ? "text-red-400" : "text-white/55 group-hover:text-red-200"
           }`}
         />
@@ -288,40 +259,35 @@ export default function Navbar() {
 
 
   return (
-    <header className="sticky top-0 z-50 isolate border-b border-red-500/20 bg-[#050609]/95 shadow-[0_8px_28px_rgba(0,0,0,.34)] backdrop-blur-xl">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        <div className="absolute inset-0 bg-[url('/images/backgrounds/rabiisco-global-bg.webp')] bg-cover bg-[center_38%] opacity-35" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,4,7,.96)_0%,rgba(6,5,8,.84)_48%,rgba(4,4,7,.96)_100%)]" />
-        <div className="absolute inset-y-0 left-0 w-[32%] bg-[radial-gradient(ellipse_at_left,rgba(155,22,38,.22),transparent_72%)]" />
-        <div className="absolute inset-y-0 right-0 w-[32%] bg-[radial-gradient(ellipse_at_right,rgba(155,22,38,.18),transparent_72%)]" />
-        <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-red-500/45 to-transparent" />
+    <header className="relative sticky left-1/2 top-0 z-50 isolate w-screen max-w-none -translate-x-1/2 overflow-visible border-b border-red-500/35 bg-[#050609]/55 shadow-[0_8px_30px_rgba(0,0,0,.38)] backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 bg-[url('/images/backgrounds/rabiisco-global-bg.webp')] bg-cover bg-[center_42%] opacity-75" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,3,6,.78)_0%,rgba(5,4,8,.48)_30%,rgba(5,4,8,.48)_70%,rgba(3,3,6,.80)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,8,.18),rgba(5,5,8,.62))]" />
+        <div className="absolute inset-y-0 left-0 w-[22%] bg-[radial-gradient(ellipse_at_left,rgba(177,24,43,.27),transparent_74%)]" />
+        <div className="absolute inset-y-0 right-0 w-[22%] bg-[radial-gradient(ellipse_at_right,rgba(177,24,43,.25),transparent_74%)]" />
       </div>
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 h-px bg-gradient-to-r from-transparent via-red-500/75 to-transparent" aria-hidden="true" />
 
-      <div className="relative mx-auto flex min-h-[72px] w-full max-w-[1900px] items-center gap-3 px-3 sm:px-5 xl:min-h-[78px] xl:px-5 2xl:gap-4 2xl:px-7">
+      <div className="relative z-10 mx-0 flex min-h-[72px] w-full max-w-none items-center gap-3 px-4 sm:px-6 xl:min-h-[76px] xl:px-8 2xl:gap-5 2xl:px-10">
         <Link
           href="/"
           aria-label="Rumo à Conquista - Início"
-          className="group flex min-w-0 shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+          className="group flex min-w-[142px] shrink-0 flex-col items-center justify-center rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:min-w-[158px]"
         >
-          <TrophyCrest className="h-11 w-11 shrink-0 drop-shadow-[0_0_10px_rgba(220,38,55,.24)] sm:h-12 sm:w-12" />
-          <span className="flex flex-col leading-[0.92]">
-            <span className="font-serif text-[12px] font-bold tracking-[0.14em] text-white sm:text-[13px]">
-              RUMO À
-            </span>
-            <span className="mt-1 font-serif text-[16px] font-black tracking-[0.055em] text-red-500 sm:text-[18px]">
-              CONQUISTA
-            </span>
-            <span className="mt-1 hidden text-[8px] font-semibold tracking-[0.24em] text-white/50 sm:block">
-              SUA JORNADA GAMER
-            </span>
+          <BrandCrown className="h-[17px] w-[43px] drop-shadow-[0_0_8px_rgba(220,38,55,.5)] sm:h-[19px] sm:w-[48px]" />
+          <span className="-mt-0.5 flex flex-col items-center font-serif leading-[0.94]">
+            <span className="text-[12px] font-bold tracking-[0.17em] text-white sm:text-[14px]">RUMO À</span>
+            <span className="mt-0.5 text-[16px] font-black tracking-[0.075em] text-white drop-shadow-[0_1px_5px_rgba(0,0,0,.9)] sm:text-[18px]">CONQUISTA</span>
           </span>
+          <span className="mt-1 text-[8px] font-bold tracking-[0.22em] text-white/65">SUA JORNADA GAMER</span>
         </Link>
 
-        <div className="hidden h-10 w-px shrink-0 bg-white/15 xl:block" />
+        <div className="hidden h-10 w-px shrink-0 bg-white/20 xl:block" />
 
         <nav
           aria-label="Navegação principal"
-          className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex 2xl:gap-1"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex 2xl:gap-2"
         >
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
@@ -400,14 +366,14 @@ export default function Navbar() {
       </div>
 
       {isSearchOpen ? (
-        <div className="relative mx-auto max-w-[1900px] px-3 pb-3 sm:px-5 2xl:hidden">
+        <div className="relative z-10 mx-0 w-full max-w-none px-4 pb-3 sm:px-6 xl:px-8 2xl:hidden">
           <SearchForm compact value={searchQuery} onChange={setSearchQuery} />
         </div>
       ) : null}
 
       <div
         id="rac-mobile-navigation"
-        className={`relative mx-auto max-w-[1900px] px-3 pb-3 sm:px-5 xl:hidden ${isMenuOpen ? "block" : "hidden"}`}
+        className={`relative z-10 mx-0 w-full max-w-none px-4 pb-3 sm:px-6 xl:px-8 xl:hidden ${isMenuOpen ? "block" : "hidden"}`}
       >
         <div className="rounded-2xl border border-white/10 bg-[#08090d]/95 p-2 shadow-[0_18px_45px_rgba(0,0,0,.56)] backdrop-blur-2xl">
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
