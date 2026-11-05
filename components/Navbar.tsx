@@ -94,7 +94,7 @@ function SearchForm({
       className={
         compact
           ? "flex h-9 w-full items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-3 focus-within:border-red-500/50 focus-within:ring-1 focus-within:ring-red-500/20"
-          : "hidden h-8 w-[142px] items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-2.5 transition-colors focus-within:border-red-500/45 focus-within:ring-1 focus-within:ring-red-500/15 min-[1080px]:flex 2xl:w-[166px]"
+          : "hidden h-8 w-[136px] items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-2.5 transition-colors focus-within:border-red-500/45 focus-within:ring-1 focus-within:ring-red-500/15 min-[1080px]:flex 2xl:w-[166px]"
       }
     >
       <SearchIcon className="h-4 w-4 shrink-0 text-white/45" />
