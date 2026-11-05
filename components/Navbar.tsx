@@ -259,11 +259,11 @@ export default function Navbar() {
 
 
   return (
-    <header className="relative sticky left-1/2 top-0 z-50 isolate w-screen max-w-none -translate-x-1/2 overflow-visible border-b border-red-500/35 bg-[#050609]/55 shadow-[0_8px_30px_rgba(0,0,0,.38)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 isolate block w-full max-w-none overflow-visible border-b border-red-500/35 bg-[#050609]/55 shadow-[0_8px_30px_rgba(0,0,0,.38)] backdrop-blur-xl" style={{ width: "100%", maxWidth: "none", marginInline: 0, left: "auto", transform: "none" }}>
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute inset-0 bg-[url('/images/backgrounds/rabiisco-global-bg.webp')] bg-cover bg-[center_42%] opacity-75" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,3,6,.78)_0%,rgba(5,4,8,.48)_30%,rgba(5,4,8,.48)_70%,rgba(3,3,6,.80)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,8,.18),rgba(5,5,8,.62))]" />
+        <div className="absolute inset-0 bg-[url('/images/backgrounds/rabiisco-global-bg.webp')] bg-cover bg-[center_42%] opacity-95" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,3,6,.52)_0%,rgba(5,4,8,.24)_30%,rgba(5,4,8,.24)_70%,rgba(3,3,6,.52)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,8,.10),rgba(5,5,8,.38))]" />
         <div className="absolute inset-y-0 left-0 w-[22%] bg-[radial-gradient(ellipse_at_left,rgba(177,24,43,.27),transparent_74%)]" />
         <div className="absolute inset-y-0 right-0 w-[22%] bg-[radial-gradient(ellipse_at_right,rgba(177,24,43,.25),transparent_74%)]" />
       </div>
