@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminAvatarLogin from "@/components/AdminAvatarLogin";
@@ -30,19 +31,6 @@ function IconBase({
 }
 
 
-
-
-function BrandCrown({ className = "" }: IconProps) {
-  return (
-    <svg viewBox="0 0 32 24" aria-hidden="true" className={className} fill="none">
-      <path d="M3 7.5 9.2 12l6.8-8 6.8 8L29 7.5 25.5 20H6.5L3 7.5Z" fill="#D72C3C" stroke="#FF7580" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M7 16.5h18" stroke="#FFC0C4" strokeWidth="1" strokeLinecap="round" />
-      <circle cx="3" cy="6.5" r="2" fill="#FF8992" />
-      <circle cx="16" cy="3" r="2" fill="#FF8992" />
-      <circle cx="29" cy="6.5" r="2" fill="#FF8992" />
-    </svg>
-  );
-}
 
 function GamepadIcon({ className = "" }: IconProps) {
   return <IconBase className={className}><path d="M7.5 18h9a4.5 4.5 0 0 0 4.4-5.4l-.7-4A4 4 0 0 0 16.3 5H7.7a4 4 0 0 0-3.9 3.6l-.7 4A4.5 4.5 0 0 0 7.5 18Z" /><path d="M8 10v4M6 12h4M15.5 11.5h.01M18 14h.01" /></IconBase>;
@@ -94,7 +82,7 @@ function SearchForm({
       className={
         compact
           ? "flex h-9 w-full items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-3 focus-within:border-red-500/50 focus-within:ring-1 focus-within:ring-red-500/20"
-          : "hidden h-8 w-[136px] items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-2.5 transition-colors focus-within:border-red-500/45 focus-within:ring-1 focus-within:ring-red-500/15 min-[1080px]:flex 2xl:w-[166px]"
+          : "hidden h-8 w-[142px] items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-2.5 transition-colors focus-within:border-red-500/45 focus-within:ring-1 focus-within:ring-red-500/15 min-[1080px]:flex 2xl:w-[166px]"
       }
     >
       <SearchIcon className="h-4 w-4 shrink-0 text-white/45" />
@@ -192,7 +180,7 @@ export default function Navbar() {
           mobile
             ? "group flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "border-red-500/35 bg-red-500/12 text-white" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.04] hover:text-white")
-            : "group relative flex min-h-8 items-center justify-center whitespace-nowrap rounded-md border px-1 text-[9px] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 2xl:px-2 2xl:text-[9px] " +
+            : "group relative flex min-h-8 items-center justify-center whitespace-nowrap rounded-md border px-1.5 text-[9px] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 2xl:px-2 2xl:text-[9px] " +
               (active ? "border-red-500/45 bg-[linear-gradient(180deg,rgba(127,20,31,.56),rgba(60,8,16,.52))] text-white shadow-[inset_0_0_12px_rgba(239,35,52,.12)]" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.045] hover:text-white")
         }
       >
@@ -214,23 +202,17 @@ export default function Navbar() {
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
       <div className="relative z-10 mx-auto flex min-h-[48px] w-full items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-2.5 min-[1080px]:px-3.5 2xl:min-h-[52px]">
-        <Link
-          href="/"
-          aria-label="Rumo à Conquista - Início"
-          className="group flex h-[44px] shrink-0 items-center gap-1.5 rounded-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-        >
-          <BrandCrown className="h-[19px] w-[23px] shrink-0 drop-shadow-[0_0_7px_rgba(220,38,55,.35)]" />
-          <span className="whitespace-nowrap font-serif text-[11px] font-black leading-none tracking-[0.015em] text-white sm:text-[12px] min-[1080px]:text-[10px] min-[1400px]:text-[12px] 2xl:text-[13px]">
-            RUMO À CONQUISTA
-          </span>
+        <Link href="/" aria-label="Rumo à Conquista - Início" className="group flex h-[44px] w-[76px] shrink-0 items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+          <Image src="/images/brand/rac-logo-reference.webp" alt="Rumo à Conquista" width={74} height={42} priority className="h-[42px] w-[74px] object-contain" />
         </Link>
-        <nav aria-label="Navegação principal" className="hidden min-w-0 flex-1 items-center justify-between gap-1 min-[1080px]:flex">
+        <div className="hidden h-8 w-px shrink-0 bg-white/15 min-[1080px]:block" />
+        <nav aria-label="Navegação principal" className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 min-[1080px]:flex 2xl:gap-1">
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
-        <div className="hidden shrink-0 items-center gap-2 min-[1080px]:flex">
+        <div className="ml-auto hidden shrink-0 items-center gap-2 min-[1080px]:flex">
           <SearchForm value={searchQuery} onChange={setSearchQuery} />
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:ml-0 min-[1080px]:gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:ml-1 min-[1080px]:gap-1.5">
           <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             <SearchIcon className="h-4 w-4" />
           </button>
