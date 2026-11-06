@@ -198,7 +198,7 @@ export default function Navbar() {
         <div className="absolute inset-y-0 right-0 w-[24%] bg-[linear-gradient(270deg,rgba(145,19,33,.11),transparent)]" />
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
-      <div className="relative z-10 mx-auto flex min-h-[48px] w-full items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[52px]">
+      <div className="relative z-10 mx-auto flex min-h-[48px] w-full max-w-[1300px] items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[52px]">
         <Link
           href="/"
           aria-label="Rumo à Conquista - Início"
