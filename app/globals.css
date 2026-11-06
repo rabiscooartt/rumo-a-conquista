@@ -475,3 +475,15 @@ a {
 .backdrop-blur-xl {
   transform: translateZ(0);
 }
+/* Margens externas precisas do cabeçalho desktop: 50 px de respiro visual
+   até o lettering e 45 px depois do conjunto avatar + seta. */
+@media (min-width: 1080px) {
+  header .rac-navbar-content {
+    margin-left: 0 !important;
+    margin-right: 45px !important;
+    width: calc(100% - 45px) !important;
+    max-width: none !important;
+    padding-left: 40px !important;
+    padding-right: 0 !important;
+  }
+}
