@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminAvatarLogin from "@/components/AdminAvatarLogin";
@@ -200,8 +199,17 @@ export default function Navbar() {
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
       <div className="relative z-10 mx-auto flex min-h-[48px] w-full items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-2.5 min-[1080px]:px-3.5 2xl:min-h-[52px]">
-        <Link href="/" aria-label="Rumo à Conquista - Início" className="group flex h-[44px] w-[76px] shrink-0 items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
-          <Image src="/images/brand/rac-logo-reference.webp" alt="Rumo à Conquista" width={74} height={42} priority className="h-[42px] w-[74px] object-contain" />
+        <Link
+          href="/"
+          aria-label="Rumo à Conquista - Início"
+          className="group flex h-[44px] w-[128px] shrink-0 flex-col items-center justify-center gap-[3px] rounded-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:w-[136px]"
+        >
+          <span className="font-serif text-[11px] font-semibold leading-none tracking-[0.15em] text-white/95 sm:text-[12px]">
+            RUMO À
+          </span>
+          <span className="font-serif text-[14px] font-bold leading-none tracking-[0.055em] text-white sm:text-[15px]">
+            CONQUISTA
+          </span>
         </Link>
         <div className="hidden h-8 w-px shrink-0 bg-white/15 min-[1080px]:block" />
         <nav
