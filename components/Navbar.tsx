@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -198,23 +199,27 @@ export default function Navbar() {
         <div className="absolute inset-y-0 right-0 w-[24%] bg-[linear-gradient(270deg,rgba(145,19,33,.11),transparent)]" />
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
-      <div className="relative z-10 mx-auto flex min-h-[48px] w-full max-w-[1300px] items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[52px]">
+      <div className="relative z-10 mx-auto flex min-h-[48px] w-full max-w-[1300px] items-center gap-2 px-2.5 sm:px-3 min-[1080px]:min-h-[68px] min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[72px]">
         <Link
           href="/"
           aria-label="Rumo à Conquista - Início"
-          className="group flex h-[44px] w-[128px] shrink-0 flex-col items-center justify-center gap-[3px] rounded-sm text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:w-[136px]"
+          className="group flex h-[44px] w-[128px] shrink-0 items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:h-[58px] sm:w-[164px] min-[1080px]:h-[64px] min-[1080px]:w-[190px]"
         >
-          <span className="font-serif text-[11px] font-semibold leading-none tracking-[0.15em] text-white/95 sm:text-[12px]">
-            RUMO À
-          </span>
-          <span className="font-serif text-[14px] font-bold leading-none tracking-[0.055em] text-white sm:text-[15px]">
-            CONQUISTA
-          </span>
+          <Image
+            src="/images/brand/rac-wordmark-v1.webp"
+            alt="Rumo à Conquista"
+            width={256}
+            height={100}
+            priority
+            className="h-[44px] w-[112px] object-contain sm:h-[58px] sm:w-[148px] min-[1080px]:h-[64px] min-[1080px]:w-[164px]"
+          />
         </Link>
+
+        <div className="hidden h-10 w-px shrink-0 bg-white/25 min-[1080px]:block" />
 
         <nav
           aria-label="Navegação principal"
-          className="hidden shrink-0 items-center justify-start gap-1 min-[1080px]:flex"
+          className="hidden min-w-0 flex-1 items-center justify-between gap-3 min-[1080px]:flex"
         >
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
@@ -236,7 +241,7 @@ export default function Navbar() {
           ) : null}
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:ml-0 min-[1080px]:gap-3">
           <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             <SearchIcon className="h-4 w-4" />
           </button>
