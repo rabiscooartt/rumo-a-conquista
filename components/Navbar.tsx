@@ -82,7 +82,7 @@ function SearchForm({
       className={
         compact
           ? "flex h-9 w-full items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-3 focus-within:border-red-500/50 focus-within:ring-1 focus-within:ring-red-500/20"
-          : "hidden h-8 w-[142px] items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-2.5 transition-colors focus-within:border-red-500/45 focus-within:ring-1 focus-within:ring-red-500/15 min-[1080px]:flex 2xl:w-[166px]"
+          : "flex h-9 w-full items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-3 transition-colors focus-within:border-red-500/45 focus-within:ring-1 focus-within:ring-red-500/15"
       }
     >
       <SearchIcon className="h-4 w-4 shrink-0 text-white/45" />
@@ -192,7 +192,7 @@ export default function Navbar() {
 
 
   return (
-    <header className="sticky top-0 z-50 isolate w-full overflow-visible border-b border-white/10 bg-black/95 shadow-[0_8px_28px_rgba(0,0,0,.42)] backdrop-blur-xl">
+    <header className="relative z-50 isolate w-full overflow-visible border-b border-white/10 bg-black/95 shadow-[0_8px_28px_rgba(0,0,0,.42)] backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(25,39,55,.30),transparent_68%)]" />
         <div className="absolute inset-y-0 left-0 w-[24%] bg-[linear-gradient(90deg,rgba(145,19,33,.11),transparent)]" />
@@ -224,21 +224,8 @@ export default function Navbar() {
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
 
-        <div className="relative hidden shrink-0 items-center min-[1080px]:flex">
-          <button
-            type="button"
-            onClick={() => { setIsMenuOpen(false); setIsAccountOpen(false); setIsSearchOpen((open) => !open); }}
-            aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"}
-            aria-expanded={isSearchOpen}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-white/65 transition hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-          >
-            <SearchIcon className="h-[18px] w-[18px]" />
-          </button>
-          {isSearchOpen ? (
-            <div className="absolute right-0 top-[calc(100%+12px)] z-[90] w-[250px] rounded-xl border border-white/10 bg-[#09090d]/[.98] p-2 shadow-[0_16px_48px_rgba(0,0,0,.62)] backdrop-blur-xl">
-              <SearchForm compact value={searchQuery} onChange={setSearchQuery} />
-            </div>
-          ) : null}
+        <div className="hidden w-[176px] shrink-0 items-center min-[1080px]:flex min-[1360px]:w-[196px]">
+          <SearchForm compact value={searchQuery} onChange={setSearchQuery} />
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">

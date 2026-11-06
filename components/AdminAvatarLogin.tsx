@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 
 const AVATAR_SRC = "/images/avatar.png";
@@ -45,6 +46,7 @@ export default function AdminAvatarLogin({
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshStatus();
 
     function handleAuthChanged() {
@@ -69,6 +71,7 @@ export default function AdminAvatarLogin({
     const params = new URLSearchParams(window.location.search);
     if (params.get("adminLogin") !== "1") return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoginNext(params.get("next") || "");
     setError("");
     setIsOpen(true);
@@ -208,84 +211,92 @@ export default function AdminAvatarLogin({
         )}
       </button>
 
-      {isOpen && !isAuthenticated ? (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center px-6 py-8">
-          <button
-            type="button"
-            aria-label="Fechar login"
-            onClick={closeLogin}
-            className="absolute inset-0 bg-black/65 backdrop-blur-md"
-          />
-
-          <form
-            onSubmit={handleLogin}
-            className="relative z-10 w-full max-w-[380px] rounded-[28px] border border-red-500/25 bg-[#090b0f] p-6 shadow-[0_0_50px_rgba(239,68,68,0.18)]"
-          >
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
-              Área restrita
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black text-white">
-              Entrar no Admin
-            </h2>
-
-            <p className="mt-2 text-xs font-bold leading-relaxed text-white/45">
-              Acesso exclusivo para o criador do Rumo à Conquista.
-            </p>
-
-            <div className="mt-5 space-y-3">
-              <label className="block">
-                <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
-                  Usuário
-                </span>
-                <input
-                  autoFocus
-                  value={user}
-                  onChange={(event) => setUser(event.target.value)}
-                  autoComplete="username"
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-semibold text-white outline-none focus:border-red-500/40"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
-                  Senha
-                </span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm font-semibold text-white outline-none focus:border-red-500/40"
-                />
-              </label>
-            </div>
-
-            {error ? (
-              <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300">
-                {error}
-              </p>
-            ) : null}
-
-            <div className="mt-5 grid grid-cols-2 gap-2">
+      {isOpen && !isAuthenticated
+        ? createPortal(
+            <div className="fixed inset-0 z-[100000] isolate flex items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
               <button
                 type="button"
+                aria-label="Fechar login"
                 onClick={closeLogin}
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-black text-white/45 transition hover:text-white"
+                className="absolute inset-0 bg-black/75 backdrop-blur-md"
+              />
+
+              <form
+                onSubmit={handleLogin}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="rac-admin-login-title"
+                className="relative z-10 my-auto w-full max-w-[400px] min-w-0 rounded-2xl border border-red-500/25 bg-[#090b0f] p-5 shadow-[0_24px_80px_rgba(0,0,0,.72),0_0_50px_rgba(239,68,68,.16)] sm:rounded-[24px] sm:p-7"
               >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-xl bg-red-600 px-4 py-3 text-xs font-black text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-60"
-              >
-                {isSubmitting ? "Entrando..." : "Entrar"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">
+                  Área restrita
+                </p>
+
+                <h2 id="rac-admin-login-title" className="mt-2 text-2xl font-black text-white">
+                  Entrar no Admin
+                </h2>
+
+                <p className="mt-2 text-sm font-medium leading-relaxed text-white/50">
+                  Acesso exclusivo para o criador do Rumo à Conquista.
+                </p>
+
+                <div className="mt-6 space-y-4">
+                  <label className="block min-w-0">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.12em] text-white/50">
+                      Usuário
+                    </span>
+                    <input
+                      autoFocus
+                      required
+                      value={user}
+                      onChange={(event) => setUser(event.target.value)}
+                      autoComplete="username"
+                      className="block h-11 w-full min-w-0 rounded-xl border border-white/10 bg-black/40 px-3.5 text-sm font-semibold text-white outline-none transition focus:border-red-500/55 focus:ring-2 focus:ring-red-500/15"
+                    />
+                  </label>
+
+                  <label className="block min-w-0">
+                    <span className="mb-2 block text-[10px] font-black uppercase tracking-[0.12em] text-white/50">
+                      Senha
+                    </span>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      autoComplete="current-password"
+                      className="block h-11 w-full min-w-0 rounded-xl border border-white/10 bg-black/40 px-3.5 text-sm font-semibold text-white outline-none transition focus:border-red-500/55 focus:ring-2 focus:ring-red-500/15"
+                    />
+                  </label>
+                </div>
+
+                {error ? (
+                  <p role="alert" className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-xs font-bold text-red-300">
+                    {error}
+                  </p>
+                ) : null}
+
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={closeLogin}
+                    className="h-11 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black text-white/65 transition hover:bg-white/[0.08] hover:text-white"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="h-11 rounded-xl bg-red-600 px-4 text-xs font-black text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {isSubmitting ? "Entrando..." : "Entrar"}
+                  </button>
+                </div>
+              </form>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
