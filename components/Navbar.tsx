@@ -177,13 +177,13 @@ export default function Navbar() {
           mobile
             ? "group flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "border-red-500/35 bg-red-500/12 text-white" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.04] hover:text-white")
-            : "group relative flex min-h-[clamp(36px,2.35vw,42px)] items-center justify-center whitespace-nowrap rounded-lg border px-[clamp(12px,0.95vw,18px)] text-[clamp(12px,0.76vw,14px)] font-bold tracking-[0.01em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
-              (active ? "border-red-500/45 bg-[linear-gradient(180deg,rgba(127,20,31,.56),rgba(60,8,16,.52))] text-white shadow-[inset_0_0_12px_rgba(239,35,52,.12)]" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.045] hover:text-white")
+            : "group relative flex min-h-9 items-center justify-center whitespace-nowrap rounded-md px-2 text-[clamp(11px,0.62vw,12px)] font-semibold uppercase tracking-[0.035em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
+              (active ? "text-red-400" : "text-white/75 hover:text-white")
         }
       >
         <span>{label}</span>
         {active && !mobile ? (
-          <span className="pointer-events-none absolute -bottom-[6px] left-2 right-2 h-[2px] rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,.8)]" />
+          <span className="pointer-events-none absolute -bottom-[5px] left-2 right-2 h-[2px] rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,.8)]" />
         ) : null}
       </Link>
     );
@@ -198,7 +198,7 @@ export default function Navbar() {
         <div className="absolute inset-y-0 right-0 w-[24%] bg-[linear-gradient(270deg,rgba(145,19,33,.11),transparent)]" />
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
-      <div className="relative z-10 mx-auto flex min-h-[48px] w-full items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-2.5 min-[1080px]:px-3.5 2xl:min-h-[52px]">
+      <div className="relative z-10 mx-auto flex min-h-[48px] w-full items-center gap-2 px-2.5 sm:px-3 min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[52px]">
         <Link
           href="/"
           aria-label="Rumo à Conquista - Início"
@@ -211,17 +211,32 @@ export default function Navbar() {
             CONQUISTA
           </span>
         </Link>
-        <div className="hidden h-8 w-px shrink-0 bg-white/15 min-[1080px]:block" />
+
         <nav
           aria-label="Navegação principal"
-          className="hidden min-w-0 flex-1 items-center justify-center gap-0 min-[1080px]:relative min-[1080px]:left-3 min-[1080px]:flex"
+          className="hidden shrink-0 items-center justify-start gap-1 min-[1080px]:flex"
         >
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
-        <div className="ml-auto hidden shrink-0 items-center gap-2 min-[1080px]:flex">
-          <SearchForm value={searchQuery} onChange={setSearchQuery} />
+
+        <div className="relative hidden shrink-0 items-center min-[1080px]:flex">
+          <button
+            type="button"
+            onClick={() => { setIsMenuOpen(false); setIsAccountOpen(false); setIsSearchOpen((open) => !open); }}
+            aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"}
+            aria-expanded={isSearchOpen}
+            className="flex h-9 w-9 items-center justify-center rounded-md text-white/65 transition hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+          >
+            <SearchIcon className="h-[18px] w-[18px]" />
+          </button>
+          {isSearchOpen ? (
+            <div className="absolute right-0 top-[calc(100%+12px)] z-[90] w-[250px] rounded-xl border border-white/10 bg-[#09090d]/[.98] p-2 shadow-[0_16px_48px_rgba(0,0,0,.62)] backdrop-blur-xl">
+              <SearchForm compact value={searchQuery} onChange={setSearchQuery} />
+            </div>
+          ) : null}
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:ml-1 min-[1080px]:gap-1.5">
+
+        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">
           <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             <SearchIcon className="h-4 w-4" />
           </button>
