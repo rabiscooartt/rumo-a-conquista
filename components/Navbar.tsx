@@ -192,18 +192,18 @@ export default function Navbar() {
 
 
   return (
-    <header className="sticky top-0 z-50 isolate mx-auto mt-0 w-[84vw] max-w-[1620px] overflow-visible rounded-b-xl border border-t-0 border-white/10 bg-black shadow-[0_10px_32px_rgba(0,0,0,.48)] backdrop-blur-xl" style={{ width: "84vw", maxWidth: "1620px" }}>
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-b-xl" aria-hidden="true">
+    <header className="sticky top-0 z-50 isolate w-full overflow-visible border-b border-white/10 bg-black/95 shadow-[0_8px_28px_rgba(0,0,0,.42)] backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(25,39,55,.30),transparent_68%)]" />
         <div className="absolute inset-y-0 left-0 w-[24%] bg-[linear-gradient(90deg,rgba(145,19,33,.11),transparent)]" />
         <div className="absolute inset-y-0 right-0 w-[24%] bg-[linear-gradient(270deg,rgba(145,19,33,.11),transparent)]" />
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
-      <div className="relative z-10 mx-auto flex min-h-[48px] w-full max-w-[1300px] items-center gap-2 px-2.5 sm:px-3 min-[1080px]:min-h-[68px] min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[72px]">
+      <div className="relative z-10 mx-auto flex min-h-[48px] w-full max-w-[1140px] items-center gap-2 px-2.5 sm:px-3 min-[1080px]:min-h-[60px] min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[64px]">
         <Link
           href="/"
           aria-label="Rumo à Conquista - Início"
-          className="group flex h-[44px] w-[128px] shrink-0 items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:h-[58px] sm:w-[164px] min-[1080px]:h-[64px] min-[1080px]:w-[190px]"
+          className="group flex h-[44px] w-[128px] shrink-0 items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 sm:h-[58px] sm:w-[164px] min-[1080px]:h-[60px] min-[1080px]:w-[190px]"
         >
           <Image
             src="/images/brand/rac-wordmark-v1.webp"
@@ -211,15 +211,15 @@ export default function Navbar() {
             width={256}
             height={100}
             priority
-            className="h-[44px] w-[112px] object-contain sm:h-[58px] sm:w-[148px] min-[1080px]:h-[64px] min-[1080px]:w-[164px]"
+            className="h-[44px] w-[112px] object-contain sm:h-[58px] sm:w-[148px] min-[1080px]:h-[60px] min-[1080px]:w-[154px]"
           />
         </Link>
 
-        <div className="hidden h-10 w-px shrink-0 bg-white/25 min-[1080px]:block" />
+        <div className="hidden h-9 w-px shrink-0 bg-white/25 min-[1080px]:block" />
 
         <nav
           aria-label="Navegação principal"
-          className="hidden min-w-0 flex-1 items-center justify-between gap-3 min-[1080px]:flex"
+          className="hidden shrink-0 items-center justify-start gap-1 min-[1080px]:flex"
         >
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
@@ -241,7 +241,7 @@ export default function Navbar() {
           ) : null}
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:ml-0 min-[1080px]:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">
           <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             <SearchIcon className="h-4 w-4" />
           </button>
