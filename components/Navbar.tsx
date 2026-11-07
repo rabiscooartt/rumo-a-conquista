@@ -224,11 +224,11 @@ export default function Navbar() {
           {visibleLinks.map((link) => renderLink(link))}
         </nav>
 
-        <div className="hidden w-[176px] shrink-0 items-center min-[1080px]:flex min-[1360px]:w-[196px]">
+        <div className="hidden w-[184px] shrink-0 items-center min-[1080px]:flex min-[1360px]:w-[212px]">
           <SearchForm compact value={searchQuery} onChange={setSearchQuery} />
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">
+        <div className="ml-auto min-[1360px]:mr-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">
           <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             <SearchIcon className="h-4 w-4" />
           </button>
