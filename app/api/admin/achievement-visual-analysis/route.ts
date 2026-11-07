@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -263,6 +264,9 @@ async function analyzeWithOpenAI(
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as {
       achievements?: AchievementInput[];

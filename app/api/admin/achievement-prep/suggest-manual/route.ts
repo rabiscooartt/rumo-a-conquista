@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 
 type AchievementRank = "Bronze" | "Prata" | "Ouro";
 type AchievementSuggestion = {
@@ -191,6 +192,9 @@ function extractOutputText(payload: unknown): string {
 }
 
 export async function POST(request: Request) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as {
       note?: unknown;

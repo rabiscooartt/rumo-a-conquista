@@ -594,7 +594,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
         </aside>
 
         <div className="min-w-0 px-4 py-5 md:px-5 lg:px-5">
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0">
               <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
                 <BannerBackground bannerKey="reviews" imageUrl="/api/reviews-banner?v=1" adminButtonClassName="top-16" />

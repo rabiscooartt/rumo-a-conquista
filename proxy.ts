@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   ADMIN_SESSION_COOKIE,
+  isCrossSiteWrite,
   verifyAdminSession,
 } from "@/lib/admin-auth";
+
+// Cópia antiga da sincronização do Admin que ficou fora de /api/admin: exige a mesma sessão.
+const LEGACY_ADMIN_API_PREFIX = "/api/youtube/channel/games";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isAdminPage = pathname.startsWith("/admin");
-  const isAdminApi = pathname.startsWith("/api/admin");
+  const isAdminApi =
+    pathname.startsWith("/api/admin") || pathname.startsWith(LEGACY_ADMIN_API_PREFIX);
 
   if (!isAdminPage && !isAdminApi) {
     return NextResponse.next();
+  }
+
+  // Escritas administrativas, inclusive login e logout, só valem a partir de páginas do próprio site.
+  if (isCrossSiteWrite(request)) {
+    return new NextResponse("Origem não permitida.", {
+      status: 403,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   // Os endpoints de autenticação precisam ficar públicos para que o login
@@ -71,5 +84,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/youtube/channel/games/:path*"],
 };

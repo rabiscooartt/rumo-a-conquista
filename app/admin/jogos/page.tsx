@@ -1002,7 +1002,7 @@ export default function NewGamesAdminPage() {
           </div>
         </div>
 
-        <div className="mt-7 grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="mt-7 grid grid-cols-1 gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="rounded-[20px] border border-white/[0.08] bg-[#090909] p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -1074,7 +1074,7 @@ export default function NewGamesAdminPage() {
                   </button>
                   {!collapsedSections["01"] && (
                     <>
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                     {(["title","subtitle","platform","hours"] as const).map((key) => {
                       const label =
                         key === "title"
@@ -1209,7 +1209,7 @@ export default function NewGamesAdminPage() {
                       </p>
                     </div>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                       <label
                         className={`cursor-pointer rounded-xl border p-4 transition ${
                           values.nextAchievementMode === "automatic"
@@ -1345,7 +1345,7 @@ export default function NewGamesAdminPage() {
                   </div>
                   {!collapsedSections["02"] && (
                     <>
-                  <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Ativa</p><p className="mt-2 text-sm font-black">Mostra o aviso de Jornada de Estreia.</p></div>
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Desativada</p><p className="mt-2 text-sm font-black">Libera a página normal do jogo.</p></div>
                     <div className="rounded-xl border border-white/[0.07] bg-black/20 p-4"><p className="text-[8px] font-black uppercase tracking-[0.15em] text-white/25">Próximo passo</p><p className="mt-2 text-sm font-black">A próxima conquista agora pode ser automática ou definida manualmente.</p></div>
@@ -1436,7 +1436,7 @@ export default function NewGamesAdminPage() {
                         A nota e a frase curta alimentam o cartão de avaliação na página do jogo. Ao clicar em “Ler review completo”, o visitante abre a página exclusiva com o texto integral da análise. A frase curta aceita até 100 caracteres.
                       </p>
 
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <label className="block">
                           <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">Status da review</span>
                           <select
@@ -1483,7 +1483,7 @@ export default function NewGamesAdminPage() {
                           />
                         </label>
 
-                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                           <label className="block">
                             <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40">2. História e narrativa</span>
                             <textarea value={reviewValues.historia} onChange={(event) => patchReviewDraft({ historia: event.target.value })} rows={4} placeholder="História, personagens e maneira de contar..." className={"mt-2 w-full resize-y rounded-xl px-3 py-3 text-sm leading-relaxed text-white outline-none " + reviewFieldTone(reviewValues.historia)} />

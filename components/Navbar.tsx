@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import AdminAvatarLogin from "@/components/AdminAvatarLogin";
+import AdminAvatarLogin, { logoutAdmin } from "@/components/AdminAvatarLogin";
 
 type IconProps = {
   className?: string;
@@ -55,6 +55,10 @@ function BellIcon({ className = "" }: IconProps) {
 
 function ChevronDownIcon({ className = "" }: IconProps) {
   return <IconBase className={className}><path d="m6 9 6 6 6-6" /></IconBase>;
+}
+
+function LogoutIcon({ className = "" }: IconProps) {
+  return <IconBase className={className}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" /></IconBase>;
 }
 
 function MenuIcon({ className = "" }: IconProps) {
@@ -111,7 +115,9 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -150,6 +156,20 @@ export default function Navbar() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await logoutAdmin();
+    } finally {
+      setIsAdminMode(false);
+      setIsAccountOpen(false);
+      setIsLoggingOut(false);
+      // Fora das áreas do Admin a página só se atualiza; dentro delas, volta para o site público.
+      if (pathname.startsWith("/admin")) router.push("/");
+      else router.refresh();
+    }
+  }
 
   function isActiveLink(href: string) {
     if (href === "/") return pathname === "/";
@@ -236,9 +256,9 @@ export default function Navbar() {
             <BellIcon className="h-[17px] w-[17px]" />
           </Link>
           <div className="flex items-center gap-0">
-            <div className="scale-[0.88]"><AdminAvatarLogin showLabel={false} /></div>
+            <div className="scale-[0.88]"><AdminAvatarLogin showLabel={false} adminMenuOpen={isAccountOpen} onAdminClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsAccountOpen((open) => !open); }} /></div>
             <div className="relative -ml-1">
-              <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsAccountOpen((open) => !open); }} aria-label="Abrir menu do perfil" aria-expanded={isAccountOpen} className="flex h-8 w-5 items-center justify-center rounded-md text-white/55 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+              <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen(false); setIsAccountOpen((open) => !open); }} aria-label="Abrir menu do perfil" aria-expanded={isAccountOpen} className="relative flex h-8 w-5 items-center max-[1079px]:before:absolute max-[1079px]:before:-inset-x-2 max-[1079px]:before:inset-y-0 max-[1079px]:before:content-[''] justify-center rounded-md text-white/55 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
                 <ChevronDownIcon className="h-3.5 w-3.5" />
               </button>
               {isAccountOpen ? (
@@ -254,10 +274,12 @@ export default function Navbar() {
                       <Link href="/admin/sorteio-jogos" onClick={() => setIsAccountOpen(false)} className="flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.06] hover:text-white">
                         <GamepadIcon className="h-4 w-4 text-white/50" /> Banco de jogos
                       </Link>
+                      <div className="my-1 h-px bg-white/[0.08]" />
+                      <button type="button" onClick={() => void handleLogout()} disabled={isLoggingOut} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold text-red-200/85 transition hover:bg-red-500/10 hover:text-red-100 disabled:cursor-wait disabled:opacity-60">
+                        <LogoutIcon className="h-4 w-4 text-red-300/70" /> {isLoggingOut ? "Saindo..." : "Sair do modo Admin"}
+                      </button>
                     </>
-                  ) : (
-                    <p className="px-3 py-2 text-[10px] font-medium leading-relaxed text-white/35">Clique no avatar para acessar o modo administrador.</p>
-                  )}
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -277,9 +299,6 @@ export default function Navbar() {
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {visibleLinks.map((link) => renderLink(link, true))}
           </div>
-          {!isAdminMode ? (
-            <div className="mt-2 border-t border-white/[0.08] px-3 pt-2 text-[10px] font-medium text-white/35">Acesso administrativo pelo avatar.</div>
-          ) : null}
         </div>
       </div>
     </header>

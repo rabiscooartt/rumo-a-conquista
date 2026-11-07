@@ -226,9 +226,9 @@ export default function CompletedGames() {
 
   return (
     <section className="mt-12">
-      <div className="flex items-end justify-between gap-5">
-        <div>
-          <h2 className="text-4xl font-black text-white">Jogos Concluídos</h2>
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-5">
+        <div className="min-w-0">
+          <h2 className="text-3xl font-black text-white sm:text-4xl">Jogos Concluídos</h2>
 
           <p className="mt-2 text-sm text-white/50">
             Coleção de jornadas finalizadas e emblemas conquistados

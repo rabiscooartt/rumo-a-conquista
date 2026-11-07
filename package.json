@@ -8,22 +8,24 @@
     "start": "next start",
     "lint": "eslint",
     "home-images:generate": "node scripts/home-images.mjs generate",
-    "home-images:check": "node scripts/home-images.mjs check"
+    "home-images:check": "node scripts/home-images.mjs check",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.6",
     "cheerio": "^1.2.0",
-    "next": "^16.3.1",
+    "next": "^16.4.5",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^16.3.1",
+    "eslint-config-next": "^16.4.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

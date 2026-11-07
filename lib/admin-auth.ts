@@ -109,6 +109,45 @@ export async function verifyAdminSession(token: string | undefined | null) {
   }
 }
 
+// Compara dois textos sem revelar, pelo tempo de resposta, quantos caracteres coincidem.
+export async function constantTimeEqual(a: string, b: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    crypto.getRandomValues(new Uint8Array(32)),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const [digestA, digestB] = await Promise.all([
+    crypto.subtle.sign("HMAC", key, textToBytes(a)),
+    crypto.subtle.sign("HMAC", key, textToBytes(b)),
+  ]);
+  const bytesA = new Uint8Array(digestA);
+  const bytesB = new Uint8Array(digestB);
+  let difference = 0;
+  for (let index = 0; index < bytesA.length; index += 1) {
+    difference |= bytesA[index] ^ bytesB[index];
+  }
+  return difference === 0;
+}
+
+// Pedidos que alteram dados só são aceitos quando vêm de uma página do próprio site.
+export function isCrossSiteWrite(request: Request) {
+  const method = request.method.toUpperCase();
+  if (method === "GET" || method === "HEAD" || method === "OPTIONS") return false;
+
+  const origin = request.headers.get("origin");
+  // Ferramentas sem navegador não enviam Origin; elas continuam precisando da sessão.
+  if (!origin) return false;
+
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  try {
+    return !host || new URL(origin).host !== host;
+  } catch {
+    return true;
+  }
+}
+
 export function getAdminCredentials() {
   return {
     user: process.env.ADMIN_USER || "",

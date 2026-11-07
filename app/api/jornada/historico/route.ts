@@ -117,9 +117,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível carregar o histórico anual.",
+          "Não foi possível carregar o histórico anual.",
       },
       { status: 500 }
     );

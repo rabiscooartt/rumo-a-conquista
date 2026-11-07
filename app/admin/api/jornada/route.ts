@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 type JourneyInput = {
@@ -50,6 +51,9 @@ function invalidInputResponse() {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const input = normalizeInput((await request.json()) as JourneyInput);
 
@@ -75,6 +79,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as { id?: string; entry?: JourneyInput };
     const entryId = body.id?.trim();
@@ -106,6 +113,9 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as { id?: string; all?: boolean };
     const client = createAdminSupabaseClient();

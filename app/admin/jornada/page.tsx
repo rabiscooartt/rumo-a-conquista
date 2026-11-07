@@ -1832,7 +1832,7 @@ export default function AdminAtividadePage() {
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-4 py-3 text-[12px] font-black transition ${
+                        className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-t-lg px-1.5 py-3 text-[11px] font-black transition min-[380px]:flex-none min-[380px]:px-3 min-[380px]:text-[12px] sm:px-4 ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"

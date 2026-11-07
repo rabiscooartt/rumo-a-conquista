@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
@@ -18,6 +19,9 @@ function cleanText(value: unknown, fallback = "") {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as {
       slug?: unknown;

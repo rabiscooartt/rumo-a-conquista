@@ -609,7 +609,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
         <div className="relative min-h-[420px] overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_35%)]" />
 
-          <div className="relative z-10 flex min-h-[420px] items-center p-10">
+          <div className="relative z-10 flex min-h-[420px] items-center p-5 sm:p-10">
             <div className="max-w-[760px]">
               <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-wide text-white/45">
                 Sem jogo ativo
@@ -700,8 +700,8 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
           </div>
         )}
 
-        <div className="relative z-10 flex min-h-[420px] items-center p-10">
-          <div className="max-w-[780px]">
+        <div className="relative z-10 flex min-h-[420px] items-center p-5 sm:p-10">
+          <div className="min-w-0 max-w-[780px]">
             <span
               className="rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide"
               style={{
@@ -713,12 +713,12 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
               {completed ? "Último emblema" : "Jogando agora"}
             </span>
 
-            <h1 className="mt-7 max-w-[760px] text-6xl font-black uppercase leading-none text-white">
+            <h1 className="mt-7 max-w-[760px] break-words text-4xl font-black uppercase leading-none text-white sm:text-6xl">
               {heroGame.title}
             </h1>
 
             <p
-              className="mt-3 text-3xl"
+              className="mt-3 text-xl sm:text-3xl"
               style={{ color: "var(--hero-accent)" }}
             >
               {heroGame.subtitle || "Jornada em andamento"}

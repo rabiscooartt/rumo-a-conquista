@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 
 type IncomingAchievement = {
   id?: string;
@@ -413,7 +414,10 @@ async function fetchEnrichedGame(
  * Retorna todos os jogos nÃ£o excluÃ­dos junto com suas conquistas e o progresso
  * salvo no Supabase.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const client = createAdminSupabaseClient();
 
@@ -564,6 +568,9 @@ export async function GET() {
  * sincroniza tambÃ©m as definiÃ§Ãµes e o progresso das conquistas.
  */
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as GamePayload;
     const slug = normalizeSlug(body.slug);
@@ -616,6 +623,9 @@ export async function POST(request: NextRequest) {
  * sincroniza tambÃ©m as definiÃ§Ãµes e o progresso das conquistas.
  */
 export async function PUT(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as GamePayload;
     const slug = normalizeSlug(body.slug);
@@ -674,6 +684,9 @@ export async function PUT(request: NextRequest) {
  * - restore  â†’ restaura
  */
 export async function DELETE(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as {
       slug?: string;

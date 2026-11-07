@@ -126,9 +126,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível carregar o estado da Jornada de Estreia.",
+          "Não foi possível carregar o estado da Jornada de Estreia.",
       },
       { status: 500 }
     );

@@ -14,6 +14,7 @@ import GameAchievementsPanel, {
 import type { ReviewInput } from "@/components/GameReviewPanel";
 import { inferPrimaryGenre } from "@/lib/gameGenres";
 import { homeImageSrc, largeImageSrc } from "@/lib/homeImages";
+import { getTrophyRank, TROPHY_META as SHARED_TROPHY_META } from "@/lib/trophyRanks";
 
 export type GamePageShellInput = {
   title: string;
@@ -135,37 +136,27 @@ function achievementImagePath(gameSlug: string, achievement?: AchievementInput) 
     : "";
 }
 
-type TrophyRank = "Ouro" | "Prata" | "Bronze" | "Maestria";
+const TROPHY_META = SHARED_TROPHY_META.map(({ rank, label }) => ({ rank, label }));
 
-function getTrophyRank(achievement: AchievementInput): TrophyRank {
-  const difficulty = normalizeText(achievement.difficulty);
-
-  // Diamante representa a Maestria Final e não deve entrar na contagem
-  // de Ouro. Assim, a sidebar separa corretamente Ouro de Maestria.
-  if (difficulty === "extrema" || difficulty === "diamante") return "Maestria";
-  if (difficulty === "ouro") return "Ouro";
-  if (difficulty === "media" || difficulty === "prata") return "Prata";
-
-  if (achievement.trophy?.includes("💎") || achievement.icon?.includes("💎")) {
-    return "Maestria";
+// Miniatura da próxima conquista: se o arquivo não existir, mostra o troféu em vez de uma imagem quebrada.
+// O ref também detecta a falha que acontece antes da hidratação, quando onError já passou.
+function NextAchievementThumb({ src, alt }: { src: string; alt: string }) {
+  const [failedSrc, setFailedSrc] = useState("");
+  if (failedSrc === src) {
+    return <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">🏆</div>;
   }
-  if (achievement.trophy?.includes("🥇") || achievement.trophy?.includes("🏆") || achievement.icon?.includes("🥇") || achievement.icon?.includes("🏆")) {
-    return "Ouro";
-  }
-  if (achievement.trophy?.includes("🥈") || achievement.icon?.includes("🥈")) return "Prata";
-
-  return "Bronze";
+  return (
+    <img
+      ref={(node) => {
+        if (node && node.complete && node.naturalWidth === 0) setFailedSrc(src);
+      }}
+      src={src}
+      alt={alt}
+      onError={() => setFailedSrc(src)}
+      className="h-full w-full object-contain"
+    />
+  );
 }
-
-const TROPHY_META: Array<{
-  rank: TrophyRank;
-  label: string;
-}> = [
-  { rank: "Bronze", label: "Bronze" },
-  { rank: "Prata", label: "Prata" },
-  { rank: "Ouro", label: "Ouro" },
-  { rank: "Maestria", label: "Maestria Final" },
-];
 
 function IconGamepad({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -652,15 +643,15 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
             </section>
           </div>
         )}
-                <div className="grid gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
-                  <aside className="game-sidebar-text-contrast hidden lg:sticky lg:top-24 lg:block lg:self-start">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
+                  <aside className="game-sidebar-text-contrast lg:sticky lg:top-24 lg:block lg:self-start">
                     <div className="space-y-5">
                       <div className="border-b border-white/[0.08] pb-5">
                         <SectionTitle>Jogo</SectionTitle>
                       </div>
         
-                      <div className="border-b border-white/[0.08] pb-6">
-                        <div className="overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090909] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+                      <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-x-4 border-b border-white/[0.08] pb-6 lg:block">
+                        <div className="row-span-2 overflow-hidden rounded-[12px] border border-white/[0.10] bg-[#090909] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
                           {cover ? (
                             <img src={largeImageSrc(cover)} alt={game.title} className="aspect-[3/4] w-full object-cover" />
                           ) : (
@@ -668,11 +659,11 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                           )}
                         </div>
         
-                        <p className="mt-3 line-clamp-3 text-[12px] font-black leading-tight text-white" title={game.title}>
+                        <p className="col-start-2 self-end line-clamp-3 text-[17px] font-black leading-tight text-white lg:mt-3 lg:text-[12px]" title={game.title}>
                           {game.title}
                         </p>
         
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <div className="col-start-2 mt-2 flex flex-wrap items-center gap-1.5 self-start">
                           <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-500"}`}>
                             {statusLabel}
                           </span>
@@ -927,10 +918,9 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                           <div className="mt-4 flex items-center gap-3.5 rounded-[10px] border border-white/[0.08] bg-[#0b0b0b] p-3">
                             <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
                               {nextAchievementImage ? (
-                                <img
+                                <NextAchievementThumb
                                   src={homeImageSrc(nextAchievementImage)}
                                   alt={nextAchievement?.title || objective}
-                                  className="h-full w-full object-contain"
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">

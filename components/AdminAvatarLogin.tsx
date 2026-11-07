@@ -10,12 +10,26 @@ const OPEN_LOGIN_EVENT = "rumo-admin-open-login";
 
 export { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT };
 
+// Encerra a sessão no servidor e avisa os componentes que mostram o estado do Admin.
+export async function logoutAdmin() {
+  try {
+    await fetch("/api/admin/auth/logout", { method: "POST", cache: "no-store" });
+  } finally {
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+  }
+}
+
 type AdminAvatarLoginProps = {
   showLabel?: boolean;
+  // Com a sessão ativa, o clique no avatar abre as opções do Admin em vez de sair direto.
+  onAdminClick?: () => void;
+  adminMenuOpen?: boolean;
 };
 
 export default function AdminAvatarLogin({
   showLabel = false,
+  onAdminClick,
+  adminMenuOpen = false,
 }: AdminAvatarLoginProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -153,63 +167,68 @@ export default function AdminAvatarLogin({
     setIsSubmitting(true);
 
     try {
-      await fetch("/api/admin/auth/logout", {
-        method: "POST",
-        cache: "no-store",
-      });
+      await logoutAdmin();
     } finally {
       setIsAuthenticated(false);
       setIsSubmitting(false);
-      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
       router.refresh();
     }
   }
 
-  if (!isLoaded) {
-    return null;
-  }
+  const avatarImage = !imageHasError ? (
+    <img
+      src={AVATAR_SRC}
+      alt={isAuthenticated ? "Admin ativo" : "Avatar do canal"}
+      className="h-full w-full object-cover"
+      onError={() => setImageHasError(true)}
+    />
+  ) : (
+    <span className="flex h-full w-full items-center justify-center text-sm" aria-hidden="true">
+      ⚙️
+    </span>
+  );
+
+  // Visitantes veem só a imagem: sem clique, sem convite e sem opção de entrar.
+  // O login do proprietário continua disponível pelo endereço /admin.
+  const visitorAvatar = showLabel ? null : (
+    <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-red-500/35 bg-red-500/10 shadow-[0_0_18px_rgba(239,68,68,0.18)]">
+      {avatarImage}
+    </span>
+  );
 
   return (
     <>
+      {!isLoaded || !isAuthenticated ? visitorAvatar : (
       <button
         type="button"
         onClick={() => {
-          if (isAuthenticated) {
-            void handleLogout();
+          if (onAdminClick) {
+            onAdminClick();
           } else {
-            setError("");
-            setIsOpen(true);
+            void handleLogout();
           }
         }}
+        aria-haspopup={onAdminClick ? "menu" : undefined}
+        aria-expanded={onAdminClick ? adminMenuOpen : undefined}
         disabled={isSubmitting}
         className={
           showLabel
             ? "inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-red-300 transition hover:border-red-400/50 hover:bg-red-500/15 disabled:cursor-wait disabled:opacity-60"
             : "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-red-500/35 bg-red-500/10 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition hover:scale-105 hover:border-red-400/60 disabled:cursor-wait disabled:opacity-60"
         }
-        title={isAuthenticated ? "Sair do modo Admin" : "Entrar no modo Admin"}
-        aria-label={isAuthenticated ? "Sair do modo Admin" : "Entrar no modo Admin"}
+        title={onAdminClick ? "Opções do Admin" : "Sair do modo Admin"}
+        aria-label={onAdminClick ? "Abrir opções do Admin" : "Sair do modo Admin"}
       >
         {!showLabel ? (
-          !imageHasError ? (
-            <img
-              src={AVATAR_SRC}
-              alt={isAuthenticated ? "Admin ativo" : "Login Admin"}
-              className="h-full w-full object-cover"
-              onError={() => setImageHasError(true)}
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center text-sm">
-              ⚙️
-            </span>
-          )
+          avatarImage
         ) : (
           <>
-            <span className="text-sm leading-none">{isAuthenticated ? "↪" : "↳"}</span>
-            <span>{isAuthenticated ? "Sair" : "Entrar"}</span>
+            <span className="text-sm leading-none">↪</span>
+            <span>Sair</span>
           </>
         )}
       </button>
+      )}
 
       {isOpen && !isAuthenticated
         ? createPortal(

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 
 const BUCKET = "achievement-art";
@@ -20,6 +21,9 @@ function safeFilename(value: string) {
 }
 
 export async function POST(request: Request) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const formData = await request.formData();
     const gameSlug = String(formData.get("gameSlug") ?? "").trim();

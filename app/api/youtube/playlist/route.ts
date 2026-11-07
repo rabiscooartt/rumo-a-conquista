@@ -127,10 +127,10 @@ export async function GET(request: NextRequest) {
     const payload = (await response.json()) as YouTubePlaylistResponse;
 
     if (!response.ok) {
+      console.error("[YouTube Playlist] Resposta da API:", response.status, payload.error?.message);
       return NextResponse.json(
         {
           error:
-            payload.error?.message ||
             "Não foi possível carregar os conteúdos da playlist.",
         },
         { status: response.status }
@@ -211,9 +211,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível carregar a playlist.",
+          "Não foi possível carregar a playlist.",
       },
       { status: 500 }
     );

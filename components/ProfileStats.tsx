@@ -300,12 +300,12 @@ function StatItem({
   href?: string;
 }) {
   const content = (
-    <div className="group flex h-full min-w-[130px] flex-1 flex-col items-center justify-center border-r border-white/10 px-5 py-5 text-center last:border-r-0">
+    <div className="group flex h-full min-w-0 flex-1 flex-col items-center justify-center border-r border-white/10 px-3 py-5 text-center last:border-r-0 sm:min-w-[130px] sm:px-5">
       <div className="flex h-11 items-center justify-center text-[36px] leading-none transition group-hover:scale-110">
         {icon}
       </div>
 
-      <div className="mt-2 min-h-[54px] text-[46px] font-black leading-[0.88] text-white drop-shadow-[3px_3px_0_rgba(0,90,255,0.45)]">
+      <div className="mt-2 min-h-[44px] text-[36px] font-black leading-[0.88] text-white drop-shadow-[3px_3px_0_rgba(0,90,255,0.45)] sm:min-h-[54px] sm:text-[46px]">
         {value}
       </div>
 
@@ -320,7 +320,7 @@ function StatItem({
   return (
     <Link
       href={href}
-      className="min-w-[130px] flex-1 transition hover:bg-white/[0.03]"
+      className="min-w-0 flex-1 transition hover:bg-white/[0.03] sm:min-w-[130px]"
     >
       {content}
     </Link>
@@ -386,7 +386,7 @@ export default function ProfileStats() {
   const isLoaded = gamesLoaded;
 
   return (
-    <section className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+    <section className="grid grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
       <div className="flex items-center gap-4 rounded-[28px] border border-white/10 bg-zinc-950/80 px-5 py-6 shadow-xl">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl border border-purple-400/40 bg-purple-500/10 shadow-[0_0_24px_rgba(168,85,247,0.18)]">
           <AvatarImage />
@@ -395,7 +395,7 @@ export default function ProfileStats() {
         </div>
 
         <div className="min-w-0">
-          <h2 className="whitespace-nowrap text-3xl font-black text-white">
+          <h2 className="truncate text-2xl font-black text-white sm:whitespace-nowrap sm:text-3xl">
             orabiiisco
           </h2>
 
@@ -406,7 +406,7 @@ export default function ProfileStats() {
       </div>
 
       <div className="overflow-hidden rounded-[28px] border border-white/10 bg-zinc-950/80 shadow-xl">
-        <div className="flex h-full items-stretch justify-between">
+        <div className="grid h-full grid-cols-2 items-stretch sm:flex sm:justify-between">
           <StatItem
             icon="🏆"
             value={isLoaded ? String(totals.achievements) : "..."}

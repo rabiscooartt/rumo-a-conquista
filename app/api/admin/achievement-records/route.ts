@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
 
@@ -90,6 +91,9 @@ function clearAchievementMetadataForRow(
 }
 
 export async function POST(request: Request) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const slug = cleanText(body.slug);

@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { inferPrimaryGenre } from "@/lib/gameGenres";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
@@ -769,6 +770,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as { titles?: unknown; mode?: unknown };
     if (!Array.isArray(body.titles)) {

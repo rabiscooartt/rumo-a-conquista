@@ -1,4 +1,5 @@
 import { revalidateTag } from "next/cache";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
@@ -17,6 +18,9 @@ function normalize(value: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const formData = await request.formData();
     const gameSlug = String(formData.get("gameSlug") ?? "").trim();

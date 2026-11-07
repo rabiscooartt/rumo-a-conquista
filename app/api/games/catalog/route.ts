@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("[Public Game Catalog] Erro:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Não foi possível carregar o catálogo público." },
+      { error: "Não foi possível carregar o catálogo público." },
       { status: 500, headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   }

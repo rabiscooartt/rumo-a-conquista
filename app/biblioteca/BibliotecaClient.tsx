@@ -8,6 +8,7 @@ import BannerBackground from "@/components/BannerBackground";
 import IconPlatform from "@/components/PlatformIcon";
 import { formatGameGenreLabel, type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { homeImageSrc } from "@/lib/homeImages";
+import { getTrophyRank, TROPHY_META, type TrophyRank } from "@/lib/trophyRanks";
 import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
 
@@ -614,6 +615,37 @@ function getAchievementStats(game: BibliotecaGame): AchievementStats {
   };
 }
 
+type TrophyBreakdownItem = { rank: TrophyRank; label: string; icon: string; completed: number; total: number };
+
+// Mesmas regras da página do jogo: Bronze/Prata/Ouro pelo rank de cada conquista e a Maestria Final
+// pela recompensa configurada no jogo, conquistada quando o jogo é concluído.
+function getTrophyBreakdown(game: BibliotecaGame): TrophyBreakdownItem[] {
+  const achievements: AchievementLike[] = Array.isArray(game.achievementsList) ? game.achievementsList : [];
+  const manualStates = readLocalJson<Record<string, AchievementStorageState>>(
+    `rumo-a-conquista-achievements-${game.slug}`,
+    {}
+  );
+  const hiddenTitles = readLocalJson<string[]>(`rumo-a-conquista-hidden-achievements-${game.slug}`, []);
+  const visible = achievements
+    .map((achievement, index) => ({ achievement, title: getAchievementTitle(achievement, index) }))
+    .filter(({ title }) => !hiddenTitles.includes(title));
+
+  const masteryConfigured = Boolean(game.finalBadge?.title || game.finalBadge?.image || game.finalBadge?.description);
+  const masteryUnlocked = masteryConfigured && isCompletedGame(game);
+
+  return TROPHY_META.map(({ rank, label, icon }) => {
+    if (rank === "Maestria") {
+      return { rank, label, icon, completed: masteryUnlocked ? 1 : 0, total: masteryConfigured ? 1 : 0 };
+    }
+    const ofRank = visible.filter(({ achievement }) => getTrophyRank(achievement) === rank);
+    const completed = ofRank.filter(({ achievement, title }) =>
+      normalizeAchievementStatus(manualStates[title]?.status) === "completed" ||
+      normalizeAchievementStatus(readText(achievement.status, "locked")) === "completed"
+    ).length;
+    return { rank, label, icon, completed, total: ofRank.length };
+  });
+}
+
 function getProgressPercent(game: BibliotecaGame, stats: AchievementStats) {
   if (isCompletedGame(game)) return 100;
 
@@ -730,6 +762,8 @@ function GameEmblem({ game, className }: { game: BibliotecaGame; className?: str
         <img
           src={homeImageSrc(emblemImage)}
           alt={emblem.title}
+          loading="lazy"
+          decoding="async"
           className="h-full w-full object-contain"
           onError={(event) => {
             event.currentTarget.src = "/images/games/emblem.png";
@@ -887,9 +921,10 @@ function AchievementMiniatures({ items }: { items: AchievementPreviewItem[] }) {
           <span aria-hidden="true">{item.fallback}</span>
           {item.image ? (
             <img
-              src={item.image}
+              src={homeImageSrc(item.image)}
               alt=""
               loading="lazy"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
               onError={(event) => {
                 event.currentTarget.style.display = "none";
@@ -1040,9 +1075,12 @@ function formatActivityDate(dateValue: string) {
 function GameRow({
   game,
   activitySummary,
+  variant = "full",
 }: {
   game: BibliotecaGame;
   activitySummary?: ActivitySummary;
+  // "mobile" desenha só a linha compacta, sem baixar emblemas e miniaturas que ficariam escondidos.
+  variant?: "full" | "mobile";
 }) {
   const gameSlug = readText(game.slug, "");
   const gameTitle = readText(game.title, "Jogo");
@@ -1074,13 +1112,52 @@ function GameRow({
     ? "bg-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.55)]"
     : "bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.45)]";
 
+  const trophyBreakdown = getTrophyBreakdown(game);
+
   return (
     <Link
       prefetch={false}
       href={`/games/${gameSlug}`}
-      className="group/row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025]"
+      className="group/row block border-b border-white/[0.07] px-3 py-3.5 transition hover:bg-white/[0.025] sm:py-[18px]"
     >
-      <div className="grid grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+      {/* Celular: capa, nome, os quatro troféus, porcentagem e barra. */}
+      <div className={variant === "mobile" ? "flex items-center gap-3" : "flex items-center gap-3 sm:hidden"}>
+        <div className="h-[92px] w-[68px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+          <GameCoverImage src={cardImage} title={gameTitle} imageClassName="h-full w-full object-cover object-center brightness-90 contrast-110" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h2 className="line-clamp-2 text-[15px] font-black leading-[1.2] tracking-tight text-white" title={gameTitle}>
+            {gameTitle}
+          </h2>
+
+          <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1" aria-label="Troféus conquistados">
+            {trophyBreakdown.map((item) => (
+              <li
+                key={item.rank}
+                title={`${item.label}: ${item.completed} de ${item.total}`}
+                className={`flex items-center gap-1 ${item.total === 0 ? "opacity-40" : ""}`}
+              >
+                <img src={homeImageSrc(item.icon)} alt="" aria-hidden="true" loading="lazy" decoding="async" className="h-[18px] w-[18px] object-contain" />
+                <span className="text-[12px] font-black tabular-nums leading-none text-white/85" aria-hidden="true">{item.completed}</span>
+                <span className="sr-only">{`${item.label}: ${item.completed} de ${item.total}`}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-2.5 flex items-center gap-2.5">
+            <div className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label={`Conclusão de ${gameTitle}`}>
+              <div className={`h-full rounded-full transition-all duration-500 ${progressClass}`} style={{ width: `${progress}%` }} />
+            </div>
+            <span className={`w-10 shrink-0 text-right text-[12px] font-black ${isCompleted ? "text-emerald-300" : "text-white/60"}`}>
+              {progress}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {variant === "full" ? (
+      <div className="hidden grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
         <div className="h-[121px] w-[94px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
           <GameCoverImage src={cardImage} title={gameTitle} imageClassName="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover/row:scale-105 group-hover/row:brightness-105" />
         </div>
@@ -1152,6 +1229,7 @@ function GameRow({
           <GameEmblem game={game} />
         </div>
       </div>
+      ) : null}
     </Link>
   );
 }
@@ -1850,7 +1928,8 @@ export default function BibliotecaClient({
   const [platformFilter, setPlatformFilter] = useState("all");
   const [filterMenu, setFilterMenu] = useState<"status" | "platform" | "sort" | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+  // "auto": lista no celular e grade a partir de 640px, decidido só por CSS para não trocar após carregar.
+  const [viewMode, setViewMode] = useState<"auto" | "list" | "grid">("auto");
   const [genresBySlug, setGenresBySlug] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(
       (initialCatalog?.games ?? []).flatMap((game) =>
@@ -2645,15 +2724,6 @@ export default function BibliotecaClient({
               </div>
             </div>
 
-            <div className="mt-auto space-y-2 pt-8">
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new Event("rumo-admin-open-login"))}
-                className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[10px] font-black text-white transition hover:bg-red-500"
-              >
-                Entrar
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -2667,14 +2737,14 @@ export default function BibliotecaClient({
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-              <div className="relative min-h-[195px] px-7 py-5 md:px-7 md:py-5">
+              <div className="relative px-5 py-5 md:min-h-[195px] md:px-7 md:py-5">
                 <div className="max-w-[470px]">
                   <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                     <span className="text-[10px] leading-none">✣</span>
                     Sua jornada em jogos
                   </p>
 
-                  <h1 className="mt-2 text-[38px] font-black leading-none tracking-tight text-white md:text-[40px]">
+                  <h1 className="mt-2 text-[32px] font-black leading-none tracking-tight text-white sm:text-[38px] md:text-[40px]">
                     JOGOS DA JORNADA
                   </h1>
 
@@ -2683,34 +2753,34 @@ export default function BibliotecaClient({
                   </p>
                 </div>
 
-                <div className="absolute bottom-6 left-7 right-7 grid grid-cols-3">
-                  <div className="flex min-w-0 items-center gap-2.5 pr-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                <div className="relative mt-5 grid grid-cols-3 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0">
+                  <div className="flex min-w-0 items-center gap-2.5 pr-2.5 sm:pr-4">
+                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? bibliotecaGames.length : "—"}</p>
-                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Jogos na biblioteca</p>
+                      <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Jogos na biblioteca</p>
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-2.5 sm:px-4">
+                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? completedGames.length : "—"}</p>
-                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Finalizados</p>
+                      <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Finalizados</p>
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-4">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-2.5 sm:pl-4">
+                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? backlogGames.length : "—"}</p>
-                      <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">Na fila</p>
+                      <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Na fila</p>
                     </div>
                   </div>
                 </div>
@@ -2722,10 +2792,15 @@ export default function BibliotecaClient({
                 <div className="flex min-w-0 items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setViewMode((current) => (current === "list" ? "grid" : "list"))}
-                    aria-label={viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
-                    title={viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition ${viewMode === "grid" ? "border-red-500/35 bg-red-500/10 text-red-300" : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"}`}
+                    onClick={() =>
+                      setViewMode((current) => {
+                        if (current !== "auto") return current === "list" ? "grid" : "list";
+                        return window.matchMedia("(max-width: 639px)").matches ? "grid" : "list";
+                      })
+                    }
+                    aria-label={viewMode === "auto" ? "Alternar visualização" : viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
+                    title={viewMode === "auto" ? "Alternar visualização" : viewMode === "list" ? "Visualização em grade" : "Visualização em lista"}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition ${viewMode === "grid" ? "border-red-500/35 bg-red-500/10 text-red-300" : viewMode === "auto" ? "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white sm:border-red-500/35 sm:bg-red-500/10 sm:text-red-300" : "border-white/10 bg-white/[0.02] text-white/45 hover:border-white/20 hover:text-white"}`}
                   >
                     <IconGrid className="h-[18px] w-[18px]" />
                   </button>
@@ -2742,7 +2817,7 @@ export default function BibliotecaClient({
 
                 </div>
 
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <div className="relative">
                     <button
                       type="button"
@@ -2810,8 +2885,21 @@ export default function BibliotecaClient({
                 ) : filteredGames.length === 0 ? (
                   <div className="py-10 text-center text-sm text-white/40">Nenhum jogo encontrado.</div>
                 ) : (
-                  viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-3 pt-[8px] pb-[8px] sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  viewMode !== "list" ? (
+                    <>
+                    {viewMode === "auto" ? (
+                      <div className="sm:hidden">
+                        {filteredGames.map((game) => (
+                          <GameRow
+                            key={game.slug}
+                            game={game}
+                            variant="mobile"
+                            activitySummary={activitySummaryByGame.get(readText(game.slug, ""))}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className={`${viewMode === "auto" ? "hidden sm:grid" : "grid"} grid-cols-2 gap-x-3 gap-y-3 pt-[8px] pb-[8px] sm:gap-x-3.5 sm:gap-y-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5`}>
                       {filteredGames.map((game) => (
                         <GameGridCard
                           key={game.slug}
@@ -2820,6 +2908,7 @@ export default function BibliotecaClient({
                         />
                       ))}
                     </div>
+                    </>
                   ) : (
                     filteredGames.map((game) => (
                       <GameRow

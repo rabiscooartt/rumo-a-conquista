@@ -1,4 +1,5 @@
 import { revalidateTag } from "next/cache";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import {
@@ -1249,6 +1250,9 @@ export async function GET(request: NextRequest) {
  * sincroniza também as definições e o progresso das conquistas.
  */
 export async function POST(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as GamePayload;
     const slug = normalizeSlug(body.slug);
@@ -1538,6 +1542,9 @@ export async function POST(request: NextRequest) {
  * sincroniza também as definições e o progresso das conquistas.
  */
 export async function PUT(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as GamePayload;
     const slug = normalizeSlug(body.slug);
@@ -1625,6 +1632,9 @@ export async function PUT(request: NextRequest) {
  * - restore  → restaura
  */
 export async function DELETE(request: NextRequest) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = (await request.json()) as {
       slug?: string;

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { createClient } from "@supabase/supabase-js";
 
 const BUCKET = "achievement-preparation-drafts";
@@ -34,6 +35,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const slug = String(body.slug ?? "").trim();
@@ -51,6 +55,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   try {
     const slug = new URL(request.url).searchParams.get("slug")?.trim();
     if (!slug) return NextResponse.json({ error: "Slug do jogo é obrigatório." }, { status: 400 });

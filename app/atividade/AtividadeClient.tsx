@@ -12,7 +12,7 @@ import {
 import Navbar from "@/components/Navbar";
 import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
-import { AUTH_CHANGED_EVENT, OPEN_LOGIN_EVENT } from "@/components/AdminAvatarLogin";
+import { AUTH_CHANGED_EVENT } from "@/components/AdminAvatarLogin";
 import { formatAchievementDescription, formatAchievementTitle, useSiteGames } from "@/lib/useSiteGames";
 import { homeImageSrc } from "@/lib/homeImages";
 import {
@@ -1260,17 +1260,17 @@ function Metric({
   return (
     <div
       className={`flex min-w-0 items-center gap-2.5 ${
-        divided ? "border-l border-white/10 pl-4" : ""
+        divided ? "border-l border-white/10 pl-2.5 sm:pl-4" : ""
       }`}
     >
-      <PremiumIconBadge>{icon}</PremiumIconBadge>
+      <span className="hidden min-[480px]:contents"><PremiumIconBadge>{icon}</PremiumIconBadge></span>
 
       <div className="min-w-0">
         <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
 
-        <p className="mt-1 truncate text-[13px] font-medium leading-[1.25] text-white/55">
+        <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">
           {label}
         </p>
       </div>
@@ -1493,10 +1493,6 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
       window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
       window.location.reload();
     }
-  }
-
-  function handleSidebarLogin() {
-    window.dispatchEvent(new Event(OPEN_LOGIN_EVENT));
   }
 
   const [activeTab, setActiveTab] =
@@ -2272,14 +2268,6 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                   <span className="text-sm">↪</span>
                   Sair
                 </button>
-              ) : isAdminStatusLoaded ? (
-                <button
-                  type="button"
-                  onClick={handleSidebarLogin}
-                  className="mt-2 w-full rounded-lg bg-red-600 px-3 py-3 text-[12px] font-black text-white transition hover:bg-red-500"
-                >
-                  Entrar
-                </button>
               ) : null}
             </div>
           </div>
@@ -2297,7 +2285,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="relative min-h-[290px] px-5 py-6 sm:min-h-[255px] sm:px-7 sm:py-6 lg:min-h-[230px]">
+            <div className="relative px-5 py-6 sm:min-h-[255px] sm:px-7 sm:py-6 lg:min-h-[230px]">
               <div className="max-w-[400px]">
                 <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                   <span className="text-[10px] leading-none">✣</span>
@@ -2325,7 +2313,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                 </button>
               )}
 
-              <div className="absolute bottom-6 left-5 right-5 grid grid-cols-2 gap-x-2 gap-y-3 sm:bottom-7 sm:left-7 sm:right-7 sm:grid-cols-3 sm:gap-y-0">
+              <div className="relative mt-5 grid grid-cols-3 gap-x-2 sm:absolute sm:bottom-7 sm:left-7 sm:right-7 sm:mt-0">
                 <Metric
                   icon={<IconMetricDays className="h-[22px] w-[22px]" />}
                   label="Dias jogados"
@@ -2486,7 +2474,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                         onClick={() =>
                           setActiveTab(value)
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-t-lg px-3 py-3 text-[12px] font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70 sm:px-4 sm:text-[13px] ${
+                        className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-t-lg px-1.5 py-3 text-[11px] font-black min-[380px]:flex-none min-[380px]:px-3 min-[380px]:text-[12px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/70 sm:px-4 sm:text-[13px] ${
                           activeTab === value
                             ? "bg-red-500/10 text-red-300"
                             : "text-white/40 hover:text-white"

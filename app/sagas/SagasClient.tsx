@@ -1215,7 +1215,7 @@ export default function SagasClient({
   return (
     <main
       id="topo-emblemas"
-      className="min-h-screen bg-[radial-gradient(ellipse_at_center,#141310_0%,#070706_48%,#020202_100%)] text-white"
+      className="min-h-screen overflow-x-clip bg-[radial-gradient(ellipse_at_center,#141310_0%,#070706_48%,#020202_100%)] text-white"
     >
       <Navbar />
 
