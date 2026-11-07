@@ -597,7 +597,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
 
   if (!isLoaded && !game && (!games || games.length === 0)) {
     return (
-      <section className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 p-10 text-white/50 shadow-xl">
+      <section className="flex min-h-[600px] items-center overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 p-10 text-white/50 shadow-xl sm:min-h-[420px]">
         Carregando banner...
       </section>
     );
