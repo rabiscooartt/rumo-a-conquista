@@ -4196,6 +4196,7 @@ function PrepararJogoPage() {
                         <div className="mt-3 space-y-2">
                           {realizedCandidates.map(({ achievement, score }) => (
                             <button
+                              key={achievement.id}
                               type="button"
                               onClick={() => focusAchievement(achievement.id)}
                               className="w-full rounded-xl border border-white/[.07] bg-white/[.02] p-3 text-left transition hover:border-violet-300/30 hover:bg-violet-400/[.05]"

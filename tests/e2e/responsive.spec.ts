@@ -22,7 +22,8 @@ const PUBLIC_ROUTES = [
 const KNOWN_MISSING_ASSETS = [
   "/images/games/monster-hunter-world-iceborne/achievements/equipe-seu-primeiro-pingente-dlc-iceborne.png",
 ];
-const KNOWN_MISSING_PATTERN = /^\/images\/sagas\/[a-z0-9-]+\/badge\.jpg$/;
+// Também a arte padrão da Maestria Final, procurada quando o jogo não tem imagem própria (ver docs/PENDENCIAS.md).
+const KNOWN_MISSING_PATTERN = /^\/images\/(sagas\/[a-z0-9-]+\/(badge|cover)\.jpg|games\/[a-z0-9-]+\/achievements\/maestria-final\.png)$/;
 
 const ADMIN_ROUTES = ["/admin/jogos", "/admin/jornada", "/admin/backlog", "/admin/sagas", "/admin/sorteio-jogos"];
 

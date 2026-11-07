@@ -2052,7 +2052,7 @@ export default function AdminAtividadePage() {
                 <div className="mt-3 space-y-3.5">
                   {[
                     [
-                      <img
+                      <img key="flame"
                         src="/images/activity-summary-icons/flame.png"
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
@@ -2061,7 +2061,7 @@ export default function AdminAtividadePage() {
                       `${currentStreak} dias`,
                     ],
                     [
-                      <img
+                      <img key="trophy"
                         src="/images/activity-summary-icons/trophy.png"
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
@@ -2070,7 +2070,7 @@ export default function AdminAtividadePage() {
                       `${summaryAchievementsLast60}`,
                     ],
                     [
-                      <img
+                      <img key="target"
                         src="/images/activity-summary-icons/target.png"
                         alt=""
                         className="h-[38px] w-[38px] object-contain"

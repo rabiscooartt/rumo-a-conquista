@@ -3112,7 +3112,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                 <div className="mt-3 space-y-3.5">
                   {[
                     [
-                      <img
+                      <img key="flame"
                         src={homeImageSrc("/images/activity-summary-icons/flame.png")}
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
@@ -3121,7 +3121,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                       `${currentStreak} dias`,
                     ],
                     [
-                      <img
+                      <img key="trophy"
                         src={homeImageSrc("/images/activity-summary-icons/trophy.png")}
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
@@ -3130,7 +3130,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                       `${summaryAchievementsLast60}`,
                     ],
                     [
-                      <img
+                      <img key="target"
                         src={homeImageSrc("/images/activity-summary-icons/target.png")}
                         alt=""
                         className="h-[38px] w-[38px] object-contain"
