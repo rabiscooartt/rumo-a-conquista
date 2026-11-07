@@ -475,15 +475,66 @@ a {
 .backdrop-blur-xl {
   transform: translateZ(0);
 }
-/* Margens externas precisas do cabeçalho desktop: 50 px de respiro visual
-   até o lettering e 45 px depois do conjunto avatar + seta. */
+/* Cabeçalho em caixa centralizada (não full-bleed), com bordas laterais
+   visíveis. O conteúdo fica 50 px após a borda interna esquerda e o conjunto
+   avatar/seta termina 45 px antes da borda interna direita. */
+header.rac-navbar-shell {
+  display: block !important;
+  width: calc(100% - 24px);
+  max-width: 1620px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+
+header.rac-navbar-shell > div:first-child {
+  border-radius: inherit;
+}
+
 @media (min-width: 1080px) {
+  header.rac-navbar-shell {
+    width: 84vw;
+  }
+
   header .rac-navbar-content {
-    margin-left: 0 !important;
-    margin-right: 45px !important;
-    width: calc(100% - 45px) !important;
+    margin: 0 !important;
+    width: 100% !important;
     max-width: none !important;
-    padding-left: 40px !important;
-    padding-right: 0 !important;
+    padding-left: 39px !important;
+    padding-right: 45px !important;
+  }
+}
+
+@media (min-width: 1080px) and (max-width: 1199px) {
+  header.rac-navbar-shell {
+    width: calc(1296px - 24vw);
+  }
+}
+
+@media (min-width: 1080px) and (max-width: 1279px) {
+  header .rac-navbar-content {
+    gap: 10px !important;
+  }
+
+  header .rac-navbar-content > a:first-child {
+    width: 164px !important;
+  }
+
+  header .rac-navbar-content > a:first-child img {
+    width: 148px !important;
+  }
+
+  header .rac-navbar-content > nav {
+    gap: 0 !important;
+  }
+
+  header .rac-navbar-content > div:nth-of-type(2) {
+    width: 136px !important;
+  }
+
+  header .rac-navbar-content > div:nth-of-type(3) {
+    gap: 6px !important;
   }
 }

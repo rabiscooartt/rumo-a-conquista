@@ -192,14 +192,14 @@ export default function Navbar() {
 
 
   return (
-    <header className="relative z-50 isolate w-full overflow-visible border-b border-white/10 bg-black/95 shadow-[0_8px_28px_rgba(0,0,0,.42)] backdrop-blur-xl">
+    <header className="rac-navbar-shell relative z-50 isolate mt-0 overflow-visible bg-black/95 shadow-[0_8px_28px_rgba(0,0,0,.42)] backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(25,39,55,.30),transparent_68%)]" />
         <div className="absolute inset-y-0 left-0 w-[24%] bg-[linear-gradient(90deg,rgba(145,19,33,.11),transparent)]" />
         <div className="absolute inset-y-0 right-0 w-[24%] bg-[linear-gradient(270deg,rgba(145,19,33,.11),transparent)]" />
       </div>
       <div className="pointer-events-none absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-red-500/45 to-transparent" aria-hidden="true" />
-      <div className="rac-navbar-content relative z-10 mx-auto flex min-h-[48px] w-full max-w-[1140px] items-center gap-2 px-2.5 sm:px-3 min-[1080px]:min-h-[60px] min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[64px]">
+      <div className="rac-navbar-content relative z-10 flex min-h-[48px] w-full items-center gap-2 px-2.5 sm:px-3 min-[1080px]:min-h-[60px] min-[1080px]:gap-4 min-[1080px]:px-4 2xl:min-h-[64px]">
         <Link
           href="/"
           aria-label="Rumo à Conquista - Início"
