@@ -77,22 +77,22 @@ Os 7 erros `react/jsx-key` foram corrigidos nesta etapa.
 - Credenciais da Twitch ausentes na Vercel: a detecção de live da Twitch continua inativa.
 - 8 avisos moderados só nas ferramentas de lint (dependências de desenvolvimento).
 
-## 6. Migração das imagens antigas do Storage (pendente — não executada)
+## 6. Migração das imagens antigas do Storage (preparada — não executada)
 
-`scripts/migrate-storage-images.mjs` não deve ser rodado antes destas correções:
+`scripts/migrate-storage-images.mjs` (lógica em `lib/images/storageMigration.ts`, testada com
+Storage simulado) já resolve os bloqueios da revisão: banner/avatar só migram quando o legado
+é a versão ativa e nenhum ponteiro é gravado; erro por objeto sem interromper os demais;
+progresso gravado por objeto e retomada; entrada até 10 MB; WebP e envio conferidos; SQL com
+backup prévio, curingas escapados, `commit` explícito e reversão. Imagens com cópia leve local
+de correspondência exata (`data/homeImageVariants.json`: hoje as 29 artes do Mouse e o avatar,
+se a versão ativa for a mapeada) são preservadas: sem download, envio ou SQL. Cada banner/avatar
+registra o estado do ponteiro, e falha de listagem é sempre erro.
 
-- **Banner/avatar antigo reativado:** o ponteiro de ativação (`site-profile/active/*.json`)
-  já impede que um arquivo migrado substitua um banner ou avatar enviado depois do deploy.
-  Sem ponteiro, porém, a versão migrada passa a ser a "mais recente". O script deve pular
-  banner/avatar que já tenham ponteiro e, ao migrar, gravar o ponteiro de forma explícita.
-- **Progresso e erros:** hoje o script para no primeiro erro e só grava plano, resultado e SQL
-  no final. Precisa tratar erro por arquivo, registrar o progresso de cada um durante a
-  execução e permitir retomar (o reenvio já reaproveita arquivos idênticos sem duplicar).
-- **Entrada até 10 MB:** o bucket `achievement-art` aceita 10 MB, mas o pipeline usa o limite
-  de 4 MB dos uploads. O script deve passar `maxInputBytes` de 10 MB.
-- **SQL gerado:** escapar `%` e `_` no `LIKE`, trocar o `begin;` com `commit` comentado por um
-  fluxo explícito, gravar antes um retrato dos valores atuais (`achievements.image` e
-  `achievement_progress.image_override`) e gerar o SQL de reversão. Avaliar também outras
-  referências a URLs antigas (ex.: `finalBadge.image` da Maestria) e a invalidação do cache.
-- **Custo:** o modo de plano (`--confirm-remote`) baixa todos os originais antigos (Egress fora
-  do cache, da ordem do tamanho atual do Storage).
+Ainda depende de autorização e fica fora do script:
+
+- **Rodar** o plano (`--confirm-remote`, baixa os originais: Egress fora do cache, da ordem do
+  tamanho do Storage) e depois o envio (`--apply`, de preferência em lote com `--limit`).
+- **Aplicar** `migration.sql` no banco (cria `public.image_migration_backup`); o reverso é
+  `rollback.sql`.
+- **Não cobertos pelo SQL:** URLs antigas dentro de `games.final_badge` (JSON da Maestria) e
+  de rascunhos; continuam funcionando porque os originais não são apagados.

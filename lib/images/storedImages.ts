@@ -95,16 +95,46 @@ function readFraming(value: unknown): ImageFraming | null {
   return { x: numbers[0], y: numbers[1], zoom: numbers[2] };
 }
 
+export type PointerInspection =
+  | { state: "present"; pointer: ActivePointer }
+  | { state: "absent" }
+  | { state: "invalid"; reason: string }
+  /** Erro de leitura que não é "não encontrado" (rede, permissão...). */
+  | { state: "unreadable"; reason: string };
+
+function isNotFound(error: unknown) {
+  const value = error as { status?: unknown; statusCode?: unknown; message?: unknown } | null;
+  const status = String(value?.statusCode ?? value?.status ?? "");
+  return status === "404" || /not.?found/i.test(String(value?.message ?? ""));
+}
+
+/** Lê o ponteiro e diz exatamente em que estado ele está. */
+export async function inspectActivePointer(client: StorageReader, target: FixedImageTarget): Promise<PointerInspection> {
+  const api = client.storage.from(ACTIVE_POINTER_BUCKET);
+  if (!api.download) return { state: "absent" };
+  let text: string;
+  try {
+    const { data, error } = await api.download(pointerPath(target));
+    if (error) return isNotFound(error) ? { state: "absent" } : { state: "unreadable", reason: String((error as { message?: unknown }).message ?? error) };
+    if (!data) return { state: "absent" };
+    text = await data.text();
+  } catch (error) {
+    return { state: "unreadable", reason: error instanceof Error ? error.message : String(error) };
+  }
+  try {
+    const parsed = JSON.parse(text) as { file?: unknown; framing?: unknown };
+    if (!isValidActiveFile(target, parsed.file)) return { state: "invalid", reason: "arquivo do ponteiro fora do formato <base>.<hash>.webp" };
+    return { state: "present", pointer: { file: parsed.file, framing: readFraming(parsed.framing) } };
+  } catch {
+    return { state: "invalid", reason: "JSON do ponteiro ilegível" };
+  }
+}
+
 /** Lê o ponteiro; null quando não existe, é inválido ou não pôde ser lido. */
 export async function readActivePointer(client: StorageReader, target: FixedImageTarget): Promise<ActivePointer | null> {
   try {
-    const api = client.storage.from(ACTIVE_POINTER_BUCKET);
-    if (!api.download) return null;
-    const { data, error } = await api.download(pointerPath(target));
-    if (error || !data) return null;
-    const parsed = JSON.parse(await data.text()) as { file?: unknown; framing?: unknown };
-    if (!isValidActiveFile(target, parsed.file)) return null;
-    return { file: parsed.file, framing: readFraming(parsed.framing) };
+    const inspection = await inspectActivePointer(client, target);
+    return inspection.state === "present" ? inspection.pointer : null;
   } catch {
     return null;
   }
@@ -145,6 +175,78 @@ export type ActiveStoredImage = {
   source: "pointer" | "fallback" | "none";
 };
 
+/** Estado do ponteiro, como diagnosticado junto com a escolha da versão ativa. */
+export type PointerState = "valid" | "absent" | "invalid" | "missing-file" | "unreadable" | "unverified";
+
+export type ActiveImageInspection = {
+  active: ActiveStoredImage;
+  pointerState: PointerState;
+  /** Arquivo citado pelo ponteiro (válido, removido ou não conferido). */
+  pointerFile?: string;
+  /** Falha ao listar a pasta: a escolha não pôde ser conferida. */
+  listingError?: string;
+  /** Arquivo escolhido na pasta, quando a escolha veio da regra de compatibilidade. */
+  chosenFile?: { name: string; created_at?: string | null; updated_at?: string | null };
+};
+
+/**
+ * Escolha da versão ativa com diagnóstico completo:
+ * - ponteiro válido e arquivo existente → "valid";
+ * - ponteiro válido, mas listagem indisponível → "unverified" (o site confia no ponteiro);
+ * - ponteiro válido para arquivo removido → "missing-file" (vale a regra de compatibilidade);
+ * - sem ponteiro → "absent"; ponteiro ilegível ou fora do formato → "invalid";
+ * - erro ao ler o ponteiro → "unreadable".
+ * Sem ponteiro utilizável: a versão mais recente que existe na pasta (imutável ou legado).
+ */
+export async function inspectActiveStoredImage(
+  client: StorageReader,
+  target: FixedImageTarget
+): Promise<ActiveImageInspection> {
+  const none: ActiveStoredImage = { url: "", framing: null, source: "none" };
+  const api = client.storage.from(target.bucket);
+  const [inspection, listing] = await Promise.all([
+    inspectActivePointer(client, target).catch(
+      (error): PointerInspection => ({ state: "unreadable", reason: String(error) })
+    ),
+    api
+      .list(target.folder, { limit: 1000, sortBy: { column: "created_at", order: "desc" } })
+      .catch((error: unknown) => ({ data: null, error })),
+  ]);
+  const listingError = listing.error
+    ? String((listing.error as { message?: unknown }).message ?? listing.error)
+    : !listing.data
+      ? "listagem vazia (null)"
+      : undefined;
+  const files = listingError ? null : listing.data;
+  const pointer = inspection.state === "present" ? inspection.pointer : null;
+
+  if (pointer && (!files || files.some((file) => file.name === pointer.file))) {
+    return {
+      active: {
+        url: api.getPublicUrl(`${target.folder}/${pointer.file}`).data.publicUrl,
+        framing: pointer.framing,
+        source: "pointer",
+      },
+      pointerState: files ? "valid" : "unverified",
+      pointerFile: pointer.file,
+      listingError,
+    };
+  }
+
+  const pointerState: PointerState = pointer ? "missing-file" : inspection.state === "present" ? "valid" : inspection.state;
+  const base = { pointerState, pointerFile: pointer?.file, listingError };
+  if (!files) return { ...base, active: none };
+
+  const file = pickLatestStoredImage(files, target.baseName);
+  if (!file) return { ...base, active: none };
+  const { data } = api.getPublicUrl(`${target.folder}/${file.name}`);
+  return {
+    ...base,
+    active: { url: storedImageUrl(data.publicUrl, file), framing: null, source: "fallback" },
+    chosenFile: { name: file.name, created_at: file.created_at, updated_at: file.updated_at },
+  };
+}
+
 /**
  * Versão ativa: a do ponteiro, se o arquivo apontado existir na pasta. Se o arquivo tiver sido
  * removido (ou não houver ponteiro), vale a regra de compatibilidade, determinística: a versão
@@ -154,31 +256,10 @@ export async function resolveActiveStoredImage(
   client: StorageReader,
   target: FixedImageTarget
 ): Promise<ActiveStoredImage> {
-  const none: ActiveStoredImage = { url: "", framing: null, source: "none" };
   try {
-    const api = client.storage.from(target.bucket);
-    const [pointer, listing] = await Promise.all([
-      readActivePointer(client, target),
-      api.list(target.folder, { limit: 1000, sortBy: { column: "created_at", order: "desc" } }),
-    ]);
-    const files = listing.error ? null : listing.data;
-
-    // Sem listagem não dá para conferir: confia no ponteiro (o caso comum é o arquivo existir).
-    if (pointer && (!files || files.some((file) => file.name === pointer.file))) {
-      return {
-        url: api.getPublicUrl(`${target.folder}/${pointer.file}`).data.publicUrl,
-        framing: pointer.framing,
-        source: "pointer",
-      };
-    }
-    if (!files) return none;
-
-    const file = pickLatestStoredImage(files, target.baseName);
-    if (!file) return none;
-    const { data } = api.getPublicUrl(`${target.folder}/${file.name}`);
-    return { url: storedImageUrl(data.publicUrl, file), framing: null, source: "fallback" };
+    return (await inspectActiveStoredImage(client, target)).active;
   } catch {
-    return none;
+    return { url: "", framing: null, source: "none" };
   }
 }
 
