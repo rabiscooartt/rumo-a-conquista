@@ -1,0 +1,2690 @@
+{
+  "totals": {
+    "variants": 122,
+    "localVariants": 91,
+    "originalBytes": 132152883,
+    "optimizedBytes": 6470104
+  },
+  "entries": [
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/ecos-do-palco-profano.png",
+      "variant": "/images/home/crisol-theater-of-idols-ecos-do-palco-profano.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 4594,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2792309,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/01-mestre-dos-macetes.png",
+      "variant": "/images/home/mouse-p-i-for-hire-01-mestre-dos-macetes.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6270,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "/images/games/howgarts-legacy/achievements/o-legado-desperto.png",
+      "variant": "/images/home/howgarts-legacy-o-legado-desperto.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 5500,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2812474,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/02-armas-muitas-armas.png",
+      "variant": "/images/home/mouse-p-i-for-hire-02-armas-muitas-armas.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6624,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "/images/games/howgarts-legacy/achievements/bruxo-em-plenitude.png",
+      "variant": "/images/home/howgarts-legacy-bruxo-em-plenitude.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7014,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 3114819,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/arsenal-dos-idolos-caidos.png",
+      "variant": "/images/home/crisol-theater-of-idols-arsenal-dos-idolos-caidos.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 5086,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2486293,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/escrituras-do-maremanto.png",
+      "variant": "/images/home/crisol-theater-of-idols-escrituras-do-maremanto.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 5372,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2724855,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/howgarts-legacy/achievements/todos-os-segredos-de-hogwarts.png",
+      "variant": "/images/home/howgarts-legacy-todos-os-segredos-de-hogwarts.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6746,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 3083227,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/03-taco-tudo.png",
+      "variant": "/images/home/mouse-p-i-for-hire-03-taco-tudo.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6176,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/04-ta-tudo-nas-cartas.png",
+      "variant": "/images/home/mouse-p-i-for-hire-04-ta-tudo-nas-cartas.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6836,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/ascensao-penitente.png",
+      "variant": "/images/home/crisol-theater-of-idols-ascensao-penitente.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 5558,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2647406,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/howgarts-legacy/achievements/guardiao-do-legado.png",
+      "variant": "/images/home/howgarts-legacy-guardiao-do-legado.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 8908,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 3393687,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.7
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/primeira-reverencia-ao-idolo.png",
+      "variant": "/images/home/crisol-theater-of-idols-primeira-reverencia-ao-idolo.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 4862,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2699551,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/05-entao-quem-foi.png",
+      "variant": "/images/home/mouse-p-i-for-hire-05-entao-quem-foi.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6268,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/06-balada-de-betty-borocoxo.png",
+      "variant": "/images/home/mouse-p-i-for-hire-06-balada-de-betty-borocoxo.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6554,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/07-alivio-comico.png",
+      "variant": "/images/home/mouse-p-i-for-hire-07-alivio-comico.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6500,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/08-detetive-de-romance-de-banca-de-jornal.png",
+      "variant": "/images/home/mouse-p-i-for-hire-08-detetive-de-romance-de-banca-de-jornal.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6440,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/09-extra-extra.png",
+      "variant": "/images/home/mouse-p-i-for-hire-09-extra-extra.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6328,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/10-o-martirio-do-magico-misterioso.png",
+      "variant": "/images/home/mouse-p-i-for-hire-10-o-martirio-do-magico-misterioso.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6440,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/11-verdadeiro-detetive.png",
+      "variant": "/images/home/mouse-p-i-for-hire-11-verdadeiro-detetive.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6490,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/12-hora-do-b-a-n-g.png",
+      "variant": "/images/home/mouse-p-i-for-hire-12-hora-do-b-a-n-g.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6912,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/13-o-prologo.png",
+      "variant": "/images/home/mouse-p-i-for-hire-13-o-prologo.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6804,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/14-misterios-da-mingua-dos-musaranhos.png",
+      "variant": "/images/home/mouse-p-i-for-hire-14-misterios-da-mingua-dos-musaranhos.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6650,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/15-essa-e-a-minha-espingarda.png",
+      "variant": "/images/home/mouse-p-i-for-hire-15-essa-e-a-minha-espingarda.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6662,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/17-romance-muito-grafico.png",
+      "variant": "/images/home/mouse-p-i-for-hire-17-romance-muito-grafico.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7170,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/18-pessoal-de-papel.png",
+      "variant": "/images/home/mouse-p-i-for-hire-18-pessoal-de-papel.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6736,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/19-as-de-bolso.png",
+      "variant": "/images/home/mouse-p-i-for-hire-19-as-de-bolso.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6710,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/20-todo-mundo-ama-pistolas-de-raio.png",
+      "variant": "/images/home/mouse-p-i-for-hire-20-todo-mundo-ama-pistolas-de-raio.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6420,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/21-baralho-de-iniciante.png",
+      "variant": "/images/home/mouse-p-i-for-hire-21-baralho-de-iniciante.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6608,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/22-rato-de-baralho.png",
+      "variant": "/images/home/mouse-p-i-for-hire-22-rato-de-baralho.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7080,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/23-q-q-queijociniooo.png",
+      "variant": "/images/home/mouse-p-i-for-hire-23-q-q-queijociniooo.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7576,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/25-boom-bastico.png",
+      "variant": "/images/home/mouse-p-i-for-hire-25-boom-bastico.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7692,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/28-16-toneladas-de-spike-d.png",
+      "variant": "/images/home/mouse-p-i-for-hire-28-16-toneladas-de-spike-d.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7536,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/30-felicidade-do-quint.png",
+      "variant": "/images/home/mouse-p-i-for-hire-30-felicidade-do-quint.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7332,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/31-mortissima-trindade.png",
+      "variant": "/images/home/mouse-p-i-for-hire-31-mortissima-trindade.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7336,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/manual-finalizacao-no-modo-normal.png",
+      "variant": "/images/home/mouse-p-i-for-hire-manual-finalizacao-no-modo-normal.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7162,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/manual-estreia-vitoriosa.png",
+      "variant": "/images/home/mouse-p-i-for-hire-manual-estreia-vitoriosa.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7766,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/manual-nada-ficou-para-tras.png",
+      "variant": "/images/home/mouse-p-i-for-hire-manual-nada-ficou-para-tras.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7894,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "/images/games/howgarts-legacy/emblem.png",
+      "variant": "/images/home/howgarts-legacy-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 58306,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2102531,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.2
+    },
+    {
+      "source": "/images/games/mouse-p-i-for-hire/emblem.png",
+      "variant": "/images/home/mouse-p-i-for-hire-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 50070,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2053176,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.6
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/emblem.png",
+      "variant": "/images/home/crisol-theater-of-idols-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 51284,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 1197270,
+      "original": {
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "hasAlpha": true
+      },
+      "reductionPercent": 95.7
+    },
+    {
+      "source": "/images/games/howgarts-legacy/cover.jpg",
+      "variant": "/images/home/howgarts-legacy-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 26768,
+      "optimized": {
+        "format": "webp",
+        "width": 372,
+        "height": 450,
+        "hasAlpha": false
+      },
+      "originalBytes": 135522,
+      "original": {
+        "format": "jpeg",
+        "width": 372,
+        "height": 450,
+        "hasAlpha": false
+      },
+      "reductionPercent": 80.2
+    },
+    {
+      "source": "/images/games/mouse-p-i-for-hire/cover.jpg",
+      "variant": "/images/home/mouse-p-i-for-hire-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 17992,
+      "optimized": {
+        "format": "webp",
+        "width": 320,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 430752,
+      "original": {
+        "format": "jpeg",
+        "width": 1440,
+        "height": 2160,
+        "hasAlpha": false
+      },
+      "reductionPercent": 95.8
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/cover.jpg",
+      "variant": "/images/home/crisol-theater-of-idols-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 59930,
+      "optimized": {
+        "format": "webp",
+        "width": 480,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 204411,
+      "original": {
+        "format": "heif",
+        "width": 1024,
+        "height": 1024,
+        "hasAlpha": false
+      },
+      "reductionPercent": 70.7
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/banner.jpg",
+      "variant": "/images/home/monster-hunter-world-iceborne-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 209304,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 414370,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 49.5
+    },
+    {
+      "source": "/images/avatar.jpg",
+      "variant": "/images/home/avatar.webp",
+      "preset": {
+        "width": 384,
+        "height": 480,
+        "quality": 86
+      },
+      "optimizedBytes": 44576,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 475,
+        "hasAlpha": false
+      },
+      "originalBytes": 336815,
+      "original": {
+        "format": "jpeg",
+        "width": 1680,
+        "height": 2080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 86.8
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/site-profile/profile/avatar?v=2026-10-25T18%3A38%3A23.346Z",
+      "variant": "/images/home/site-profile-profile-avatar.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 88
+      },
+      "optimizedBytes": 30556,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "https://mjrbqsgdtssedjldenzo.supabase.co/storage/v1/object/public/achievement-art/games/mouse-p-i-for-hire/achievements/01-mestre-dos-macetes.png?v=1793662305750",
+      "variant": "/images/home/mouse-p-i-for-hire-01-mestre-dos-macetes.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6270,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      }
+    },
+    {
+      "source": "/images/games/hollow-knight/cover.jpg",
+      "variant": "/images/home/hollow-knight-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 21794,
+      "optimized": {
+        "format": "webp",
+        "width": 346,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 62201,
+      "original": {
+        "format": "jpeg",
+        "width": 720,
+        "height": 1000,
+        "hasAlpha": false
+      },
+      "reductionPercent": 65
+    },
+    {
+      "source": "/images/games/song-of-nunu/cover.jpg",
+      "variant": "/images/home/song-of-nunu-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 35532,
+      "optimized": {
+        "format": "webp",
+        "width": 360,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 162951,
+      "original": {
+        "format": "jpeg",
+        "width": 1200,
+        "height": 1600,
+        "hasAlpha": false
+      },
+      "reductionPercent": 78.2
+    },
+    {
+      "source": "/images/games/hades/cover.jpg",
+      "variant": "/images/home/hades-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 28906,
+      "optimized": {
+        "format": "webp",
+        "width": 348,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 71411,
+      "original": {
+        "format": "jpeg",
+        "width": 362,
+        "height": 500,
+        "hasAlpha": false
+      },
+      "reductionPercent": 59.5
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division/cover.jpg",
+      "variant": "/images/home/tom-clancy-s-the-division-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 44206,
+      "optimized": {
+        "format": "webp",
+        "width": 320,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 247823,
+      "original": {
+        "format": "jpeg",
+        "width": 720,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 82.2
+    },
+    {
+      "source": "/images/games/metro-last-light/cover.jpg",
+      "variant": "/images/home/metro-last-light-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 21440,
+      "optimized": {
+        "format": "webp",
+        "width": 250,
+        "height": 305,
+        "hasAlpha": false
+      },
+      "originalBytes": 41750,
+      "original": {
+        "format": "jpeg",
+        "width": 250,
+        "height": 305,
+        "hasAlpha": false
+      },
+      "reductionPercent": 48.6
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/cover.jpg",
+      "variant": "/images/home/monster-hunter-world-iceborne-cover.webp",
+      "preset": {
+        "width": 480,
+        "height": 480,
+        "quality": 84
+      },
+      "optimizedBytes": 53786,
+      "optimized": {
+        "format": "webp",
+        "width": 480,
+        "height": 480,
+        "hasAlpha": false
+      },
+      "originalBytes": 60624,
+      "original": {
+        "format": "webp",
+        "width": 500,
+        "height": 500,
+        "hasAlpha": false
+      },
+      "reductionPercent": 11.3
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/maestria-final.png",
+      "variant": "/images/home/crisol-theater-of-idols-maestria-final.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 6744,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2831008,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/howgarts-legacy/achievements/maestria-final.png",
+      "variant": "/images/home/howgarts-legacy-maestria-final.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 9680,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2129936,
+      "original": {
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.5
+    },
+    {
+      "source": "/images/games/mouse-p-i-for-hire/achievements/maestria-final.png",
+      "variant": "/images/home/mouse-p-i-for-hire-maestria-final.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7840,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2822368,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.7
+    },
+    {
+      "source": "/images/activity-summary-icons/flame.png",
+      "variant": "/images/home/activity-summary-flame.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 5120,
+      "optimized": {
+        "format": "webp",
+        "width": 126,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 373857,
+      "original": {
+        "format": "png",
+        "width": 655,
+        "height": 665,
+        "hasAlpha": true
+      },
+      "reductionPercent": 98.6
+    },
+    {
+      "source": "/images/activity-summary-icons/trophy.png",
+      "variant": "/images/home/activity-summary-trophy.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 5542,
+      "optimized": {
+        "format": "webp",
+        "width": 124,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 371844,
+      "original": {
+        "format": "png",
+        "width": 645,
+        "height": 665,
+        "hasAlpha": true
+      },
+      "reductionPercent": 98.5
+    },
+    {
+      "source": "/images/activity-summary-icons/target.png",
+      "variant": "/images/home/activity-summary-target.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 5628,
+      "optimized": {
+        "format": "webp",
+        "width": 127,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 399629,
+      "original": {
+        "format": "png",
+        "width": 660,
+        "height": 665,
+        "hasAlpha": true
+      },
+      "reductionPercent": 98.6
+    },
+    {
+      "source": "/images/trophies/todos.png",
+      "variant": "/images/home/trophy-todos.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 13242,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 1501475,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 99.1
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/cover.jpg#large",
+      "variant": "/images/game-page/crisol-theater-of-idols-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 167810,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 204411,
+      "original": {
+        "format": "heif",
+        "width": 1024,
+        "height": 1024,
+        "hasAlpha": false
+      },
+      "reductionPercent": 17.9
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/emblem.png#large",
+      "variant": "/images/game-page/crisol-theater-of-idols-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 167326,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 1197270,
+      "original": {
+        "format": "png",
+        "width": 1024,
+        "height": 1024,
+        "hasAlpha": true
+      },
+      "reductionPercent": 86
+    },
+    {
+      "source": "/images/games/hades/cover.jpg#large",
+      "variant": "/images/game-page/hades-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 37292,
+      "optimized": {
+        "format": "webp",
+        "width": 362,
+        "height": 500,
+        "hasAlpha": false
+      },
+      "originalBytes": 71411,
+      "original": {
+        "format": "jpeg",
+        "width": 362,
+        "height": 500,
+        "hasAlpha": false
+      },
+      "reductionPercent": 47.8
+    },
+    {
+      "source": "/images/games/hades/emblem.png#large",
+      "variant": "/images/game-page/hades-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 180896,
+      "optimized": {
+        "format": "webp",
+        "width": 512,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 3343267,
+      "original": {
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "hasAlpha": true
+      },
+      "reductionPercent": 94.6
+    },
+    {
+      "source": "/images/games/hades-2/cover.jpg#large",
+      "variant": "/images/game-page/hades-2-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 87326,
+      "optimized": {
+        "format": "webp",
+        "width": 512,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 109216,
+      "original": {
+        "format": "jpeg",
+        "width": 600,
+        "height": 900,
+        "hasAlpha": false
+      },
+      "reductionPercent": 20
+    },
+    {
+      "source": "/images/games/hollow-knight/cover.jpg#large",
+      "variant": "/images/game-page/hollow-knight-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 46694,
+      "optimized": {
+        "format": "webp",
+        "width": 553,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 62201,
+      "original": {
+        "format": "jpeg",
+        "width": 720,
+        "height": 1000,
+        "hasAlpha": false
+      },
+      "reductionPercent": 24.9
+    },
+    {
+      "source": "/images/games/hollow-knight/emblem.png#large",
+      "variant": "/images/game-page/hollow-knight-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 131344,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 1812914,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92.8
+    },
+    {
+      "source": "/images/games/hollow-knight-silksong/cover.jpg#large",
+      "variant": "/images/game-page/hollow-knight-silksong-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 27288,
+      "optimized": {
+        "format": "webp",
+        "width": 250,
+        "height": 375,
+        "hasAlpha": false
+      },
+      "originalBytes": 31447,
+      "original": {
+        "format": "jpeg",
+        "width": 250,
+        "height": 375,
+        "hasAlpha": false
+      },
+      "reductionPercent": 13.2
+    },
+    {
+      "source": "/images/games/howgarts-legacy/cover.jpg#large",
+      "variant": "/images/game-page/howgarts-legacy-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 33476,
+      "optimized": {
+        "format": "webp",
+        "width": 372,
+        "height": 450,
+        "hasAlpha": false
+      },
+      "originalBytes": 135522,
+      "original": {
+        "format": "jpeg",
+        "width": 372,
+        "height": 450,
+        "hasAlpha": false
+      },
+      "reductionPercent": 75.3
+    },
+    {
+      "source": "/images/games/howgarts-legacy/emblem.png#large",
+      "variant": "/images/game-page/howgarts-legacy-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 178606,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2102531,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 91.5
+    },
+    {
+      "source": "/images/games/metro-2033-redux/cover.jpg#large",
+      "variant": "/images/game-page/metro-2033-redux-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 97060,
+      "optimized": {
+        "format": "webp",
+        "width": 576,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 2885903,
+      "original": {
+        "format": "png",
+        "width": 1200,
+        "height": 1600,
+        "hasAlpha": true
+      },
+      "reductionPercent": 96.6
+    },
+    {
+      "source": "/images/games/metro-exodus/cover.jpg#large",
+      "variant": "/images/game-page/metro-exodus-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 137100,
+      "optimized": {
+        "format": "webp",
+        "width": 512,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 304311,
+      "original": {
+        "format": "jpeg",
+        "width": 720,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 54.9
+    },
+    {
+      "source": "/images/games/metro-last-light/cover.jpg#large",
+      "variant": "/images/game-page/metro-last-light-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 25400,
+      "optimized": {
+        "format": "webp",
+        "width": 250,
+        "height": 305,
+        "hasAlpha": false
+      },
+      "originalBytes": 41750,
+      "original": {
+        "format": "jpeg",
+        "width": 250,
+        "height": 305,
+        "hasAlpha": false
+      },
+      "reductionPercent": 39.2
+    },
+    {
+      "source": "/images/games/metro-last-light/emblem.png#large",
+      "variant": "/images/game-page/metro-last-light-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 159976,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2250856,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92.9
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/emblem.png#large",
+      "variant": "/images/game-page/monster-hunter-world-iceborne-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 180224,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2454557,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92.7
+    },
+    {
+      "source": "/images/games/mouse-p-i-for-hire/cover.jpg#large",
+      "variant": "/images/game-page/mouse-p-i-for-hire-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 43376,
+      "optimized": {
+        "format": "webp",
+        "width": 512,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 430752,
+      "original": {
+        "format": "jpeg",
+        "width": 1440,
+        "height": 2160,
+        "hasAlpha": false
+      },
+      "reductionPercent": 89.9
+    },
+    {
+      "source": "/images/games/mouse-p-i-for-hire/emblem.png#large",
+      "variant": "/images/game-page/mouse-p-i-for-hire-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 132652,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2053176,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 93.5
+    },
+    {
+      "source": "/images/games/song-of-nunu/cover.jpg#large",
+      "variant": "/images/game-page/song-of-nunu-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 84512,
+      "optimized": {
+        "format": "webp",
+        "width": 576,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 162951,
+      "original": {
+        "format": "jpeg",
+        "width": 1200,
+        "height": 1600,
+        "hasAlpha": false
+      },
+      "reductionPercent": 48.1
+    },
+    {
+      "source": "/images/games/song-of-nunu/emblem.png#large",
+      "variant": "/images/game-page/song-of-nunu-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 190232,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2530229,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92.5
+    },
+    {
+      "source": "/images/games/the-surge/emblem.png#large",
+      "variant": "/images/game-page/the-surge-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 180554,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2496087,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92.8
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division/cover.jpg#large",
+      "variant": "/images/game-page/tom-clancy-s-the-division-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 118944,
+      "optimized": {
+        "format": "webp",
+        "width": 512,
+        "height": 768,
+        "hasAlpha": false
+      },
+      "originalBytes": 247823,
+      "original": {
+        "format": "jpeg",
+        "width": 720,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 52
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division/emblem.png#large",
+      "variant": "/images/game-page/tom-clancy-s-the-division-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 197346,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2291734,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 91.4
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division-2/cover.jpg#large",
+      "variant": "/images/game-page/tom-clancy-s-the-division-2-cover.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 32306,
+      "optimized": {
+        "format": "webp",
+        "width": 296,
+        "height": 335,
+        "hasAlpha": false
+      },
+      "originalBytes": 52922,
+      "original": {
+        "format": "jpeg",
+        "width": 296,
+        "height": 335,
+        "hasAlpha": false
+      },
+      "reductionPercent": 39
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/banner.jpg",
+      "variant": "/images/home/crisol-theater-of-idols-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 133090,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 345741,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 61.5
+    },
+    {
+      "source": "/images/games/hades/banner.jpg",
+      "variant": "/images/home/hades-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 188580,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 1734527,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 89.1
+    },
+    {
+      "source": "/images/games/hades-2/banner.jpg",
+      "variant": "/images/home/hades-2-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 94768,
+      "optimized": {
+        "format": "webp",
+        "width": 990,
+        "height": 605,
+        "hasAlpha": false
+      },
+      "originalBytes": 834117,
+      "original": {
+        "format": "png",
+        "width": 990,
+        "height": 605,
+        "hasAlpha": false
+      },
+      "reductionPercent": 88.6
+    },
+    {
+      "source": "/images/games/hollow-knight/banner.jpg",
+      "variant": "/images/home/hollow-knight-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 55498,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 516613,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 89.3
+    },
+    {
+      "source": "/images/games/hollow-knight-silksong/banner.jpg",
+      "variant": "/images/home/hollow-knight-silksong-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 81386,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 167902,
+      "original": {
+        "format": "webp",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 51.5
+    },
+    {
+      "source": "/images/games/howgarts-legacy/banner.jpg",
+      "variant": "/images/home/howgarts-legacy-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 80374,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 470377,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 82.9
+    },
+    {
+      "source": "/images/games/metro-2033-redux/banner.jpg",
+      "variant": "/images/home/metro-2033-redux-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 115470,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 5163489,
+      "original": {
+        "format": "png",
+        "width": 2560,
+        "height": 1440,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.8
+    },
+    {
+      "source": "/images/games/metro-exodus/banner.jpg",
+      "variant": "/images/home/metro-exodus-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 153100,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 533,
+        "hasAlpha": false
+      },
+      "originalBytes": 290992,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 800,
+        "hasAlpha": false
+      },
+      "reductionPercent": 47.4
+    },
+    {
+      "source": "/images/games/metro-last-light/banner.jpg",
+      "variant": "/images/home/metro-last-light-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 53594,
+      "optimized": {
+        "format": "webp",
+        "width": 728,
+        "height": 410,
+        "hasAlpha": false
+      },
+      "originalBytes": 80006,
+      "original": {
+        "format": "jpeg",
+        "width": 728,
+        "height": 410,
+        "hasAlpha": false
+      },
+      "reductionPercent": 33
+    },
+    {
+      "source": "/images/games/mouse-p-i-for-hire/banner.jpg",
+      "variant": "/images/home/mouse-p-i-for-hire-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 60336,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 85150,
+      "original": {
+        "format": "heif",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 29.1
+    },
+    {
+      "source": "/images/games/song-of-nunu/banner.jpg",
+      "variant": "/images/home/song-of-nunu-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 144926,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 627607,
+      "original": {
+        "format": "jpeg",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 76.9
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division/banner.jpg",
+      "variant": "/images/home/tom-clancy-s-the-division-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 212194,
+      "optimized": {
+        "format": "webp",
+        "width": 1280,
+        "height": 720,
+        "hasAlpha": false
+      },
+      "originalBytes": 328134,
+      "original": {
+        "format": "webp",
+        "width": 1920,
+        "height": 1080,
+        "hasAlpha": false
+      },
+      "reductionPercent": 35.3
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division-2/banner.jpg",
+      "variant": "/images/home/tom-clancy-s-the-division-2-banner.webp",
+      "preset": {
+        "width": 1280,
+        "height": 1280,
+        "quality": 82
+      },
+      "optimizedBytes": 142128,
+      "optimized": {
+        "format": "webp",
+        "width": 1080,
+        "height": 600,
+        "hasAlpha": false
+      },
+      "originalBytes": 154510,
+      "original": {
+        "format": "webp",
+        "width": 1080,
+        "height": 600,
+        "hasAlpha": false
+      },
+      "reductionPercent": 8
+    },
+    {
+      "source": "/images/games/hades/emblem.png",
+      "variant": "/images/home/hades-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 49948,
+      "optimized": {
+        "format": "webp",
+        "width": 256,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 3343267,
+      "original": {
+        "format": "png",
+        "width": 1024,
+        "height": 1536,
+        "hasAlpha": true
+      },
+      "reductionPercent": 98.5
+    },
+    {
+      "source": "/images/games/hollow-knight/emblem.png",
+      "variant": "/images/home/hollow-knight-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 47136,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 1812914,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.4
+    },
+    {
+      "source": "/images/games/metro-last-light/emblem.png",
+      "variant": "/images/home/metro-last-light-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 48742,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2250856,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.8
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/emblem.png",
+      "variant": "/images/home/monster-hunter-world-iceborne-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 54968,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2454557,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.8
+    },
+    {
+      "source": "/images/games/song-of-nunu/emblem.png",
+      "variant": "/images/home/song-of-nunu-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 65184,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2530229,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.4
+    },
+    {
+      "source": "/images/games/the-surge/emblem.png",
+      "variant": "/images/home/the-surge-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 56824,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2496087,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.7
+    },
+    {
+      "source": "/images/games/tom-clancy-s-the-division/emblem.png",
+      "variant": "/images/home/tom-clancy-s-the-division-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 62216,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2291734,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.3
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/achievements/cacada-suprema.png",
+      "variant": "/images/home/monster-hunter-world-iceborne-cacada-suprema.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 8766,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 3344717,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.7
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/achievements/o-lobo-entre-cacadores.png",
+      "variant": "/images/home/monster-hunter-world-iceborne-o-lobo-entre-cacadores.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7498,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 3189957,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/monster-hunter-world-iceborne/achievements/finalizar-a-historia-principal.png",
+      "variant": "/images/home/monster-hunter-world-iceborne-finalizar-a-historia-principal.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 7728,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 3123236,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/crisol-theater-of-idols/achievements/coroa-do-martir.png",
+      "variant": "/images/home/crisol-theater-of-idols-coroa-do-martir.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 85
+      },
+      "optimizedBytes": 5916,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": false
+      },
+      "originalBytes": 2687861,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": false
+      },
+      "reductionPercent": 99.8
+    },
+    {
+      "source": "/images/games/emblem.png",
+      "variant": "/images/home/default-emblem.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 56824,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2490199,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.7
+    },
+    {
+      "source": "/images/games/emblem.png#large",
+      "variant": "/images/game-page/default-emblem.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 180554,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2490199,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92.7
+    },
+    {
+      "source": "/images/sagas/hades/badge.png",
+      "variant": "/images/home/saga-hades-badge.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 55472,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2230709,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.5
+    },
+    {
+      "source": "/images/sagas/hades/badge.png#large",
+      "variant": "/images/game-page/saga-hades-badge.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 178170,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2230709,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 92
+    },
+    {
+      "source": "/images/sagas/hollow-knight/badge.png",
+      "variant": "/images/home/saga-hollow-knight-badge.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 53780,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 2432255,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.8
+    },
+    {
+      "source": "/images/sagas/hollow-knight/badge.png#large",
+      "variant": "/images/game-page/saga-hollow-knight-badge.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 162132,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 2432255,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 93.3
+    },
+    {
+      "source": "/images/sagas/tom-clancy-s-the-division/badge.png",
+      "variant": "/images/home/saga-tom-clancy-s-the-division-badge.webp",
+      "preset": {
+        "width": 384,
+        "height": 384,
+        "quality": 90
+      },
+      "optimizedBytes": 62348,
+      "optimized": {
+        "format": "webp",
+        "width": 384,
+        "height": 384,
+        "hasAlpha": true
+      },
+      "originalBytes": 3005723,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 97.9
+    },
+    {
+      "source": "/images/sagas/tom-clancy-s-the-division/badge.png#large",
+      "variant": "/images/game-page/saga-tom-clancy-s-the-division-badge.webp",
+      "preset": {
+        "width": 768,
+        "height": 768,
+        "quality": 88
+      },
+      "optimizedBytes": 210878,
+      "optimized": {
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": true
+      },
+      "originalBytes": 3005723,
+      "original": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "hasAlpha": true
+      },
+      "reductionPercent": 93
+    },
+    {
+      "source": "/images/jogos-bg.png",
+      "variant": "/images/home/jogos-bg.webp",
+      "preset": {
+        "width": 1920,
+        "height": 1920,
+        "quality": 82
+      },
+      "optimizedBytes": 32722,
+      "optimized": {
+        "format": "webp",
+        "width": 1090,
+        "height": 256,
+        "hasAlpha": false
+      },
+      "originalBytes": 291371,
+      "original": {
+        "format": "png",
+        "width": 1090,
+        "height": 256,
+        "hasAlpha": false
+      },
+      "reductionPercent": 88.8
+    },
+    {
+      "source": "/images/activity-banner-bg.png",
+      "variant": "/images/home/activity-banner-bg.webp",
+      "preset": {
+        "width": 1920,
+        "height": 1920,
+        "quality": 82
+      },
+      "optimizedBytes": 39892,
+      "optimized": {
+        "format": "webp",
+        "width": 1090,
+        "height": 256,
+        "hasAlpha": false
+      },
+      "originalBytes": 137997,
+      "original": {
+        "format": "jpeg",
+        "width": 1090,
+        "height": 256,
+        "hasAlpha": false
+      },
+      "reductionPercent": 71.1
+    },
+    {
+      "source": "/images/trophies/bronze.png",
+      "variant": "/images/home/trophy-bronze.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 8618,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 22985,
+      "original": {
+        "format": "png",
+        "width": 256,
+        "height": 256,
+        "hasAlpha": true
+      },
+      "reductionPercent": 62.5
+    },
+    {
+      "source": "/images/trophies/prata.png",
+      "variant": "/images/home/trophy-prata.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 8176,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 23967,
+      "original": {
+        "format": "png",
+        "width": 256,
+        "height": 256,
+        "hasAlpha": true
+      },
+      "reductionPercent": 65.9
+    },
+    {
+      "source": "/images/trophies/ouro.png",
+      "variant": "/images/home/trophy-ouro.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 9574,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 23253,
+      "original": {
+        "format": "png",
+        "width": 256,
+        "height": 256,
+        "hasAlpha": true
+      },
+      "reductionPercent": 58.8
+    },
+    {
+      "source": "/images/trophies/maestria.png",
+      "variant": "/images/home/trophy-maestria.webp",
+      "preset": {
+        "width": 128,
+        "height": 128,
+        "quality": 90
+      },
+      "optimizedBytes": 11524,
+      "optimized": {
+        "format": "webp",
+        "width": 128,
+        "height": 128,
+        "hasAlpha": true
+      },
+      "originalBytes": 31372,
+      "original": {
+        "format": "png",
+        "width": 256,
+        "height": 256,
+        "hasAlpha": true
+      },
+      "reductionPercent": 63.3
+    }
+  ]
+}

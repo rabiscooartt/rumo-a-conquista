@@ -12,7 +12,14 @@ type SavedAchievement = {
   filename: string;
   title: string;
   image: string;
+  optimization?: { originalBytes: number; optimizedBytes: number };
 };
+
+function formatBytes(bytes: number) {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / 1024 / 1024).toFixed(2)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
 
 type FileStatus = {
   file: File;
@@ -173,10 +180,17 @@ export default function ImportArtBatchUpload({
         onSaved(savedResults);
       }
 
+      // O servidor converte cada arte para WebP antes de salvar; o resumo mostra o ganho.
+      const originalBytes = savedResults.reduce((sum, item) => sum + (item.optimization?.originalBytes ?? 0), 0);
+      const optimizedBytes = savedResults.reduce((sum, item) => sum + (item.optimization?.optimizedBytes ?? 0), 0);
+      const savings =
+        originalBytes > 0 && optimizedBytes > 0
+          ? ` WebP: ${formatBytes(originalBytes)} → ${formatBytes(optimizedBytes)}.`
+          : "";
       setMessage(
-        savedCount === 1
+        (savedCount === 1
           ? "1 arte salva com sucesso."
-          : savedCount + " artes salvas com sucesso."
+          : savedCount + " artes salvas com sucesso.") + savings
       );
     } catch (error) {
       setMessage(

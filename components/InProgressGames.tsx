@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSiteGames } from "@/lib/useSiteGames";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 
 function normalizeStatus(status?: string) {
   const value = String(status || "").toLowerCase();
@@ -33,10 +34,12 @@ function GameCover({
 
   return (
     <img
-      src={src}
+      src={homeImageSrc(src)}
       alt={alt}
+      loading="lazy"
+      decoding="async"
       className="h-full w-full object-cover"
-      onError={() => setHasError(true)}
+      onError={fallbackToOriginal(src, () => setHasError(true))}
     />
   );
 }

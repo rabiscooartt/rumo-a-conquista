@@ -8,6 +8,7 @@ import {
   saveGameWithBacklogPosition,
 } from "@/lib/backlogOrder";
 import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
+import { isImmutableImageName, stripImageVersion } from "@/lib/images/naming";
 import { games as legacyGames } from "@/data/games";
 
 type IncomingAchievement = {
@@ -81,7 +82,8 @@ function normalizeTitle(value?: string) {
 }
 
 function normalizeAchievementFilename(value: string) {
-  return String(value || "")
+  // "01-titulo.<hash>.webp" (envio otimizado) e "01-titulo.png" (legado) são a mesma conquista.
+  return stripImageVersion(String(value || ""))
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -111,7 +113,9 @@ async function recoverStoredAchievementImages(
       return;
     }
 
-    const candidates = files
+    // A versão WebP otimizada vem antes do arquivo legado da mesma conquista.
+    const candidates = [...files]
+      .sort((left, right) => Number(isImmutableImageName(right.name)) - Number(isImmutableImageName(left.name)))
       .filter((file) => typeof file.name === "string" && file.name.trim())
       .map((file) => ({
         name: file.name.trim(),

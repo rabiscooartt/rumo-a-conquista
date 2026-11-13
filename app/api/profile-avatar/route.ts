@@ -4,11 +4,20 @@ import { HOME_AVATAR_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import {
+  AVATAR_IMAGE_TARGET,
+  replaceActiveImage,
+  updateActiveFraming,
+} from "@/lib/images/storedImages";
+import {
+  ImageValidationError,
+  optimizationSummary,
+  optimizeUploadedFile,
+} from "@/lib/images/optimizeImage";
+import {
   AVATAR_BUCKET as BUCKET,
-  AVATAR_PATH,
   AVATAR_SETTINGS_PATH as SETTINGS_PATH,
   DEFAULT_AVATAR_SETTINGS as DEFAULT_SETTINGS,
-  getStoredAvatarSettings as getStoredSettings,
+  getStoredAvatarState,
   getStoredAvatarUrl,
   normalizeAvatarSettings as normalizeSettings,
 } from "@/lib/profileAvatarStorage";
@@ -16,6 +25,8 @@ import {
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const ALLOWED_BUCKET_TYPES = [...ALLOWED_IMAGE_TYPES, "application/json"];
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
+
+export const runtime = "nodejs";
 
 async function isAdmin(request: NextRequest) {
   const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
@@ -42,13 +53,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const client = createAdminSupabaseClient();
-    const [settings, imageUrl] = await Promise.all([
-      getStoredSettings(client),
-      getStoredAvatarUrl(client),
-    ]);
+    // Foto ativa com o enquadramento salvo junto dela (prioridade sobre o settings.json).
+    const state = await getStoredAvatarState(client);
 
     return NextResponse.json(
-      { ...settings, imageUrl, authenticated },
+      { ...state, authenticated },
       { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
@@ -101,30 +110,37 @@ export async function POST(request: NextRequest) {
     const client = createAdminSupabaseClient();
     await ensureBucket(client);
 
-    if (file) {
-      const { error: uploadError } = await client.storage
-        .from(BUCKET)
-        .upload(AVATAR_PATH, file, {
-          contentType: file.type,
-          upsert: true,
-          cacheControl: "60",
-        });
-
-      if (uploadError) throw uploadError;
-    }
-
-    const settingsFile = new Blob([JSON.stringify(settings)], {
-      type: "application/json",
-    });
-    const { error: settingsError } = await client.storage
-      .from(BUCKET)
-      .upload(SETTINGS_PATH, settingsFile, {
-        contentType: "application/json",
-        upsert: true,
-        cacheControl: "0",
+    // Cópia de compatibilidade do enquadramento (leitores antigos e avatar sem ponteiro).
+    const saveFraming = async () => {
+      const settingsFile = new Blob([JSON.stringify(settings)], {
+        type: "application/json",
       });
+      const { error: settingsError } = await client.storage
+        .from(BUCKET)
+        .upload(SETTINGS_PATH, settingsFile, {
+          contentType: "application/json",
+          upsert: true,
+          cacheControl: "0",
+        });
+      if (settingsError) throw settingsError;
+    };
 
-    if (settingsError) throw settingsError;
+    let optimization: ReturnType<typeof optimizationSummary> | null = null;
+    if (file) {
+      // Arquivo imutável "avatar.<hash>.webp" (reaproveitado se idêntico) e depois o
+      // ponteiro, que ativa foto e enquadramento juntos. Se um dos dois falhar, a foto
+      // anterior continua no ar com o enquadramento dela. O arquivo legado não é tocado.
+      const optimized = await optimizeUploadedFile(file, "avatar");
+      await replaceActiveImage(client, AVATAR_IMAGE_TARGET, optimized, {
+        framing: settings,
+        afterActivate: saveFraming,
+      });
+      optimization = optimizationSummary(optimized);
+    } else {
+      // Só o enquadramento: atualiza o ponteiro (se existir) antes da cópia de compatibilidade.
+      await updateActiveFraming(client, AVATAR_IMAGE_TARGET, settings);
+      await saveFraming();
+    }
 
     revalidateTag(HOME_AVATAR_CACHE_TAG, { expire: 0 });
 
@@ -132,8 +148,12 @@ export async function POST(request: NextRequest) {
       ok: true,
       ...settings,
       imageUrl: await getStoredAvatarUrl(client),
+      optimization,
     });
   } catch (error) {
+    if (error instanceof ImageValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[ProfileAvatar] Erro salvando a foto:", error);
     return NextResponse.json(
       {

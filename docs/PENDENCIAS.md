@@ -76,3 +76,23 @@ Os 7 erros `react/jsx-key` foram corrigidos nesta etapa.
 - O Perfil ainda tenta a rota do Admin antes do catálogo público (um 401 no console do visitante).
 - Credenciais da Twitch ausentes na Vercel: a detecção de live da Twitch continua inativa.
 - 8 avisos moderados só nas ferramentas de lint (dependências de desenvolvimento).
+
+## 6. Migração das imagens antigas do Storage (pendente — não executada)
+
+`scripts/migrate-storage-images.mjs` não deve ser rodado antes destas correções:
+
+- **Banner/avatar antigo reativado:** o ponteiro de ativação (`site-profile/active/*.json`)
+  já impede que um arquivo migrado substitua um banner ou avatar enviado depois do deploy.
+  Sem ponteiro, porém, a versão migrada passa a ser a "mais recente". O script deve pular
+  banner/avatar que já tenham ponteiro e, ao migrar, gravar o ponteiro de forma explícita.
+- **Progresso e erros:** hoje o script para no primeiro erro e só grava plano, resultado e SQL
+  no final. Precisa tratar erro por arquivo, registrar o progresso de cada um durante a
+  execução e permitir retomar (o reenvio já reaproveita arquivos idênticos sem duplicar).
+- **Entrada até 10 MB:** o bucket `achievement-art` aceita 10 MB, mas o pipeline usa o limite
+  de 4 MB dos uploads. O script deve passar `maxInputBytes` de 10 MB.
+- **SQL gerado:** escapar `%` e `_` no `LIKE`, trocar o `begin;` com `commit` comentado por um
+  fluxo explícito, gravar antes um retrato dos valores atuais (`achievements.image` e
+  `achievement_progress.image_override`) e gerar o SQL de reversão. Avaliar também outras
+  referências a URLs antigas (ex.: `finalBadge.image` da Maestria) e a invalidação do cache.
+- **Custo:** o modo de plano (`--confirm-remote`) baixa todos os originais antigos (Egress fora
+  do cache, da ordem do tamanho atual do Storage).

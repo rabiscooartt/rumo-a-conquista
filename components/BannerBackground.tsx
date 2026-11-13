@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBannerSettings } from "@/components/BannerSettingsProvider";
 import type { SiteBannerKey, SiteBannerSetting } from "@/lib/banner-types";
+import { homeImageSrc } from "@/lib/homeImages";
 
 type Props = {
   bannerKey: SiteBannerKey;
@@ -260,8 +261,9 @@ export default function BannerBackground({
   }
 
   const visibleSettings = isOpen && isAdmin ? draft : settings;
+  // Banner enviado pelo Admin (WebP imutável nos envios novos) ou a imagem padrão em cópia leve.
   const visibleImageUrl =
-    selectedImagePreview || visibleSettings.imageUrl || imageUrl;
+    selectedImagePreview || homeImageSrc(visibleSettings.imageUrl || imageUrl);
 
   return (
     <>

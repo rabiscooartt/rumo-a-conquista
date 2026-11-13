@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 
 type AchievementStorageState = {
   status?: string;
@@ -515,10 +516,10 @@ function GameHeroImage({ src, title }: { src?: string; title: string }) {
   return (
     <img
       key={src}
-      src={src}
+      src={homeImageSrc(src)}
       alt={title}
       className="absolute inset-0 h-full w-full object-cover object-center brightness-90 contrast-110"
-      onError={() => setHasError(true)}
+      onError={fallbackToOriginal(src, () => setHasError(true))}
     />
   );
 }
@@ -542,10 +543,10 @@ function FinalBadgeVisual({
     return (
       <img
         key={badge.image}
-        src={badge.image}
+        src={homeImageSrc(badge.image)}
         alt={badge.title}
         className={imageClassName}
-        onError={() => setHasError(true)}
+        onError={fallbackToOriginal(badge.image, () => setHasError(true))}
       />
     );
   }

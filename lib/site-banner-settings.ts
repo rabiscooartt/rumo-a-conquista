@@ -6,10 +6,9 @@ import type {
   SiteBannerKey,
   SiteBannerSetting,
 } from "@/lib/banner-types";
+import { getStoredBannerImage, withActiveFraming } from "@/lib/images/storedImages";
 
 export const SITE_BANNER_CACHE_TAG = "site-banners";
-
-const BUCKET = "site-banners";
 const BANNER_CACHE_SECONDS = 60;
 const BANNER_KEYS: SiteBannerKey[] = [
   "home",
@@ -40,34 +39,6 @@ export const SITE_BANNER_DEFAULTS: Record<
   emblemas: { ...DEFAULT_SETTINGS },
   backlog: { ...DEFAULT_SETTINGS },
 };
-
-async function getStoredBannerImageUrl(
-  client: ReturnType<typeof createAdminSupabaseClient>,
-  bannerKey: SiteBannerKey
-): Promise<string> {
-  try {
-    const path = `banners/${bannerKey}`;
-    const { data: files, error } = await client.storage
-      .from(BUCKET)
-      .list(path, { limit: 20 });
-
-    if (error || !files) return "";
-
-    const file = files.find((item) => item.name === "background");
-    if (!file) return "";
-
-    const { data } = client.storage
-      .from(BUCKET)
-      .getPublicUrl(`${path}/background`);
-    const version = file.updated_at || file.created_at;
-
-    return version
-      ? `${data.publicUrl}?v=${encodeURIComponent(version)}`
-      : data.publicUrl;
-  } catch {
-    return "";
-  }
-}
 
 async function loadSiteBannerSettings(): Promise<
   Record<SiteBannerKey, SiteBannerSetting>
@@ -114,11 +85,12 @@ async function loadSiteBannerSettings(): Promise<
 
   if (client) {
     const imageEntries = await Promise.all(
-      BANNER_KEYS.map(async (key) => [key, await getStoredBannerImageUrl(client!, key)] as const)
+      BANNER_KEYS.map(async (key) => [key, await getStoredBannerImage(client!, key)] as const)
     );
 
-    for (const [key, imageUrl] of imageEntries) {
-      settings[key].imageUrl = imageUrl;
+    // Imagem ativa e o enquadramento salvo com ela (prioridade sobre a cópia da tabela).
+    for (const [key, active] of imageEntries) {
+      settings[key] = { ...withActiveFraming(settings[key], active), imageUrl: active.url };
     }
   }
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 
 type AchievementSummary =
   | string
@@ -186,10 +187,12 @@ function GameCover({ src, alt }: { src?: string; alt: string }) {
 
   return (
     <img
-      src={src}
+      src={homeImageSrc(src)}
       alt={alt}
+      loading="lazy"
+      decoding="async"
       className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-500 group-hover:scale-105"
-      onError={() => setHasError(true)}
+      onError={fallbackToOriginal(src, () => setHasError(true))}
     />
   );
 }
