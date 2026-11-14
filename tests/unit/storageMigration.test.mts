@@ -5,7 +5,9 @@ import { spawnSync } from "node:child_process";
 import sharp from "sharp";
 import {
   buildMigrationSql,
+  buildMigrationSqlPreview,
   collectLegacyObjects,
+  PREVIEW_HASH_PLACEHOLDER,
   createLocalVariantIndex,
   latestRecords,
   matchLocalVariant,
@@ -448,4 +450,123 @@ test("falha de listagem da pasta do banner na hora da decisão vira erro, nunca 
   assert.equal(record.status, "error");
   assert.match(record.reason!, /falha ao listar a pasta/);
   assert.deepEqual(failing.uploads, []);
+});
+
+// ---------------------------------------------------------------------------------------------
+// Conversão sem ganho e prévia do SQL.
+// ---------------------------------------------------------------------------------------------
+
+const smallWebp = (width: number, height: number) =>
+  sharp({ create: { width, height, channels: 3, background: "#246" } }).webp({ quality: 80 }).toBuffer();
+
+test("sem redução real: banner já em WebP leve é ignorado no plano e no envio", async () => {
+  const storage = createStorage();
+  // Como o banner da Início: WebP 1600×320 que já cabe no preset (a conversão mantém os mesmos bytes).
+  storage.put("site-banners/banners/home/background", await smallWebp(1600, 320));
+  const [item] = await collectLegacyObjects(storage.client);
+
+  const planned = await migrateObject(storage.client, item, { apply: false });
+  const applied = await migrateObject(storage.client, item, { apply: true });
+  for (const record of [planned, applied]) {
+    assert.equal(record.status, "skipped");
+    assert.match(record.reason!, /sem redução: WebP de \d+ bytes não é menor que o original de \d+ bytes/);
+    assert.ok(record.optimizedBytes! >= record.originalBytes!, "decisão pelos tamanhos medidos");
+  }
+  assert.deepEqual(storage.uploads, [], "nada enviado");
+});
+
+test("sem redução real: arte de conquista ignorada e fora do SQL", async () => {
+  const storage = createStorage();
+  storage.put(`${ART}/05-ja-leve.webp`, await smallWebp(200, 200));
+  storage.put(`${ART}/06-pesada.png`, await png("#a33"));
+  const records = [];
+  for (const item of await collectLegacyObjects(storage.client)) records.push(await migrateObject(storage.client, item, { apply: true }));
+
+  assert.deepEqual(records.map((record) => record.status), ["skipped", "migrated"]);
+  const { sql, count } = buildMigrationSql(records, "img-1");
+  assert.equal(count, 1);
+  assert.ok(!sql.includes("05-ja-leve"), "a imagem sem ganho não gera referência SQL");
+  assert.ok(sql.includes("06-pesada"));
+});
+
+test("plano registra o destino exato, igual ao do envio", async () => {
+  const storage = createStorage();
+  storage.put(`${ART}/16-de-capa.png`, await png("#a33"));
+  const [item] = await collectLegacyObjects(storage.client);
+  const planned = await migrateObject(storage.client, item, { apply: false });
+  const applied = await migrateObject(storage.client, item, { apply: true });
+  assert.match(planned.plannedPath!, /^games\/mouse\/achievements\/16-de-capa\.[0-9a-f]{16}\.webp$/);
+  assert.equal(applied.newPath, planned.plannedPath);
+});
+
+test("prévia do SQL: só artes planejadas com ganho; preservadas, sem ganho e banners ficam de fora", () => {
+  const art = (name: string, extra: Partial<MigrationRecord>): MigrationRecord => ({
+    key: `${ART}/${name}`,
+    bucket: "achievement-art",
+    path: `games/mouse/achievements/${name}`,
+    kind: "achievement",
+    status: "planned",
+    oldUrl: `${BASE}/${ART}/${name}`,
+    originalBytes: 2_500_000,
+    optimizedBytes: 23_000,
+    ...extra,
+  });
+  const plan: MigrationRecord[] = [
+    art("16-de-capa-a-capa.png", {}),
+    art("24-queijo.png", { plannedPath: "games/mouse/achievements/24-queijo.0123456789abcdef.webp" }),
+    art("01-mestre.png", { status: "preserved", localVariant: { status: "preserved", keys: ["k"], note: "variante" } }),
+    art("05-sem-ganho.webp", { originalBytes: 100, optimizedBytes: 100 }),
+    {
+      key: "site-banners/banners/emblemas/background",
+      bucket: "site-banners",
+      path: "banners/emblemas/background",
+      kind: "fixed",
+      status: "planned",
+      oldUrl: `${BASE}/site-banners/banners/emblemas/background`,
+      originalBytes: 2_306_263,
+      optimizedBytes: 245_000,
+    },
+  ];
+  const preview = buildMigrationSqlPreview(plan);
+
+  assert.equal(preview.count, 2);
+  assert.deepEqual(preview.placeholders, [`${ART}/16-de-capa-a-capa.png`]);
+  assert.ok(preview.sql.includes(`${BASE}/${ART}/16-de-capa-a-capa.${PREVIEW_HASH_PLACEHOLDER}.webp`));
+  assert.ok(preview.sql.includes(`${BASE}/${ART}/24-queijo.0123456789abcdef.webp`), "usa o destino exato do plano");
+  for (const excluded of ["01-mestre", "05-sem-ganho", "banners/emblemas"]) {
+    assert.ok(!preview.sql.includes(excluded), `${excluded} fora do SQL`);
+  }
+  assert.match(preview.sql, /insert into public\.image_migration_backup/);
+  assert.match(preview.rollbackSql, /t\.image = b\.new_value/);
+});
+
+test("script --preview-sql roda offline, sem credenciais, a partir do plan.json", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const work = mkdtempSync(join(tmpdir(), "preview-sql-"));
+  try {
+    const dir = join(work, ".image-report", "storage-migration");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "plan.json"),
+      JSON.stringify([
+        { key: `${ART}/16-x.png`, bucket: "achievement-art", path: "games/mouse/achievements/16-x.png", kind: "achievement", status: "planned", oldUrl: `${BASE}/${ART}/16-x.png`, originalBytes: 2_000_000, optimizedBytes: 20_000 },
+      ])
+    );
+    const env = { ...process.env };
+    delete env.NEXT_PUBLIC_SUPABASE_URL;
+    delete env.SUPABASE_SERVICE_ROLE_KEY;
+    const script = join(process.cwd(), "scripts", "migrate-storage-images.mjs");
+    const result = spawnSync(process.execPath, ["--disable-warning=MODULE_TYPELESS_PACKAGE_JSON", script, "--preview-sql"], { cwd: work, env, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(existsSync(join(dir, "migration.preview.sql")));
+    assert.ok(readFileSync(join(dir, "migration.preview.sql"), "utf8").includes("16-x."));
+    assert.ok(existsSync(join(dir, "rollback.preview.sql")));
+
+    const mixed = spawnSync(process.execPath, [script, "--preview-sql", "--apply"], { cwd: work, env, encoding: "utf8" });
+    assert.equal(mixed.status, 1, "não combina com outros modos");
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
 });

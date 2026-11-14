@@ -8,6 +8,10 @@
 //   --confirm-remote --apply    ENVIA as versões WebP (nunca apaga, move ou sobrescreve
 //                               originais) e gera o SQL para revisão. O SQL NÃO é executado.
 //   --limit N                   processa no máximo N objetos (migração controlada em lotes).
+//   --preview-sql               OFFLINE: prévia do SQL a partir do plan.json já gravado.
+//
+// Conversões sem redução real de tamanho (medida depois da conversão) são ignoradas, com
+// motivo explícito, no plano e no envio, e nunca entram no SQL.
 //
 // Imagens que já têm cópia leve local com correspondência exata (data/homeImageVariants.json)
 // são preservadas: não são baixadas, convertidas, enviadas nem entram no SQL.
@@ -29,7 +33,35 @@ const args = new Set(argv);
 const HELP = `Uso:
   node scripts/migrate-storage-images.mjs --confirm-remote [--limit N]            # plano (só leitura)
   node scripts/migrate-storage-images.mjs --confirm-remote --apply [--limit N]    # envia WebP + gera SQL p/ revisão
+  node scripts/migrate-storage-images.mjs --preview-sql                           # prévia do SQL a partir do plan.json (offline)
 Sem --confirm-remote nada é acessado.`;
+
+// Prévia do SQL: 100% local, lê o plan.json já gravado. Não importa o cliente do Supabase.
+if (args.has("--preview-sql")) {
+  if (argv.length !== 1) {
+    console.error(`--preview-sql não aceita outras opções.\n${HELP}`);
+    process.exit(1);
+  }
+  const dir = join(process.cwd(), ".image-report", "storage-migration");
+  const planPath = join(dir, "plan.json");
+  if (!existsSync(planPath)) {
+    console.error("plan.json não encontrado: rode o plano antes (--confirm-remote).");
+    process.exit(1);
+  }
+  const { buildMigrationSqlPreview, PREVIEW_HASH_PLACEHOLDER } = await import("../lib/images/storageMigration.ts");
+  const plan = JSON.parse(readFileSync(planPath, "utf8"));
+  const preview = buildMigrationSqlPreview(plan);
+  writeFileSync(join(dir, "migration.preview.sql"), preview.sql);
+  writeFileSync(join(dir, "rollback.preview.sql"), preview.rollbackSql);
+  console.log(`Prévia: ${preview.count} artes em .image-report/storage-migration/migration.preview.sql (não executar).`);
+  if (preview.placeholders.length > 0) {
+    console.log(
+      `${preview.placeholders.length} URL(s) nova(s) com o marcador ${PREVIEW_HASH_PLACEHOLDER}: ` +
+        "o plano não registrou o destino exato; o envio gera o SQL definitivo."
+    );
+  }
+  process.exit(0);
+}
 
 if (!args.has("--confirm-remote")) {
   console.log(HELP);

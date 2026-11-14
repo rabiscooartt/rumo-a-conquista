@@ -14,7 +14,7 @@
 
 import { createHash } from "node:crypto";
 import sharp from "sharp";
-import { isImmutableImageName, safeImageBaseName } from "./naming.ts";
+import { immutableImageName, isImmutableImageName, safeImageBaseName } from "./naming.ts";
 import { optimizeImage, type OptimizedImage } from "./optimizeImage.ts";
 import type { ImagePresetName } from "./presets.ts";
 import { uploadOptimizedImage, type StorageBucketApi } from "./storage.ts";
@@ -136,6 +136,8 @@ export type MigrationRecord = {
   status: MigrationStatus;
   reason?: string;
   oldUrl?: string;
+  /** Destino calculado a partir do conteúdo convertido (plano); igual ao do envio. */
+  plannedPath?: string;
   newPath?: string;
   newUrl?: string;
   deduplicated?: boolean;
@@ -350,6 +352,8 @@ export async function migrateObject(
     });
     await verifyOptimizedImage(optimized);
 
+    const directory = item.path.split("/").slice(0, -1).join("/");
+    const baseName = item.target?.baseName ?? safeImageBaseName(item.path.split("/").pop()!, "conquista");
     const measured: MigrationRecord = {
       ...base,
       reason: localVariant ? `revisar: ${localVariant.note}` : undefined,
@@ -357,11 +361,21 @@ export async function migrateObject(
       optimizedBytes: optimized.optimizedBytes,
       reductionPercent: optimized.reductionPercent,
       size: `${optimized.originalWidth}x${optimized.originalHeight} -> ${optimized.width}x${optimized.height}`,
+      // Destino exato já no plano: o nome depende só do conteúdo convertido.
+      plannedPath: `${directory}/${immutableImageName(baseName, optimized.contentHash)}`,
     };
+
+    // Sem redução real (tamanhos medidos depois da conversão): não vale trocar o arquivo.
+    // Vale no plano e no envio, e registros "skipped" nunca entram no SQL.
+    if (optimized.optimizedBytes >= optimized.originalBytes) {
+      return {
+        ...measured,
+        status: "skipped",
+        reason: `sem redução: WebP de ${optimized.optimizedBytes} bytes não é menor que o original de ${optimized.originalBytes} bytes`,
+      };
+    }
     if (!options.apply) return { ...measured, status: "planned" };
 
-    const directory = item.path.split("/").slice(0, -1).join("/");
-    const baseName = item.target?.baseName ?? safeImageBaseName(item.path.split("/").pop()!, "conquista");
     const stored = await uploadOptimizedImage(api, directory, baseName, optimized);
     await verifyUploadedObject(api, stored.path, optimized.optimizedBytes);
 
@@ -480,4 +494,36 @@ export function buildMigrationSql(records: MigrationRecord[], runId: string) {
   rollback.push("commit;", "");
 
   return { sql: apply.join("\n"), rollbackSql: rollback.join("\n"), count: migrated.length };
+}
+
+/** Marca, na prévia, o trecho da URL nova que só o envio conhece (planos antigos, sem plannedPath). */
+export const PREVIEW_HASH_PLACEHOLDER = "HASH16_DEFINIDO_NO_ENVIO";
+
+/**
+ * Prévia offline do SQL a partir dos registros de um plano (plan.json), sem rede.
+ * Aplica as mesmas regras do SQL real: só artes de conquista "planned", nunca preservadas,
+ * sem dúvida resolvida por aproximação e sem conversão sem ganho.
+ * A URL nova usa `plannedPath` quando o plano a registrou; senão, um marcador explícito.
+ */
+export function buildMigrationSqlPreview(planRecords: MigrationRecord[], runId = "preview") {
+  const eligible = planRecords.filter(
+    (record) =>
+      record.status === "planned" &&
+      record.kind === "achievement" &&
+      record.oldUrl?.endsWith(`/${record.bucket}/${record.path}`) &&
+      record.localVariant?.status !== "preserved" &&
+      typeof record.originalBytes === "number" &&
+      typeof record.optimizedBytes === "number" &&
+      record.optimizedBytes < record.originalBytes
+  );
+  const placeholders: string[] = [];
+  const asMigrated = eligible.map((record) => {
+    const directory = record.path.split("/").slice(0, -1).join("/");
+    const baseName = safeImageBaseName(record.path.split("/").pop()!, "conquista");
+    const newPath = record.plannedPath ?? `${directory}/${baseName}.${PREVIEW_HASH_PLACEHOLDER}.webp`;
+    if (!record.plannedPath) placeholders.push(record.key);
+    const bucketRoot = record.oldUrl!.slice(0, record.oldUrl!.length - record.path.length);
+    return { ...record, status: "migrated" as const, newPath, newUrl: `${bucketRoot}${newPath}` };
+  });
+  return { ...buildMigrationSql(asMigrated, runId), included: asMigrated, placeholders };
 }
