@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import type { SiteBannerKey } from "@/lib/banner-types";
+import { getStoredBannerImage, withActiveFraming } from "@/lib/images/storedImages";
 
-const BUCKET = "site-banners";
 const VALID_BANNERS = new Set<SiteBannerKey>([
   "home",
   "jogos",
@@ -13,34 +13,6 @@ const VALID_BANNERS = new Set<SiteBannerKey>([
   "emblemas",
   "backlog",
 ]);
-
-async function getStoredBannerImageUrl(
-  client: ReturnType<typeof createAdminSupabaseClient>,
-  bannerKey: SiteBannerKey
-): Promise<string> {
-  try {
-    const path = `banners/${bannerKey}`;
-    const { data: files, error } = await client.storage
-      .from(BUCKET)
-      .list(path, { limit: 20 });
-
-    if (error || !files) return "";
-
-    const file = files.find((item) => item.name === "background");
-    if (!file) return "";
-
-    const { data } = client.storage
-      .from(BUCKET)
-      .getPublicUrl(`${path}/background`);
-    const version = file.updated_at || file.created_at;
-
-    return version
-      ? `${data.publicUrl}?v=${encodeURIComponent(version)}`
-      : data.publicUrl;
-  } catch {
-    return "";
-  }
-}
 
 export async function GET(request: NextRequest) {
   const banner = request.nextUrl.searchParams.get("banner") || "";
@@ -76,7 +48,9 @@ export async function GET(request: NextRequest) {
       console.error("[BannerSettings] Erro ao ler posição:", error);
     }
 
-    settings.imageUrl = await getStoredBannerImageUrl(client, bannerKey);
+    // Imagem ativa e o enquadramento salvo com ela (prioridade sobre a cópia da tabela).
+    const active = await getStoredBannerImage(client, bannerKey);
+    settings = { ...withActiveFraming(settings, active), imageUrl: active.url };
   } catch (error) {
     console.error("[BannerSettings] Erro ao carregar configuração:", error);
   }

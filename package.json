@@ -9,6 +9,8 @@
     "lint": "eslint",
     "home-images:generate": "node scripts/home-images.mjs generate",
     "home-images:check": "node scripts/home-images.mjs check",
+    "home-images:report": "node scripts/home-images.mjs report",
+    "test:unit": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/unit/**/*.test.mts\"",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -16,7 +18,8 @@
     "cheerio": "^1.2.0",
     "next": "^16.4.5",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",

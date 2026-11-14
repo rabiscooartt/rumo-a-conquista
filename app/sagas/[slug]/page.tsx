@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { type SiteSaga, useSiteSagas } from "@/lib/useSiteSagas";
+import { fallbackToOriginal, homeImageSrc, largeImageSrc } from "@/lib/homeImages";
 
 type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
@@ -468,10 +469,10 @@ function SagaBadgeImage({
 
   return (
     <img
-      src={src}
+      src={largeImageSrc(src)}
       alt={alt}
       className="h-full w-full scale-[1.08] object-contain"
-      onError={() => setHasError(true)}
+      onError={fallbackToOriginal(src, () => setHasError(true))}
     />
   );
 }
@@ -830,8 +831,11 @@ export default function SagaDetailPage() {
                             <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black/45 xl:w-[180px]">
                               {image ? (
                                 <img
-                                  src={image}
+                                  src={homeImageSrc(image)}
                                   alt={readText(game.title, "Jogo")}
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={fallbackToOriginal(image)}
                                   className="h-full w-full object-cover opacity-90 transition group-hover:scale-105 group-hover:opacity-100"
                                 />
                               ) : (

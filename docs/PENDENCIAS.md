@@ -76,3 +76,23 @@ Os 7 erros `react/jsx-key` foram corrigidos nesta etapa.
 - O Perfil ainda tenta a rota do Admin antes do catálogo público (um 401 no console do visitante).
 - Credenciais da Twitch ausentes na Vercel: a detecção de live da Twitch continua inativa.
 - 8 avisos moderados só nas ferramentas de lint (dependências de desenvolvimento).
+
+## 6. Migração das imagens antigas do Storage (preparada — não executada)
+
+`scripts/migrate-storage-images.mjs` (lógica em `lib/images/storageMigration.ts`, testada com
+Storage simulado) já resolve os bloqueios da revisão: banner/avatar só migram quando o legado
+é a versão ativa e nenhum ponteiro é gravado; erro por objeto sem interromper os demais;
+progresso gravado por objeto e retomada; entrada até 10 MB; WebP e envio conferidos; SQL com
+backup prévio, curingas escapados, `commit` explícito e reversão. Imagens com cópia leve local
+de correspondência exata (`data/homeImageVariants.json`: hoje as 29 artes do Mouse e o avatar,
+se a versão ativa for a mapeada) são preservadas: sem download, envio ou SQL. Cada banner/avatar
+registra o estado do ponteiro, e falha de listagem é sempre erro.
+
+Ainda depende de autorização e fica fora do script:
+
+- **Rodar** o plano (`--confirm-remote`, baixa os originais: Egress fora do cache, da ordem do
+  tamanho do Storage) e depois o envio (`--apply`, de preferência em lote com `--limit`).
+- **Aplicar** `migration.sql` no banco (cria `public.image_migration_backup`); o reverso é
+  `rollback.sql`.
+- **Não cobertos pelo SQL:** URLs antigas dentro de `games.final_badge` (JSON da Maestria) e
+  de rascunhos; continuam funcionando porque os originais não são apagados.

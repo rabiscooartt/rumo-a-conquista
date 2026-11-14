@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { getStoredAvatarImage, getStoredAvatarImageUrl } from "@/lib/images/storedImages";
 
 export const AVATAR_BUCKET = "site-profile";
 export const AVATAR_PATH = "profile/avatar";
@@ -32,24 +33,11 @@ export function normalizeAvatarSettings(input: Record<string, unknown>): AvatarS
   };
 }
 
-export async function getStoredAvatarUrl(
+export function getStoredAvatarUrl(
   client: ReturnType<typeof createAdminSupabaseClient>
 ): Promise<string> {
-  try {
-    const { data: files, error } = await client.storage
-      .from(AVATAR_BUCKET)
-      .list("profile", { limit: 20 });
-
-    if (error || !files) return "";
-    const avatar = files.find((file) => file.name === "avatar");
-    if (!avatar) return "";
-
-    const { data } = client.storage.from(AVATAR_BUCKET).getPublicUrl(AVATAR_PATH);
-    const version = avatar.updated_at || avatar.created_at;
-    return version ? `${data.publicUrl}?v=${encodeURIComponent(version)}` : data.publicUrl;
-  } catch {
-    return "";
-  }
+  // Escolhe a versão mais recente: WebP imutável (novos envios) ou o arquivo legado "avatar".
+  return getStoredAvatarImageUrl(client);
 }
 
 export async function getStoredAvatarSettings(
@@ -68,12 +56,16 @@ export async function getStoredAvatarSettings(
   }
 }
 
-export async function loadStoredAvatar() {
-  const client = createAdminSupabaseClient();
-  const [settings, imageUrl] = await Promise.all([
-    getStoredAvatarSettings(client),
-    getStoredAvatarUrl(client),
-  ]);
+/**
+ * Foto ativa e enquadramento. O enquadramento salvo com a foto ativa (no ponteiro) tem
+ * prioridade sobre o settings.json, que fica como cópia de compatibilidade.
+ */
+export async function getStoredAvatarState(client: ReturnType<typeof createAdminSupabaseClient>) {
+  const [saved, active] = await Promise.all([getStoredAvatarSettings(client), getStoredAvatarImage(client)]);
+  const settings = active.framing ? normalizeAvatarSettings(active.framing) : saved;
+  return { ...settings, imageUrl: active.url };
+}
 
-  return { ...settings, imageUrl };
+export async function loadStoredAvatar() {
+  return getStoredAvatarState(createAdminSupabaseClient());
 }

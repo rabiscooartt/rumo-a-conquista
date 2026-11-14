@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { isImmutableImageName, stripImageVersion } from "@/lib/images/naming";
 
 export const runtime = "nodejs";
 
@@ -25,7 +26,8 @@ function cleanSlug(value: string) {
 }
 
 function normalizeKey(value: string) {
-  return value
+  // "01-titulo.<hash>.webp" (envio otimizado) e "01-titulo.png" (legado) são a mesma conquista.
+  return stripImageVersion(value)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -36,7 +38,7 @@ function normalizeKey(value: string) {
 }
 
 function displayTitleFromFilename(filename: string) {
-  return filename
+  return stripImageVersion(filename)
     .replace(/\.[^.]+$/, "")
     .replace(/^\d+[-_\s]*/, "")
     .replace(/[-_]+/g, " ")
@@ -132,7 +134,11 @@ async function loadReferences(gameSlug: string, origin: string): Promise<Referen
 
     if (error) throw error;
 
-    for (const item of data ?? []) {
+    // A versão WebP otimizada vem antes do arquivo legado da mesma conquista.
+    const items = [...(data ?? [])].sort(
+      (left, right) => Number(isImmutableImageName(right.name)) - Number(isImmutableImageName(left.name))
+    );
+    for (const item of items) {
       const filename = String(item.name ?? "");
       if (!/\.(png|jpe?g|webp)$/i.test(filename) || /maestria[-_]final/i.test(filename)) {
         continue;

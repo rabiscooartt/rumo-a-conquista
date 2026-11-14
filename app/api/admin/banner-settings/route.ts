@@ -4,6 +4,21 @@ import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
 import { SITE_BANNER_CACHE_TAG } from "@/lib/site-banner-settings";
 import type { SiteBannerKey } from "@/lib/banner-types";
+import {
+  bannerImageTarget,
+  getStoredBannerImage,
+  getStoredBannerUrl,
+  replaceActiveImage,
+  updateActiveFraming,
+  withActiveFraming,
+} from "@/lib/images/storedImages";
+import {
+  ImageValidationError,
+  optimizationSummary,
+  optimizeUploadedFile,
+} from "@/lib/images/optimizeImage";
+
+export const runtime = "nodejs";
 
 const BUCKET = "site-banners";
 const VALID_BANNERS = new Set<SiteBannerKey>([
@@ -53,32 +68,11 @@ async function ensureBucket(
   }
 }
 
-async function getStoredBannerImageUrl(
+function getStoredBannerImageUrl(
   client: ReturnType<typeof createAdminSupabaseClient>,
   bannerKey: SiteBannerKey
 ): Promise<string> {
-  try {
-    const path = `banners/${bannerKey}`;
-    const { data: files, error } = await client.storage
-      .from(BUCKET)
-      .list(path, { limit: 20 });
-
-    if (error || !files) return "";
-
-    const file = files.find((item) => item.name === "background");
-    if (!file) return "";
-
-    const { data } = client.storage
-      .from(BUCKET)
-      .getPublicUrl(`${path}/background`);
-    const version = file.updated_at || file.created_at;
-
-    return version
-      ? `${data.publicUrl}?v=${encodeURIComponent(version)}`
-      : data.publicUrl;
-  } catch {
-    return "";
-  }
+  return getStoredBannerUrl(client, bannerKey);
 }
 
 export async function GET(request: NextRequest) {
@@ -98,12 +92,17 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Enquadramento salvo com a imagem ativa tem prioridade sobre a cópia da tabela.
+    const active = await getStoredBannerImage(client, bannerKey);
+    const framing = withActiveFraming(
+      { x: Number(data?.x ?? 0), y: Number(data?.y ?? 0), zoom: Number(data?.zoom ?? 1) },
+      active
+    );
+
     return NextResponse.json(
       {
-        x: data?.x ?? 0,
-        y: data?.y ?? 0,
-        zoom: data?.zoom ?? 1,
-        imageUrl: await getStoredBannerImageUrl(client, bannerKey),
+        ...framing,
+        imageUrl: active.url,
         authenticated: await isAdmin(request),
       },
       { headers: { "Cache-Control": "no-store, max-age=0" } }
@@ -169,34 +168,41 @@ export async function POST(request: NextRequest) {
     const settings = normalizeSettings(body);
     const client = createAdminSupabaseClient();
 
+    // Cópia de compatibilidade do enquadramento (leitores antigos e banners sem ponteiro).
+    const saveFraming = async () => {
+      const { error } = await client
+        .from("site_banner_settings")
+        .upsert(
+          {
+            banner_key: bannerKey,
+            x: settings.x,
+            y: settings.y,
+            zoom: settings.zoom,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "banner_key" }
+        );
+      if (error) throw error;
+    };
+
+    let optimization: ReturnType<typeof optimizationSummary> | null = null;
     if (file) {
+      // Valida a assinatura real e converte para WebP antes de tocar no Storage.
+      const optimized = await optimizeUploadedFile(file, "banner");
       await ensureBucket(client);
-      const path = `banners/${bannerKey}/background`;
-      const { error: uploadError } = await client.storage
-        .from(BUCKET)
-        .upload(path, file, {
-          contentType: file.type,
-          upsert: true,
-          cacheControl: "60",
-        });
-
-      if (uploadError) throw uploadError;
+      // Arquivo imutável "background.<hash>.webp" (reaproveitado se idêntico) e depois o
+      // ponteiro, que ativa imagem e enquadramento juntos. Se um dos dois falhar, o banner
+      // anterior continua no ar com o enquadramento dele. O arquivo legado não é tocado.
+      await replaceActiveImage(client, bannerImageTarget(bannerKey), optimized, {
+        framing: settings,
+        afterActivate: saveFraming,
+      });
+      optimization = optimizationSummary(optimized);
+    } else {
+      // Só o enquadramento: atualiza o ponteiro (se existir) antes da cópia da tabela.
+      await updateActiveFraming(client, bannerImageTarget(bannerKey), settings);
+      await saveFraming();
     }
-
-    const { error } = await client
-      .from("site_banner_settings")
-      .upsert(
-        {
-          banner_key: bannerKey,
-          x: settings.x,
-          y: settings.y,
-          zoom: settings.zoom,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "banner_key" }
-      );
-
-    if (error) throw error;
 
     revalidateTag(SITE_BANNER_CACHE_TAG, { expire: 0 });
 
@@ -204,8 +210,12 @@ export async function POST(request: NextRequest) {
       ok: true,
       ...settings,
       imageUrl: await getStoredBannerImageUrl(client, bannerKey),
+      optimization,
     });
   } catch (error) {
+    if (error instanceof ImageValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[BannerSettings] Erro salvando banner:", error);
     return NextResponse.json(
       {

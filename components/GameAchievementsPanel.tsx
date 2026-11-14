@@ -1612,7 +1612,7 @@ export default function GameAchievementsPanel(
                       <>
                         <div className="flex min-w-0 items-center justify-center md:justify-end">
                           <img
-                            src={trophyImagePath(rank)}
+                            src={homeImageSrc(trophyImagePath(rank))}
                             alt={rankLabel(rank)}
                             title={rankLabel(rank)}
                             aria-hidden="false"

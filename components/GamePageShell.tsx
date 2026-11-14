@@ -13,7 +13,7 @@ import GameAchievementsPanel, {
 } from "@/components/GameAchievementsPanel";
 import type { ReviewInput } from "@/components/GameReviewPanel";
 import { inferPrimaryGenre } from "@/lib/gameGenres";
-import { homeImageSrc, largeImageSrc } from "@/lib/homeImages";
+import { homeImageSrc, largeImageSrc, lightImageCandidates } from "@/lib/homeImages";
 import { getTrophyRank, TROPHY_META as SHARED_TROPHY_META } from "@/lib/trophyRanks";
 
 export type GamePageShellInput = {
@@ -140,9 +140,14 @@ const TROPHY_META = SHARED_TROPHY_META.map(({ rank, label }) => ({ rank, label }
 
 // Miniatura da próxima conquista: se o arquivo não existir, mostra o troféu em vez de uma imagem quebrada.
 // O ref também detecta a falha que acontece antes da hidratação, quando onError já passou.
-function NextAchievementThumb({ src, alt }: { src: string; alt: string }) {
-  const [failedSrc, setFailedSrc] = useState("");
-  if (failedSrc === src) {
+function NextAchievementThumb({ src: requestedSrc, alt }: { src: string; alt: string }) {
+  // Cópia leve primeiro; se ela falhar, o original; se ambos falharem, o troféu.
+  const sources = lightImageCandidates([requestedSrc]);
+  const [failed, setFailed] = useState<string[]>([]);
+  const src = sources.find((candidate) => !failed.includes(candidate)) ?? "";
+  const setFailedSrc = (value: string) =>
+    setFailed((current) => (current.includes(value) ? current : [...current, value]));
+  if (!src) {
     return <div className="flex h-full w-full items-center justify-center text-2xl opacity-35">🏆</div>;
   }
   return (
@@ -721,7 +726,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                               >
                                 <div className="flex h-10 w-full items-center justify-center">
                                   <img
-                                    src={
+                                    src={homeImageSrc(
                                       rank === "Bronze"
                                         ? "/images/trophies/bronze.png"
                                         : rank === "Prata"
@@ -729,7 +734,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                                           : rank === "Ouro"
                                             ? "/images/trophies/ouro.png"
                                             : "/images/trophies/maestria.png"
-                                    }
+                                    )}
                                     alt=""
                                     aria-hidden="true"
                                     className="h-11 w-11 object-contain"
@@ -919,7 +924,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                             <div className="relative h-[66px] w-[66px] shrink-0 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/40">
                               {nextAchievementImage ? (
                                 <NextAchievementThumb
-                                  src={homeImageSrc(nextAchievementImage)}
+                                  src={nextAchievementImage}
                                   alt={nextAchievement?.title || objective}
                                 />
                               ) : (

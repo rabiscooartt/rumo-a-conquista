@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { safeImageBaseName } from "@/lib/images/naming";
+import {
+  ImageValidationError,
+  optimizationSummary,
+  optimizeUploadedFile,
+} from "@/lib/images/optimizeImage";
+import { uploadOptimizedImage } from "@/lib/images/storage";
+
+export const runtime = "nodejs";
 
 const BUCKET = "achievement-art";
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
@@ -14,10 +23,6 @@ type ExpectedAchievement = {
 
 function safeSlug(value: string) {
   return /^[a-z0-9][a-z0-9-]{0,99}$/.test(value);
-}
-
-function safeFilename(value: string) {
-  return value.replace(/[^a-zA-Z0-9._-]/g, "-");
 }
 
 export async function POST(request: Request) {
@@ -65,6 +70,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Valida a assinatura real e converte antes de tocar no Storage.
+    const optimized = await optimizeUploadedFile(file, "achievement");
+
     const client = createAdminSupabaseClient();
     const { data: bucket } = await client.storage.getBucket(BUCKET);
     if (!bucket) {
@@ -78,29 +86,32 @@ export async function POST(request: Request) {
       }
     }
 
-    const filename = safeFilename(normalizedFilename);
-    const path = "games/" + gameSlug + "/achievements/" + filename;
-    const { error: uploadError } = await client.storage
-      .from(BUCKET)
-      .upload(path, file, {
-        contentType: file.type,
-        upsert: true,
-        cacheControl: "31536000",
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data: publicUrl } = client.storage.from(BUCKET).getPublicUrl(path);
-    // A versão muda a URL a cada envio: evita o cache de um ano e cópias antigas da Início.
-    const image = `${publicUrl.publicUrl}?v=${Date.now()}`;
+    // Só a versão WebP de exibição vai para o Storage, com nome imutável derivado do conteúdo.
+    const stored = await uploadOptimizedImage(
+      client.storage.from(BUCKET),
+      "games/" + gameSlug + "/achievements",
+      safeImageBaseName(normalizedFilename, "conquista"),
+      optimized
+    );
+    const image = stored.publicUrl;
 
     return NextResponse.json({
       ok: true,
       gameSlug,
       count: 1,
-      saved: [{ filename: normalizedFilename, title: match.name.trim(), image }],
+      saved: [
+        {
+          filename: normalizedFilename,
+          title: match.name.trim(),
+          image,
+          optimization: optimizationSummary(optimized),
+        },
+      ],
     });
   } catch (error) {
+    if (error instanceof ImageValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("[Manual Achievement Art Upload]", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Não foi possível salvar a arte da conquista manual." },

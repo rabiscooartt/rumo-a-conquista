@@ -7,7 +7,7 @@ import StarRating from "@/components/StarRating";
 import BannerBackground from "@/components/BannerBackground";
 import IconPlatform from "@/components/PlatformIcon";
 import { formatGameGenreLabel, type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
-import { homeImageSrc } from "@/lib/homeImages";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 import { getTrophyRank, TROPHY_META, type TrophyRank } from "@/lib/trophyRanks";
 import { games as baseGames } from "@/data/games";
 import { useJourneyEntries } from "@/lib/useJourneyEntries";
@@ -691,7 +691,7 @@ function GameCoverImage({
       src={homeImageSrc(src)}
       alt={title}
       className={imageClassName ?? "h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105"}
-      onError={() => setHasError(true)}
+      onError={fallbackToOriginal(src, () => setHasError(true))}
     />
   );
 }
@@ -706,10 +706,12 @@ function MasteryVisual({ mastery }: { mastery: FinalMasteryData }) {
     return (
       <img
         key={mastery.image}
-        src={mastery.image}
+        src={homeImageSrc(mastery.image)}
         alt={mastery.title}
+        loading="lazy"
+        decoding="async"
         className="h-full w-full object-cover"
-        onError={() => setHasError(true)}
+        onError={fallbackToOriginal(mastery.image, () => setHasError(true))}
       />
     );
   }
@@ -766,7 +768,9 @@ function GameEmblem({ game, className }: { game: BibliotecaGame; className?: str
           decoding="async"
           className="h-full w-full object-contain"
           onError={(event) => {
-            event.currentTarget.src = "/images/games/emblem.png";
+            // Emblema padrão em cópia leve (o original tem 2,4 MB); tenta uma vez só.
+            const fallback = homeImageSrc("/images/games/emblem.png");
+            if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback;
           }}
         />
       </div>
@@ -2732,7 +2736,7 @@ export default function BibliotecaClient({
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0">
             <header className="relative overflow-hidden border-b border-white/10 bg-[#050609]">
-              <BannerBackground bannerKey="jogos" imageUrl="/images/jogos-bg.png" adminButtonClassName="" />
+              <BannerBackground bannerKey="jogos" imageUrl={homeImageSrc("/images/jogos-bg.png")} adminButtonClassName="" />
 
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />

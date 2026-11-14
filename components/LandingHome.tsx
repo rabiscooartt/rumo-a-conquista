@@ -8,7 +8,7 @@ import PlatformIcon from "@/components/PlatformIcon";
 import StarRating from "@/components/StarRating";
 import { type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
-import { homeImageSrc } from "@/lib/homeImages";
+import { fallbackToOriginal, homeImageSrc, lightImageCandidates } from "@/lib/homeImages";
 
 type HomeGame = SiteGame & {
   mastery?: string;
@@ -419,9 +419,11 @@ function getAchievementFallbackImage(achievement: AchievementLike) {
 }
 
 function AchievementArtwork({ achievement, className }: { achievement: AchievementLike; className: string }) {
-  const [imageFailed, setImageFailed] = useState(false);
   const image = readText(achievement.image, "").trim() || readText(achievement.officialImage, "").trim();
-  const src = image && !imageFailed ? image : getAchievementFallbackImage(achievement);
+  // Cópia leve → original → troféu da categoria.
+  const sources = [...lightImageCandidates([image]), getAchievementFallbackImage(achievement)];
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const src = sources[Math.min(sourceIndex, sources.length - 1)];
 
   return (
     <img
@@ -430,7 +432,7 @@ function AchievementArtwork({ achievement, className }: { achievement: Achieveme
       loading="lazy"
       decoding="async"
       draggable={false}
-      onError={() => { if (!imageFailed) setImageFailed(true); }}
+      onError={() => { if (sourceIndex < sources.length - 1) setSourceIndex((current) => current + 1); }}
       className={className}
     />
   );
@@ -499,7 +501,8 @@ function AchievementPreviewLink({
   index: number;
   onUnavailable?: (key: string) => void;
 }) {
-  const individualImages = getIndividualAchievementImages(achievement);
+  // Cópia WebP leve primeiro; o original só é baixado se a cópia falhar.
+  const individualImages = lightImageCandidates(getIndividualAchievementImages(achievement));
   const fallbackImage = getAchievementFallbackImage(achievement);
   const imageSources = Array.from(new Set([...individualImages, fallbackImage]));
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -1159,9 +1162,10 @@ export default function LandingHome({
                     className={`flex min-w-0 flex-col items-center justify-center rounded-md border px-0.5 py-1.5 ${tier.border} ${tier.background}`}
                   >
                     <img
-                      src={tier.image}
+                      src={homeImageSrc(tier.image)}
                       alt={tier.label}
                       loading="eager"
+                      onError={fallbackToOriginal(tier.image)}
                       className="h-8 w-8 max-w-full object-contain"
                     />
                     <p className="mt-1 whitespace-nowrap text-[13px] font-black leading-none text-white">
@@ -1621,7 +1625,11 @@ export default function LandingHome({
                             alt={game.title + " — emblema"}
                             loading="lazy"
                             className="h-full w-full object-contain"
-                            onError={(event) => { event.currentTarget.src = "/images/games/emblem.png"; }}
+                            onError={(event) => {
+                              // Emblema padrão em cópia leve (o original tem 2,4 MB); tenta uma vez só.
+                              const fallback = homeImageSrc("/images/games/emblem.png");
+                              if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback;
+                            }}
                           />
                         </div>
                         {!completed ? (
@@ -1717,7 +1725,7 @@ export default function LandingHome({
               <>
                 <div className="grid grid-cols-[86px_minmax(0,1fr)] items-center gap-3 p-3">
                   <Link href={"/games/" + nextMastery.slug} className="group relative flex h-[112px] w-full items-center justify-center overflow-hidden rounded-lg border border-white/[0.10] bg-black/45 transition hover:border-red-500/40">
-                    <img src={nextMastery.cardImage || nextMastery.image || ""} alt={nextMastery.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
+                    <img src={homeImageSrc(nextMastery.cardImage || nextMastery.image || "")} onError={fallbackToOriginal(nextMastery.cardImage || nextMastery.image || "")} alt={nextMastery.title + " — capa"} loading="lazy" className="h-full w-full object-cover object-center brightness-90 contrast-110 transition duration-700 group-hover:scale-105 group-hover:brightness-105" />
                   </Link>
                   <div className="min-w-0">
                     <h3 className="text-xs font-black leading-snug text-white sm:text-sm">{nextMastery.title}</h3>

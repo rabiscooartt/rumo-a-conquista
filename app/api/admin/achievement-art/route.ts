@@ -3,6 +3,15 @@ import { rejectUnlessAdmin } from "@/lib/admin-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
+import { safeImageBaseName } from "@/lib/images/naming";
+import {
+  ImageValidationError,
+  optimizationSummary,
+  optimizeUploadedFile,
+} from "@/lib/images/optimizeImage";
+import { uploadOptimizedImage } from "@/lib/images/storage";
+
+export const runtime = "nodejs";
 
 const BUCKET = "achievement-art";
 
@@ -94,29 +103,42 @@ export async function POST(request: NextRequest) {
       throw bucketError;
     }
 
-    const saved: { filename: string; title: string; image: string }[] = [];
-
+    // Valida e converte todos os arquivos antes de gravar qualquer coisa: um arquivo inválido
+    // no meio do lote não deixa conquistas atualizadas pela metade.
+    const optimizedFiles = [];
     for (const item of matches) {
+      try {
+        optimizedFiles.push({ ...item, optimized: await optimizeUploadedFile(item.file, "achievement") });
+      } catch (error) {
+        if (error instanceof ImageValidationError) {
+          return NextResponse.json(
+            { error: `${item.file.name}: ${error.message}`, files: [item.file.name] },
+            { status: error.status }
+          );
+        }
+        throw error;
+      }
+    }
+
+    const saved: {
+      filename: string;
+      title: string;
+      image: string;
+      optimization: ReturnType<typeof optimizationSummary>;
+    }[] = [];
+
+    for (const item of optimizedFiles) {
       const achievement = item.achievement!;
-      const safeFilename = item.file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-      const path = `games/${gameSlug}/achievements/${safeFilename}`;
 
-      const { error: uploadError } = await client.storage
-        .from(BUCKET)
-        .upload(path, item.file, {
-          contentType: item.file.type,
-          upsert: true,
-          cacheControl: "31536000",
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = client.storage
-        .from(BUCKET)
-        .getPublicUrl(path);
-
-      // A versão muda a URL a cada envio: evita o cache de um ano e cópias antigas da Início.
-      const image = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+      // Só a versão WebP de exibição vai para o Storage, com nome derivado do conteúdo
+      // ("<nome>.<hash>.webp"): endereço novo a cada arte nova, sem "?v=" e sem sobrescrever.
+      const stored = await uploadOptimizedImage(
+        client.storage.from(BUCKET),
+        `games/${gameSlug}/achievements`,
+        safeImageBaseName(item.file.name, "conquista"),
+        item.optimized
+      );
+      const image = stored.publicUrl;
 
       const { error: updateError } = await client
         .from("achievements")
@@ -139,6 +161,7 @@ export async function POST(request: NextRequest) {
         filename: item.file.name,
         title: achievement.title,
         image,
+        optimization: optimizationSummary(item.optimized),
       });
     }
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 
 type AchievementSummary =
   | string
@@ -280,10 +281,10 @@ function AvatarImage() {
 
   return (
     <img
-      src="/images/avatar.jpg"
+      src={homeImageSrc("/images/avatar.jpg")}
       alt="orabiiisco"
       className="h-full w-full object-cover"
-      onError={() => setHasError(true)}
+      onError={fallbackToOriginal("/images/avatar.jpg", () => setHasError(true))}
     />
   );
 }

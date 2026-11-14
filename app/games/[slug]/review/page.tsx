@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import { homeImageSrc } from "@/lib/homeImages";
 import type { ReviewInput } from "@/components/GameReviewPanel";
 
 type PublicAchievement = {
@@ -207,7 +208,7 @@ export default function CompleteGameReviewPage() {
               {(game.cardImage || game.image) ? (
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
                   <img
-                    src={game.cardImage || game.image}
+                    src={homeImageSrc(game.cardImage || game.image || "")}
                     alt=""
                     className="h-full w-full scale-110 object-cover opacity-30 blur-[5px]"
                   />
@@ -220,7 +221,7 @@ export default function CompleteGameReviewPage() {
                   {(game.cardImage || game.image) ? (
                     <div className="relative aspect-[3/4] w-full max-w-[190px] overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
                       <img
-                        src={game.cardImage || game.image}
+                        src={homeImageSrc(game.cardImage || game.image || "")}
                         alt={`Capa de ${game.title || "jogo"}`}
                         className="h-full w-full object-cover"
                       />

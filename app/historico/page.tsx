@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { useSiteSagas } from "@/lib/useSiteSagas";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 
 type FilterType = "all" | "trophies" | "badges";
 
@@ -410,10 +411,12 @@ function EntryIcon({ entry }: { entry: HistoryEntry }) {
       >
         <img
           key={entry.image}
-          src={entry.image}
+          src={homeImageSrc(entry.image)}
           alt={entry.title}
+          loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover"
-          onError={() => setHasError(true)}
+          onError={fallbackToOriginal(entry.image, () => setHasError(true))}
         />
       </div>
     );

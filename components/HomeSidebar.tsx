@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
+import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
 
 type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 type AchievementStatus = "locked" | "progress" | "completed";
@@ -772,10 +773,12 @@ function ActivityIcon({ image, icon }: { image?: string; icon: string }) {
   if (image && !hasError) {
     return (
       <img
-        src={image}
+        src={homeImageSrc(image)}
         alt=""
+        loading="lazy"
+        decoding="async"
         className="h-full w-full object-cover"
-        onError={() => setHasError(true)}
+        onError={fallbackToOriginal(image, () => setHasError(true))}
       />
     );
   }
