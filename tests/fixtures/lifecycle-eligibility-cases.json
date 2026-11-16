@@ -1,0 +1,705 @@
+{
+  "bucket": "game-images",
+  "cases": [
+    {
+      "name": "duas varreduras completas sem referência, 30+ dias",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          true,
+          null
+        ]
+      }
+    },
+    {
+      "name": "menos de 30 dias",
+      "scans": [
+        {
+          "id": "scan-20260801T000000Z",
+          "at": "2026-08-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260820T000000Z",
+          "at": "2026-08-20T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "intervalo entre as varreduras menor que o prazo de segurança"
+        ]
+      }
+    },
+    {
+      "name": "última varredura incompleta",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260820T000000Z",
+          "at": "2026-08-20T00:00:00Z",
+          "complete": false,
+          "objects": {}
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "a varredura mais recente está incompleta ou invalidada"
+        ]
+      }
+    },
+    {
+      "name": "última varredura invalidada",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260820T000000Z",
+          "at": "2026-08-20T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "invalidate": [
+        "scan-20260820T000000Z"
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "a varredura mais recente está incompleta ou invalidada"
+        ]
+      }
+    },
+    {
+      "name": "varredura invalidada no meio da janela",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260720T000000Z",
+          "at": "2026-07-20T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260810T000000Z",
+          "at": "2026-08-10T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "invalidate": [
+        "scan-20260701T000000Z"
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "intervalo entre as varreduras menor que o prazo de segurança"
+        ]
+      }
+    },
+    {
+      "name": "varredura incompleta no meio não conta",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260720T000000Z",
+          "at": "2026-07-20T00:00:00Z",
+          "complete": false,
+          "objects": {}
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          true,
+          null
+        ]
+      }
+    },
+    {
+      "name": "referência que reaparece",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260720T000000Z",
+          "at": "2026-07-20T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "referenced",
+              "refs": 1
+            }
+          }
+        },
+        {
+          "id": "scan-20260810T000000Z",
+          "at": "2026-08-10T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "intervalo entre as varreduras menor que o prazo de segurança"
+        ]
+      }
+    },
+    {
+      "name": "proteção manual ativa",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "manual": {
+        "protect": [
+          "a.png"
+        ]
+      },
+      "expected": {
+        "a.png": [
+          false,
+          "proteção manual ativa"
+        ]
+      }
+    },
+    {
+      "name": "proteção manual removida dentro do período",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "manual": {
+        "release": [
+          "a.png"
+        ]
+      },
+      "expected": {
+        "a.png": [
+          false,
+          "proteção manual removida dentro do período de evidência"
+        ]
+      }
+    },
+    {
+      "name": "objeto ausente do inventário",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            },
+            "b.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "b.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "menos de duas varreduras completas e válidas sem referência"
+        ],
+        "b.png": [
+          true,
+          null
+        ]
+      }
+    },
+    {
+      "name": "varredura válida registrada sem evidência",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260820T000000Z",
+          "at": "2026-08-20T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          },
+          "synced": false
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "menos de duas varreduras completas e válidas sem referência"
+        ]
+      }
+    },
+    {
+      "name": "objeto protegido pela lista",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "protected",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "protected",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "objeto protegido"
+        ]
+      }
+    },
+    {
+      "name": "objeto fora do ciclo de vida",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "nunca-visto.png": [
+          false,
+          "objeto fora do ciclo de vida"
+        ]
+      }
+    },
+    {
+      "name": "versão ativa interrompe a sequência",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "active",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "menos de duas varreduras completas e válidas sem referência"
+        ]
+      }
+    },
+    {
+      "name": "duplicata sem referência conta como evidência",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "duplicate",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260815T000000Z",
+          "at": "2026-08-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "duplicate",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          true,
+          null
+        ]
+      }
+    },
+    {
+      "name": "baseline original invalidada",
+      "scans": [
+        {
+          "id": "scan-20261114T224255Z",
+          "at": "2026-11-14T22:42:55Z",
+          "complete": true,
+          "objects": {
+            "faca.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20261114T225139Z",
+          "at": "2026-11-14T22:51:39Z",
+          "complete": true,
+          "objects": {
+            "faca.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20261115T000000Z",
+          "at": "2026-11-15T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "faca.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "invalidate": [
+        "scan-20261114T224255Z"
+      ],
+      "expected": {
+        "faca.png": [
+          false,
+          "intervalo entre as varreduras menor que o prazo de segurança"
+        ]
+      }
+    },
+    {
+      "name": "exatamente 30 dias",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260731T000000Z",
+          "at": "2026-07-31T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          true,
+          null
+        ]
+      }
+    },
+    {
+      "name": "29 dias e 23 horas",
+      "scans": [
+        {
+          "id": "scan-20260701T000000Z",
+          "at": "2026-07-01T00:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        },
+        {
+          "id": "scan-20260730T230000Z",
+          "at": "2026-07-30T23:00:00Z",
+          "complete": true,
+          "objects": {
+            "a.png": {
+              "state": "observing",
+              "refs": 0
+            }
+          }
+        }
+      ],
+      "expected": {
+        "a.png": [
+          false,
+          "intervalo entre as varreduras menor que o prazo de segurança"
+        ]
+      }
+    }
+  ]
+}
