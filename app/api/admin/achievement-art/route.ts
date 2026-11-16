@@ -1,5 +1,5 @@
 import { revalidateTag } from "next/cache";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { requireAdminActor } from "@/lib/admin-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
@@ -9,7 +9,9 @@ import {
   optimizationSummary,
   optimizeUploadedFile,
 } from "@/lib/images/optimizeImage";
-import { uploadOptimizedImage } from "@/lib/images/storage";
+import { importAchievementArt, type AchievementArtDeps } from "@/lib/images/lifecycle/achievementArtImport";
+import { supabaseLifecycleRpc, type TrackedBucketApi } from "@/lib/images/lifecycle/tracked";
+import { lifecycleErrorResponse, RECONCILE_HINT, refusedMessage } from "@/lib/images/lifecycle/httpErrors";
 
 export const runtime = "nodejs";
 
@@ -27,8 +29,9 @@ function normalize(value: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const formData = await request.formData();
@@ -120,62 +123,101 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const saved: {
-      filename: string;
-      title: string;
-      image: string;
-      optimization: ReturnType<typeof optimizationSummary>;
-    }[] = [];
+    // Envio rastreado e troca auditada das referências (ciclo de vida das imagens).
+    const deps: AchievementArtDeps = {
+      rpc: supabaseLifecycleRpc(client),
+      bucketApi: client.storage.from(BUCKET) as unknown as TrackedBucketApi,
+      async loadAchievements(slug, ids) {
+        const { data, error } = await client.from("achievements").select("id, title, image").eq("game_slug", slug).in("id", ids);
+        if (error) throw error;
+        return (data ?? []).map((row) => ({ id: String(row.id), title: String(row.title), image: row.image ?? null }));
+      },
+      async loadAffectedProgress(ids) {
+        const { data, error } = await client.from("achievement_progress")
+          .select("id, achievement_id, status, earned_at, image_override").in("achievement_id", ids).not("image_override", "is", null);
+        if (error) throw error;
+        return (data ?? []).map((row) => ({
+          id: String(row.id), achievement_id: String(row.achievement_id), status: String(row.status),
+          earned_at: row.earned_at ?? null, image_override: row.image_override ?? null,
+        }));
+      },
+      async loadObjects(keys) {
+        if (keys.length === 0) return [];
+        const paths = keys.map((key) => key.slice(key.indexOf("/") + 1));
+        const { data, error } = await client.from("storage_object_lifecycle")
+          .select("bucket, object_path, state, manual_protection").in("object_path", paths);
+        if (error) throw error;
+        return (data ?? []).filter((row) => keys.includes(`${row.bucket}/${row.object_path}`));
+      },
+      async loadBatchItems(batchKey) {
+        const { data, error } = await client.from("storage_operation_log").select("details")
+          .eq("idempotency_key", batchKey).eq("phase", "intent").eq("operation", "reference_batch").maybeSingle();
+        if (error) throw error;
+        const items = (data?.details as { items?: unknown } | null)?.items;
+        return Array.isArray(items) ? (items as Awaited<ReturnType<AchievementArtDeps["loadBatchItems"]>>) : null;
+      },
+    };
 
-    for (const item of optimizedFiles) {
-      const achievement = item.achievement!;
-
-      // Só a versão WebP de exibição vai para o Storage, com nome derivado do conteúdo
-      // ("<nome>.<hash>.webp"): endereço novo a cada arte nova, sem "?v=" e sem sobrescrever.
-      const stored = await uploadOptimizedImage(
-        client.storage.from(BUCKET),
-        `games/${gameSlug}/achievements`,
-        safeImageBaseName(item.file.name, "conquista"),
-        item.optimized
-      );
-      const image = stored.publicUrl;
-
-      const { error: updateError } = await client
-        .from("achievements")
-        .update({ image })
-        .eq("id", achievement.id)
-        .eq("game_slug", gameSlug);
-
-      if (updateError) throw updateError;
-
-      // A imagem do progresso tem prioridade na exibição: sem isto, a arte antiga continuaria no site.
-      const { error: progressError } = await client
-        .from("achievement_progress")
-        .update({ image_override: image })
-        .eq("achievement_id", achievement.id)
-        .not("image_override", "is", null);
-
-      if (progressError) throw progressError;
-
-      saved.push({
+    const outcome = await importAchievementArt({
+      deps,
+      gameSlug,
+      actor: session.actor,
+      items: optimizedFiles.map((item) => ({
         filename: item.file.name,
-        title: achievement.title,
-        image,
-        optimization: optimizationSummary(item.optimized),
+        achievementId: String(item.achievement!.id),
+        baseName: safeImageBaseName(item.file.name, "conquista"),
+        optimized: item.optimized,
+      })),
+    });
+    const summaries = new Map(optimizedFiles.map((item) => [item.file.name, optimizationSummary(item.optimized)]));
+    const saved = outcome.saved.map((item) => ({ ...item, optimization: summaries.get(item.filename) }));
+
+    if (outcome.status !== "nothing_accepted") revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
+
+    if (outcome.status === "completed") {
+      return NextResponse.json({
+        ok: true, bucket: BUCKET, gameSlug, saved, count: saved.length,
+        refused: outcome.refused, previousObjects: outcome.previousObjects,
       });
     }
-
-    revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
-
-    return NextResponse.json({
-      ok: true,
-      bucket: BUCKET,
-      gameSlug,
-      saved,
-      count: saved.length,
-    });
+    if (outcome.status === "nothing_accepted") {
+      return NextResponse.json(
+        { error: refusedMessage(outcome.refused), refused: outcome.refused, files: outcome.refused.map((r) => r.filename) },
+        { status: 409 }
+      );
+    }
+    if (outcome.status === "upload_failed") {
+      return NextResponse.json(
+        {
+          error: outcome.uploadFailure?.pending
+            ? `${outcome.uploadFailure.message} ${RECONCILE_HINT}`
+            : outcome.uploadFailure?.message ?? "Falha ao enviar as artes.",
+          pending: outcome.uploadFailure?.pending ?? false,
+          uploaded: outcome.uploads.map((u) => u.filename),
+          refused: outcome.refused,
+        },
+        { status: 502 }
+      );
+    }
+    // Parcial: parte das referências trocou e o resto continua como estava. Não é sucesso.
+    const batch = outcome.batch!;
+    return NextResponse.json(
+      {
+        error: `Parte das referências foi atualizada e parte não; nada será duplicado. ${RECONCILE_HINT}`,
+        partial: true,
+        pending: true,
+        applied: batch.applied.length + batch.alreadyApplied.length,
+        total: batch.items,
+        failed: batch.status === "partial" ? batch.failed : null,
+        refused: outcome.refused,
+        saved,
+      },
+      { status: 500 }
+    );
   } catch (error) {
     console.error("Erro importando artes das conquistas:", error);
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
 
     return NextResponse.json(
       {

@@ -2,10 +2,12 @@ import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { HOME_AVATAR_CACHE_TAG } from "@/lib/homeInitialData";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
-import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
+import { ADMIN_SESSION_COOKIE, readAdminSessionUser, verifyAdminSession } from "@/lib/admin-auth";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { activateTrackedImage } from "@/lib/images/lifecycle/trackedPointer";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 import {
   AVATAR_IMAGE_TARGET,
-  replaceActiveImage,
   updateActiveFraming,
 } from "@/lib/images/storedImages";
 import {
@@ -70,7 +72,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await isAdmin(request))) {
+  // O ator da auditoria vem da sessão validada aqui, nunca do navegador.
+  const adminUser = await readAdminSessionUser(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
+  if (!adminUser) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
@@ -131,7 +135,13 @@ export async function POST(request: NextRequest) {
       // ponteiro, que ativa foto e enquadramento juntos. Se um dos dois falhar, a foto
       // anterior continua no ar com o enquadramento dela. O arquivo legado não é tocado.
       const optimized = await optimizeUploadedFile(file, "avatar");
-      await replaceActiveImage(client, AVATAR_IMAGE_TARGET, optimized, {
+      await activateTrackedImage({
+        client,
+        rpc: supabaseLifecycleRpc(client),
+        target: AVATAR_IMAGE_TARGET,
+        image: optimized,
+        actor: `admin:${adminUser}`,
+        reason: "nova foto do perfil",
         framing: settings,
         afterActivate: saveFraming,
       });
@@ -154,6 +164,9 @@ export async function POST(request: NextRequest) {
     if (error instanceof ImageValidationError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
+    // Ciclo de vida: mensagens com o motivo e o que fazer (pendências, colisão, ativação em aberto).
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("[ProfileAvatar] Erro salvando a foto:", error);
     return NextResponse.json(
       {

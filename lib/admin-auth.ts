@@ -83,30 +83,35 @@ export async function createAdminSession() {
   return `${payload}.${signature}`;
 }
 
-export async function verifyAdminSession(token: string | undefined | null) {
-  if (!token) return false;
+/** Usuário da sessão de admin, só quando assinatura, usuário e validade conferem; senão null. */
+export async function readAdminSessionUser(token: string | undefined | null): Promise<string | null> {
+  if (!token) return null;
 
   const separator = token.lastIndexOf(".");
-  if (separator <= 0) return false;
+  if (separator <= 0) return null;
 
   const payload = token.slice(0, separator);
   const signature = token.slice(separator + 1);
-  if (!signature) return false;
+  if (!signature) return null;
 
   try {
     const validSignature = await verifySignature(payload, signature);
-    if (!validSignature) return false;
+    if (!validSignature) return null;
 
     const decoded = new TextDecoder().decode(fromBase64Url(payload));
     const data = JSON.parse(decoded) as { user?: string; exp?: number };
 
-    if (!data.user || data.user !== process.env.ADMIN_USER) return false;
-    if (!data.exp || data.exp <= Math.floor(Date.now() / 1000)) return false;
+    if (!data.user || data.user !== process.env.ADMIN_USER) return null;
+    if (!data.exp || data.exp <= Math.floor(Date.now() / 1000)) return null;
 
-    return true;
+    return data.user;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export async function verifyAdminSession(token: string | undefined | null) {
+  return (await readAdminSessionUser(token)) !== null;
 }
 
 // Compara dois textos sem revelar, pelo tempo de resposta, quantos caracteres coincidem.
