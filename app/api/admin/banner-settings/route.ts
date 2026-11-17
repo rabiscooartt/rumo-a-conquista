@@ -1,14 +1,16 @@
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
-import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
+import { ADMIN_SESSION_COOKIE, readAdminSessionUser, verifyAdminSession } from "@/lib/admin-auth";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { activateTrackedImage } from "@/lib/images/lifecycle/trackedPointer";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 import { SITE_BANNER_CACHE_TAG } from "@/lib/site-banner-settings";
 import type { SiteBannerKey } from "@/lib/banner-types";
 import {
   bannerImageTarget,
   getStoredBannerImage,
   getStoredBannerUrl,
-  replaceActiveImage,
   updateActiveFraming,
   withActiveFraming,
 } from "@/lib/images/storedImages";
@@ -122,7 +124,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await isAdmin(request))) {
+  // O ator da auditoria vem da sessão validada aqui, nunca do navegador.
+  const adminUser = await readAdminSessionUser(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
+  if (!adminUser) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
@@ -193,7 +197,13 @@ export async function POST(request: NextRequest) {
       // Arquivo imutável "background.<hash>.webp" (reaproveitado se idêntico) e depois o
       // ponteiro, que ativa imagem e enquadramento juntos. Se um dos dois falhar, o banner
       // anterior continua no ar com o enquadramento dele. O arquivo legado não é tocado.
-      await replaceActiveImage(client, bannerImageTarget(bannerKey), optimized, {
+      await activateTrackedImage({
+        client,
+        rpc: supabaseLifecycleRpc(client),
+        target: bannerImageTarget(bannerKey),
+        image: optimized,
+        actor: `admin:${adminUser}`,
+        reason: `novo banner (${bannerKey})`,
         framing: settings,
         afterActivate: saveFraming,
       });
@@ -216,6 +226,9 @@ export async function POST(request: NextRequest) {
     if (error instanceof ImageValidationError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
+    // Ciclo de vida: mensagens com o motivo e o que fazer (pendências, colisão, ativação em aberto).
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("[BannerSettings] Erro salvando banner:", error);
     return NextResponse.json(
       {

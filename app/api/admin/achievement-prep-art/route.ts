@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { requireAdminActor } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { safeImageBaseName } from "@/lib/images/naming";
 import {
@@ -7,7 +7,8 @@ import {
   optimizationSummary,
   optimizeUploadedFile,
 } from "@/lib/images/optimizeImage";
-import { uploadOptimizedImage } from "@/lib/images/storage";
+import { supabaseLifecycleRpc, uploadTracked, type TrackedBucketApi } from "@/lib/images/lifecycle/tracked";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 
 export const runtime = "nodejs";
 
@@ -26,8 +27,9 @@ function safeSlug(value: string) {
 }
 
 export async function POST(request: Request) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const formData = await request.formData();
@@ -86,13 +88,19 @@ export async function POST(request: Request) {
       }
     }
 
-    // Só a versão WebP de exibição vai para o Storage, com nome imutável derivado do conteúdo.
-    const stored = await uploadOptimizedImage(
-      client.storage.from(BUCKET),
-      "games/" + gameSlug + "/achievements",
-      safeImageBaseName(normalizedFilename, "conquista"),
-      optimized
-    );
+    // Envio rastreado (ciclo de vida): intenção antes do envio, WebP com nome derivado do SHA-256,
+    // sem sobrescrever, conferido no Storage e confirmado no banco. A referência só entra depois,
+    // pelo rascunho e pelo salvamento do jogo; até lá o objeto fica "unverified".
+    const stored = await uploadTracked({
+      rpc: supabaseLifecycleRpc(client),
+      bucket: BUCKET,
+      api: client.storage.from(BUCKET) as unknown as TrackedBucketApi,
+      directory: "games/" + gameSlug + "/achievements",
+      baseName: safeImageBaseName(normalizedFilename, "conquista"),
+      image: optimized,
+      actor: session.actor,
+      reason: `arte de conquista manual preparada (${gameSlug})`,
+    });
     const image = stored.publicUrl;
 
     return NextResponse.json({
@@ -112,6 +120,9 @@ export async function POST(request: Request) {
     if (error instanceof ImageValidationError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
+    // Ciclo de vida: mensagens com o motivo e o que fazer (pendências, colisão, ativação em aberto).
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("[Manual Achievement Art Upload]", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Não foi possível salvar a arte da conquista manual." },

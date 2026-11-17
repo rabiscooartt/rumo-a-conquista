@@ -1,0 +1,280 @@
+{
+  "knownBuckets": [
+    "achievement-art",
+    "site-banners",
+    "site-profile",
+    "game-images"
+  ],
+  "cases": [
+    {
+      "note": "URL pública",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "com ?v=",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png?v=1793662305750",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "com fragmento",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png#topo",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "URL assinada",
+      "input": "https://x.supabase.co/storage/v1/object/sign/achievement-art/games/x/achievements/a.png?token=abc.def",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "URL autenticada",
+      "input": "https://x.supabase.co/storage/v1/object/authenticated/achievement-art/games/x/achievements/a.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "URL de transformação",
+      "input": "https://x.supabase.co/storage/v1/render/image/public/achievement-art/games/x/achievements/a.png?width=64&quality=80",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "URL relativa",
+      "input": "/storage/v1/object/public/achievement-art/games/x/achievements/a.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "espaço e acento codificados",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/Arte%20com%20espa%C3%A7o.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/Arte com espaço.png"
+    },
+    {
+      "note": "hex minúsculo",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/Arte%20com%20espa%c3%a7o.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/Arte com espaço.png"
+    },
+    {
+      "note": "acentos sem codificar",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/ação-é.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/ação-é.png"
+    },
+    {
+      "note": "emoji codificado",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/%F0%9F%98%80.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/😀.png"
+    },
+    {
+      "note": "+ literal e %2B",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%2Bb+c.png",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a+b+c.png"
+    },
+    {
+      "note": "barra codificada",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games%2Fx%2Fa.png",
+      "known": false,
+      "expected": "achievement-art/games/x/a.png"
+    },
+    {
+      "note": "espaços nas pontas",
+      "input": "  https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png \n",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "NBSP nas pontas",
+      "input": " https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png ",
+      "known": false,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "espaço cru no caminho (não truncar)",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/foo bar.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "tab cru no caminho",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/foo\tbar.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "NBSP cru no caminho",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/foo bar.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "texto depois do caminho",
+      "input": "url(\"https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png\")",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "aspas depois do caminho",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a.png\"",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "segmento ..",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/../segredo.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": ".. codificado",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/%2E%2E/segredo.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "segmento .",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/./a.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "segmento vazio",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art//a.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "só o bucket com barra",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "só o bucket",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "NUL codificado",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%00.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "quebra de linha codificada",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%0A.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "% inválido",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%zz.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "% solto",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "sequência incompleta",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%E0%A4%A.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "UTF-8 inválido",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%C3%28.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "UTF-8 overlong",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%C0%AF.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "surrogate codificado",
+      "input": "https://x.supabase.co/storage/v1/object/public/achievement-art/games/x/achievements/a%ED%A0%80.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "maiúsculas no prefixo",
+      "input": "https://x.supabase.co/STORAGE/V1/object/public/achievement-art/games/x/achievements/a.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "caminho local",
+      "input": "/images/games/hades/emblem.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "outro domínio",
+      "input": "https://cdn.exemplo.com/a.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "vazio",
+      "input": "",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "só espaços",
+      "input": "   ",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "chave direta de bucket conhecido",
+      "input": "achievement-art/games/x/achievements/a.png?v=1",
+      "known": true,
+      "expected": "achievement-art/games/x/achievements/a.png"
+    },
+    {
+      "note": "chave direta game-images",
+      "input": "game-images/achievements/a.png",
+      "known": true,
+      "expected": "game-images/achievements/a.png"
+    },
+    {
+      "note": "chave direta de bucket desconhecido",
+      "input": "outro-bucket/a.png",
+      "known": true,
+      "expected": null
+    },
+    {
+      "note": "chave direta sem lista de buckets",
+      "input": "achievement-art/games/x/achievements/a.png",
+      "known": false,
+      "expected": null
+    },
+    {
+      "note": "chave com barra inicial",
+      "input": "/achievement-art/a.png",
+      "known": true,
+      "expected": null
+    },
+    {
+      "note": "esquema na chave",
+      "input": "https://achievement-art/a.png",
+      "known": true,
+      "expected": null
+    }
+  ]
+}
