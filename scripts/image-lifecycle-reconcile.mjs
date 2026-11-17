@@ -3,7 +3,7 @@
 // Simulação (somente leitura):
 //   node --env-file=.env.local scripts/image-lifecycle-reconcile.mjs --dry-run [--min-age-minutes 30]
 // Aplicação (registra só resultados COMPROVADOS; não envia, não troca referências, não apaga):
-//   node --env-file=.env.local scripts/image-lifecycle-reconcile.mjs --apply --confirm-remote [--min-age-minutes 30]
+//   node --env-file=.env.local scripts/image-lifecycle-reconcile.mjs --apply --confirm-remote [--min-age-minutes 30] [--close-unconfirmed-sync]
 //
 // Decisões e evidências ficam em .image-report/lifecycle/reconcile/<data>.json (arquivo novo a cada execução).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -13,7 +13,7 @@ const argv = process.argv.slice(2);
 const flags = new Set(argv.filter((a) => a.startsWith("--")));
 const minIndex = argv.indexOf("--min-age-minutes");
 const minAge = minIndex >= 0 ? Number(argv[minIndex + 1]) : 30;
-const known = new Set(["--dry-run", "--apply", "--confirm-remote", "--min-age-minutes"]);
+const known = new Set(["--dry-run", "--apply", "--confirm-remote", "--min-age-minutes", "--close-unconfirmed-sync"]);
 const mode = flags.has("--apply") && flags.has("--confirm-remote") && !flags.has("--dry-run") ? "apply"
   : flags.has("--dry-run") && !flags.has("--apply") ? "dry-run" : null;
 if (!mode || [...flags].some((f) => !known.has(f)) || !Number.isInteger(minAge) || minAge < 5) {
@@ -44,7 +44,9 @@ const rpc = supabaseLifecycleRpc(client);
 const deps = supabaseReconcileDeps(client, mode === "apply" ? rpc : async () => { throw new Error("escrita na simulação"); });
 
 const now = new Date();
-const result = await reconcilePending({ deps, mode, actor: "scripts/image-lifecycle-reconcile.mjs", now, minAgeMinutes: minAge });
+// --close-unconfirmed-sync só vale no modo de escrita: encerra salvamentos sem prova como failed.
+const closeUnconfirmedSync = mode === "apply" && flags.has("--close-unconfirmed-sync");
+const result = await reconcilePending({ deps, mode, actor: "scripts/image-lifecycle-reconcile.mjs", now, minAgeMinutes: minAge, closeUnconfirmedSync });
 for (const d of result.decisions) {
   console.log(`· ${d.operation} ${d.object ?? ""} (${d.ageMinutes} min) → ${d.decision}: ${d.diagnosis}${d.applied ? ` · resultado: ${JSON.stringify(d.applied)}` : ""}`);
 }

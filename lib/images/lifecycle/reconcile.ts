@@ -8,6 +8,10 @@
 //                    ilegível/outro → pendente.
 //   reference_batch  conclui só se TODAS as trocas do lote já tiverem sucesso (o banco confere de
 //                    novo); senão pendente, listando o que falta (retomar = repetir a solicitação).
+//   reference_sync   salvamento em massa (Etapa 5.1): o BANCO relê cada local registrado e conclui
+//                    se todos têm o valor novo, ou registra falha se nenhum foi gravado; mistura
+//                    continua pendente. Com --close-unconfirmed-sync (explícito), a mistura é
+//                    encerrada como failed com os valores reais (destrava o jogo sem confirmar nada).
 //   arquivamento     pendente (o executor ainda não existe; nada é resolvido automaticamente).
 // Nunca envia arquivos, nunca troca referências, nunca apaga nada: só registra o resultado
 // comprovado, pelas funções finish_* (que validam a evidência outra vez). Operações recentes
@@ -42,7 +46,7 @@ export type ReconcileDecision = {
   operation: string;
   object: string | null;
   ageMinutes: number;
-  decision: "succeeded" | "failed" | "finish_batch" | "keep_pending" | "too_recent";
+  decision: "succeeded" | "failed" | "finish_batch" | "settle_sync" | "keep_pending" | "too_recent";
   diagnosis: string;
   evidence?: Record<string, unknown>;
   applied?: Record<string, unknown> | { error: string; code?: string };
@@ -54,6 +58,8 @@ export async function reconcilePending(input: {
   actor: string;
   now: Date;
   minAgeMinutes: number;
+  /** reference_sync sem prova: encerra como failed registrando os valores reais (só com pedido explícito). */
+  closeUnconfirmedSync?: boolean;
 }): Promise<{ decisions: ReconcileDecision[]; applied: number; errors: number }> {
   const { deps, mode, actor, now } = input;
   const pending = await deps.listPending();
@@ -118,6 +124,10 @@ export async function reconcilePending(input: {
         decisions.push({ ...base, decision: "keep_pending",
           diagnosis: `${missing.length} de ${items.length} troca(s) sem sucesso (${missing.slice(0, 5).map((i) => i.key.split(":").slice(-2).join(":")).join(", ")}); para concluir, repita a mesma solicitação no painel` });
       }
+    } else if (op.operation === "reference_sync") {
+      const count = Number(op.details.count ?? 0);
+      decisions.push({ ...base, decision: "settle_sync",
+        diagnosis: `salvamento ${String(op.details.scope ?? "?")} com ${count} referência(s): o banco relê cada local e conclui só com todos os valores novos (ou falha se nenhum foi gravado); mistura continua pendente${input.closeUnconfirmedSync ? " e será encerrada como failed com os valores reais" : ""}` });
     } else {
       const archiveOps = ["archive_copy", "archive_cancel", "delete_object", "restore_object"];
       decisions.push({ ...base, decision: "keep_pending",
@@ -138,6 +148,15 @@ export async function reconcilePending(input: {
             ? { p_operation_id: d.operationId, p_result: d.decision, p_actor: actor, p_evidence: d.evidence }
             : { p_operation_id: d.operationId, p_result: d.decision, p_actor: actor, p_evidence: d.evidence };
           d.applied = await deps.rpc(fn, args);
+          applied += 1;
+        } else if (d.decision === "settle_sync") {
+          try {
+            d.applied = await deps.rpc("storage_lifecycle_finish_reference_sync", { p_operation_id: d.operationId, p_actor: actor, p_mode: "settle" });
+          } catch (error) {
+            const e = error as { code?: string; hint?: string };
+            if (!input.closeUnconfirmedSync || e.code !== "55000" || !String(e.hint ?? "").includes("reference_sync_unverified")) throw error;
+            d.applied = await deps.rpc("storage_lifecycle_finish_reference_sync", { p_operation_id: d.operationId, p_actor: actor, p_mode: "close_unconfirmed" });
+          }
           applied += 1;
         } else if (d.decision === "finish_batch") {
           d.applied = await deps.rpc("storage_lifecycle_finish_reference_batch", { p_operation_id: d.operationId, p_actor: actor });

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { rejectUnlessAdmin, requireAdminActor } from "@/lib/admin-guard";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { auditedGameSave, pickGameImageColumns, type GameWritePlan } from "@/lib/images/lifecycle/referenceSync";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 
 type IncomingAchievement = {
   id?: string;
@@ -201,6 +204,23 @@ function buildAchievementProgress(
     image_override: hasImage
       ? normalizeText(achievement.image) || null
       : existing?.image_override ?? null,
+  };
+}
+
+/** O que syncAchievements grava, para a auditoria das imagens (mesmas regras de normalização). */
+function youtubeAchievementsPlan(achievements: IncomingAchievement[] | undefined): GameWritePlan {
+  if (!Array.isArray(achievements) || achievements.length === 0) return {};
+  const definitions = achievements.map((achievement, index) => buildAchievementDefinition(achievement, index, ""));
+  return {
+    upsertAchievements: definitions.map((definition) => ({
+      legacy_id: definition.legacy_id, image: definition.image, official_image: definition.official_image,
+    })),
+    // Sem "image" no pedido, o override existente é mantido (e nasce nulo numa linha nova).
+    upsertProgress: achievements.map((achievement, index) =>
+      typeof achievement.image === "string"
+        ? { legacy_id: legacyIdFor(achievement, index), owner_key: OWNER_KEY, image_override: normalizeText(achievement.image) || null }
+        : { legacy_id: legacyIdFor(achievement, index), owner_key: OWNER_KEY }
+    ),
   };
 }
 
@@ -568,8 +588,9 @@ export async function GET(request: NextRequest) {
  * sincroniza tambÃ©m as definiÃ§Ãµes e o progresso das conquistas.
  */
 export async function POST(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria de imagens vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as GamePayload;
@@ -585,6 +606,11 @@ export async function POST(request: NextRequest) {
     const client = createAdminSupabaseClient();
     const game = buildGameData(body);
 
+    await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug, actor: session.actor,
+      reason: `jogo sincronizado pelo canal (${slug})`,
+      plan: { game: pickGameImageColumns(game), ...youtubeAchievementsPlan(body.achievementsList) },
+      write: async () => {
     const { error: gameError } = await client
       .from("games")
       .upsert(game, { onConflict: "slug" });
@@ -592,6 +618,8 @@ export async function POST(request: NextRequest) {
     if (gameError) throw gameError;
 
     await syncAchievements(client, slug, body.achievementsList);
+      },
+    });
 
     const enrichedGame = await fetchEnrichedGame(client, slug);
 
@@ -602,6 +630,8 @@ export async function POST(request: NextRequest) {
       game: enrichedGame,
     });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro criando/salvando jogo:", error);
 
     return NextResponse.json(
@@ -623,8 +653,8 @@ export async function POST(request: NextRequest) {
  * sincroniza tambÃ©m as definiÃ§Ãµes e o progresso das conquistas.
  */
 export async function PUT(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as GamePayload;
@@ -641,6 +671,11 @@ export async function PUT(request: NextRequest) {
     const updateData = buildGameData(body);
     delete (updateData as Partial<typeof updateData>).slug;
 
+    await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug, actor: session.actor,
+      reason: `jogo atualizado pelo canal (${slug})`,
+      plan: (before) => ({ ...(before.game ? { game: pickGameImageColumns(updateData) } : {}), ...youtubeAchievementsPlan(body.achievementsList) }),
+      write: async () => {
     const { error: gameError } = await client
       .from("games")
       .update(updateData)
@@ -649,6 +684,8 @@ export async function PUT(request: NextRequest) {
     if (gameError) throw gameError;
 
     await syncAchievements(client, slug, body.achievementsList);
+      },
+    });
 
     const enrichedGame = await fetchEnrichedGame(client, slug);
 
@@ -659,6 +696,8 @@ export async function PUT(request: NextRequest) {
       game: enrichedGame,
     });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro atualizando jogo:", error);
 
     return NextResponse.json(

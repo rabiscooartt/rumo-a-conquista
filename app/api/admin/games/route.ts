@@ -1,5 +1,5 @@
 import { revalidateTag } from "next/cache";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { rejectUnlessAdmin, requireAdminActor } from "@/lib/admin-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import {
@@ -10,6 +10,9 @@ import {
 import { HOME_CATALOG_CACHE_TAG } from "@/lib/homeInitialData";
 import { isImmutableImageName, stripImageVersion } from "@/lib/images/naming";
 import { games as legacyGames } from "@/data/games";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { auditedGameSave, type GameWritePlan, type ScopeGame } from "@/lib/images/lifecycle/referenceSync";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 
 type IncomingAchievement = {
   id?: string;
@@ -602,15 +605,23 @@ function buildAchievementProgress(
   };
 }
 
-async function syncAchievements(
+type PreparedAchievements = {
+  idsToDelete: string[];
+  uniqueIncoming: IncomingAchievement[];
+  definitions: ReturnType<typeof buildAchievementDefinition>[];
+} | null;
+
+// Calcula tudo o que a sincronização vai gravar SEM gravar nada, para que a auditoria das imagens
+// registre a intenção antes da primeira escrita (Etapa 5.1). Só lê o banco e lista o Storage.
+async function prepareAchievements(
   client: ReturnType<typeof createAdminSupabaseClient>,
   gameSlug: string,
   achievements: IncomingAchievement[] | undefined
-) {
+): Promise<PreparedAchievements> {
   // No editor envia a lista completa. Uma chamada com lista vazia significa
   // que o jogo ficou sem conquistas e, portanto, os registros antigos devem sair.
   if (!Array.isArray(achievements)) {
-    return { saved: [], progress: [] };
+    return null;
   }
 
   // Regra: um jogo pode ter somente uma conquista por nome normalizado.
@@ -718,7 +729,57 @@ async function syncAchievements(
     }
   }
 
-  if (idsToDelete.size > 0) {
+  // Recupera artes que já estão no bucket mesmo quando a preparação atual
+  // não trouxe a URL. Isso evita apagar a arte em uma republicação.
+  await recoverStoredAchievementImages(client, gameSlug, uniqueIncoming);
+
+  // Agora salvamos somente o conjunto único e atualizado.
+  const definitions = uniqueIncoming.map((achievement, index) =>
+    buildAchievementDefinition(achievement, index, gameSlug)
+  );
+
+  return { idsToDelete: [...idsToDelete], uniqueIncoming, definitions };
+}
+
+/** O que a sincronização das conquistas grava, para a auditoria das imagens. */
+function achievementsWritePlan(prepared: PreparedAchievements): GameWritePlan {
+  if (!prepared) return {};
+  return {
+    deleteAchievementIds: prepared.idsToDelete,
+    upsertAchievements: prepared.definitions.map((definition) => ({
+      legacy_id: definition.legacy_id,
+      image: definition.image,
+      official_image: definition.official_image,
+    })),
+    upsertProgress: prepared.definitions.length === 0 ? [] : prepared.uniqueIncoming.map((achievement, index) => ({
+      legacy_id: legacyIdFor(achievement, index),
+      owner_key: OWNER_KEY,
+      image_override: normalizeDisplayText(achievement.image) || null,
+    })),
+  };
+}
+
+/** Colunas do jogo que podem guardar imagem, como serão gravadas. */
+function gameImageColumns(game: Record<string, unknown>): ScopeGame {
+  const picked: ScopeGame = {};
+  for (const column of ["image", "card_image", "final_badge", "emblem", "trophies", "review"] as const) {
+    if (column in game) (picked as Record<string, unknown>)[column] = game[column];
+  }
+  return picked;
+}
+
+class GameNotFoundError extends Error {}
+
+async function syncAchievements(
+  client: ReturnType<typeof createAdminSupabaseClient>,
+  prepared: PreparedAchievements
+) {
+  if (!prepared) {
+    return { saved: [], progress: [] };
+  }
+  const { idsToDelete, uniqueIncoming, definitions } = prepared;
+
+  if (idsToDelete.length > 0) {
     const ids = [...idsToDelete];
 
     const { error: progressDeleteError } = await client
@@ -735,15 +796,6 @@ async function syncAchievements(
 
     if (achievementsDeleteError) throw achievementsDeleteError;
   }
-
-  // Recupera artes que já estão no bucket mesmo quando a preparação atual
-  // não trouxe a URL. Isso evita apagar a arte em uma republicação.
-  await recoverStoredAchievementImages(client, gameSlug, uniqueIncoming);
-
-  // Agora salvamos somente o conjunto único e atualizado.
-  const definitions = uniqueIncoming.map((achievement, index) =>
-    buildAchievementDefinition(achievement, index, gameSlug)
-  );
 
   if (definitions.length === 0) {
     return { saved: [], progress: [] };
@@ -1254,8 +1306,9 @@ export async function GET(request: NextRequest) {
  * sincroniza também as definições e o progresso das conquistas.
  */
 export async function POST(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria de imagens vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as GamePayload;
@@ -1269,6 +1322,7 @@ export async function POST(request: NextRequest) {
     }
 
     const client = createAdminSupabaseClient();
+    const rpc = supabaseLifecycleRpc(client);
 
     // Salvamentos direcionados: atualizam somente a Maestria ou o Emblema,
     // sem reconstruir o jogo inteiro nem sincronizar a lista de conquistas.
@@ -1282,18 +1336,6 @@ export async function POST(request: NextRequest) {
         image: normalizeDisplayText(raw.image),
         description: normalizeDisplayText(raw.description),
       };
-
-      const { data, error } = await client
-        .from("games")
-        .update({ final_badge: finalBadge, updated_at: new Date().toISOString() })
-        .eq("slug", slug)
-        .select("final_badge")
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) {
-        return NextResponse.json({ error: `Jogo não encontrado para salvar a Maestria Final (slug: ${slug}).` }, { status: 404 });
-      }
 
       const { data: achievementRows, error: achievementQueryError } = await client
         .from("achievements")
@@ -1309,18 +1351,44 @@ export async function POST(request: NextRequest) {
         .map((row) => String(row.id))
         .filter(Boolean);
 
-      if (duplicateIds.length) {
-        const { error: progressDeleteError } = await client
-          .from("achievement_progress")
-          .delete()
-          .in("achievement_id", duplicateIds);
-        if (progressDeleteError) throw progressDeleteError;
+      let data: { final_badge: unknown };
+      try {
+        ({ result: data } = await auditedGameSave({
+          rpc, client, slug, actor: session.actor,
+          reason: `Maestria Final salva (${slug})`,
+          plan: { game: { final_badge: finalBadge }, deleteAchievementIds: duplicateIds },
+          write: async () => {
+            const { data: saved, error } = await client
+              .from("games")
+              .update({ final_badge: finalBadge, updated_at: new Date().toISOString() })
+              .eq("slug", slug)
+              .select("final_badge")
+              .maybeSingle();
 
-        const { error: achievementDeleteError } = await client
-          .from("achievements")
-          .delete()
-          .in("id", duplicateIds);
-        if (achievementDeleteError) throw achievementDeleteError;
+            if (error) throw error;
+            if (!saved) throw new GameNotFoundError();
+
+            if (duplicateIds.length) {
+              const { error: progressDeleteError } = await client
+                .from("achievement_progress")
+                .delete()
+                .in("achievement_id", duplicateIds);
+              if (progressDeleteError) throw progressDeleteError;
+
+              const { error: achievementDeleteError } = await client
+                .from("achievements")
+                .delete()
+                .in("id", duplicateIds);
+              if (achievementDeleteError) throw achievementDeleteError;
+            }
+            return saved;
+          },
+        }));
+      } catch (error) {
+        if (error instanceof GameNotFoundError) {
+          return NextResponse.json({ error: `Jogo não encontrado para salvar a Maestria Final (slug: ${slug}).` }, { status: 404 });
+        }
+        throw error;
       }
 
       return NextResponse.json({
@@ -1352,16 +1420,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Informe o título e a imagem do emblema antes de salvar." }, { status: 400 });
       }
 
-      const { data, error } = await client
-        .from("games")
-        .update({ emblem, updated_at: new Date().toISOString() })
-        .eq("slug", slug)
-        .select("emblem")
-        .maybeSingle();
+      let data: { emblem: unknown };
+      try {
+        ({ result: data } = await auditedGameSave({
+          rpc, client, slug, actor: session.actor,
+          reason: `Emblema salvo (${slug})`,
+          plan: { game: { emblem } },
+          write: async () => {
+            const { data: saved, error } = await client
+              .from("games")
+              .update({ emblem, updated_at: new Date().toISOString() })
+              .eq("slug", slug)
+              .select("emblem")
+              .maybeSingle();
 
-      if (error) throw error;
-      if (!data) {
-        return NextResponse.json({ error: `Jogo não encontrado para salvar o Emblema (slug: ${slug}).` }, { status: 404 });
+            if (error) throw error;
+            if (!saved) throw new GameNotFoundError();
+            return saved;
+          },
+        }));
+      } catch (error) {
+        if (error instanceof GameNotFoundError) {
+          return NextResponse.json({ error: `Jogo não encontrado para salvar o Emblema (slug: ${slug}).` }, { status: 404 });
+        }
+        throw error;
       }
 
       return NextResponse.json({ ok: true, emblem: data.emblem ?? emblem });
@@ -1444,14 +1526,22 @@ export async function POST(request: NextRequest) {
         reviewGameUpdate.status = normalizeText(body.status);
       }
 
-      const { data: savedGame, error: saveReviewError } = await client
-        .from("games")
-        .update(reviewGameUpdate)
-        .eq("slug", slug)
-        .select("slug, status")
-        .maybeSingle();
+      const { result: savedGame } = await auditedGameSave({
+        rpc, client, slug, actor: session.actor,
+        reason: `review salva (${slug})`,
+        plan: { game: { review: mergedReview } },
+        write: async () => {
+          const { data: saved, error: saveReviewError } = await client
+            .from("games")
+            .update(reviewGameUpdate)
+            .eq("slug", slug)
+            .select("slug, status")
+            .maybeSingle();
 
-      if (saveReviewError) throw saveReviewError;
+          if (saveReviewError) throw saveReviewError;
+          return saved;
+        },
+      });
       if (!savedGame) {
         return NextResponse.json(
           { error: "O banco não confirmou o salvamento da review." },
@@ -1496,26 +1586,33 @@ export async function POST(request: NextRequest) {
       review: reviewForSave,
     });
 
-    if (body.backlogPosition !== undefined) {
-      const backlogPosition = readBacklogPosition(body.backlogPosition);
-
-      if (backlogPosition === null || game.status !== "planned") {
-        return NextResponse.json(
-          { error: "A posição na fila vale somente para Próxima Maestria e deve ser um número inteiro positivo." },
-          { status: 400 }
-        );
-      }
-
-      await saveGameWithBacklogPosition(client, game, backlogPosition);
-    } else {
-      const { error: gameError } = await client
-        .from("games")
-        .upsert(game, { onConflict: "slug" });
-
-      if (gameError) throw gameError;
+    const backlogPosition = body.backlogPosition !== undefined ? readBacklogPosition(body.backlogPosition) : undefined;
+    if (backlogPosition !== undefined && (backlogPosition === null || game.status !== "planned")) {
+      return NextResponse.json(
+        { error: "A posição na fila vale somente para Próxima Maestria e deve ser um número inteiro positivo." },
+        { status: 400 }
+      );
     }
 
-    await syncAchievements(client, slug, body.achievementsList);
+    const preparedAchievements = await prepareAchievements(client, slug, body.achievementsList);
+    await auditedGameSave({
+      rpc, client, slug, actor: session.actor,
+      reason: `jogo salvo pelo editor (${slug})`,
+      plan: { game: gameImageColumns(game), ...achievementsWritePlan(preparedAchievements) },
+      write: async () => {
+        if (backlogPosition !== undefined && backlogPosition !== null) {
+          await saveGameWithBacklogPosition(client, game, backlogPosition);
+        } else {
+          const { error: gameError } = await client
+            .from("games")
+            .upsert(game, { onConflict: "slug" });
+
+          if (gameError) throw gameError;
+        }
+
+        await syncAchievements(client, preparedAchievements);
+      },
+    });
     revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
 
     const enrichedGame = await fetchEnrichedGame(
@@ -1528,6 +1625,9 @@ export async function POST(request: NextRequest) {
       game: enrichedGame,
     });
   } catch (error) {
+    // Ciclo de vida: pendência, conflito ou referência inválida, com o que fazer.
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro criando/salvando jogo:", error);
 
     return NextResponse.json(
@@ -1546,8 +1646,8 @@ export async function POST(request: NextRequest) {
  * sincroniza também as definições e o progresso das conquistas.
  */
 export async function PUT(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as GamePayload;
@@ -1587,18 +1687,26 @@ export async function PUT(request: NextRequest) {
 
     delete (updateData as Partial<typeof updateData>).slug;
 
-    const { error: gameError } = await client
-      .from("games")
-      .update(updateData)
-      .eq("slug", slug);
+    const preparedAchievements = await prepareAchievements(client, slug, body.achievementsList);
+    await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug, actor: session.actor,
+      reason: `jogo atualizado (${slug})`,
+      // update num jogo inexistente não grava a linha: o plano só inclui o jogo se ele existe.
+      plan: (before) => ({
+        ...(before.game ? { game: gameImageColumns(updateData) } : {}),
+        ...achievementsWritePlan(preparedAchievements),
+      }),
+      write: async () => {
+        const { error: gameError } = await client
+          .from("games")
+          .update(updateData)
+          .eq("slug", slug);
 
-    if (gameError) throw gameError;
+        if (gameError) throw gameError;
 
-    await syncAchievements(
-      client,
-      slug,
-      body.achievementsList
-    );
+        await syncAchievements(client, preparedAchievements);
+      },
+    });
     revalidateTag(HOME_CATALOG_CACHE_TAG, { expire: 0 });
 
     const enrichedGame = await fetchEnrichedGame(
@@ -1611,6 +1719,8 @@ export async function PUT(request: NextRequest) {
       game: enrichedGame,
     });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro atualizando jogo:", error);
 
     return NextResponse.json(

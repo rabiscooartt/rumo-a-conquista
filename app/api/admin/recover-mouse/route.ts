@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
-import { ADMIN_SESSION_COOKIE, verifyAdminSession } from "@/lib/admin-auth";
+import { ADMIN_SESSION_COOKIE, readAdminSessionUser } from "@/lib/admin-auth";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { auditedGameSave } from "@/lib/images/lifecycle/referenceSync";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 import { games } from "@/data/games";
 
 const SLUG = "mouse-p-i-for-hire";
@@ -89,7 +92,9 @@ function filterDraftMap(value: unknown, ids: Set<string>) {
 export async function POST() {
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-  if (!(await verifyAdminSession(session))) {
+  // Mesma validação de verifyAdminSession; o usuário vira o ator da auditoria de imagens.
+  const adminUser = await readAdminSessionUser(session);
+  if (!adminUser) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
@@ -146,6 +151,16 @@ export async function POST() {
     // auditoria foi 1963 minutos = 32h43m.
     gameUpdate.hours = totalMinutes > 0 ? formatHours(totalMinutes) : "32h - 43m";
 
+    const extraIds = (rows ?? [])
+      .map((row) => row.id)
+      .filter((id) => !keptIds.has(id));
+
+    // Auditoria das imagens: banner/capa podem trocar e as conquistas extras saem com as artes delas.
+    await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug: SLUG, actor: `admin:${adminUser}`,
+      reason: "recuperação do Mouse P.I. (recover-mouse)",
+      plan: { game: { image: String(gameUpdate.image), card_image: String(gameUpdate.card_image) }, deleteAchievementIds: extraIds.map(String) },
+      write: async () => {
     const { error: updateGameError } = await client
       .from("games")
       .update(gameUpdate)
@@ -185,10 +200,6 @@ export async function POST() {
       }
     }
 
-    const extraIds = (rows ?? [])
-      .map((row) => row.id)
-      .filter((id) => !keptIds.has(id));
-
     if (extraIds.length > 0) {
       const { error } = await client
         .from("achievement_progress")
@@ -203,6 +214,8 @@ export async function POST() {
         .eq("game_slug", SLUG);
       if (deleteError) throw deleteError;
     }
+      },
+    });
 
     const draft = await client.storage
       .from(DRAFT_BUCKET)
@@ -252,6 +265,8 @@ export async function POST() {
       },
     });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("[Recover Mouse]", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Falha na recuperação." },
