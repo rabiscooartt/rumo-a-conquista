@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { requireAdminActor } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { auditedGameSave } from "@/lib/images/lifecycle/referenceSync";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 
 type FinalBadgePayload = {
   title?: unknown;
@@ -19,8 +22,9 @@ function cleanText(value: unknown, fallback = "") {
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria de imagens vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as {
@@ -53,18 +57,7 @@ export async function POST(request: NextRequest) {
 
     const client = createAdminSupabaseClient();
 
-    const { data, error } = await client
-      .from("games")
-      .update({
-        final_badge: finalBadge,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("slug", slug)
-      .select("final_badge")
-      .single();
-
-    if (error) throw error;
-
+    // Duplicatas calculadas ANTES de gravar (só leitura), para entrarem na intenção da auditoria.
     const { data: achievementRows, error: achievementQueryError } = await client
       .from("achievements")
       .select("id, title, description")
@@ -87,21 +80,42 @@ export async function POST(request: NextRequest) {
       .map((row) => String(row.id))
       .filter(Boolean);
 
-    if (duplicateIds.length > 0) {
-      const { error: progressDeleteError } = await client
-        .from("achievement_progress")
-        .delete()
-        .in("achievement_id", duplicateIds);
+    const { result: data } = await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug, actor: session.actor,
+      reason: `Maestria Final salva (${slug})`,
+      // .single() falha sem a linha do jogo: o plano só grava o jogo se ele existe.
+      plan: (before) => ({ ...(before.game ? { game: { final_badge: finalBadge } } : {}), deleteAchievementIds: duplicateIds }),
+      write: async () => {
+        const { data: saved, error } = await client
+          .from("games")
+          .update({
+            final_badge: finalBadge,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("slug", slug)
+          .select("final_badge")
+          .single();
 
-      if (progressDeleteError) throw progressDeleteError;
+        if (error) throw error;
 
-      const { error: achievementDeleteError } = await client
-        .from("achievements")
-        .delete()
-        .in("id", duplicateIds);
+        if (duplicateIds.length > 0) {
+          const { error: progressDeleteError } = await client
+            .from("achievement_progress")
+            .delete()
+            .in("achievement_id", duplicateIds);
 
-      if (achievementDeleteError) throw achievementDeleteError;
-    }
+          if (progressDeleteError) throw progressDeleteError;
+
+          const { error: achievementDeleteError } = await client
+            .from("achievements")
+            .delete()
+            .in("id", duplicateIds);
+
+          if (achievementDeleteError) throw achievementDeleteError;
+        }
+        return saved;
+      },
+    });
 
     invalidatePublicGameData();
 
@@ -111,6 +125,8 @@ export async function POST(request: NextRequest) {
       removedAchievementIds: duplicateIds,
     });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro salvando Maestria Final:", error);
 
     return NextResponse.json(

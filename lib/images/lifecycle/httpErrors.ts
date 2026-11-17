@@ -3,9 +3,13 @@
 // marca operação aberta no banco (precisa ser repetida ou reconciliada).
 import { IdentityUnverifiedError, TrackedUploadError } from "./tracked.ts";
 import { PointerActivationError } from "./trackedPointer.ts";
+import { ReferenceSyncPendingError } from "./referenceSync.ts";
 
 export const RECONCILE_HINT =
   "Para concluir, repita o mesmo envio; se continuar pendente, peça a reconciliação (scripts/image-lifecycle-reconcile.mjs).";
+
+export const SAVE_RECONCILE_HINT =
+  "Para concluir, repita o MESMO salvamento; se continuar pendente, peça a reconciliação (scripts/image-lifecycle-reconcile.mjs).";
 
 export type LifecycleErrorBody = { error: string; pending: boolean; code?: string };
 
@@ -21,7 +25,27 @@ export function lifecycleErrorResponse(error: unknown): { status: number; body: 
   if (error instanceof TrackedUploadError || error instanceof PointerActivationError) {
     return { status: 502, body: { error: withHint(error.message, error.pending), pending: error.pending } };
   }
+  if (error instanceof ReferenceSyncPendingError) {
+    return { status: 502, body: { error: `${error.message} ${SAVE_RECONCILE_HINT}`, pending: true } };
+  }
   const code = (error as { code?: unknown } | null)?.code;
+  const hint = String((error as { hint?: unknown } | null)?.hint ?? "");
+  if (code === "55000" && hint.includes("reference_sync")) {
+    return {
+      status: 409,
+      body: {
+        error: `Outro salvamento deste jogo ainda está pendente na auditoria de imagens; nada foi alterado agora. Repita aquele salvamento ou peça a reconciliação (scripts/image-lifecycle-reconcile.mjs) antes de salvar outra versão.`,
+        pending: true, code,
+      },
+    };
+  }
+  const message = error instanceof Error ? error.message : "";
+  if (code === "22023" && message.startsWith("Referência ao Storage inválida")) {
+    return { status: 400, body: { error: `${message}. Nada foi alterado; corrija o endereço da imagem e salve de novo.`, pending: false, code } };
+  }
+  if (code === "23514" && message.startsWith("A nova referência aponta para objeto")) {
+    return { status: 409, body: { error: `${message} Nada foi alterado; restaure a imagem antes de usá-la.`, pending: false, code } };
+  }
   if (code === "55000") {
     return {
       status: 409,

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { rejectUnlessAdmin, requireAdminActor } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { auditedGameSave, pickGameImageColumns } from "@/lib/images/lifecycle/referenceSync";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 
 type GamePayload = {
   slug?: string;
@@ -269,8 +272,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria de imagens vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as GamePayload;
@@ -286,6 +290,11 @@ export async function POST(request: NextRequest) {
     const client = createAdminSupabaseClient();
     const game = buildGameData(body);
 
+    const { result: data } = await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug, actor: session.actor,
+      reason: `jogo criado ou sincronizado (${slug})`,
+      plan: { game: pickGameImageColumns(game) },
+      write: async () => {
     const { data, error } = await client
       .from("games")
       .upsert(game, { onConflict: "slug" })
@@ -314,10 +323,16 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
+        return data;
+      },
+    });
+
     invalidatePublicGameData();
 
     return NextResponse.json({ ok: true, game: data });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro criando jogo:", error);
 
     return NextResponse.json(
@@ -333,8 +348,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as GamePayload;
@@ -351,6 +366,12 @@ export async function PUT(request: NextRequest) {
     const updateData = buildGameData(body);
     delete (updateData as Partial<typeof updateData>).slug;
 
+    const { result: data } = await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug, actor: session.actor,
+      reason: `jogo sincronizado (${slug})`,
+      // .single() falha sem a linha: o plano só grava o jogo se ele existe.
+      plan: (before) => (before.game ? { game: pickGameImageColumns(updateData) } : {}),
+      write: async () => {
     const { data, error } = await client
       .from("games")
       .update(updateData)
@@ -380,10 +401,16 @@ export async function PUT(request: NextRequest) {
 
     if (error) throw error;
 
+        return data;
+      },
+    });
+
     invalidatePublicGameData();
 
     return NextResponse.json({ ok: true, game: data });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro atualizando jogo:", error);
 
     return NextResponse.json(

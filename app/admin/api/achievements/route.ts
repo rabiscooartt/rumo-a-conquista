@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rejectUnlessAdmin } from "@/lib/admin-guard";
+import { requireAdminActor } from "@/lib/admin-guard";
 import { createAdminSupabaseClient } from "@/lib/supabase-admin";
 import { invalidatePublicGameData } from "@/lib/publicDataCache";
+import { supabaseLifecycleRpc } from "@/lib/images/lifecycle/tracked";
+import { auditedGameSave } from "@/lib/images/lifecycle/referenceSync";
+import { lifecycleErrorResponse } from "@/lib/images/lifecycle/httpErrors";
 
 type IncomingAchievement = {
   id?: string;
@@ -68,8 +71,9 @@ async function deleteAchievementIds(client: ReturnType<typeof createAdminSupabas
 }
 
 export async function PUT(request: NextRequest) {
-  const denied = await rejectUnlessAdmin(request);
-  if (denied) return denied;
+  // O ator da auditoria de imagens vem da sessão validada aqui, nunca do navegador.
+  const session = await requireAdminActor(request);
+  if (session.denied) return session.denied;
 
   try {
     const body = (await request.json()) as {
@@ -149,8 +153,6 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    await deleteAchievementIds(client, [...idsToDelete]);
-
     const definitions = uniqueIncoming.map((achievement, index) => ({
       game_slug: gameSlug,
       legacy_id: legacyIdFor(achievement, index),
@@ -166,6 +168,22 @@ export async function PUT(request: NextRequest) {
       is_custom: achievement.isCustom === true,
       is_hidden: achievement.isHidden === true || achievement.hidden === true,
     }));
+
+    // Auditoria das imagens: intenção antes da primeira escrita, confirmação só pela releitura.
+    await auditedGameSave({
+      rpc: supabaseLifecycleRpc(client), client, slug: gameSlug, actor: session.actor,
+      reason: `conquistas salvas pelo painel (${gameSlug})`,
+      plan: {
+        deleteAchievementIds: [...idsToDelete],
+        upsertAchievements: definitions.map((definition) => ({
+          legacy_id: definition.legacy_id, image: definition.image, official_image: definition.official_image,
+        })),
+        upsertProgress: uniqueIncoming.map((achievement, index) => ({
+          legacy_id: legacyIdFor(achievement, index), owner_key: "default", image_override: achievement.image?.trim() || null,
+        })),
+      },
+      write: async () => {
+    await deleteAchievementIds(client, [...idsToDelete]);
 
     const { data: saved, error: definitionsError } = await client
       .from("achievements")
@@ -196,6 +214,8 @@ export async function PUT(request: NextRequest) {
       .upsert(progress, { onConflict: "owner_key,achievement_id" });
 
     if (progressError) throw progressError;
+      },
+    });
 
     invalidatePublicGameData();
 
@@ -205,6 +225,8 @@ export async function PUT(request: NextRequest) {
       removedDuplicates: idsToDelete.size,
     });
   } catch (error) {
+    const lifecycle = lifecycleErrorResponse(error);
+    if (lifecycle) return NextResponse.json(lifecycle.body, { status: lifecycle.status });
     console.error("Erro salvando conquistas:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Erro inesperado." },
