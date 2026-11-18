@@ -13,6 +13,7 @@
 //                    restore_object); delete_object nunca é retomado automaticamente.
 // Nada aqui altera referências do site.
 import { archiveObject, cancelArchive, restoreObject, ArchiveError, type ArchiveDeps, type ArchiveStep, type LifecycleRow } from "./archive.ts";
+import { evidenceMeetsPolicy, SCAN_POLICY_VERSION } from "./scanPolicy.ts";
 
 export const ARCHIVABLE_STATES = ["candidate", "superseded"] as const;
 /** RPCs só de leitura (STABLE) que a simulação pode chamar. */
@@ -47,7 +48,7 @@ export function readOnlyDeps(deps: ArchiveDeps): ArchiveDeps {
 }
 
 export type InventoryRow = LifecycleRow & { bucket: string; object_path: string; reference_count: number };
-export type Evidence = { eligible?: boolean; reason?: string } | null;
+export type Evidence = { eligible?: boolean; reason?: string; first_scan?: string; policy_version?: number } | null;
 export type PlanEntry = {
   object: string; bucket: string; path: string; state: string; archiveState: string;
   eligible: boolean; reason: string;
@@ -75,6 +76,9 @@ export function planArchive(rows: InventoryRow[], evidence: Map<string, Evidence
     }
     const proof = evidence.get(object);
     if (!proof?.eligible) return refuse(`${row.state} sem prova vigente: ${proof?.reason ?? "evidência indisponível"}`);
+    if (!evidenceMeetsPolicy(proof)) {
+      return refuse(`${row.state}: prova não calculada pela política de varredura v${SCAN_POLICY_VERSION} (policy_version ${proof.policy_version ?? "ausente"})`);
+    }
     return { ...base, eligible: true, reason: `${row.state}, sem referência nem proteção, prova de duas varreduras vigente` };
   });
 }

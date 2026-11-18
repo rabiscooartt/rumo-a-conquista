@@ -6,6 +6,12 @@ import { useSiteAchievements } from "@/lib/useSiteAchievements";
 import { homeImageSrc } from "@/lib/homeImages";
 import type { SiteAchievement } from "@/lib/achievements/types";
 import { formatAchievementDescription, formatAchievementTitle } from "@/lib/useSiteGames";
+// Resolução das imagens das conquistas: fonte única, compartilhada com o inventário do ciclo de vida.
+import {
+  buildAchievementImageCandidates,
+  buildAutoImagePath,
+  slugifyAchievementTitle,
+} from "@/lib/achievementImageCandidates";
 
 export type Rank = "Bronze" | "Prata" | "Ouro" | "Diamante";
 export type AchievementStatus = "locked" | "progress" | "completed";
@@ -168,11 +174,8 @@ function normalizeStatus(status?: string): AchievementStatus {
   return "locked";
 }
 
-function slugify(text: string) {
-  return normalizeText(text)
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+// Mesma função usada pelo inventário do ciclo de vida das imagens (lib/achievementImageCandidates).
+const slugify = slugifyAchievementTitle;
 
 function getAchievementKey(achievement: AchievementInput) {
   return achievement.id?.trim() || `title:${normalizeText(achievement.title)}`;
@@ -305,57 +308,7 @@ function getRankTheme(rank: Rank) {
   };
 }
 
-function buildAutoImagePath(
-  gameSlug: string,
-  achievementTitle: string,
-  index?: number
-) {
-  if (!gameSlug || !achievementTitle) {
-    return "";
-  }
-
-  const slug = slugify(achievementTitle);
-  const numbered =
-    typeof index === "number"
-      ? `/images/games/${gameSlug}/achievements/${String(index + 1).padStart(2, "0")}-${slug}.png`
-      : "";
-
-  return numbered || `/images/games/${gameSlug}/achievements/${slug}.png`;
-}
-
-function buildAchievementImageCandidates(
-  gameSlug: string,
-  achievement: AchievementInput,
-  state?: ManualAchievementState,
-  index?: number
-) {
-  const candidates: string[] = [];
-  const explicit = state?.image?.trim() || achievement.image?.trim();
-
-  if (explicit) {
-    candidates.push(explicit);
-  }
-
-  const local = buildAutoImagePath(gameSlug, achievement.title, index);
-  if (local) candidates.push(local);
-
-  const supabaseBase = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
-  if (supabaseBase && gameSlug && achievement.title) {
-    const slug = slugify(achievement.title);
-    const bucketBase =
-      `${supabaseBase}/storage/v1/object/public/achievement-art/games/${gameSlug}/achievements/`;
-
-    if (typeof index === "number") {
-      candidates.push(
-        `${bucketBase}${String(index + 1).padStart(2, "0")}-${slug}.png`
-      );
-    }
-
-    candidates.push(`${bucketBase}${slug}.png`);
-  }
-
-  return Array.from(new Set(candidates));
-}
+// buildAutoImagePath e buildAchievementImageCandidates: lib/achievementImageCandidates (fonte única).
 
 function getImagePath(
   gameSlug: string,

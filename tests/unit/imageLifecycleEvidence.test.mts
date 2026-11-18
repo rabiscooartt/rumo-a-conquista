@@ -19,7 +19,7 @@ test("casos de elegibilidade: mesmo veredito e motivo esperados para o banco", (
 const KEY = "game-images/achievements/x.png";
 const inventory: InventorySnapshot = { status: "complete", failedPrefixes: [], objects: [{ bucket: "game-images", path: "achievements/x.png", size: 1, createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" }] };
 const sources = (): SourceResult[] => [
-  ...["achievements", "achievement_progress", "games", "journey_entries", "journey_history_events", "pointers", "drafts"].map((source) => ({ source, status: "complete", references: [] }) as unknown as SourceResult),
+  ...["achievements", "achievement_progress", "games", "journey_entries", "journey_history_events", "pointers", "drafts", "convention"].map((source) => ({ source, status: "complete", references: [] }) as unknown as SourceResult),
   referencesFromVariantMap({}),
   referencesFromProtectionList(),
 ];

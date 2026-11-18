@@ -11,7 +11,8 @@
     "home-images:check": "node scripts/home-images.mjs check",
     "home-images:report": "node scripts/home-images.mjs report",
     "test:unit": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"tests/unit/**/*.test.mts\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:integration": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/integration/run.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.6",
@@ -29,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.4.5",
+    "pg": "^8.23.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

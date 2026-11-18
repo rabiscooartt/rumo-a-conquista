@@ -11,7 +11,7 @@ const invalidation = (scanId: string) => JSON.stringify({ type: "invalidation", 
 
 const inventory: InventorySnapshot = { status: "complete", failedPrefixes: [], objects: [{ bucket: "achievement-art", path: "games/x/achievements/99-sobra.png", size: 10, createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" }] };
 const sources = (): SourceResult[] => [
-  ...["achievements", "achievement_progress", "games", "journey_entries", "journey_history_events", "pointers", "drafts"].map((source) => ({ source, status: "complete", references: [] }) as unknown as SourceResult),
+  ...["achievements", "achievement_progress", "games", "journey_entries", "journey_history_events", "pointers", "drafts", "convention"].map((source) => ({ source, status: "complete", references: [] }) as unknown as SourceResult),
   referencesFromVariantMap({}),
   referencesFromProtectionList(),
 ];

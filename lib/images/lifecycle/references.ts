@@ -4,6 +4,7 @@
 // Nenhuma função acessa rede, banco ou Storage.
 
 import { isValidActiveFile, type FixedImageTarget } from "../storedImages.ts";
+import { conventionObjectKeys } from "../../achievementImageCandidates.ts";
 
 /** Fontes que precisam estar completas para que um objeto possa virar candidato. */
 export const REFERENCE_SOURCES = [
@@ -16,6 +17,8 @@ export const REFERENCE_SOURCES = [
   "drafts",
   "variant_map",
   "protection",
+  // Imagens que a página pública exibe por CONVENÇÃO de nome (GameAchievementsPanel), sem referência explícita.
+  "convention",
 ] as const;
 
 export type ReferenceSourceName = (typeof REFERENCE_SOURCES)[number];
@@ -160,6 +163,82 @@ export function referencesFromAchievements(
   error?: string
 ): SourceResult {
   return fromRows("achievements", rows, (row) => String(row.id), ["image", "official_image"], error);
+}
+
+type LegacyGames = Record<string, { achievementsList?: Array<{ title?: unknown }>; finalBadge?: { title?: unknown; image?: unknown; description?: unknown } | null }>;
+
+/** Título da Maestria como o painel a exibe (só quando configurada: título, imagem ou descrição). */
+function masteryTitle(badge: unknown): string | null {
+  if (!badge || typeof badge !== "object") return null;
+  const b = badge as { title?: unknown; image?: unknown; description?: unknown };
+  // Igual ao painel: configurada se título, imagem ou descrição forem verdadeiros; título aparado ou "Maestria Final".
+  if (!(b.title || b.image || b.description)) return null;
+  return (typeof b.title === "string" ? b.title.trim() : "") || "Maestria Final";
+}
+
+/**
+ * Referências IMPLÍCITAS: objetos que o painel público pode exibir pela convenção de nome
+ * (lib/achievementImageCandidates — a mesma função do painel), para cada conquista e Maestria de cada
+ * jogo, do banco e dos dados locais (que o painel usa quando o banco falha). Como a posição numerada
+ * depende da busca e da ordenação do visitante, toda posição de 1 até o total exibido conta.
+ * Só emite referências a objetos que EXISTEM no inventário. Qualquer leitura incompleta (jogos,
+ * conquistas, dados locais ou inventário) torna a fonte "failed": candidatos ficam bloqueados.
+ */
+export function referencesFromConvention(input: {
+  games: Array<Record<string, unknown>> | null | undefined;
+  achievements: Array<Record<string, unknown>> | null | undefined;
+  legacyGames: LegacyGames | null | undefined;
+  existingObjectKeys: Set<string> | null | undefined;
+  errors?: string[];
+}): SourceResult {
+  const fail = (error: string): SourceResult => ({ source: "convention", status: "failed", references: [], error });
+  const errors = (input.errors ?? []).filter(Boolean);
+  if (errors.length > 0) return fail(errors.join("; "));
+  if (!Array.isArray(input.games) || !Array.isArray(input.achievements)) return fail("jogos ou conquistas não lidos");
+  if (!input.legacyGames || typeof input.legacyGames !== "object") return fail("dados locais de jogos não lidos");
+  if (!input.existingObjectKeys) return fail("inventário indisponível");
+
+  const titles = new Map<string, Set<string>>();
+  const counts = new Map<string, number>();
+  const add = (slug: string, title: unknown) => {
+    if (typeof title !== "string" || !title.trim()) return;
+    titles.set(slug, (titles.get(slug) ?? new Set()).add(title));
+  };
+  const unparsed: string[] = [];
+  const dbCount = new Map<string, number>();
+  for (const row of input.achievements) {
+    const slug = typeof row.game_slug === "string" ? row.game_slug : "";
+    if (!slug) { unparsed.push(`convention: conquista ${String(row.id ?? "?")} sem game_slug`); continue; }
+    add(slug, row.title);
+    dbCount.set(slug, (dbCount.get(slug) ?? 0) + 1);
+  }
+  for (const game of input.games) {
+    const slug = typeof game.slug === "string" ? game.slug : "";
+    if (!slug) continue;
+    const mastery = masteryTitle(game.final_badge);
+    if (mastery) add(slug, mastery);
+    counts.set(slug, Math.max(counts.get(slug) ?? 0, (dbCount.get(slug) ?? 0) + (mastery ? 1 : 0)));
+  }
+  for (const [slug, total] of dbCount) counts.set(slug, Math.max(counts.get(slug) ?? 0, total + 1));
+  for (const [slug, legacy] of Object.entries(input.legacyGames)) {
+    const list = Array.isArray(legacy?.achievementsList) ? legacy.achievementsList : [];
+    for (const item of list) add(slug, item?.title);
+    const mastery = masteryTitle(legacy?.finalBadge);
+    if (mastery) add(slug, mastery);
+    counts.set(slug, Math.max(counts.get(slug) ?? 0, list.length + (mastery ? 1 : 0)));
+  }
+
+  const references: ImageReference[] = [];
+  for (const [slug, set] of titles) {
+    for (const title of set) {
+      for (const key of conventionObjectKeys(slug, [title], counts.get(slug) ?? set.size)) {
+        if (input.existingObjectKeys.has(key)) {
+          references.push({ objectKey: key, source: "convention", location: `convention:${slug}:${title}`, raw: key });
+        }
+      }
+    }
+  }
+  return { source: "convention", status: unparsed.length > 0 ? "partial" : "complete", references, unparsed };
 }
 
 /** `achievement_progress.image_override`. */
