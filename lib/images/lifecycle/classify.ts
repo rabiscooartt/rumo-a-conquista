@@ -59,6 +59,10 @@ export type ScanRecord = {
   unreferenced: string[];
   /** Todos os objetos inventariados nesta varredura (distingue "ausente" de "referenciado"). */
   present?: string[];
+  /** Varredura oficial (execução aberta no banco antes da coleta) e versão da política com que foi feita. */
+  official?: boolean;
+  policyVersion?: number;
+  runOperationId?: string;
 };
 
 export type ClassifyOptions = {

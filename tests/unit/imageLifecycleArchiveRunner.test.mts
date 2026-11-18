@@ -12,6 +12,19 @@ const row = (state: string, extra: Partial<InventoryRow> = {}): InventoryRow => 
   manual_protection: false, reference_count: 0, ...extra,
 });
 
+test("prova só vale calculada pela política de varredura vigente (v2); sem policy_version (migração ausente) é recusada", () => {
+  const rows = [row("superseded", { object_path: "a.png" }), row("superseded", { object_path: "b.png" }), row("superseded", { object_path: "c.png" })];
+  const plan = Object.fromEntries(planArchive(rows, new Map([
+    ["achievement-art/a.png", { eligible: true, policy_version: 1 }],
+    ["achievement-art/b.png", { eligible: true }],
+    ["achievement-art/c.png", { eligible: true, policy_version: 2 }],
+  ])).map((e) => [e.path, e]));
+  assert.equal(plan["a.png"].eligible, false);
+  assert.ok(plan["a.png"].reason.includes("política de varredura v2 (policy_version 1)"), plan["a.png"].reason);
+  assert.equal(plan["b.png"].eligible, false, "sem policy_version: recusada");
+  assert.equal(plan["c.png"].eligible, true);
+});
+
 test("plano: só candidate/superseded com prova; cada estado com o seu motivo (sem confundir)", () => {
   const rows = ["unverified", "observing", "superseded", "candidate", "active", "referenced", "protected"].map((s) => row(s));
   rows.push(row("superseded", { object_path: "sem-prova.png" }));
@@ -19,10 +32,10 @@ test("plano: só candidate/superseded com prova; cada estado com o seu motivo (s
   rows.push(row("superseded", { object_path: "com-ref.png", reference_count: 2 }));
   rows.push(row("superseded", { object_path: "arquivado.png", archive_state: "archived" }));
   const evidence = new Map([
-    ["achievement-art/superseded.png", { eligible: true }], ["achievement-art/candidate.png", { eligible: true }],
+    ["achievement-art/superseded.png", { eligible: true, policy_version: 2 }], ["achievement-art/candidate.png", { eligible: true, policy_version: 2 }],
     ["achievement-art/sem-prova.png", { eligible: false, reason: "só uma varredura" }],
     // prova "elegível" para estados que NÃO podem ser arquivados: o plano ignora a prova
-    ["achievement-art/unverified.png", { eligible: true }], ["achievement-art/observing.png", { eligible: true }],
+    ["achievement-art/unverified.png", { eligible: true, policy_version: 2 }], ["achievement-art/observing.png", { eligible: true, policy_version: 2 }],
   ]);
   const plan = Object.fromEntries(planArchive(rows, evidence).map((e) => [e.path, e]));
   assert.deepEqual(Object.values(plan).filter((e) => e.eligible).map((e) => e.path).sort(), ["candidate.png", "superseded.png"]);
@@ -61,7 +74,7 @@ test("simulação: RPC de escrita, upload e remoção são barrados antes de aco
 
 test("simulação do executor: confere o original sem nenhuma escrita", async () => {
   const { deps, writes } = fakeDeps();
-  const plan = planArchive([row("superseded")], new Map([["achievement-art/superseded.png", { eligible: true }]]));
+  const plan = planArchive([row("superseded")], new Map([["achievement-art/superseded.png", { eligible: true, policy_version: 2 }]]));
   const out = await runArchive({ deps, mode: "dry-run", targets: ["achievement-art/superseded.png", "achievement-art/outro.png"], plan, actor: "t", reason: "r" });
   assert.deepEqual(out.map((r) => r.status), ["seria_arquivado", "fora_do_inventario"]);
   assert.deepEqual(writes, []);

@@ -22,6 +22,7 @@
 // arquivo de quem ocupa intacto); cada passo é registrado em onStep (log detalhado do executor).
 import { createHash } from "node:crypto";
 import type { LifecycleRpc } from "./tracked.ts";
+import { evidenceMeetsPolicy, SCAN_POLICY_VERSION } from "./scanPolicy.ts";
 
 export const ARCHIVE_BUCKET = "image-archive";
 
@@ -46,6 +47,25 @@ export type ArchiveDeps = {
   /** Log detalhado: cada passo (checkpoint) do executor. */
   onStep?: (step: ArchiveStep) => void;
 };
+
+/**
+ * Prova de elegibilidade só vale se o BANCO a calculou pela política de varredura vigente
+ * (migração 20261119: só varreduras atestadas, completas, íntegras e com todas as fontes, inclusive
+ * "convention"). Sem a política no banco, a prova não traz policy_version e é recusada aqui também.
+ * A varredura de 15/11/2026 é anterior à política e nunca é atestada. Ver
+ * docs/ciclo-de-vida-imagens-varreduras.md.
+ */
+async function assertEvidencePolicy(deps: ArchiveDeps, bucket: string, path: string, operation: string) {
+  const evidence = await deps.rpc("storage_lifecycle_evidence", { p_bucket: bucket, p_object_path: path });
+  // Não elegível: a guarda do banco recusa com o motivo dela. Elegível só vale pela política vigente.
+  if (evidence.eligible === true && !evidenceMeetsPolicy(evidence)) {
+    throw new ArchiveError(
+      `${operation} de ${bucket}/${path} recusado: a prova não foi calculada pela política de varredura v${SCAN_POLICY_VERSION} ` +
+        `(policy_version ${String(evidence.policy_version ?? "ausente")}). Nada foi feito.`,
+      null, false
+    );
+  }
+}
 const note = (deps: ArchiveDeps, step: ArchiveStep) => {
   try { deps.onStep?.(step); } catch { /* o log nunca interrompe a operação */ }
 };
@@ -67,17 +87,48 @@ export const archiveKey = (operation: string, bucket: string, path: string, atte
 
 type Begin = { status: "started" | "pending" | "finished"; operationId: string; result?: string };
 
-/** Começa (ou retoma) a operação. Tentativas encerradas como falha usam a chave seguinte. */
-async function beginOrResume(deps: ArchiveDeps, operation: string, bucket: string, path: string, actor: string, reason: string, details: Record<string, unknown>): Promise<Begin> {
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
-    const r = await deps.rpc("storage_lifecycle_begin_operation", {
-      p_idempotency_key: archiveKey(operation, bucket, path, attempt), p_operation: operation, p_bucket: bucket, p_object_path: path,
-      p_actor: actor, p_reason: reason, p_details: details,
-    });
-    if (r.status === "finished" && r.result === "failed") continue;
+export const MAX_ATTEMPTS = 5;
+
+/**
+ * Começa (ou retoma) a operação. Tentativas já encerradas usam a chave seguinte.
+ * `provenDone`: chamada SÓ quando a guarda do banco recusa (23514) — corrida em que outro processo
+ * concluiu a mesma operação entre a leitura do estado e este início. Devolve true apenas se o estado
+ * persistido E o Storage comprovarem a conclusão; aí o resultado é idempotente ("finished").
+ * Sem essa prova, o erro original da guarda é mantido.
+ */
+async function beginOrResume(
+  deps: ArchiveDeps, operation: string, bucket: string, path: string, actor: string, reason: string,
+  details: Record<string, unknown>, provenDone?: () => Promise<boolean>
+): Promise<Begin> {
+  let succeeded = 0;
+  let failed = 0;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    let r: Record<string, unknown>;
+    try {
+      r = await deps.rpc("storage_lifecycle_begin_operation", {
+        p_idempotency_key: archiveKey(operation, bucket, path, attempt), p_operation: operation, p_bucket: bucket, p_object_path: path,
+        p_actor: actor, p_reason: reason, p_details: details,
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === "23514" && provenDone && (await provenDone().catch(() => false))) {
+        return { status: "finished", operationId: "", result: "succeeded_concurrently" };
+      }
+      throw error;
+    }
+    // Tentativa já encerrada (falha OU sucesso antigo, ex.: arquivar de novo depois de cancelar):
+    // quem chama já conferiu o estado atual antes, então é uma operação nova na chave seguinte.
+    if (r.status === "finished") {
+      if (r.result === "succeeded") succeeded += 1;
+      else failed += 1;
+      continue;
+    }
     return { status: r.status as Begin["status"], operationId: String(r.operation_id), result: r.result as string | undefined };
   }
-  throw new ArchiveError(`${operation} de ${bucket}/${path} falhou 5 vezes; revise a auditoria.`, null, false);
+  throw new ArchiveError(
+    `${operation} de ${bucket}/${path}: limite de ${MAX_ATTEMPTS} tentativas por tipo de operação atingido ` +
+      `(${succeeded} concluída(s) com sucesso, ${failed} encerrada(s) com falha); nada foi alterado. Revise a auditoria antes de repetir.`,
+    null, false
+  );
 }
 
 const finish = (deps: ArchiveDeps, operationId: string, result: "succeeded" | "failed", actor: string, details: Record<string, unknown>) =>
@@ -101,9 +152,17 @@ export async function archiveObject(input: { deps: ArchiveDeps; bucket: string; 
   const row = await deps.readObject(bucket, path);
   if (!row) throw new ArchiveError(`${bucket}/${path} não está no ciclo de vida.`, null, false);
   if (row.archive_state === "archived") return { status: "already_archived" as const, archiveBucket: row.archive_bucket, archivePath: row.archive_path };
+  if (row.archive_state === "none") await assertEvidencePolicy(deps, bucket, path, "Arquivamento");
 
   // Intenção (a guarda do banco recusa objeto não elegível ANTES de qualquer cópia).
-  const begin = await beginOrResume(deps, "archive_copy", bucket, path, actor, input.reason, { archive_bucket: archiveBucket, archive_path: archivePath });
+  const begin = await beginOrResume(deps, "archive_copy", bucket, path, actor, input.reason, { archive_bucket: archiveBucket, archive_path: archivePath },
+    // Prova de arquivamento concluído por outro processo: estado archived E cópia com o SHA-256 registrado.
+    async () => {
+      const now = await deps.readObject(bucket, path);
+      if (now?.archive_state !== "archived" || !now.archive_bucket || !now.archive_path || !now.archive_sha256) return false;
+      const copy = await deps.storage.download(now.archive_bucket, now.archive_path);
+      return Boolean(copy) && sha256(copy!) === now.archive_sha256;
+    });
   if (begin.status === "finished") return { status: "already_archived" as const, archiveBucket, archivePath, operationId: begin.operationId };
 
   const step = (name: string, detail?: Record<string, unknown>) =>
@@ -152,7 +211,13 @@ export async function archiveObject(input: { deps: ArchiveDeps; bucket: string; 
       ? `O destino ${archiveBucket}/${archivePath} já está ocupado por outro conteúdo; nada foi sobrescrito e a operação continua pendente para revisão.`
       : `A cópia em ${archiveBucket}/${archivePath} não confere (SHA-256, tamanho ou MIME); a operação continua pendente para revisão.`, begin.operationId, true);
   }
-  step(uploaded === "exists" ? "copia_existente_conferida" : "copia_conferida", { sha256: originalSha, size: original.byteLength, content_type: contentType });
+  // O SHA-256 dos metadados é o que NÓS enviamos: a prova de integridade é o conteúdo relido.
+  const copyBytes = await deps.storage.download(archiveBucket, archivePath);
+  if (!copyBytes || sha256(copyBytes) !== originalSha) {
+    step("copia_divergente", { uploaded, reason: "conteúdo relido não confere com o SHA-256 do original" });
+    throw new ArchiveError(`O conteúdo da cópia em ${archiveBucket}/${archivePath} não confere com o original (SHA-256 relido); nada foi confirmado e a operação continua pendente para revisão.`, begin.operationId, true);
+  }
+  step(uploaded === "exists" ? "copia_existente_conferida" : "copia_conferida", { sha256: originalSha, size: original.byteLength, content_type: contentType, content_verified: true });
 
   // 3. Checkpoint final: confirmação com origem, destino, hash e dados para restaurar.
   await confirm(deps, begin.operationId, actor, {
@@ -167,7 +232,14 @@ export async function cancelArchive(input: { deps: ArchiveDeps; bucket: string; 
   const { deps, bucket, path, actor } = input;
   const row = await deps.readObject(bucket, path);
   if (!row || row.archive_state !== "archived") throw new ArchiveError(`${bucket}/${path} não está arquivado.`, null, false);
-  const begin = await beginOrResume(deps, "archive_cancel", bucket, path, actor, input.reason, {});
+  const begin = await beginOrResume(deps, "archive_cancel", bucket, path, actor, input.reason, {},
+    // Prova de cancelamento concluído por outro processo: estado none E original íntegro.
+    async () => {
+      const now = await deps.readObject(bucket, path);
+      if (now?.archive_state !== "none") return false;
+      const original = await deps.storage.download(bucket, path);
+      return Boolean(original) && sha256(original!) === row.archive_sha256;
+    });
   if (begin.status === "finished") return { status: "cancelled" as const, operationId: begin.operationId };
   const original = await deps.storage.download(bucket, path);
   if (!original || sha256(original) !== row.archive_sha256) {
@@ -185,13 +257,18 @@ export async function deleteArchivedOriginal(input: { deps: ArchiveDeps; bucket:
   if (!row) throw new ArchiveError(`${bucket}/${path} não está no ciclo de vida.`, null, false);
   if (row.archive_state === "deleted") return { status: "already_deleted" as const };
   if (!row.archive_bucket || !row.archive_path || !row.archive_sha256) throw new ArchiveError(`${bucket}/${path} não tem cópia arquivada registrada.`, null, false);
+  if (row.archive_state === "archived") await assertEvidencePolicy(deps, bucket, path, "Remoção do original");
 
   // A cópia precisa estar íntegra ANTES de qualquer remoção.
+  // Conteúdo relido (não só os metadados) precisa bater com o SHA-256 arquivado.
   const copy = await deps.storage.info(row.archive_bucket, row.archive_path);
-  if (!copy || copy.metadata?.sha256 !== row.archive_sha256) {
+  const copyBytes = copy ? await deps.storage.download(row.archive_bucket, row.archive_path) : null;
+  if (!copy || copy.metadata?.sha256 !== row.archive_sha256 || !copyBytes || sha256(copyBytes) !== row.archive_sha256) {
     throw new ArchiveError(`A cópia arquivada de ${bucket}/${path} não confere; nada foi removido.`, null, false);
   }
-  const begin = await beginOrResume(deps, "delete_object", bucket, path, actor, input.reason, { archive_bucket: row.archive_bucket, archive_path: row.archive_path });
+  const begin = await beginOrResume(deps, "delete_object", bucket, path, actor, input.reason, { archive_bucket: row.archive_bucket, archive_path: row.archive_path },
+    // Prova de remoção concluída por outro processo: estado deleted E original ausente no Storage.
+    async () => (await deps.readObject(bucket, path))?.archive_state === "deleted" && (await deps.storage.info(bucket, path)) === null);
   if (begin.status === "finished") return { status: "already_deleted" as const, operationId: begin.operationId };
 
   let removeError: unknown = null;
@@ -217,7 +294,14 @@ export async function restoreObject(input: { deps: ArchiveDeps; bucket: string; 
   if (row.archive_state === "archived") throw new ArchiveError(`${bucket}/${path} ainda tem o original; use cancelArchive.`, null, false);
   if (!row.archive_bucket || !row.archive_path || !row.archive_sha256) throw new ArchiveError(`${bucket}/${path} não tem cópia arquivada registrada.`, null, false);
 
-  const begin = await beginOrResume(deps, "restore_object", bucket, path, actor, input.reason, { archive_bucket: row.archive_bucket, archive_path: row.archive_path });
+  const begin = await beginOrResume(deps, "restore_object", bucket, path, actor, input.reason, { archive_bucket: row.archive_bucket, archive_path: row.archive_path },
+    // Prova de restauração concluída por outro processo: estado none E arquivo de volta com o SHA-256 arquivado.
+    async () => {
+      const now = await deps.readObject(bucket, path);
+      if (now?.archive_state !== "none") return false;
+      const back = await deps.storage.download(bucket, path);
+      return Boolean(back) && sha256(back!) === row.archive_sha256;
+    });
   if (begin.status === "finished") return { status: "already_restored" as const, operationId: begin.operationId };
 
   const archiveSha = row.archive_sha256;
@@ -254,7 +338,8 @@ export async function restoreObject(input: { deps: ArchiveDeps; bucket: string; 
     }
   }
   const back = await deps.storage.info(bucket, path);
-  if (!isSame(back) || (back!.contentType !== null && back!.contentType !== contentType)) {
+  const backBytes = isSame(back) ? await deps.storage.download(bucket, path) : null;
+  if (!isSame(back) || (back!.contentType !== null && back!.contentType !== contentType) || !backBytes || sha256(backBytes) !== archiveSha) {
     step("restaurado_divergente", { sha256: back?.metadata?.sha256 ?? null, size: back?.size ?? null, content_type: back?.contentType ?? null });
     throw new ArchiveError(`O arquivo restaurado em ${bucket}/${path} não confere; a restauração continua pendente.`, begin.operationId, true);
   }

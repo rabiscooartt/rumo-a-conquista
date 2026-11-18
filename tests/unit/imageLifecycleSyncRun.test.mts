@@ -17,11 +17,17 @@ test("as quatro proteções manuais são exatamente a lista do Mouse e têm just
 
 const DIR = ".image-report/lifecycle/scan-20261115T163906Z";
 const real = existsSync(`${DIR}/report.json`);
+function withConvention<T extends { sourceStatus: unknown[] }>(report: T): T {
+  report.sourceStatus.push({ source: "convention", status: "complete", error: null, unparsed: 0 });
+  return report;
+}
 function inputs() {
   const bytes = readFileSync(`${DIR}/report.json`);
   return {
     scanId: "scan-20261115T163906Z",
-    report: JSON.parse(bytes.toString("utf8")),
+    // Relatório real anterior à fonte "convention": aqui ela entra como completa só para exercitar o fluxo
+    // de sincronização (a recusa do relatório original está em imageLifecycleSyncPlan.test.mts).
+    report: withConvention(JSON.parse(bytes.toString("utf8"))),
     reportSha256: createHash("sha256").update(bytes).digest("hex"),
     scanRecord: JSON.parse(readFileSync(`${DIR}/scan-record.json`, "utf8")),
     history: parseHistory(readFileSync(".image-report/lifecycle/history.jsonl", "utf8")),

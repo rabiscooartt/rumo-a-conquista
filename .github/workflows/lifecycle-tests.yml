@@ -1,0 +1,43 @@
+name: Ciclo de vida das imagens — testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # PostgreSQL 17 descartável, só para os testes (nenhum acesso ao Supabase do projeto).
+        image: postgres:17
+        env:
+          POSTGRES_USER: supabase_admin
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 55433:5432
+        options: >-
+          --health-cmd "pg_isready -U supabase_admin -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # a suíte bulk-saves compara com a versão de referência das rotas (git show)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit -p .
+      - run: npm run test:unit
+      - name: Testes de integração (PostgreSQL 17 isolado)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: "55433"
+          PG_ADMIN_USER: supabase_admin
+        run: npm run test:integration

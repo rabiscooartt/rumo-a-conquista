@@ -13,7 +13,7 @@ const NOW = new Date("2026-11-15T20:00:00Z");
 const SCAN = "scan-20261115T163906Z";
 const AT = "2026-11-15T16:39:06.297Z";
 const ART = "achievement-art/games/mouse-p-i-for-hire/achievements";
-const SOURCES = ["achievements", "achievement_progress", "games", "journey_entries", "journey_history_events", "pointers", "drafts", "variant_map", "protection"]
+const SOURCES = ["achievements", "achievement_progress", "games", "journey_entries", "journey_history_events", "pointers", "drafts", "variant_map", "protection", "convention"]
   .map((source) => ({ source, status: "complete", error: null, unparsed: 0 }));
 
 function ref(objectKey: string, source: string) {
@@ -120,7 +120,9 @@ test("chaves de objeto: bucket e caminho seguem as mesmas regras do banco", () =
 });
 
 const REAL = ".image-report/lifecycle/scan-20261115T163906Z";
-test("baseline real scan-20261115T163906Z: 46 objetos, plano pronto e sem candidatos", { skip: !existsSync(`${REAL}/report.json`) }, () => {
+// A baseline real é anterior à fonte "convention" (referências implícitas por nome): sincronizá-la
+// de novo seria aceitar uma varredura que não olhou a convenção. O plano precisa recusar.
+test("baseline real scan-20261115T163906Z (anterior à fonte convention): plano recusado por fonte ausente", { skip: !existsSync(`${REAL}/report.json`) }, () => {
   const bytes = readFileSync(`${REAL}/report.json`);
   const p = buildSyncPlan({
     scanId: SCAN,
@@ -130,8 +132,29 @@ test("baseline real scan-20261115T163906Z: 46 objetos, plano pronto e sem candid
     history: parseHistory(readFileSync(".image-report/lifecycle/history.jsonl", "utf8")),
     remote: EMPTY, protectedObjects: DEFAULT_PROTECTED_OBJECTS, now: NOW,
   });
-  assert.equal(p.ready, true, p.blockers.join("; "));
+  assert.equal(p.ready, false);
+  assert.ok(p.blockers.some((b) => /fonte convention ausente/.test(b)), p.blockers.join("; "));
   assert.equal(p.counts.objects, 46);
   assert.deepEqual(p.counts.byState, { referenced: 32, protected: 4, observing: 4, superseded: 2, active: 4 });
-  assert.deepEqual([p.counts.insert, p.counts.candidates, p.counts.overrides], [46, 0, 0]);
+});
+
+test("modo incremental (varredura oficial seguinte): candidato vai ao banco; histórico precisa marcar oficial e versão; execução própria não é pendência, a de outra varredura bloqueia", () => {
+  const { report, record } = fixture();
+  const candidate = { ...report, objects: report.objects.map((o) => (o.objectKey === `${ART}/34.png` ? { ...o, state: "candidate" } : o)),
+    byState: { ...report.byState, observing: { count: 0, bytes: 0 }, candidate: { count: 1, bytes: 7 } } };
+  delete (candidate.byState as Record<string, unknown>).observing;
+  const official = { ...record, official: true, policyVersion: 2 };
+  const historyOf = (entry: Record<string, unknown>) => parseHistory(JSON.stringify({ scanId: SCAN, completedAt: AT, complete: true, unreferenced: [], present: [], ...entry }) + "\n");
+  const base = { report: candidate, scanRecord: official, history: historyOf({ official: true, policyVersion: 2 }), mode: "incremental" as const, policyVersion: 2 };
+  const ok = plan({ ...base, remote: { ...EMPTY, pendingOperations: 1, pendingRunScanIds: [SCAN] } });
+  assert.equal(ok.ready, true, ok.blockers.join("; "));
+  assert.equal(ok.predicted.find((p) => p.objectKey === `${ART}/34.png`)!.applied, "candidate");
+  assert.equal(plan({ report: candidate }).ready, false, "na carga inicial, candidato continua proibido");
+  const notOfficial = plan({ ...base, history: historyOf({}) });
+  assert.ok(notOfficial.blockers.some((b) => /oficial da política v2/.test(b)));
+  const otherVersion = plan({ ...base, scanRecord: { ...official, policyVersion: 1 } });
+  assert.ok(otherVersion.blockers.some((b) => /scan-record\.json não marca/.test(b)));
+  const otherRun = plan({ ...base, remote: { ...EMPTY, pendingOperations: 2, pendingRunScanIds: [SCAN, "scan-20261116T000000Z"] } });
+  assert.ok(otherRun.blockers.some((b) => /outra varredura: scan-20261116T000000Z/.test(b)));
+  assert.ok(otherRun.blockers.some((b) => /1 operação\(ões\) pendente/.test(b)));
 });
