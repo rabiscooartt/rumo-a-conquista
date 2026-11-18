@@ -15,7 +15,8 @@ const read = (p) => readFileSync(`${repo}/${p}`, "utf8");
 const results = [];
 const check = (name, ok, detail = "") => { results.push(ok); console.log(`${ok ? "✔" : "✘"} ${name}${detail ? ` — ${String(detail).slice(0, 220)}` : ""}`); };
 const sha = (b) => createHash("sha256").update(b).digest("hex");
-const PORT = 54412;
+// Servidor simulado próprio (o script de arquivamento roda como processo filho apontando para ele).
+const PORT = 24412;
 const KEY = "chave-local-falsa";
 
 const base = { host: process.env.PGHOST ?? "127.0.0.1", port: Number(process.env.PGPORT ?? 55433) };
@@ -114,7 +115,9 @@ const server = http.createServer(async (req, res) => {
     return send(404, { message: `não simulado ${req.method} ${url.pathname}` });
   } catch (e) { send(400, { code: e.code ?? "XX000", message: e.message, hint: e.hint ?? null }); }
 });
-await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
+const { startServer } = await import(pathToFileURL(`${repo}/tests/integration/support/server.mjs`).href);
+const stopServer = await startServer(server, PORT, "archive-script");
+try {
 
 const work = mkdtempSync(join(tmpdir(), "archive-script-"));
 mkdirSync(join(work, "data"));
@@ -194,7 +197,11 @@ const logCount = async () => Number((await db.query("select count(*) n from publ
     [r1, r2, r3].every((r) => r.code === 1 && r.requests.length === 0), [r1, r2, r3].map((r) => r.code).join());
 }
 
+} finally {
+  // Encerrado sempre, inclusive se uma etapa lançar erro no meio da suíte.
+  await stopServer();
+}
 const ok = results.filter(Boolean).length;
 console.log(`\n${ok}/${results.length} verificações passaram`);
-server.close(); await pool.end(); await db.end(); await admin.end();
+await pool.end(); await db.end(); await admin.end();
 process.exit(ok === results.length ? 0 : 1);

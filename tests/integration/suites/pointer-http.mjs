@@ -185,7 +185,9 @@ const server = http.createServer(async (req, res) => {
     send(400, { code: e.code ?? "XX000", message: e.message, details: null, hint: null });
   }
 });
-await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
+const { startServer } = await import(pathToFileURL(`${repo}/tests/integration/support/server.mjs`).href);
+const stopServer = await startServer(server, PORT, "pointer-http");
+try {
 
 // ---------- Handlers reais ----------
 const { NextRequest } = repoRequire("next/server");
@@ -404,7 +406,10 @@ await switchToFreshDb(); storage = new Map(); reset();
 }
 
 check("nenhuma requisição saiu de 127.0.0.1", outbound.length > 0 && outbound.every((h) => h === `127.0.0.1:${PORT}`), `${outbound.length} requisições`);
-server.close();
+} finally {
+  // Encerrado sempre, inclusive se uma etapa lançar erro no meio da suíte.
+  await stopServer();
+}
 await api.end();
 await admin.end();
 const failedCount = results.filter((x) => !x).length;

@@ -16,6 +16,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertPortFree } from "./support/server.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "..", "..");
@@ -32,18 +33,20 @@ const BASELINE_ROUTES = [
   "app/admin/api/achievements/route.ts", "app/api/youtube/channel/games/sync/route.ts", "app/api/admin/recover-mouse/route.ts",
 ];
 
-// Cada suíte: arquivo, porta do Supabase simulado e argumentos.
+// Cada suíte: arquivo, porta do Supabase simulado (extraPorts: outros servidores simulados dela) e
+// argumentos. Faixa 24412 e 24421–24430: fora das portas temporárias do Linux e do Windows
+// (support/server.mjs). Cada porta é conferida antes da suíte e depois dela.
 const SUITES = [
-  { name: "reference-sync-sql", file: "reference-sync-sql.mjs", port: 54421 },
-  { name: "scan-policy-sql", file: "scan-policy-sql.mjs", port: 54429 },
-  { name: "bulk-saves", file: "bulk-saves.mjs", port: 54422, baseline: true },
-  { name: "isolated-plan", file: "isolated-plan.mjs", port: 54423, baseline: true },
-  { name: "archive-executor", file: "archive-executor.mjs", port: 54424 },
-  { name: "archive-review", file: "archive-review.mjs", port: 54425 },
-  { name: "archive-script", file: "archive-script.mjs", port: 54426 },
-  { name: "achievement-art-http", file: "achievement-art-http.mjs", port: 54427 },
-  { name: "pointer-http", file: "pointer-http.mjs", port: 54428 },
-  { name: "official-scan", file: "official-scan.mjs", port: 54430 },
+  { name: "reference-sync-sql", file: "reference-sync-sql.mjs", port: 24421 },
+  { name: "scan-policy-sql", file: "scan-policy-sql.mjs", port: 24429 },
+  { name: "bulk-saves", file: "bulk-saves.mjs", port: 24422, baseline: true },
+  { name: "isolated-plan", file: "isolated-plan.mjs", port: 24423, baseline: true },
+  { name: "archive-executor", file: "archive-executor.mjs", port: 24424 },
+  { name: "archive-review", file: "archive-review.mjs", port: 24425 },
+  { name: "archive-script", file: "archive-script.mjs", port: 24426, extraPorts: [24412] },
+  { name: "achievement-art-http", file: "achievement-art-http.mjs", port: 24427 },
+  { name: "pointer-http", file: "pointer-http.mjs", port: 24428 },
+  { name: "official-scan", file: "official-scan.mjs", port: 24430 },
 ];
 
 const wanted = process.argv.slice(2).filter((a) => !a.startsWith("-"));
@@ -160,7 +163,14 @@ for (const suite of selected) {
   try {
     if (PG_BIN) stop = startLocalCluster(suite);
     else await cleanExternalCluster();
+    const ports = [suite.port, ...(suite.extraPorts ?? [])];
+    for (const port of ports) await assertPortFree(port, { label: `${suite.name} (antes)` });
     const { code, tail } = await runSuite(suite);
+    for (const port of ports) {
+      await assertPortFree(port, { label: `${suite.name} (depois)` }).catch((error) => {
+        throw new Error(`a porta continua ocupada depois da suíte: ${error.message}`);
+      });
+    }
     if (code !== 0) {
       failed += 1;
       console.log(`  ✘ suíte ${suite.name} terminou com código ${code}\n${tail.split("\n").slice(-25).join("\n")}`);

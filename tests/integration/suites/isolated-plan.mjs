@@ -202,7 +202,9 @@ const server = http.createServer(async (req, res) => {
     send(400, { code: e.code ?? "XX000", message: e.message, details: e.detail ?? null, hint: e.hint ?? null });
   }
 });
-await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
+const { startServer } = await import(pathToFileURL(`${repo}/tests/integration/support/server.mjs`).href);
+const stopServer = await startServer(server, PORT, "isolated-plan");
+try {
 
 // ---------- Handlers reais (novos e HEAD) ----------
 const { NextRequest } = repoRequire("next/server");
@@ -349,9 +351,12 @@ const fmItems = (a) => a.log.filter((l) => l.phase === "intent").flatMap((l) => 
 }
 
 check("nenhuma requisição saiu de 127.0.0.1 (vigia do fetch)", outbound.every((h) => h.startsWith("127.0.0.1")), [...new Set(outbound)].join(","));
+} finally {
+  // Encerrado sempre, inclusive se uma etapa lançar erro no meio da suíte.
+  await stopServer();
+}
 const ok = results.filter(Boolean).length;
 console.log(`\n${ok}/${results.length} verificações passaram`);
 for (const c of connections.values()) await c.end();
 await admin.end();
-server.close();
 process.exit(ok === results.length ? 0 : 1);

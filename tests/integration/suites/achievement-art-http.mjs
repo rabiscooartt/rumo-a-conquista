@@ -163,7 +163,9 @@ const server = http.createServer(async (req, res) => {
     send(400, { code: e.code ?? "XX000", message: e.message, details: null, hint: null });
   }
 });
-await new Promise((r) => server.listen(PORT, "127.0.0.1", r));
+const { startServer } = await import(pathToFileURL(`${repo}/tests/integration/support/server.mjs`).href);
+const stopServer = await startServer(server, PORT, "achievement-art-http");
+try {
 
 // ---------- Handler real, autenticação real ----------
 const { NextRequest } = repoRequire("next/server");
@@ -372,7 +374,10 @@ await switchToFreshDb(); storage = seedOld(); resetFaults();
 check("nenhuma requisição saiu de 127.0.0.1 (vigia do fetch)", outbound.length > 0 && outbound.every((h) => h === `127.0.0.1:${PORT}`), `${outbound.length} requisições, hosts: ${[...new Set(outbound)].join(", ")}`);
 check("cache da home invalidado só nas importações aceitas", (globalThis.__revalidated ?? []).every((t) => t === "home-catalog"));
 
-server.close();
+} finally {
+  // Encerrado sempre, inclusive se uma etapa lançar erro no meio da suíte.
+  await stopServer();
+}
 await api.end();
 await admin.end();
 const failed = results.filter((x) => !x).length;

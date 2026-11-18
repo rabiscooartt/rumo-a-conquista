@@ -27,6 +27,13 @@ As varreduras com 30+ dias de intervalo usam uma "viagem no tempo" só de teste
 (`support/officialRun.mjs`). Como superusuário do cluster descartável, ela recua a abertura da execução e
 recalcula a cadeia de hashes. Nada disso existe nas migrações.
 
+## Portas
+
+Os servidores simulados usam `127.0.0.1` nas portas 24412 e 24421–24430, fora das portas
+temporárias do Linux (32768–60999) e do Windows (49152–65535). O executor confere cada porta antes
+e depois de cada suíte e, se ela estiver ocupada, falha com o diagnóstico, sem esperar. Cada suíte
+encerra o próprio servidor em `finally` (`support/server.mjs`).
+
 ## Dependências
 
 - Node.js 24 ou superior (TypeScript direto pelo Node).
