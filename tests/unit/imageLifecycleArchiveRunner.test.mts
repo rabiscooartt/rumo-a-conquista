@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  planArchive, readOnlyDeps, readOnlyFetch, runArchive, resumePending, WriteBlockedError, type InventoryRow,
+  outcome, planArchive, readOnlyDeps, readOnlyFetch, runArchive, resumePending, WriteBlockedError, type InventoryRow,
 } from "../../lib/images/lifecycle/archiveRunner.ts";
 import type { ArchiveDeps } from "../../lib/images/lifecycle/archive.ts";
 
@@ -105,4 +105,14 @@ test("fetch da simulação: só leituras saem; escritas são recusadas sem envio
     await assert.rejects(guarded(`${host}${path}`, { method }), WriteBlockedError, `${method} ${path}`);
   }
   assert.equal(sent.length, 3);
+});
+
+test("resultado por objeto: 23514 é recusa da guarda; 55P03 (cerca das fontes ocupada, 20261120) é retomável; o resto é erro", () => {
+  const guard = outcome("achievement-art/a.png", Object.assign(new Error("em uso"), { code: "23514" }));
+  const busy = outcome("achievement-art/a.png", Object.assign(new Error("Gravação em andamento"), { code: "55P03" }));
+  const other = outcome("achievement-art/a.png", Object.assign(new Error("falha"), { code: "XX000" }));
+  assert.equal(guard.status, "recusado_pela_guarda");
+  assert.equal(busy.status, "aguardando_gravacao");
+  assert.equal(busy.code, "55P03");
+  assert.equal(other.status, "erro");
 });

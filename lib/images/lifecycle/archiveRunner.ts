@@ -85,11 +85,16 @@ export function planArchive(rows: InventoryRow[], evidence: Map<string, Evidence
 
 export type RunResult = { object: string; status: string; operationId?: string | null; error?: string; pending?: boolean; code?: string };
 
-function outcome(object: string, error: unknown): RunResult {
+/**
+ * Resultado de um objeto que falhou. 23514: a guarda do banco recusou (definitivo). 55P03: a cerca das
+ * fontes estava ocupada por uma gravação em andamento (migração 20261120) — nada mudou; repetir depois.
+ */
+export function outcome(object: string, error: unknown): RunResult {
   if (error instanceof WriteBlockedError) return { object, status: "bloqueado_na_simulacao", error: error.message };
   if (error instanceof ArchiveError) return { object, status: error.pending ? "pendente" : "falhou", operationId: error.operationId, error: error.message, pending: error.pending };
   const e = error as { message?: string; code?: string };
-  return { object, status: e.code === "23514" ? "recusado_pela_guarda" : "erro", error: e.message ?? String(error), code: e.code };
+  const status = e.code === "23514" ? "recusado_pela_guarda" : e.code === "55P03" ? "aguardando_gravacao" : "erro";
+  return { object, status, error: e.message ?? String(error), code: e.code };
 }
 
 const split = (object: string) => {

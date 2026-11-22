@@ -34,7 +34,7 @@ const BASELINE_ROUTES = [
 ];
 
 // Cada suíte: arquivo, porta do Supabase simulado (extraPorts: outros servidores simulados dela) e
-// argumentos. Faixa 24412 e 24421–24430: fora das portas temporárias do Linux e do Windows
+// argumentos. Faixa 24412 e 24421–24431: fora das portas temporárias do Linux e do Windows
 // (support/server.mjs). Cada porta é conferida antes da suíte e depois dela.
 const SUITES = [
   { name: "reference-sync-sql", file: "reference-sync-sql.mjs", port: 24421 },
@@ -47,6 +47,7 @@ const SUITES = [
   { name: "achievement-art-http", file: "achievement-art-http.mjs", port: 24427 },
   { name: "pointer-http", file: "pointer-http.mjs", port: 24428 },
   { name: "official-scan", file: "official-scan.mjs", port: 24430 },
+  { name: "source-fence", file: "source-fence.mjs", port: 24431 },
 ];
 
 const wanted = process.argv.slice(2).filter((a) => !a.startsWith("-"));
@@ -83,7 +84,7 @@ async function cleanExternalCluster() {
   try {
     const dbs = (await admin.query(`select datname from pg_database where not datistemplate and datname not in ('postgres', $1)`, [ADMIN])).rows;
     for (const { datname } of dbs) await admin.query(`drop database "${datname.replace(/"/g, '""')}" with (force)`);
-    for (const role of ["authenticator", "service_role", "authenticated", "anon", "storage_lifecycle_owner", "postgres"]) {
+    for (const role of ["authenticator", "service_role", "authenticated", "anon", "storage_lifecycle_owner", "supabase_storage_admin", "postgres"]) {
       if (role === ADMIN) continue;
       const exists = (await admin.query("select 1 from pg_roles where rolname = $1", [role])).rowCount > 0;
       if (exists) {

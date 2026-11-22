@@ -100,10 +100,45 @@ ler tudo) e fica só no servidor e nos scripts locais. Mitigações:
 - Varreduras incompletas, com qualquer fonte `partial` ou `failed`, ou invalidadas.
 - Varreduras não atestadas pela versão vigente da política (inclusive todas as anteriores a ela).
 
+## Cerca das fontes (migração 20261120)
+
+A prova das varreduras sozinha não via um salvamento feito durante a coleta, nem uma imagem que voltasse
+a ser usada depois da varredura. A migração `20261120_storage_lifecycle_source_fence` fecha isso no banco:
+
+- **Diário** (`storage_lifecycle_source_changes`): gatilhos em `games`, `achievements`,
+  `achievement_progress`, `journey_entries` e `journey_history_events` gravam as chaves do Storage
+  que entram e saem de cada linha, e o prefixo da convenção quando muda o título ou o jogo de uma
+  conquista (ou o selo final do jogo). Pegam qualquer gravador: rotas, painel do Supabase, scripts.
+  Em `storage.objects`, só os caminhos-fonte (`site-profile/active/*` e os 2 buckets de rascunho)
+  entram, com escopo total (o conteúdo não é visível no banco).
+- **Cerca**: quem grava numa fonte segura uma trava compartilhada até o COMMIT. Abertura, sincronização
+  e conclusão da varredura oficial e a autorização de arquivar/remover pegam a trava exclusiva por
+  tentativas de 20 ms, por até 3 s, sem entrar na fila. Se houver gravação em andamento, devolvem
+  `55P03` e nada muda: o orquestrador para de forma retomável e o executor marca
+  `aguardando_gravacao`. Qualquer evento do diário depois do marcador da abertura faz a
+  sincronização ou a conclusão recusarem com `scan_sources_changed`; a execução vira `failed` e uma
+  varredura nova precisa ser feita.
+- **Prova**: além das regras acima, nenhum evento depois do marcador da última varredura pode ter tocado
+  o objeto, um prefixo que o contém ou todos os objetos. Editar um ponteiro ou rascunho, portanto,
+  suspende os arquivamentos até a próxima varredura.
+- **Autorização**: arquivar e remover conferem o uso real em todas as linhas das fontes do banco, com a
+  trava exclusiva. Remover o original exige uma varredura oficial aberta **depois** do arquivamento.
+- **Estado durável**: o gatilho das fontes recusa referência nova a objeto fora de `none`, para
+  qualquer gravador. Durante uma remoção (`deleting`), gravações de ponteiro e rascunho também são
+  recusadas (janela de segundos).
+
+As funções públicas mantêm nome e assinatura; as anteriores ficam como `*_base`, sem acesso do
+`service_role`. Execuções oficiais abertas antes desta migração não têm marcador e são recusadas na
+sincronização (`scan_run_without_fence`): encerre-as como falha antes de começar outra.
+
+Aplicação (só com autorização): pré-verificação `supabase/tests/storage_lifecycle_source_fence_precheck.sql`
+(somente leitura), depois a migração. Rollback: `supabase/rollbacks/20261120_storage_lifecycle_source_fence_rollback.sql`,
+recusado depois que uma execução oficial usou a cerca. Deve rodar antes de qualquer rollback da 20261119.
+
 ## Antes do primeiro arquivamento real
 
 - O bucket `image-archive` precisa existir e ser privado. A criação é uma etapa separada, que exige
   autorização.
-- A migração 20261119 precisa estar aplicada (escrita no banco, com pré-verificação e autorização).
+- As migrações 20261119 e 20261120 precisam estar aplicadas (escrita no banco, com pré-verificação e autorização).
 - A ferramenta das varreduras seguintes existe (`scripts/image-lifecycle-official-scan.mjs`). Nunca foi
   executada em produção.

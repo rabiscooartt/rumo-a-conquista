@@ -22,6 +22,7 @@ real. A URL do Supabase aponta para `127.0.0.1`, e um vigia de `fetch` bloqueia 
 | `achievement-art-http` | Rota `achievement-art`: envio rastreado e lote de referências. |
 | `pointer-http` | Rotas `banner-settings` e `profile-avatar`, além da reconciliação. |
 | `official-scan` | Fluxo completo da varredura oficial (`officialScan.ts`) no banco real: simulação sem escrita; respostas perdidas e conexões caídas em cada etapa, com retomada sem duplicar; fonte ausente; execução abandonada; duas oficiais com 39 dias. |
+| `source-fence` | Migração 20261120 (diário das fontes, cerca, estado durável), com transações realmente concorrentes: diário de todos os gravadores (inclusive Jornada, convenção, ponteiros, rascunhos e TRUNCATE); varredura com gravação aberta antes da abertura, depois da coleta e entre sincronização e conclusão; prova derrubada por uso novo; conferência viva na autorização; remoção só com varredura posterior ao arquivamento; recusas durante a remoção; orquestrador oficial real; 200 salvamentos concorrentes sem deadlock (p95 < 100 ms); ordem das travas; rollback. `storage.objects` é uma réplica mínima com outro dono, como no Supabase. |
 
 As varreduras com 30+ dias de intervalo usam uma "viagem no tempo" só de teste
 (`support/officialRun.mjs`). Como superusuário do cluster descartável, ela recua a abertura da execução e
@@ -29,7 +30,7 @@ recalcula a cadeia de hashes. Nada disso existe nas migrações.
 
 ## Portas
 
-Os servidores simulados usam `127.0.0.1` nas portas 24412 e 24421–24430, fora das portas
+Os servidores simulados usam `127.0.0.1` nas portas 24412 e 24421–24431, fora das portas
 temporárias do Linux (32768–60999) e do Windows (49152–65535). O executor confere cada porta antes
 e depois de cada suíte e, se ela estiver ocupada, falha com o diagnóstico, sem esperar. Cada suíte
 encerra o próprio servidor em `finally` (`support/server.mjs`).

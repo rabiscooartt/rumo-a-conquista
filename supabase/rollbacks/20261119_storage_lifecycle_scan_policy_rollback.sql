@@ -10,6 +10,9 @@ begin
   if pg_catalog.to_regclass('public.storage_lifecycle_scan_attestations') is null then
     raise exception 'A migração 20261119 não está aplicada; nada a desfazer.';
   end if;
+  if pg_catalog.to_regclass('public.storage_lifecycle_scan_fences') is not null then
+    raise exception 'A migração 20261120 (cerca das fontes) está aplicada: desfaça-a antes (supabase/rollbacks/20261120_storage_lifecycle_source_fence_rollback.sql). Nada foi alterado.';
+  end if;
   select pg_catalog.count(*) into used from public.storage_lifecycle_scan_attestations;
   if used > 0 or exists (select 1 from public.storage_operation_log where operation in ('scan_attest', 'scan_run')) then
     raise exception 'Rollback recusado: há atestações ou execuções oficiais de varredura registradas. Desfazer apagaria histórico; nada foi alterado.'

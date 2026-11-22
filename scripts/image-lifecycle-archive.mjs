@@ -99,7 +99,8 @@ if (restoreTargets.length > 0) {
 for (const [kind, list] of Object.entries(results)) {
   for (const r of list) console.log(`· ${kind} ${r.object} → ${r.status}${r.error ? `: ${r.error}` : ""}`);
 }
-const failures = Object.values(results).flat().filter((r) => ["erro", "falhou", "pendente", "bloqueado_na_simulacao"].includes(r.status)).length;
+// aguardando_gravacao: a cerca das fontes estava ocupada (55P03); nada mudou, basta repetir.
+const failures = Object.values(results).flat().filter((r) => ["erro", "falhou", "pendente", "bloqueado_na_simulacao", "aguardando_gravacao"].includes(r.status)).length;
 writeFileSync(join(dir, `${stamp}.json`), JSON.stringify({ mode, at: now.toISOString(), archiveBucket: Boolean(archiveBucket), counts, plan, pending: state.pending, results }, null, 2));
 console.log(`Registro: ${join(".image-report", "lifecycle", "archive", `${stamp}.json`)} (passos em .jsonl) · ocorrências: ${failures}`);
 process.exitCode = failures > 0 ? 1 : 0;
