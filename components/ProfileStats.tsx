@@ -301,16 +301,16 @@ function StatItem({
   href?: string;
 }) {
   const content = (
-    <div className="group flex h-full min-w-0 flex-1 flex-col items-center justify-center border-r border-white/10 px-3 py-5 text-center last:border-r-0 sm:min-w-[130px] sm:px-5">
-      <div className="flex h-11 items-center justify-center text-[36px] leading-none transition group-hover:scale-110">
+    <div className="group flex h-full min-w-0 flex-1 flex-col items-center justify-center bg-[#090b0f] px-2 py-4 text-center sm:border-r sm:border-white/10 sm:px-5 sm:py-5 sm:last:border-r-0">
+      <div className="flex h-8 items-center justify-center text-[24px] leading-none transition group-hover:scale-110 sm:h-11 sm:text-[36px]">
         {icon}
       </div>
 
-      <div className="mt-2 min-h-[44px] text-[36px] font-black leading-[0.88] text-white drop-shadow-[3px_3px_0_rgba(0,90,255,0.45)] sm:min-h-[54px] sm:text-[46px]">
+      <div className="mt-2 min-h-[28px] text-[24px] font-black leading-[0.95] text-white drop-shadow-[3px_3px_0_rgba(0,90,255,0.45)] sm:min-h-[54px] sm:leading-[0.88] sm:text-[36px] 2xl:text-[42px]">
         {value}
       </div>
 
-      <div className="mt-2 text-sm text-white/55">{label}</div>
+      <div className="mt-1.5 text-[11px] text-white/60 sm:mt-2 sm:text-sm">{label}</div>
     </div>
   );
 
@@ -321,7 +321,7 @@ function StatItem({
   return (
     <Link
       href={href}
-      className="min-w-0 flex-1 transition hover:bg-white/[0.03] sm:min-w-[130px]"
+      className="min-w-0 flex-1 transition hover:bg-white/[0.03]"
     >
       {content}
     </Link>
@@ -387,9 +387,9 @@ export default function ProfileStats() {
   const isLoaded = gamesLoaded;
 
   return (
-    <section className="grid grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
-      <div className="flex items-center gap-4 rounded-[28px] border border-white/10 bg-zinc-950/80 px-5 py-6 shadow-xl">
-        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl border border-purple-400/40 bg-purple-500/10 shadow-[0_0_24px_rgba(168,85,247,0.18)]">
+    <section className="grid grid-cols-1 gap-4 2xl:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="flex items-center gap-4 rounded-[14px] border border-white/[0.08] bg-[#090b0f] px-4 py-4 shadow-xl sm:px-5 sm:py-6">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl sm:h-24 sm:w-24 sm:rounded-3xl border border-purple-400/40 bg-purple-500/10 shadow-[0_0_24px_rgba(168,85,247,0.18)]">
           <AvatarImage />
 
           <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-zinc-950 bg-emerald-400" />
@@ -402,12 +402,12 @@ export default function ProfileStats() {
 
           <p className="mt-1 text-sm text-white/70">Rumo à Conquista</p>
 
-          <p className="mt-3 text-xs text-white/35">Membro desde 2026</p>
+          <p className="mt-1.5 text-xs text-white/40 sm:mt-3">Membro desde 2026</p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[28px] border border-white/10 bg-zinc-950/80 shadow-xl">
-        <div className="grid h-full grid-cols-2 items-stretch sm:flex sm:justify-between">
+      <div className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f] shadow-xl">
+        <div className="grid h-full grid-cols-6 items-stretch gap-px bg-white/[0.07] [&>*]:col-span-2 [&>*:nth-child(n+4)]:col-span-3 sm:flex sm:justify-between sm:gap-0 sm:bg-transparent">
           <StatItem
             icon="🏆"
             value={isLoaded ? String(totals.achievements) : "..."}

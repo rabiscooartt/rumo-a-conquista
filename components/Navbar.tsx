@@ -45,6 +45,10 @@ function ProfileIcon({ className = "" }: IconProps) {
 
 
 
+function TrophyIcon({ className = "" }: IconProps) {
+  return <IconBase className={className}><path d="M8 4h8v5a4 4 0 0 1-8 0V4ZM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4" /></IconBase>;
+}
+
 function SearchIcon({ className = "" }: IconProps) {
   return <IconBase className={className}><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></IconBase>;
 }
@@ -102,6 +106,12 @@ function SearchForm({
     </form>
   );
 }
+
+// Áreas pessoais que não cabem na barra principal; aparecem no menu mobile e no menu da conta.
+const journeyLinks = [
+  { label: "Meu perfil", shortLabel: "Perfil", href: "/perfil", Icon: ProfileIcon },
+  { label: "Histórico de troféus", shortLabel: "Histórico", href: "/historico", Icon: TrophyIcon },
+];
 
 const navLinks = [
   { label: "Início", href: "/" },
@@ -249,10 +259,10 @@ export default function Navbar() {
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 min-[1080px]:gap-3">
-          <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
+          <button type="button" onClick={() => { setIsMenuOpen(false); setIsSearchOpen((open) => !open); }} aria-label={isSearchOpen ? "Fechar busca" : "Abrir busca"} aria-expanded={isSearchOpen} className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-black/30 text-white/70 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             <SearchIcon className="h-4 w-4" />
           </button>
-          <Link href="/atividade" aria-label="Ver atividade recente" title="Atividade recente" className="relative flex h-8 w-7 items-center justify-center rounded-md text-white/70 transition hover:bg-white/[0.05] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+          <Link href="/atividade" aria-label="Ver atividade recente" title="Atividade recente" className="relative flex h-10 w-9 items-center justify-center rounded-lg text-white/70 min-[1080px]:h-8 min-[1080px]:w-7 min-[1080px]:rounded-md transition hover:bg-white/[0.05] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
             <BellIcon className="h-[17px] w-[17px]" />
           </Link>
           <div className="flex items-center gap-0">
@@ -263,9 +273,11 @@ export default function Navbar() {
               </button>
               {isAccountOpen ? (
                 <div className="absolute right-0 top-[calc(100%+10px)] z-[80] w-56 overflow-hidden rounded-xl border border-white/10 bg-[#09090d]/[.98] p-1.5 shadow-[0_16px_48px_rgba(0,0,0,.62)] backdrop-blur-xl">
-                  <Link href="/perfil" onClick={() => setIsAccountOpen(false)} className="flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.06] hover:text-white">
-                    <ProfileIcon className="h-4 w-4 text-white/50" /> Meu perfil
-                  </Link>
+                  {journeyLinks.map(({ label, href, Icon }) => (
+                    <Link key={href} href={href} onClick={() => setIsAccountOpen(false)} aria-current={isActiveLink(href) ? "page" : undefined} className={"flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition hover:bg-white/[0.06] hover:text-white " + (isActiveLink(href) ? "bg-red-500/10 text-white" : "text-white/80")}>
+                      <Icon className={"h-4 w-4 " + (isActiveLink(href) ? "text-red-400" : "text-white/50")} /> {label}
+                    </Link>
+                  ))}
                   {isAdminMode ? (
                     <>
                       <Link href="/admin/jogos" onClick={() => setIsAccountOpen(false)} className="flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.06] hover:text-white">
@@ -284,7 +296,7 @@ export default function Navbar() {
               ) : null}
             </div>
           </div>
-          <button type="button" onClick={() => { setIsSearchOpen(false); setIsAccountOpen(false); setIsMenuOpen((open) => !open); }} aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={isMenuOpen} aria-controls="rac-mobile-navigation" className="flex h-8 w-8 items-center justify-center rounded-md border border-red-500/35 bg-red-500/[0.08] text-red-200 transition hover:border-red-400/60 hover:bg-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
+          <button type="button" onClick={() => { setIsSearchOpen(false); setIsAccountOpen(false); setIsMenuOpen((open) => !open); }} aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={isMenuOpen} aria-controls="rac-mobile-navigation" className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-500/35 bg-red-500/[0.08] text-red-200 transition hover:border-red-400/60 hover:bg-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             {isMenuOpen ? <CloseIcon className="h-4 w-4" /> : <MenuIcon className="h-4 w-4" />}
           </button>
         </div>
@@ -298,6 +310,20 @@ export default function Navbar() {
         <div className="rounded-xl border border-white/10 bg-[#08090d]/95 p-2 shadow-[0_18px_45px_rgba(0,0,0,.56)] backdrop-blur-2xl">
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {visibleLinks.map((link) => renderLink(link, true))}
+          </div>
+          <div className="mt-2 border-t border-white/[0.08] pt-2">
+            <p className="px-2 pb-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Sua jornada</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {journeyLinks.map(({ shortLabel, href, Icon }) => {
+                const active = isActiveLink(href);
+                return (
+                  <Link key={href} href={href} onClick={() => setIsMenuOpen(false)} aria-current={active ? "page" : undefined} className={"flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " + (active ? "border-red-500/35 bg-red-500/12 text-white" : "border-white/[0.06] bg-white/[0.02] text-white/75 hover:border-white/10 hover:bg-white/[0.05] hover:text-white")}>
+                    <Icon className={"h-4 w-4 shrink-0 " + (active ? "text-red-400" : "text-white/45")} />
+                    {shortLabel}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

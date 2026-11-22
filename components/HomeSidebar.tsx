@@ -1007,17 +1007,17 @@ export default function HomeSidebar() {
 
   if (!isLoaded) {
     return (
-      <aside className="space-y-6">
-        <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 text-sm text-white/45 shadow-xl">
+      <div className="space-y-4">
+        <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-5 text-sm text-white/45 shadow-xl">
           Carregando lateral...
         </section>
-      </aside>
+      </div>
     );
   }
 
   return (
-    <aside className="space-y-6">
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
+    <div className="space-y-4">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-5 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
@@ -1031,9 +1031,9 @@ export default function HomeSidebar() {
 
           <Link
             href="/backlog"
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black text-white/45 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-200"
+            className="shrink-0 whitespace-nowrap py-2 text-xs font-bold text-[#FB2C36] transition hover:text-white"
           >
-            Ver fila
+            Ver fila <span aria-hidden="true">→</span>
           </Link>
         </div>
 
@@ -1079,7 +1079,7 @@ export default function HomeSidebar() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-5 shadow-xl">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
           Conteúdo
         </p>
@@ -1101,7 +1101,7 @@ export default function HomeSidebar() {
         )}
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-5 shadow-xl">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
           Reviews
         </p>
@@ -1141,7 +1141,7 @@ export default function HomeSidebar() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-5 shadow-xl">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
           Atividade
         </p>
@@ -1194,6 +1194,6 @@ export default function HomeSidebar() {
           )}
         </div>
       </section>
-    </aside>
+    </div>
   );
 }

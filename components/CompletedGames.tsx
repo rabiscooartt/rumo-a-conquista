@@ -228,25 +228,25 @@ export default function CompletedGames() {
   }, [gamesList, refreshKey]);
 
   return (
-    <section className="mt-12">
-      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-5">
+    <section>
+      <div className="flex items-end justify-between gap-3 sm:gap-5">
         <div className="min-w-0">
-          <h2 className="text-3xl font-black text-white sm:text-4xl">Jogos Concluídos</h2>
+          <h2 className="flex items-center gap-2 text-base font-black uppercase tracking-wide text-white sm:text-lg"><span aria-hidden="true" className="h-5 w-1 rounded-full bg-[#FB2C36]" /> Jogos concluídos</h2>
 
-          <p className="mt-2 text-sm text-white/50">
+          <p className="mt-1 text-xs text-white/60 sm:text-[13px]">
             Coleção de jornadas finalizadas e emblemas conquistados
           </p>
         </div>
 
         <Link
           href="/biblioteca#jogos-finalizados"
-          className="shrink-0 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-300 transition hover:border-emerald-400/45 hover:bg-emerald-500/20 hover:text-emerald-200"
+          className="shrink-0 py-2 text-xs font-bold text-[#FB2C36] transition hover:text-white"
         >
           Ver mais →
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {completedGames.length > 0 ? (
           completedGames.map((game) => {
             const progress = Math.min(
@@ -260,59 +260,63 @@ export default function CompletedGames() {
               <Link
                 key={game.slug}
                 href={`/games/${game.slug}`}
-                className="group overflow-hidden rounded-[28px] border border-white/10 bg-zinc-950/80 transition hover:-translate-y-1 hover:border-emerald-400/30 hover:shadow-[0_0_35px_rgba(16,185,129,0.14)]"
+                className="group grid grid-cols-[76px_minmax(0,1fr)] overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f] transition hover:border-emerald-400/30 hover:shadow-[0_0_35px_rgba(16,185,129,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:block sm:hover:-translate-y-1"
               >
-                <div className="relative h-[210px] overflow-hidden">
+                <div className="relative m-3 mr-0 aspect-[3/4] self-start overflow-hidden rounded-lg border border-white/10 sm:m-0 sm:aspect-auto sm:h-[210px] sm:rounded-none sm:border-0">
                   <GameCover
                     src={game.cardImage || game.image}
                     alt={game.title}
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 hidden bg-gradient-to-t from-black/85 via-black/20 to-transparent sm:block" />
 
-                  <div className="absolute left-5 top-5 rounded-full border border-emerald-400/25 bg-emerald-500/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-100">
+                  <div className="absolute left-5 top-5 hidden rounded-full border border-emerald-400/25 bg-emerald-500/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-100 sm:block">
                     Finalizado
                   </div>
                 </div>
 
-                <div className="p-5">
-                  <h3 className="text-2xl font-black text-white group-hover:text-emerald-200">
+                <div className="min-w-0 p-3 sm:p-5">
+                  <span className="inline-flex rounded-full border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-emerald-300 sm:hidden">
+                    Finalizado
+                  </span>
+
+                  <h3 className="mt-1.5 line-clamp-2 text-base font-black leading-tight text-white group-hover:text-emerald-200 sm:mt-0 sm:text-2xl">
                     {game.title}
                   </h3>
 
                   {game.subtitle && (
-                    <p className="mt-1 text-sm font-bold text-blue-300">
+                    <p className="mt-1 truncate text-xs font-bold text-sky-300/90 sm:text-sm">
                       {game.subtitle}
                     </p>
                   )}
 
-                  <div className="mt-5 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 sm:rounded-2xl sm:p-4">
+                      <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40 sm:text-[10px]">
                         Conquistas
                       </p>
 
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-2xl leading-none">🏆</span>
+                      <div className="mt-1.5 flex items-center gap-1.5 sm:mt-2 sm:gap-2">
+                        <span className="text-base leading-none sm:text-2xl">🏆</span>
 
-                        <p className="text-2xl font-black leading-none text-white">
+                        <p className="text-lg font-black leading-none tabular-nums text-white sm:text-2xl">
                           {achievementStats.completed}/{achievementStats.total}
                         </p>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/35">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 sm:rounded-2xl sm:p-4">
+                      <p className="text-[9px] font-black uppercase tracking-[0.16em] text-white/40 sm:text-[10px]">
                         Horas
                       </p>
 
-                      <p className="mt-2 text-2xl font-black leading-none text-white">
+                      <p className="mt-1.5 whitespace-nowrap text-base font-black leading-tight tabular-nums text-white sm:mt-2 sm:text-2xl sm:leading-none">
                         {game.hours || "0h"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10 sm:mt-5 sm:h-2">
                     <div
                       className="h-full rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.55)]"
                       style={{ width: `${progress}%` }}
@@ -323,7 +327,7 @@ export default function CompletedGames() {
             );
           })
         ) : (
-          <div className="rounded-[24px] border border-white/10 bg-zinc-950/80 p-8 text-sm text-white/45 sm:col-span-2 xl:col-span-3">
+          <div className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-8 text-sm text-white/45 sm:col-span-2 xl:col-span-3">
             Nenhum jogo concluído no momento.
           </div>
         )}

@@ -228,7 +228,7 @@ export default function GameReviewPanel({
     };
 
     void nextReview;
-    alert("Edite e salve a review pelo painel Admin para publicÃ¡-la no Supabase.");
+    alert("Edite e salve a review pelo painel Admin para publicá-la no Supabase.");
   }
 
   if (!unlocked && !isEditing) {

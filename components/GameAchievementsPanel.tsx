@@ -533,7 +533,7 @@ function SortButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] transition ${
+      className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-xl border px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] transition sm:px-4 sm:text-xs sm:tracking-[0.14em] ${
         active
           ? "border-red-500/35 bg-red-500/15 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.12)]"
           : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
@@ -1248,11 +1248,11 @@ export default function GameAchievementsPanel(
                 onChange={(event) => handleAchievementSearchChange(event.target.value)}
                 placeholder="Buscar conquista..."
                 aria-label="Buscar conquista"
-                className="w-full rounded-[9px] border border-white/[0.08] bg-black/30 px-9 py-2.5 text-[10px] font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/35"
+                className="w-full rounded-[9px] border border-white/[0.08] bg-black/30 px-9 py-2.5 text-base font-bold text-white outline-none transition placeholder:text-white/25 focus:border-red-500/35 sm:text-[10px]"
               />
             </div>
 
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
               {SORT_OPTIONS.map((option) => (
                 <SortButton
                   key={option.value}

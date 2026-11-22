@@ -1317,8 +1317,8 @@ function ActivityRow({
   );
 
   return (
-    <article className="border-b border-white/[0.07] px-3 py-3.5 last:border-b-0 md:px-4">
-      <div className={`grid grid-cols-[54px_minmax(0,1fr)_auto] items-center gap-3 md:ml-[30px] md:w-[calc(100%_-_60px)] ${isAdmin ? "md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px]" : "md:grid-cols-[70px_minmax(0,1fr)_96px_120px]"}`}>
+    <article className="border-b border-white/[0.07] px-3 py-3 last:border-b-0 md:px-4 md:py-3.5">
+      <div className={`grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2.5 md:gap-3 md:ml-[30px] md:w-[calc(100%_-_60px)] ${isAdmin ? "md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px]" : "md:grid-cols-[70px_minmax(0,1fr)_96px_120px]"}`}>
       <div>
         <p className="text-[29px] font-black leading-none tracking-tight text-white md:text-[31px]">
           {date.getDate()}
@@ -1334,18 +1334,18 @@ function ActivityRow({
           <Link
             href={gameHref}
             aria-label={`Abrir ${gameTitle}`}
-            className="block h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg transition hover:border-red-400/50 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
+            className="block h-[64px] w-[48px] shrink-0 md:h-[78px] md:w-[60px] overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg transition hover:border-red-400/50 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
           >
             {coverArt}
           </Link>
         ) : (
-          <div className="h-[78px] w-[60px] shrink-0 overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
+          <div className="h-[64px] w-[48px] shrink-0 md:h-[78px] md:w-[60px] overflow-hidden rounded-[7px] border border-white/10 bg-black shadow-lg">
             {coverArt}
           </div>
         )}
 
         <div className="min-w-0">
-          <h3 className="truncate text-[17px] font-black text-white md:text-[18px]">
+          <h3 className="line-clamp-2 break-words text-[15px] font-black leading-tight text-white md:truncate md:text-[18px]">
             {gameHref ? (
               <Link
                 href={gameHref}
@@ -1393,7 +1393,7 @@ function ActivityRow({
             : "—"}
         </p>
 
-        <p className="mt-1 text-[8px] font-black uppercase tracking-[0.12em] text-white/25">
+        <p className="mt-1 hidden text-[8px] font-black md:block uppercase tracking-[0.12em] text-white/25">
           Tempo jogado
         </p>
       </div>
@@ -2494,7 +2494,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                 </div>
 
                 <div className="flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap 2xl:flex-nowrap">
-                  <div className="relative min-w-0 flex-1 basis-[320px]">
+                  <div className="relative min-w-0 md:flex-1 md:basis-[320px]">
                     <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
 
                     <input
@@ -2514,7 +2514,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                   </div>
 
                   {activeTab === "reviews" ? (
-                    <div ref={activityFiltersRef} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row md:shrink-0">
+                    <div ref={activityFiltersRef} className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row md:shrink-0">
                       <div className="relative">
                         <button
                           type="button"
@@ -2535,7 +2535,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           </svg>
                         </button>
                         {openActivityFilter === "month" && (
-                          <div role="listbox" aria-label="Filtrar reviews por mês" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                          <div role="listbox" aria-label="Filtrar reviews por mês" className="absolute left-0 top-full z-50 mt-2 sm:left-auto sm:right-0 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
                             <button
                               type="button"
                               role="option"
@@ -2619,7 +2619,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                       </div>
                     </div>
                   ) : activeTab === "conquistas" ? (
-                    <div ref={activityFiltersRef} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row md:shrink-0">
+                    <div ref={activityFiltersRef} className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row md:shrink-0">
                       <div className="relative">
                         <button
                           type="button"
@@ -2640,7 +2640,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           </svg>
                         </button>
                         {openActivityFilter === "achievement-month" && (
-                          <div role="listbox" aria-label="Filtrar conquistas por mês" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                          <div role="listbox" aria-label="Filtrar conquistas por mês" className="absolute left-0 top-full z-50 mt-2 sm:left-auto sm:right-0 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
                             <button
                               type="button"
                               role="option"
@@ -2724,7 +2724,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                       </div>
                     </div>
                   ) : (
-                    <div ref={activityFiltersRef} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row md:shrink-0">
+                    <div ref={activityFiltersRef} className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row md:shrink-0">
                       <div className="relative">
                         <button
                           type="button"
@@ -2745,7 +2745,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           </svg>
                         </button>
                         {openActivityFilter === "game-month" && (
-                          <div role="listbox" aria-label="Filtrar atividades por mês" className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                          <div role="listbox" aria-label="Filtrar atividades por mês" className="absolute left-0 top-full z-50 mt-2 sm:left-auto sm:right-0 max-h-[320px] w-[230px] overflow-y-auto rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
                             <button
                               type="button"
                               role="option"

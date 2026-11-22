@@ -651,6 +651,9 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-[205px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_275px]">
                   <aside className="game-sidebar-text-contrast lg:sticky lg:top-24 lg:block lg:self-start">
                     <div className="space-y-5">
+                      <Link href="/biblioteca" className="inline-flex min-h-10 items-center text-[11px] font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-400 lg:hidden">
+                        ← Biblioteca
+                      </Link>
                       <div className="border-b border-white/[0.08] pb-5">
                         <SectionTitle>Jogo</SectionTitle>
                       </div>
@@ -749,7 +752,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                         </div>
                       </div>
         
-                      <Link href="/biblioteca" className="inline-flex text-[9px] font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-500">
+                      <Link href="/biblioteca" className="hidden text-[9px] lg:inline-flex font-black uppercase tracking-[0.12em] text-red-500 transition hover:text-red-500">
                         ← Voltar para Biblioteca
                       </Link>
                     </div>
