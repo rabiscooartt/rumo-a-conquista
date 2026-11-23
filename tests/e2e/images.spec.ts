@@ -13,8 +13,6 @@ const PAGES = [
   "/",
   "/biblioteca",
   "/atividade",
-  "/perfil",
-  "/historico",
   "/sagas",
   "/games/mouse-p-i-for-hire",
   "/games/hades",

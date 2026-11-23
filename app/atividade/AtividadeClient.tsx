@@ -1239,7 +1239,7 @@ function PremiumIconBadge({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+    <div className="flex h-8 w-7 shrink-0 items-center justify-start text-red-500">
       {children}
     </div>
   );

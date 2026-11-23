@@ -2759,7 +2759,7 @@ export default function BibliotecaClient({
 
                 <div className="relative mt-5 grid grid-cols-3 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0">
                   <div className="flex min-w-0 items-center gap-2.5 pr-2.5 sm:pr-4">
-                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2769,7 +2769,7 @@ export default function BibliotecaClient({
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-2.5 sm:px-4">
-                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2779,7 +2779,7 @@ export default function BibliotecaClient({
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-2.5 sm:pl-4">
-                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">

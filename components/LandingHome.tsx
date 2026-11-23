@@ -394,7 +394,7 @@ function StatIcon({ symbol }: { symbol: string }) {
 function Stat({ symbol, value, label, divided = false }: { symbol: string; value: string | number; label: string; divided?: boolean }) {
   return (
     <div className={`flex min-w-0 items-stretch gap-2 ${divided ? "md:border-l md:border-white/10 md:pl-3" : "md:pr-4"}`}>
-      <span className="flex min-h-[38px] w-9 shrink-0 self-stretch items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+      <span className="flex min-h-[38px] w-7 shrink-0 self-stretch items-center justify-start text-red-500">
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">

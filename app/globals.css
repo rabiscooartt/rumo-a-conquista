@@ -97,6 +97,39 @@ span[class~="bg-red-600/15"].text-red-400 {
   }
 }
 
+/* Troca de página (app/loading.tsx): linha fina sob a barra e blocos neutros no lugar do conteúdo. */
+.rac-route-progress {
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(251, 44, 54, 0.12);
+}
+.rac-route-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: var(--rac-accent-primary);
+  animation: rac-route-progress 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.rac-skeleton {
+  background: rgba(255, 255, 255, 0.035);
+  animation: rac-skeleton 1.6s ease-in-out infinite;
+}
+@keyframes rac-route-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+@keyframes rac-skeleton {
+  50% { background: rgba(255, 255, 255, 0.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rac-route-progress::after,
+  .rac-skeleton {
+    animation: none;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -158,6 +191,20 @@ body :where([class~="text-[12px]"]) {
 body :where([class~="text-[13px]"]) {
   font-size: 14px !important;
   line-height: 1.45 !important;
+}
+
+/*
+  Hierarquia de pesos: rótulos pequenos em caixa-alta (selos, legendas, sobretítulos) saem do
+  peso máximo. Assim os títulos em 900 voltam a se destacar e os rótulos ficam mais nítidos.
+*/
+body :where(.uppercase.font-black):where(
+  [class~="text-[8px]"],
+  [class~="text-[9px]"],
+  [class~="text-[10px]"],
+  [class~="text-[11px]"],
+  .text-xs
+) {
+  font-weight: 700;
 }
 
 body :where([class~="text-white\/20"]) {

@@ -10,8 +10,6 @@ const PUBLIC_ROUTES = [
   "/sagas",
   "/reviews",
   "/conteudo",
-  "/perfil",
-  "/historico",
   "/games/mouse-p-i-for-hire",
   "/games/mouse-p-i-for-hire/review",
   "/games/monster-hunter-world-iceborne",

@@ -615,7 +615,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
 
                   <div className="absolute bottom-5 left-5 right-5 grid grid-cols-2 gap-x-3 sm:bottom-7 sm:left-7 sm:right-7 sm:gap-x-4 sm:max-w-[72%]">
                     <div className="flex min-w-0 items-center gap-2 pr-2 sm:gap-2.5 sm:pr-4">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 sm:h-8 sm:w-8">
+                      <span className="flex h-7 w-6 shrink-0 items-center justify-start text-red-500 sm:h-8 sm:w-7">
                         <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px] sm:h-[22px] sm:w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <path d="M14 2v6h6" />
@@ -628,7 +628,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                       </div>
                     </div>
                     <div className="flex min-w-0 items-center gap-2 border-l border-white/10 pl-2 sm:gap-2.5 sm:pl-4">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 sm:h-8 sm:w-8">
+                      <span className="flex h-7 w-6 shrink-0 items-center justify-start text-red-500 sm:h-8 sm:w-7">
                         <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px] sm:h-[22px] sm:w-[22px]" fill="currentColor">
                           <path d="m12 2.8 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.36l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.8z" />
                         </svg>

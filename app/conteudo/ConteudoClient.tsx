@@ -942,7 +942,7 @@ function ContentBannerMetric({
         divided ? "border-l border-white/10 pl-2.5 sm:pl-4" : ""
       }`}
     >
-      <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+      <span className="hidden h-8 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
         <ContentBannerIcon type={icon} />
       </span>
 
