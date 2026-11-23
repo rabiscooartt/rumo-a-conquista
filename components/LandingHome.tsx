@@ -1331,16 +1331,16 @@ export default function LandingHome({
                     </svg>
                   </span>
                   <span className="min-w-0">
-                    <h2 id="current-game-title" className="text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
+                    <h2 id="current-game-title" className="whitespace-nowrap text-sm font-black uppercase tracking-[0.07em] text-white sm:text-base">Jogo atual</h2>
                     <p className="mt-0.5 hidden text-[11px] leading-snug text-white/70 sm:block">Sua jornada em andamento. Conquiste, explore e complete!</p>
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border bg-black/25 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.07em] sm:px-3 sm:text-[9px]" style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border }}>
+                  <span className="hidden items-center gap-1.5 rounded-full min-[420px]:inline-flex border bg-black/25 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.07em] sm:px-3 sm:text-[9px]" style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border }}>
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentGameTheme.accent, boxShadow: "0 0 8px " + currentGameTheme.glow }} />
                     Em andamento
                   </span>
-                  <Link href={"/games/" + currentGame.slug} className="whitespace-nowrap text-[9px] font-bold text-white/55 transition hover:text-white sm:text-[10px]">
+                  <Link href={"/games/" + currentGame.slug} className="whitespace-nowrap py-2 text-[11px] font-bold text-white/55 transition hover:text-white">
                     Abrir jogo <span style={{ color: currentGameTheme.accent }}>→</span>
                   </Link>
                 </div>
@@ -1544,8 +1544,8 @@ export default function LandingHome({
                   href={"/games/" + game.slug}
                   className="group/recent-row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025] last:border-b-0"
                 >
-                  <div className="grid grid-cols-[94px_minmax(0,1fr)_82px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
-                    <div className="h-[121px] w-[94px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
+                  <div className="grid grid-cols-[72px_minmax(0,1fr)_64px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+                    <div className="h-[93px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
                         src={homeImageSrc(game.cardImage || game.image || "")}
                         alt={game.title + " — capa"}
@@ -1555,9 +1555,9 @@ export default function LandingHome({
                     </div>
 
                     <div className="min-w-0 pt-0.5">
-                      <div className="flex min-w-0 flex-nowrap items-center gap-x-2 overflow-hidden">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 overflow-hidden sm:flex-nowrap">
                         <h3
-                          className="min-w-0 max-w-[72%] shrink truncate text-[18px] font-black tracking-tight text-white sm:text-[19px]"
+                          className="min-w-0 basis-full line-clamp-2 break-words text-[16px] leading-tight sm:truncate sm:leading-normal sm:max-w-[72%] sm:shrink sm:basis-auto font-black tracking-tight text-white sm:text-[19px]"
                           title={game.title}
                         >
                           {game.title}
@@ -1592,9 +1592,9 @@ export default function LandingHome({
                         {date ? (
                           <>
                             <span className="hidden h-4 w-px bg-white/15 sm:block" />
-                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                              <RecentMetadataIcon type="calendar" className="h-4 w-4 text-violet-400" />
-                              {date}
+                            <span className="inline-flex max-w-full items-center gap-1.5 sm:whitespace-nowrap">
+                              <RecentMetadataIcon type="calendar" className="h-4 w-4 shrink-0 text-violet-400" />
+                              <span className="min-w-0">{date}</span>
                             </span>
                           </>
                         ) : null}
@@ -1613,8 +1613,8 @@ export default function LandingHome({
                       </div>
                     </div>
 
-                    <div className="flex h-[100px] w-[78px] items-center justify-end sm:h-[115px] sm:w-[90px]">
-                      <div className="relative flex h-[100px] w-[78px] shrink-0 items-center justify-center overflow-visible sm:h-[115px] sm:w-[90px]">
+                    <div className="flex h-[82px] w-[64px] items-center justify-end sm:h-[115px] sm:w-[90px]">
+                      <div className="relative flex h-[82px] w-[64px] shrink-0 items-center justify-center overflow-visible sm:h-[115px] sm:w-[90px]">
                         <div className={"relative h-full w-full transition duration-300 " + (
                           completed
                             ? "scale-[1.30]"

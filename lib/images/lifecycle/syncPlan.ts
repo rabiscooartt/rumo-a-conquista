@@ -8,7 +8,9 @@
 // Regras deliberadas:
 //   - sha256 das imagens NÃO é enviado (a varredura não baixa imagens; nada é inventado);
 //   - reference_count = referências de uso (todas as fontes, exceto a lista de proteção);
-//   - estado "candidate" no relatório é bloqueio (só há uma baseline válida);
+//   - estado "candidate" no relatório é bloqueio na carga inicial (só há uma baseline válida). No modo
+//     "incremental" (varreduras oficiais seguintes, lib/images/lifecycle/officialScan.ts) ele é enviado
+//     e o BANCO decide: sem a prova de storage_lifecycle_evidence, vira "observing";
 //   - nenhuma data é criada aqui: a única data enviada é completed_at da própria varredura.
 import type { ParsedHistory } from "./history.ts";
 import { effectiveHistory } from "./history.ts";
@@ -18,7 +20,7 @@ export type SyncState = (typeof SYNC_STATES)[number];
 
 export const REQUIRED_SOURCES = [
   "achievements", "achievement_progress", "games", "journey_entries", "journey_history_events",
-  "pointers", "drafts", "variant_map", "protection",
+  "pointers", "drafts", "variant_map", "protection", "convention",
 ] as const;
 
 type ReportReference = { objectKey: string; source: string; location: string };
@@ -58,6 +60,9 @@ export type ScanRecordFile = {
   imageObjects?: number;
   present?: string[];
   unreferenced?: string[];
+  official?: boolean;
+  policyVersion?: number;
+  runOperationId?: string;
 };
 
 export type RemoteScanRow = {
@@ -75,6 +80,8 @@ export type RemoteLifecycleState = {
   logRows: number;
   syncedScanIds: string[];
   pendingOperations: number;
+  /** Varreduras com execução oficial pendente (intenção scan_run sem resultado). */
+  pendingRunScanIds?: string[];
 };
 
 export type SyncObjectPayload = {
@@ -145,10 +152,15 @@ export type SyncPlanInput = {
   remote: RemoteLifecycleState;
   protectedObjects: readonly string[];
   now: Date;
+  /** "initial" (padrão): primeira carga, sem candidatos. "incremental": varredura oficial seguinte. */
+  mode?: "initial" | "incremental";
+  /** Modo incremental: versão da política que a entrada do histórico local precisa trazer. */
+  policyVersion?: number;
 };
 
 export function buildSyncPlan(input: SyncPlanInput): SyncPlan {
   const { scanId, report, reportSha256, scanRecord, history, remote, protectedObjects, now } = input;
+  const incremental = input.mode === "incremental";
   const blockers: string[] = [];
   const block = (message: string) => blockers.push(message);
 
@@ -167,6 +179,12 @@ export function buildSyncPlan(input: SyncPlanInput): SyncPlan {
   else {
     if (!entry.complete) block("histórico marca a varredura como incompleta");
     if (entry.completedAt !== report.at) block("data do histórico diverge do relatório");
+    if (incremental && (entry.official !== true || entry.policyVersion !== input.policyVersion)) {
+      block(`histórico local não marca ${scanId} como varredura oficial da política v${input.policyVersion}`);
+    }
+  }
+  if (incremental && (scanRecord.official !== true || scanRecord.policyVersion !== input.policyVersion)) {
+    block(`scan-record.json não marca ${scanId} como varredura oficial da política v${input.policyVersion}`);
   }
   const completedAt = new Date(report.at);
   if (Number.isNaN(completedAt.getTime())) block("data da varredura ilegível");
@@ -220,8 +238,8 @@ export function buildSyncPlan(input: SyncPlanInput): SyncPlan {
     if (!parts) { block(`${where}: chave inválida`); continue; }
     if (!report.existingBuckets.includes(parts.bucket)) block(`${where}: bucket fora do inventário`);
     if (!STATE_SET.has(o.state)) { block(`${where}: estado desconhecido ${o.state}`); continue; }
-    if (o.state === "candidate") block(`${where}: candidato numa sincronização com uma única baseline`);
-    if (o.state === "unverified" || o.state === "duplicate") block(`${where}: estado ${o.state} não esperado nesta baseline`);
+    if (!incremental && o.state === "candidate") block(`${where}: candidato numa sincronização com uma única baseline`);
+    if (!incremental && (o.state === "unverified" || o.state === "duplicate")) block(`${where}: estado ${o.state} não esperado nesta baseline`);
     if (!Number.isInteger(o.size) || (o.size as number) < 0) block(`${where}: tamanho ausente ou inválido`);
     if (typeof o.mimetype !== "string" || !o.mimetype.startsWith("image/")) block(`${where}: tipo ${o.mimetype ?? "ausente"} não é imagem`);
     if (o.references.some((r) => r.objectKey !== o.objectKey)) block(`${where}: referência apontando para outro objeto`);
@@ -265,7 +283,11 @@ export function buildSyncPlan(input: SyncPlanInput): SyncPlan {
       block(`varredura ${other.scan_id}, igual ou mais recente, já sincronizada: ${scanId} ficaria fora de ordem`);
     }
   }
-  if (remote.pendingOperations > 0) block(`${remote.pendingOperations} operação(ões) pendente(s) no banco`);
+  // A execução oficial desta varredura fica pendente até o fim do fluxo: não conta como pendência.
+  const ownRun = incremental && (remote.pendingRunScanIds ?? []).includes(scanId) ? 1 : 0;
+  const otherRuns = (remote.pendingRunScanIds ?? []).filter((id) => id !== scanId);
+  if (otherRuns.length > 0) block(`execução oficial pendente de outra varredura: ${otherRuns.join(", ")}`);
+  if (remote.pendingOperations - ownRun > 0) block(`${remote.pendingOperations - ownRun} operação(ões) pendente(s) no banco`);
   if (remote.scans.length === 0 && (remote.objects.length > 0 || remote.scanObjectRows > 0)) block("tabelas de objetos com linhas sem nenhuma varredura registrada");
 
   // ---------- 5. Simulação (mesmas regras de storage_lifecycle_sync_scan) ----------
@@ -289,7 +311,8 @@ export function buildSyncPlan(input: SyncPlanInput): SyncPlan {
     else if (row?.manual_protection && item.state !== "protected") { applied = "protected"; override = "proteção manual prevalece"; }
     else if (row && row.state === "protected" && item.state !== "protected") { applied = "protected"; override = "protegido só sai por proteção manual"; }
     else if (item.reference_count > 0 && ["observing", "candidate", "superseded", "duplicate"].includes(item.state)) { applied = "referenced"; override = `estado ${item.state} com referências`; }
-    if (applied === "candidate") { applied = "observing"; override = "candidato sem prova (primeira sincronização)"; }
+    // Carga inicial: candidato nunca tem prova. Incremental: o banco decide (fica "candidate" só com a prova).
+    if (applied === "candidate" && !incremental) { applied = "observing"; override = "candidato sem prova (primeira sincronização)"; }
     if (override) overrides += 1;
     const unreferenced = item.reference_count === 0 && ["observing", "candidate", "superseded", "duplicate", "unverified"].includes(applied);
     const referencedNow = item.reference_count > 0 || applied === "active" || applied === "referenced";
@@ -314,7 +337,7 @@ export function buildSyncPlan(input: SyncPlanInput): SyncPlan {
   const byState: Record<string, number> = {};
   for (const p of predicted) byState[p.applied] = (byState[p.applied] ?? 0) + 1;
   const candidates = predicted.filter((p) => p.applied === "candidate").length;
-  if (candidates > 0) block(`${candidates} candidato(s) previsto(s) — proibido nesta sincronização`);
+  if (candidates > 0 && !incremental) block(`${candidates} candidato(s) previsto(s) — proibido nesta sincronização`);
 
   const logRowsExpected =
     (registerAction === "register" ? 2 : 0) +

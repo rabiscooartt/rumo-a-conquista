@@ -98,7 +98,10 @@ const storage = {
 const selectPage = (table, columns, orderBy, from, to) =>
   client.from(table).select(columns, { count: "exact" }).order(orderBy, { ascending: true }).range(from, to);
 
-const collected = await collectRemoteSources(storage, selectPage);
+// Dados locais (data/games.ts): o painel público os usa quando o banco falha; entram nas referências
+// implícitas por convenção de nome. Sem eles, a fonte "convention" falha e nada vira candidato.
+const { games: legacyGames } = await import("../data/games.ts");
+const collected = await collectRemoteSources(storage, selectPage, undefined, legacyGames);
 const sources = [...collected.sources, referencesFromVariantMap(variants), referencesFromProtectionList()];
 
 const historyPath = historyFile;

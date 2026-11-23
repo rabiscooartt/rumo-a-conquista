@@ -107,7 +107,7 @@ test("SELECT paginado: lê tudo, confere a contagem exata e só as colunas neces
   assert.equal(result.error, undefined);
   assert.equal(result.rows.length, 2501);
   assert.equal(counters.tablePages, 3);
-  assert.ok(calls.every((call) => call.endsWith(":id, image, official_image")));
+  assert.ok(calls.every((call) => call.endsWith(":id, image, official_image, game_slug, title")));
 
   const wrong = await readAllRows(fakeDb({ achievements: rows }, { wrongCount: "achievements" }).selectPage, "achievements", newCounters());
   assert.match(wrong.error!, /diferentes da contagem/);
@@ -190,7 +190,7 @@ function realisticProject(extraFiles: Record<string, FakeObject> = {}) {
     ...extraFiles,
   };
   const tables = {
-    achievements: [{ id: "a1", image: `${BASE}/${ART}/01-mestre.png?v=1`, official_image: null }],
+    achievements: [{ id: "a1", game_slug: "mouse", title: "Mestre", image: `${BASE}/${ART}/01-mestre.png?v=1`, official_image: null }],
     achievement_progress: [{ id: "p1", image_override: `${BASE}/${ART}/01-mestre.png` }],
     games: [{ slug: "mouse", image: "/images/games/mouse/banner.jpg", final_badge: { image: `${BASE}/${ART}/maestria-sumiu.png` } }],
   };
@@ -200,7 +200,7 @@ function realisticProject(extraFiles: Record<string, FakeObject> = {}) {
 test("integração: inventário completo classificado; nenhuma imagem baixada; primeira varredura sem candidatos", async () => {
   const { files, tables } = realisticProject();
   const { storage, downloads } = fakeStorage(files);
-  const collected = await collectRemoteSources(storage, fakeDb(tables).selectPage);
+  const collected = await collectRemoteSources(storage, fakeDb(tables).selectPage, undefined, {});
   assert.equal(collected.inventory.status, "complete");
   assert.ok(downloads.every((key) => key.endsWith(".json")));
   assert.equal(collected.counters.imageDownloads, 0);
@@ -238,7 +238,7 @@ test("integração com falhas: tabela, bucket de rascunho ou pasta → evidênci
     },
   ];
   for (const scenario of scenarios) {
-    const collected = await collectRemoteSources(scenario.storage, scenario.db.selectPage);
+    const collected = await collectRemoteSources(scenario.storage, scenario.db.selectPage, undefined, {});
     const report = classifyImages(collected.inventory, [...collected.sources, referencesFromVariantMap({}), referencesFromProtectionList()], { now: new Date("2026-11-15T00:00:00Z"), history });
     assert.equal(report.evidenceComplete, false, scenario.name);
     assert.equal(report.objects.filter((o) => o.state === "candidate").length, 0, scenario.name);
@@ -250,7 +250,7 @@ test("integração com falhas: tabela, bucket de rascunho ou pasta → evidênci
 test("game-images ausente do projeto também deixa o inventário parcial (falha fechada)", async () => {
   const { files, tables } = realisticProject();
   const buckets = ["achievement-art", "site-banners", "site-profile", "achievement-preparation-drafts", "game-review-drafts"];
-  const collected = await collectRemoteSources(fakeStorage(files, { buckets }).storage, fakeDb(tables).selectPage);
+  const collected = await collectRemoteSources(fakeStorage(files, { buckets }).storage, fakeDb(tables).selectPage, undefined, {});
   assert.equal(collected.inventory.status, "partial");
   assert.ok(collected.issues.some((i) => i.where === "game-images"));
 });
@@ -262,7 +262,7 @@ test("fontes journey_*: referência aninhada em metadata e caminho relativo em t
     journey_entries: [{ id: "j1", tags: [{ capa: "achievement-art/games/mouse-p-i-for-hire/achievements/32-ponta.png?v=3" }] }],
     journey_history_events: [{ id: "h1", metadata: { title: "x", detalhes: { imagens: [`${BASE}/${ART}/01-mestre.png`] } } }],
   };
-  const collected = await collectRemoteSources(fakeStorage(files).storage, fakeDb(journeyTables).selectPage);
+  const collected = await collectRemoteSources(fakeStorage(files).storage, fakeDb(journeyTables).selectPage, undefined, {});
   const byName = Object.fromEntries(collected.sources.map((s) => [s.source, s]));
   assert.equal(byName.journey_entries.status, "complete");
   assert.deepEqual(byName.journey_entries.references.map((r) => [r.objectKey, r.location]), [[`${ART}/32-ponta.png`, "journey_entries:j1.tags[0].capa"]]);
@@ -278,7 +278,7 @@ test("fontes journey_*: falha de leitura ou valor ininterpretável deixa a evid�
     { name: "contagem divergente em journey_entries", db: fakeDb(tables, { wrongCount: "journey_entries" }) },
     { name: "URL do Storage ininterpretável em tags", db: fakeDb({ ...tables, journey_entries: [{ id: "j1", tags: ["https://x.supabase.co/storage/v1/object/public/achievement-art/a b.png"] }] }) },
   ]) {
-    const collected = await collectRemoteSources(fakeStorage(files).storage, scenario.db.selectPage);
+    const collected = await collectRemoteSources(fakeStorage(files).storage, scenario.db.selectPage, undefined, {});
     const report = classifyImages(collected.inventory, [...collected.sources, referencesFromVariantMap({}), referencesFromProtectionList()], { now: new Date("2026-11-15T00:00:00Z") });
     assert.equal(report.evidenceComplete, false, scenario.name);
     assert.ok(report.blockers.some((b) => b.includes("journey")), `${scenario.name}: ${report.blockers.join(" | ")}`);

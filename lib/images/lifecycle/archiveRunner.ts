@@ -13,6 +13,7 @@
 //                    restore_object); delete_object nunca é retomado automaticamente.
 // Nada aqui altera referências do site.
 import { archiveObject, cancelArchive, restoreObject, ArchiveError, type ArchiveDeps, type ArchiveStep, type LifecycleRow } from "./archive.ts";
+import { evidenceMeetsPolicy, SCAN_POLICY_VERSION } from "./scanPolicy.ts";
 
 export const ARCHIVABLE_STATES = ["candidate", "superseded"] as const;
 /** RPCs só de leitura (STABLE) que a simulação pode chamar. */
@@ -47,7 +48,7 @@ export function readOnlyDeps(deps: ArchiveDeps): ArchiveDeps {
 }
 
 export type InventoryRow = LifecycleRow & { bucket: string; object_path: string; reference_count: number };
-export type Evidence = { eligible?: boolean; reason?: string } | null;
+export type Evidence = { eligible?: boolean; reason?: string; first_scan?: string; policy_version?: number } | null;
 export type PlanEntry = {
   object: string; bucket: string; path: string; state: string; archiveState: string;
   eligible: boolean; reason: string;
@@ -75,17 +76,25 @@ export function planArchive(rows: InventoryRow[], evidence: Map<string, Evidence
     }
     const proof = evidence.get(object);
     if (!proof?.eligible) return refuse(`${row.state} sem prova vigente: ${proof?.reason ?? "evidência indisponível"}`);
+    if (!evidenceMeetsPolicy(proof)) {
+      return refuse(`${row.state}: prova não calculada pela política de varredura v${SCAN_POLICY_VERSION} (policy_version ${proof.policy_version ?? "ausente"})`);
+    }
     return { ...base, eligible: true, reason: `${row.state}, sem referência nem proteção, prova de duas varreduras vigente` };
   });
 }
 
 export type RunResult = { object: string; status: string; operationId?: string | null; error?: string; pending?: boolean; code?: string };
 
-function outcome(object: string, error: unknown): RunResult {
+/**
+ * Resultado de um objeto que falhou. 23514: a guarda do banco recusou (definitivo). 55P03: a cerca das
+ * fontes estava ocupada por uma gravação em andamento (migração 20261120) — nada mudou; repetir depois.
+ */
+export function outcome(object: string, error: unknown): RunResult {
   if (error instanceof WriteBlockedError) return { object, status: "bloqueado_na_simulacao", error: error.message };
   if (error instanceof ArchiveError) return { object, status: error.pending ? "pendente" : "falhou", operationId: error.operationId, error: error.message, pending: error.pending };
   const e = error as { message?: string; code?: string };
-  return { object, status: e.code === "23514" ? "recusado_pela_guarda" : "erro", error: e.message ?? String(error), code: e.code };
+  const status = e.code === "23514" ? "recusado_pela_guarda" : e.code === "55P03" ? "aguardando_gravacao" : "erro";
+  return { object, status, error: e.message ?? String(error), code: e.code };
 }
 
 const split = (object: string) => {

@@ -788,7 +788,7 @@ function ActivityIcon({ image, icon }: { image?: string; icon: string }) {
 
 function LatestContentCard({ content }: { content: LatestContentItem }) {
   const card = (
-    <div className="group mt-5 block rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10">
+    <div className="group mt-5 block rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10">
       <div className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-black/40">
         {content.image ? (
           <img
@@ -1007,37 +1007,34 @@ export default function HomeSidebar() {
 
   if (!isLoaded) {
     return (
-      <aside className="space-y-6">
-        <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 text-sm text-white/45 shadow-xl">
+      <div className="space-y-4">
+        <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-5 text-sm text-white/45 shadow-xl">
           Carregando lateral...
         </section>
-      </aside>
+      </div>
     );
   }
 
   return (
-    <aside className="space-y-6">
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
-        <div className="flex items-start justify-between gap-4">
+    <div className="space-y-4">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-             Fila
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black text-white">
-              Próximas Maestrias
-            </h2>
+            <h2 className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.08em] text-white">
+          <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-[#FB2C36]" />
+          Próximas Maestrias
+        </h2>
           </div>
 
           <Link
             href="/backlog"
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[10px] font-black text-white/45 transition hover:border-red-500/35 hover:bg-red-500/10 hover:text-red-200"
+            className="shrink-0 whitespace-nowrap py-2 text-xs font-bold text-[#FB2C36] transition hover:text-white"
           >
-            Ver fila
+            Ver fila <span aria-hidden="true">→</span>
           </Link>
         </div>
 
-        <div className="mt-5 grid gap-3">
+        <div className="mt-4 grid gap-3">
           {visibleBacklogItems.length > 0 ? (
             visibleBacklogItems.map((item) => {
               const game = gamesBySlug[item.slug];
@@ -1047,7 +1044,7 @@ export default function HomeSidebar() {
                 <Link
                   key={item.id}
                   href={`/games/${item.slug}`}
-                  className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10"
+                  className="group flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10"
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-sm font-black text-red-300">
                     {String(item.order).padStart(2, "0")}
@@ -1072,51 +1069,45 @@ export default function HomeSidebar() {
               );
             })
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/40">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/40">
               Nenhum jogo no backlog ainda.
             </div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-          Conteúdo
-        </p>
-
-        <h2 className="mt-2 text-2xl font-black text-white">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-4">
+        <h2 className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.08em] text-white">
+          <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-[#FB2C36]" />
           Último Conteúdo
         </h2>
 
         {isYoutubeContentLoading && !latestContent ? (
-          <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/40">
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/40">
             Carregando último vídeo...
           </div>
         ) : latestContent ? (
           <LatestContentCard content={latestContent} />
         ) : (
-          <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/40">
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/40">
             Nenhum conteúdo encontrado ainda.
           </div>
         )}
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-          Reviews
-        </p>
-
-        <h2 className="mt-2 text-2xl font-black text-white">
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-4">
+        <h2 className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.08em] text-white">
+          <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-[#FB2C36]" />
           Reviews Liberadas
         </h2>
 
-        <div className="mt-5 grid gap-3">
+        <div className="mt-4 grid gap-3">
           {releasedReviews.length > 0 ? (
             releasedReviews.map((review) => (
               <Link
                 key={review.slug}
                 href={`/games/${review.slug}?review=1#review-section`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10"
+                className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10"
               >
                 <div className="min-w-0">
                   <h3 className="line-clamp-1 text-sm font-black text-white">
@@ -1134,27 +1125,26 @@ export default function HomeSidebar() {
               </Link>
             ))
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/40">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/40">
               Nenhuma review liberada ainda.
             </div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-5 shadow-xl">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-          Atividade
-        </p>
+      <section className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-4">
+        <h2 className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.08em] text-white">
+          <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-[#FB2C36]" />
+          Recente
+        </h2>
 
-        <h2 className="mt-2 text-2xl font-black text-white">Recente</h2>
-
-        <div className="mt-5 grid gap-3">
+        <div className="mt-4 grid gap-3">
           {recentActivities.length > 0 ? (
             recentActivities.map((activity) => (
               <Link
                 key={activity.id}
                 href={activity.href}
-                className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10"
+                className="group flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-red-500/35 hover:bg-red-500/10"
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/35 text-xl">
                   <ActivityIcon image={activity.image} icon={activity.icon} />
@@ -1188,12 +1178,12 @@ export default function HomeSidebar() {
               </Link>
             ))
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/40">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/40">
               Nenhuma atividade recente ainda.
             </div>
           )}
         </div>
       </section>
-    </aside>
+    </div>
   );
 }

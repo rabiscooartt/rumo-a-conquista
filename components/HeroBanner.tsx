@@ -598,7 +598,7 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
 
   if (!isLoaded && !game && (!games || games.length === 0)) {
     return (
-      <section className="flex min-h-[600px] items-center overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 p-10 text-white/50 shadow-xl sm:min-h-[420px]">
+      <section className="flex min-h-[420px] items-center overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-6 text-white/50 shadow-xl sm:p-10">
         Carregando banner...
       </section>
     );
@@ -606,11 +606,11 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
 
   if (!heroGame) {
     return (
-      <section className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl">
-        <div className="relative min-h-[420px] overflow-hidden">
+      <section className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f] shadow-xl">
+        <div className="relative min-h-[340px] overflow-hidden sm:min-h-[420px]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_35%)]" />
 
-          <div className="relative z-10 flex min-h-[420px] items-center p-5 sm:p-10">
+          <div className="relative z-10 flex min-h-[340px] items-center p-5 sm:min-h-[420px] sm:p-10">
             <div className="max-w-[760px]">
               <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-wide text-white/45">
                 Sem jogo ativo
@@ -654,9 +654,9 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
   return (
     <section
       style={heroThemeStyle}
-      className="overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/80 shadow-xl"
+      className="overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f] shadow-xl"
     >
-      <div className="relative min-h-[420px] overflow-hidden">
+      <div className="relative min-h-[340px] overflow-hidden sm:min-h-[420px]">
         <GameHeroImage src={image} title={heroGame.title} />
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/15" />
@@ -701,10 +701,10 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
           </div>
         )}
 
-        <div className="relative z-10 flex min-h-[420px] items-center p-5 sm:p-10">
+        <div className="relative z-10 flex min-h-[340px] items-center p-5 sm:min-h-[420px] sm:p-10">
           <div className="min-w-0 max-w-[780px]">
             <span
-              className="rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide"
+              className="inline-flex rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em]"
               style={{
                 borderColor: "var(--hero-accent-strong)",
                 backgroundColor: "var(--hero-accent-soft)",
@@ -714,21 +714,21 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
               {completed ? "Último emblema" : "Jogando agora"}
             </span>
 
-            <h1 className="mt-7 max-w-[760px] break-words text-4xl font-black uppercase leading-none text-white sm:text-6xl">
+            <h1 className="mt-5 max-w-[720px] break-words text-[1.9rem] font-black uppercase leading-[0.95] tracking-tight text-white sm:text-[40px] 2xl:text-[48px]">
               {heroGame.title}
             </h1>
 
             <p
-              className="mt-3 text-xl sm:text-3xl"
+              className="mt-2.5 text-base font-semibold sm:text-lg"
               style={{ color: "var(--hero-accent)" }}
             >
               {heroGame.subtitle || "Jornada em andamento"}
             </p>
 
-            <div className="mt-8 max-w-[600px]">
-              <div className="mb-3 flex items-center justify-between text-sm">
+            <div className="mt-5 max-w-[560px] sm:mt-7">
+              <div className="mb-2 flex items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2 text-white/70">
-                  <span>⏳</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-white/50" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="13" r="7.5" /><path d="M12 9v4l2.5 2M10 2.5h4" /></svg>
                   <span>Progresso da jornada</span>
                 </div>
 
@@ -740,28 +740,27 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                 </span>
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-white/10">
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full"
                   style={{
                     width: `${progress}%`,
                     backgroundColor: "var(--hero-accent)",
-                    boxShadow: "0 0 18px var(--hero-glow)",
+                    boxShadow: "0 0 12px var(--hero-glow)",
                   }}
                 />
               </div>
             </div>
 
             <div
-              className="mt-6 inline-flex items-center gap-4 rounded-2xl border px-5 py-4"
+              className="mt-5 inline-flex items-center gap-3 rounded-xl border px-4 py-3 backdrop-blur-sm sm:mt-6 sm:gap-4 sm:pr-6"
               style={{
                 borderColor: "var(--hero-accent-strong)",
                 backgroundColor: "var(--hero-accent-soft)",
-                boxShadow: "0 0 24px var(--hero-glow)",
               }}
             >
               <div
-                className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border text-xl"
+                className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border text-xl"
                 style={{
                   borderColor: "var(--hero-accent-strong)",
                   backgroundColor: "rgba(0,0,0,0.35)",
@@ -774,28 +773,28 @@ export default function HeroBanner({ game, games }: HeroBannerProps) {
                     fallbackClassName="text-xl"
                   />
                 ) : (
-                  "🎯"
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" style={{ color: "var(--hero-accent)" }} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="0.8" fill="currentColor" /></svg>
                 )}
               </div>
 
               <div>
                 <p
-                  className="text-[10px] font-black uppercase tracking-[0.25em]"
+                  className="text-[9px] font-black uppercase tracking-[0.2em]"
                   style={{ color: "var(--hero-accent)" }}
                 >
                   {completed ? "Emblema" : "Objetivo atual"}
                 </p>
 
-                <p className="mt-1 text-lg font-black text-white">
+                <p className="mt-0.5 text-[15px] font-black leading-snug text-white sm:text-base">
                   {objective}
                 </p>
               </div>
             </div>
 
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href={pageHref}
-                className="rounded-xl border px-6 py-3 text-sm font-black text-white transition hover:brightness-110"
+                className="inline-flex min-h-11 items-center rounded-xl border px-5 text-[13px] font-black text-white transition hover:brightness-110"
                 style={{
                   borderColor: "var(--hero-accent-strong)",
                   backgroundColor: "var(--hero-accent-soft)",

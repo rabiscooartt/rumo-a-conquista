@@ -245,7 +245,7 @@ export function supabaseLifecycleApi(client: RpcClient): LifecycleApi {
       const scanObjects = await select("storage_lifecycle_scan_objects", "scan_id", (q) => q.limit(1), true);
       const log = await select("storage_operation_log", "id", (q) => q.limit(1), true);
       const synced = await select("storage_operation_log", "scan_id", (q) => q.eq("operation", "scan_sync").eq("phase", "succeeded"));
-      const pending = await select("storage_lifecycle_pending_operations", "operation_id", (q) => q.limit(1), true);
+      const pending = await select("storage_lifecycle_pending_operations", "operation_id, operation, details", (q) => q.limit(1000), true);
       return {
         scans: scans.rows as unknown as RemoteLifecycleState["scans"],
         objects: objects.rows as unknown as RemoteObjectFull[],
@@ -253,6 +253,8 @@ export function supabaseLifecycleApi(client: RpcClient): LifecycleApi {
         logRows: log.count,
         syncedScanIds: synced.rows.map((r) => String(r.scan_id)),
         pendingOperations: pending.count,
+        pendingRunScanIds: pending.rows.filter((r) => r.operation === "scan_run")
+          .map((r) => String((r.details as Record<string, unknown> | null)?.scan_id ?? "")),
       };
     },
     registerScan: async (payload, actor) => (await rpc("storage_lifecycle_register_scan", { p_scan: payload, p_actor: actor })) as Record<string, unknown>,

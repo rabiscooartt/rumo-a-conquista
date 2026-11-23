@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import JourneyShortcuts from "@/components/JourneyShortcuts";
 import { type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { useSiteSagas } from "@/lib/useSiteSagas";
 import { fallbackToOriginal, homeImageSrc } from "@/lib/homeImages";
@@ -63,8 +64,8 @@ type HistoryEntry = {
 
 const filters: { label: string; value: FilterType }[] = [
   { label: "Tudo", value: "all" },
-  { label: "TrofÃ©us", value: "trophies" },
-  { label: "InsÃ­gnias", value: "badges" },
+  { label: "Troféus", value: "trophies" },
+  { label: "Insígnias", value: "badges" },
 ];
 
 const ACHIEVEMENTS_UPDATED_EVENT = "rumo-a-conquista-achievements-updated";
@@ -195,7 +196,7 @@ function getAchievementTitle(achievement: AchievementLike, index: number) {
 }
 
 function getAchievementDescription(achievement: AchievementLike) {
-  return readText(achievement.description, "DescriÃ§Ã£o ainda nÃ£o definida.");
+  return readText(achievement.description, "Descrição ainda não definida.");
 }
 
 function normalizeRank(
@@ -208,7 +209,7 @@ function normalizeRank(
   if (
     rank === "diamante" ||
     rank === "extrema" ||
-    trophyText.includes("ðŸ’Ž")
+    trophyText.includes("💎")
   ) {
     return "Diamante";
   }
@@ -216,33 +217,41 @@ function normalizeRank(
   if (
     rank === "ouro" ||
     rank === "dificil" ||
-    trophyText.includes("ðŸ¥‡") ||
-    trophyText.includes("ðŸ†")
+    trophyText.includes("🥇") ||
+    trophyText.includes("🏆")
   ) {
     return "Ouro";
   }
 
-  if (rank === "prata" || rank === "media" || trophyText.includes("ðŸ¥ˆ")) {
+  if (rank === "prata" || rank === "media" || trophyText.includes("🥈")) {
     return "Prata";
   }
 
   return "Bronze";
 }
 
+// Troféus originais do site (os mesmos da página de cada jogo) para a coluna de rank.
+const RANK_TROPHY_IMAGE: Record<HistoryEntry["rank"], string> = {
+  Diamante: "/images/trophies/maestria.png",
+  Ouro: "/images/trophies/ouro.png",
+  Prata: "/images/trophies/prata.png",
+  Bronze: "/images/trophies/bronze.png",
+};
+
 function getRankIcon(rank: HistoryEntry["rank"]) {
   if (rank === "Diamante") {
-    return "ðŸ’Ž";
+    return "💎";
   }
 
   if (rank === "Ouro") {
-    return "ðŸ¥‡";
+    return "🥇";
   }
 
   if (rank === "Prata") {
-    return "ðŸ¥ˆ";
+    return "🥈";
   }
 
-  return "ðŸ¥‰";
+  return "🥉";
 }
 
 function getRankStyle(rank: HistoryEntry["rank"]) {
@@ -281,14 +290,14 @@ function getFinalBadge(game: HistoryGame) {
   if (game.finalBadge) {
     return {
       title: readText(game.finalBadge.title, "Maestria Final"),
-      icon: readText(game.finalBadge.icon, "ðŸ’Ž"),
+      icon: readText(game.finalBadge.icon, "💎"),
       image: readText(game.finalBadge.image, ""),
     };
   }
 
   return {
     title: "Maestria Final",
-    icon: "ðŸ’Ž",
+    icon: "💎",
     image: "",
   };
 }
@@ -407,7 +416,7 @@ function EntryIcon({ entry }: { entry: HistoryEntry }) {
   if (entry.image && !hasError) {
     return (
       <div
-        className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border ${style.iconBox}`}
+        className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border md:h-14 md:w-14 ${style.iconBox}`}
       >
         <img
           key={entry.image}
@@ -424,7 +433,7 @@ function EntryIcon({ entry }: { entry: HistoryEntry }) {
 
   return (
     <div
-      className={`flex h-14 w-14 items-center justify-center rounded-xl border text-2xl ${style.iconBox}`}
+      className={`flex h-12 w-12 items-center justify-center rounded-xl border text-2xl md:h-14 md:w-14 ${style.iconBox}`}
     >
       {entry.icon || getRankIcon(entry.rank)}
     </div>
@@ -535,7 +544,7 @@ function buildHistoryEntries(gamesList: HistoryGame[]) {
         orderKey: makeHistoryOrderKey(gameSlug, "badge", finalBadge.title),
         type: "badge",
         title: finalBadge.title,
-        description: "InsÃ­gnia final conquistada nesta jornada.",
+        description: "Insígnia final conquistada nesta jornada.",
         gameTitle,
         gameSubtitle: readText(game.subtitle, ""),
         gameSlug,
@@ -556,38 +565,6 @@ function buildHistoryEntries(gamesList: HistoryGame[]) {
   });
 }
 
-function SummaryCard({
-  icon,
-  label,
-  value,
-  accent = "red",
-}: {
-  icon: string;
-  label: string;
-  value: string | number;
-  accent?: "red" | "cyan" | "purple";
-}) {
-  const accentClass =
-    accent === "cyan"
-      ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-200"
-      : accent === "purple"
-      ? "border-purple-400/30 bg-purple-500/10 text-purple-200"
-      : "border-red-500/30 bg-red-500/10 text-red-100";
-
-  return (
-    <div className={`rounded-2xl border px-6 py-5 ${accentClass}`}>
-      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
-        {label}
-      </p>
-
-      <div className="mt-2 flex items-center gap-3">
-        <span className="text-3xl">{icon}</span>
-
-        <p className="text-4xl font-black text-white">{value}</p>
-      </div>
-    </div>
-  );
-}
 
 export default function HistoricoPage() {
   const { gamesList, gamesMap, isLoaded: gamesLoaded } = useSiteGames();
@@ -665,185 +642,204 @@ export default function HistoricoPage() {
 
   const isLoaded = gamesLoaded && sagasLoaded;
 
+  const filterCounts: Record<FilterType, number> = {
+    all: entries.length,
+    trophies: trophyCount,
+    badges: badgeCount,
+  };
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1624_0%,#050505_45%,#020202_100%)] text-white">
+    <main className="min-h-screen bg-[#050608] text-white">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-[1620px] px-6 py-6">
-        <div className="grid min-h-[calc(100vh-74px)] grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
-          <aside className="hidden border-r border-white/[0.08] px-4 py-5 xl:block">
-            <div className="sticky top-20">
-              <div className="border-b border-white/[0.08] pb-4 pt-2">
-                <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
-                  <span className="text-red-500">✣</span>
-                  Histórico
-                </div>
+      <div className="mx-auto grid w-full max-w-[1620px] grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="hidden min-h-[calc(100vh-74px)] border-r border-white/[0.08] px-4 py-5 lg:block">
+          <div className="sticky top-20">
+            <div className="border-t border-white/[0.08] pt-5">
+              <div className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.12em] text-white/75">
+                <span className="text-red-500">✣</span>
+                Histórico
               </div>
             </div>
-          </aside>
 
-          <div className="min-w-0 px-1">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <Link
-            href="/"
-            className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-black text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
-          >
-            â† Voltar para Home
-          </Link>
+            <nav aria-label="Filtrar histórico" className="mt-6 border-t border-white/[0.08] pt-5">
+              <p className="text-[8px] font-black uppercase tracking-[0.20em] text-white/30">
+                Filtro
+              </p>
 
-          <div className="flex flex-wrap gap-3">
-            {filters.map((filter) => {
-              const isActive = activeFilter === filter.value;
+              <div className="mt-3 space-y-1">
+                {filters.map((filter) => {
+                  const isActive = activeFilter === filter.value;
 
-              return (
-                <button
-                  key={filter.value}
-                  type="button"
-                  onClick={() => setActiveFilter(filter.value)}
-                  className={`rounded-xl border px-6 py-3 text-sm font-black transition ${
-                    isActive
-                      ? "border-red-500/40 bg-red-500/15 text-red-100"
-                      : "border-white/10 bg-white/[0.03] text-white/60 hover:border-red-500/30 hover:bg-red-500/10 hover:text-white"
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={filter.value}
+                      type="button"
+                      onClick={() => setActiveFilter(filter.value)}
+                      aria-pressed={isActive}
+                      className={`flex min-h-10 w-full items-center justify-between rounded-lg border px-3 text-left text-[12px] font-bold transition ${
+                        isActive
+                          ? "border-red-500/30 bg-red-500/10 text-white"
+                          : "border-transparent text-white/60 hover:bg-white/[0.04] hover:text-white"
+                      }`}
+                    >
+                      {filter.label}
+                      <span className={`text-[11px] font-black ${isActive ? "text-red-300" : "text-white/35"}`}>
+                        {isLoaded ? filterCounts[filter.value] : "…"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+            <JourneyShortcuts current="/historico" />
           </div>
-        </div>
+        </aside>
 
-        <header className="mt-5 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="relative p-6">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_32%)]" />
+        <div className="min-w-0 px-4 py-5 md:px-5">
+          <header className="relative overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(239,68,68,0.16),transparent_45%),radial-gradient(circle_at_100%_100%,rgba(34,211,238,0.07),transparent_40%)]" />
 
-            <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
-                  HistÃ³rico
+            <div className="relative flex flex-col gap-6 px-5 py-6 sm:px-7 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-[460px]">
+                <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
+                  <span className="text-[10px] leading-none">✣</span>
+                  Sua jornada em troféus
                 </p>
 
-                <h1 className="mt-3 text-[34px] font-black text-white">
-                  TrofÃ©us Recentes
+                <h1 className="mt-2 text-[34px] font-black uppercase leading-none tracking-tight text-white sm:text-[40px]">
+                  Histórico
                 </h1>
 
-                <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
-                  Lista das conquistas desbloqueadas na jornada. As conquistas
-                  mais recentes aparecem primeiro.
+                <p className="mt-3 text-[13px] font-medium leading-[1.5] text-white/70">
+                  Todas as conquistas desbloqueadas na jornada, das mais recentes
+                  às mais antigas.
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <SummaryCard
-                  icon="ðŸ†"
-                  label="Conquistas"
-                  value={isLoaded ? trophyCount : "..."}
-                  accent="red"
-                />
-
-                <SummaryCard
-                  icon="ðŸ’Ž"
-                  label="Maestrias"
-                  value={isLoaded ? completedGames : "..."}
-                  accent="cyan"
-                />
-
-                <SummaryCard
-                  icon="ðŸŒŸ"
-                  label="Emblemas"
-                  value={isLoaded ? completedSagas : "..."}
-                  accent="purple"
-                />
-              </div>
+              <dl className="grid grid-cols-3 divide-x divide-white/[0.08] rounded-xl border border-white/[0.08] bg-black/30 lg:min-w-[420px]">
+                {[
+                  { label: "Conquistas", value: trophyCount, tone: "text-red-400" },
+                  { label: "Maestrias", value: completedGames, tone: "text-cyan-300" },
+                  { label: "Emblemas", value: completedSagas, tone: "text-amber-300" },
+                ].map((metric) => (
+                  <div key={metric.label} className="min-w-0 px-3 py-3.5 sm:px-5">
+                    <dt className={`truncate text-[9px] font-black uppercase tracking-[0.04em] sm:tracking-[0.18em] ${metric.tone}`}>
+                      {metric.label}
+                    </dt>
+                    <dd className="mt-1.5 text-[26px] font-black leading-none text-white sm:text-[30px]">
+                      {isLoaded ? metric.value : "…"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
-          </div>
-        </header>
+          </header>
 
-        <section className="mt-4 overflow-hidden rounded-[14px] border border-white/10 bg-zinc-950/80 shadow-xl">
-          <div className="hidden grid-cols-[70px_1fr_130px_90px] border-b border-white/10 bg-black/40 px-5 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-white/35 md:grid">
-            <p>Ãcone</p>
-            <p>Conquista</p>
-            <p className="text-right">Tipo</p>
-            <p className="text-right">Rank</p>
-          </div>
-
-          {!isLoaded ? (
-            <div className="p-8 text-sm text-white/45">
-              Carregando histÃ³rico...
-            </div>
-          ) : filteredEntries.length === 0 ? (
-            <div className="p-8 text-sm text-white/45">
-              Nenhuma conquista encontrada nesse filtro.
-            </div>
-          ) : (
-            <div>
-              {filteredEntries.map((entry) => {
-                const rankStyle = getRankStyle(entry.rank);
+          <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#090b0f]">
+            <div className="flex gap-1 overflow-x-auto border-b border-white/[0.08] p-2 lg:hidden" role="group" aria-label="Filtrar histórico">
+              {filters.map((filter) => {
+                const isActive = activeFilter === filter.value;
 
                 return (
-                  <Link
-                    key={entry.id}
-                    href={`/games/${entry.gameSlug}`}
-                    className={`grid gap-4 border-b px-5 py-4 transition last:border-b-0 hover:brightness-125 md:grid-cols-[70px_1fr_130px_90px] md:items-center ${rankStyle.row}`}
+                  <button
+                    key={filter.value}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => setActiveFilter(filter.value)}
+                    className={`inline-flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 text-[12px] font-bold transition ${
+                      isActive
+                        ? "bg-red-500/10 text-white shadow-[inset_0_0_0_1px_rgba(239,68,68,0.3)]"
+                        : "text-white/55 hover:text-white"
+                    }`}
                   >
-                    <EntryIcon entry={entry} />
-
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-lg font-black text-white">
-                          {entry.title}
-                        </h2>
-
-                        <span
-                          className={`rounded-md border px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${rankStyle.badge}`}
-                        >
-                          {entry.rank}
-                        </span>
-                      </div>
-
-                      <p className="mt-1 text-sm text-white/60">
-                        {entry.description}
-                      </p>
-
-                      <p className="mt-1 text-xs font-bold text-blue-300">
-                        {entry.gameTitle}
-                        {entry.gameSubtitle && (
-                          <span className="font-medium text-white/35">
-                            {" "}
-                            â€¢ {entry.gameSubtitle}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="md:text-right">
-                      <span className="rounded-md bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/80">
-                        {entry.type === "badge" ? "InsÃ­gnia" : "TrofÃ©u"}
-                      </span>
-                    </div>
-
-                    <div className="md:flex md:justify-end">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-2xl">
-                        {getRankIcon(entry.rank)}
-                      </div>
-                    </div>
-                  </Link>
+                    {filter.label}
+                    <span className={isActive ? "text-red-300" : "text-white/35"}>
+                      {isLoaded ? filterCounts[filter.value] : "…"}
+                    </span>
+                  </button>
                 );
               })}
             </div>
-          )}
-        </section>
-          </div>
 
-          <aside className="hidden border-l border-white/[0.08] py-5 xl:block">
-            <div className="sticky top-20">
-              <div className="border-b border-white/[0.08] pb-4 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/30">
-                Área auxiliar
-              </div>
+            <div className="hidden grid-cols-[64px_minmax(0,1fr)_110px_64px] gap-4 border-b border-white/[0.08] px-5 py-3 text-[9px] font-black uppercase tracking-[0.22em] text-white/35 md:grid">
+              <p>Ícone</p>
+              <p>Conquista</p>
+              <p className="text-right">Tipo</p>
+              <p className="text-right">Rank</p>
             </div>
-          </aside>
+
+            {!isLoaded ? (
+              <div className="p-8 text-sm text-white/45" role="status">
+                Carregando histórico...
+              </div>
+            ) : filteredEntries.length === 0 ? (
+              <div className="p-8 text-sm text-white/45">
+                Nenhuma conquista encontrada nesse filtro.
+              </div>
+            ) : (
+              <div>
+                {filteredEntries.map((entry) => {
+                  const rankStyle = getRankStyle(entry.rank);
+
+                  return (
+                    <Link
+                      key={entry.id}
+                      href={`/games/${entry.gameSlug}`}
+                      className={`grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-3.5 transition last:border-b-0 hover:brightness-125 sm:px-5 md:grid-cols-[64px_minmax(0,1fr)_110px_64px] md:gap-4 ${rankStyle.row}`}
+                    >
+                      <EntryIcon entry={entry} />
+
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <h2 className="min-w-0 text-[15px] font-black leading-tight text-white sm:text-base">
+                            {entry.title}
+                          </h2>
+
+                          <span
+                            className={`rounded-md border px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] ${rankStyle.badge}`}
+                          >
+                            {entry.rank}
+                          </span>
+                        </div>
+
+                        <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-white/60">
+                          {entry.description}
+                        </p>
+
+                        <p className="mt-1 truncate text-[12px] font-bold text-sky-300/90">
+                          {entry.gameTitle}
+                          {entry.gameSubtitle && (
+                            <span className="font-medium text-white/35">
+                              {" "}
+                              • {entry.gameSubtitle}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="hidden md:block md:text-right">
+                        <span className="rounded-md bg-white/[0.07] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/75">
+                          {entry.type === "badge" ? "Insígnia" : "Troféu"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <div
+                          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-black/30"
+                          title={entry.rank}
+                        >
+                          <img src={homeImageSrc(RANK_TROPHY_IMAGE[entry.rank])} alt={entry.rank} className="h-7 w-7 object-contain" />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

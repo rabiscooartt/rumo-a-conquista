@@ -6,6 +6,7 @@
 import { isValidActiveFile, AVATAR_IMAGE_TARGET, bannerImageTarget, type FixedImageTarget } from "../storedImages.ts";
 import {
   referencesFromAchievements,
+  referencesFromConvention,
   referencesFromDrafts,
   referencesFromGames,
   referencesFromJourneyEntries,
@@ -28,7 +29,8 @@ export const POINTER_BUCKET = "site-profile";
 export const POINTER_FOLDER = "active";
 
 export const TABLES = {
-  achievements: { columns: "id, image, official_image", orderBy: "id" },
+  // game_slug e title: referências implícitas por convenção de nome (fonte "convention").
+  achievements: { columns: "id, image, official_image, game_slug, title", orderBy: "id" },
   achievement_progress: { columns: "id, image_override", orderBy: "id" },
   games: { columns: "slug, image, card_image, final_badge, emblem, trophies, review", orderBy: "slug" },
   // Fontes acrescentadas em 15/11/2026: não estavam na baseline scan-20261114T225139Z.
@@ -309,7 +311,13 @@ export type CollectedSources = {
 };
 
 /** Junta todas as leituras remotas (somente leitura). Arquivos locais entram pelo chamador. */
-export async function collectRemoteSources(storage: LifecycleStorage, selectPage: SelectPage, limits = DEFAULT_LIMITS): Promise<CollectedSources> {
+export async function collectRemoteSources(
+  storage: LifecycleStorage,
+  selectPage: SelectPage,
+  limits = DEFAULT_LIMITS,
+  /** Dados locais de jogos (data/games.ts): o painel os usa quando o banco falha. Ausente → fonte convention falha (fechada). */
+  legacyGames: Parameters<typeof referencesFromConvention>[0]["legacyGames"] = null
+): Promise<CollectedSources> {
   const counters = newCounters();
   const issues: ScanIssue[] = [];
 
@@ -370,6 +378,11 @@ export async function collectRemoteSources(storage: LifecycleStorage, selectPage
     referencesFromGames(games.rows, games.error),
     referencesFromJourneyEntries(journeyEntries.rows as Array<{ id: string }>, journeyEntries.error, relativeBuckets),
     referencesFromJourneyHistory(journeyHistory.rows as Array<{ id: string }>, journeyHistory.error, relativeBuckets),
+    referencesFromConvention({
+      games: games.rows, achievements: achievements.rows, legacyGames,
+      existingObjectKeys: inventory.status === "complete" ? new Set(imageObjects.map((o) => `${o.bucket}/${o.path}`)) : null,
+      errors: [games.error ?? "", achievements.error ?? ""],
+    }),
   ];
   for (const source of sources) {
     for (const item of source.unparsed ?? []) issues.push({ kind: "valor não interpretado", where: source.source, detail: item });

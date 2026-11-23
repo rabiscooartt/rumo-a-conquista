@@ -774,27 +774,28 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
       rel="noreferrer"
       className="group block min-w-0"
     >
-      <article className="overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.15] hover:bg-[#0b0d11]">
+      <article className="grid grid-cols-[128px_minmax(0,1fr)] items-center overflow-hidden rounded-[11px] border border-white/[0.07] bg-[#090b0f] transition duration-200 hover:border-white/[0.15] hover:bg-[#0b0d11] sm:block sm:hover:-translate-y-0.5">
         <div className="relative aspect-video overflow-hidden bg-black">
           <VideoThumbnail src={video.thumbnail} srcSet={video.thumbnailSet} title={video.title} />
 
-          <div className="absolute left-2.5 top-2.5">
+          <div className="absolute left-2.5 top-2.5 hidden sm:block">
             <TypeBadge type={type} />
           </div>
 
-          <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[9px] font-semibold text-white/90">
+          <div className="absolute bottom-2 right-2 hidden rounded-md bg-black/80 px-2 py-1 text-[9px] font-semibold text-white/90 sm:block">
             {formatDate(video.publishedAt)}
           </div>
         </div>
 
-        <div className="px-3.5 pb-4 pt-3.5">
-          <h3 className="line-clamp-2 min-h-[40px] text-[14px] font-bold leading-[1.42] text-white/95 transition group-hover:text-white">
+        <div className="min-w-0 px-3 py-2.5 sm:px-3.5 sm:pb-4 sm:pt-3.5">
+          <h3 className="line-clamp-2 text-[13px] font-bold leading-[1.35] sm:min-h-[40px] sm:text-[14px] sm:leading-[1.42] text-white/95 transition group-hover:text-white">
             {video.title}
           </h3>
 
-          <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="mt-1.5 flex items-center justify-between gap-2 sm:mt-2">
             <p className="truncate text-[11px] font-medium text-white/55">
-              YouTube • @orabiisco
+              <span className="sm:hidden">{formatDate(video.publishedAt)}</span>
+              <span className="hidden sm:inline">YouTube • @orabiisco</span>
             </p>
 
             <p className="shrink-0 text-[10px] font-black uppercase tracking-[0.08em] text-white/35">
@@ -809,7 +810,7 @@ function ContentListRow({ video }: { video: YouTubeVideo }) {
 
 function EmptyState({ error }: { error?: string }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-zinc-950/80 p-8 shadow-xl">
+    <div className="rounded-[14px] border border-white/[0.08] bg-[#090b0f] p-8">
       <p className="text-xs font-black uppercase tracking-[0.3em] text-red-400">
         Nada por aqui ainda
       </p>
@@ -1420,7 +1421,7 @@ export default function ConteudoClient({
             </div>
           </header>          {/* Filtros para telas sem sidebar */}
           <section className="mt-4 lg:hidden">
-            <div className="flex flex-wrap gap-2">
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:-mx-5 md:px-5 [&::-webkit-scrollbar]:hidden">
               {filters.map((filter) => {
                 const isActive = activeFilter === filter.value;
 
@@ -1429,7 +1430,7 @@ export default function ConteudoClient({
                     key={filter.value}
                     type="button"
                     onClick={() => setActiveFilter(filter.value)}
-                    className={`rounded-lg border px-3 py-2 text-[10px] font-black transition ${
+                    className={`inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-lg border px-4 text-[12px] font-bold transition ${
                       isActive
                         ? "border-red-500/35 bg-red-500/10 text-red-200"
                         : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"
@@ -1626,7 +1627,7 @@ export default function ConteudoClient({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                     {filteredVideos
                       .filter((video) => video.id !== liveNow?.id)
                       .slice(2)
