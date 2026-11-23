@@ -230,6 +230,14 @@ function normalizeRank(
   return "Bronze";
 }
 
+// Troféus originais do site (os mesmos da página de cada jogo) para a coluna de rank.
+const RANK_TROPHY_IMAGE: Record<HistoryEntry["rank"], string> = {
+  Diamante: "/images/trophies/maestria.png",
+  Ouro: "/images/trophies/ouro.png",
+  Prata: "/images/trophies/prata.png",
+  Bronze: "/images/trophies/bronze.png",
+};
+
 function getRankIcon(rank: HistoryEntry["rank"]) {
   if (rank === "Diamante") {
     return "💎";
@@ -818,10 +826,10 @@ export default function HistoricoPage() {
 
                       <div className="flex justify-end">
                         <div
-                          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/30 text-xl"
-                          title={entry.type === "badge" ? "Insígnia" : "Troféu"}
+                          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-black/30"
+                          title={entry.rank}
                         >
-                          {getRankIcon(entry.rank)}
+                          <img src={homeImageSrc(RANK_TROPHY_IMAGE[entry.rank])} alt={entry.rank} className="h-7 w-7 object-contain" />
                         </div>
                       </div>
                     </Link>

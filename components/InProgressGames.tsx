@@ -121,8 +121,8 @@ export default function InProgressGames() {
                 <div className="col-span-2 mt-4 min-w-0 sm:mt-5 lg:col-span-1 lg:col-start-2 lg:mt-5 lg:pb-6 lg:pr-6">
                   <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
                     <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/[0.05] p-3 sm:p-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/15 text-lg">
-                        🎯
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="0.8" fill="currentColor" /></svg>
                       </div>
 
                       <div className="min-w-0">

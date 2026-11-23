@@ -297,7 +297,7 @@ export default function CompletedGames() {
                       </p>
 
                       <div className="mt-1.5 flex items-center gap-1.5 sm:mt-2 sm:gap-2">
-                        <span className="text-base leading-none sm:text-2xl">🏆</span>
+                        <img src={homeImageSrc("/images/trophies/ouro.png")} alt="" aria-hidden="true" className="h-5 w-5 shrink-0 object-contain sm:h-7 sm:w-7" />
 
                         <p className="text-lg font-black leading-none tabular-nums text-white sm:text-2xl">
                           {achievementStats.completed}/{achievementStats.total}
