@@ -601,7 +601,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.94)_25%,rgba(5,6,9,0.75)_49%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-                <div className="relative min-h-[255px] px-5 py-6 sm:min-h-[235px] sm:px-7 sm:py-7">
+                <div className="relative min-h-[285px] px-5 py-6 sm:min-h-[275px] sm:px-7 sm:py-7">
                   <div className="max-w-[400px]">
                     <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                       <span className="text-[10px] leading-none">✣</span>
@@ -623,7 +623,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">{loading ? "…" : games.length}</p>
+                        <p className="rac-stat-value truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">{loading ? "…" : games.length}</p>
                         <p className="mt-1 text-[11px] font-medium leading-tight text-white/70 sm:text-[13px] sm:leading-[1.25] sm:text-white/65">Reviews publicadas</p>
                       </div>
                     </div>
@@ -634,7 +634,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">
+                        <p className="rac-stat-value truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">
                           {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
                           <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
                         </p>

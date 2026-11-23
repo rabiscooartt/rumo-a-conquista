@@ -2741,7 +2741,7 @@ export default function BibliotecaClient({
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-              <div className="relative px-5 py-5 md:min-h-[195px] md:px-7 md:py-5">
+              <div className="relative px-5 py-5 md:min-h-[240px] md:px-7 md:py-6">
                 <div className="max-w-[470px]">
                   <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                     <span className="text-[10px] leading-none">✣</span>
@@ -2763,7 +2763,7 @@ export default function BibliotecaClient({
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? bibliotecaGames.length : "—"}</p>
+                      <p className="rac-stat-value truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? bibliotecaGames.length : "—"}</p>
                       <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Jogos na biblioteca</p>
                     </div>
                   </div>
@@ -2773,7 +2773,7 @@ export default function BibliotecaClient({
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? completedGames.length : "—"}</p>
+                      <p className="rac-stat-value truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? completedGames.length : "—"}</p>
                       <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Finalizados</p>
                     </div>
                   </div>
@@ -2783,7 +2783,7 @@ export default function BibliotecaClient({
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? backlogGames.length : "—"}</p>
+                      <p className="rac-stat-value truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? backlogGames.length : "—"}</p>
                       <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Na fila</p>
                     </div>
                   </div>

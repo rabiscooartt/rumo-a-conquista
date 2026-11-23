@@ -189,7 +189,7 @@ export default function Navbar() {
           mobile
             ? "group flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "border-red-500/35 bg-red-500/12 text-white" : "border-transparent text-white/75 hover:border-white/10 hover:bg-white/[0.04] hover:text-white")
-            : "group relative flex min-h-9 items-center justify-center whitespace-nowrap rounded-md px-2 text-[clamp(11px,0.62vw,12px)] font-semibold uppercase tracking-[0.035em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
+            : "rac-nav-link group relative flex min-h-9 items-center justify-center whitespace-nowrap rounded-md px-2 text-[clamp(11px,0.62vw,12px)] font-semibold uppercase tracking-[0.035em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 " +
               (active ? "text-red-400" : "text-white/75 hover:text-white")
         }
       >

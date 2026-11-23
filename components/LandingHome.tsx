@@ -398,7 +398,7 @@ function Stat({ symbol, value, label, divided = false }: { symbol: string; value
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white">{value}</p>
+        <p className="rac-stat-value truncate text-[18px] font-black leading-none tracking-tight text-white">{value}</p>
         <p className={`mt-1 !text-[12px] font-medium leading-[1.25] text-white/55 ${label === "Conquistas desbloqueadas" ? "2xl:whitespace-nowrap" : ""}`}>{label}</p>
       </div>
     </div>
@@ -1253,8 +1253,8 @@ export default function LandingHome({
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
         />
 
-        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[252px] md:px-6">
-          <div className="max-w-[470px]">
+        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[330px] md:px-8 md:pt-8">
+          <div className="max-w-[600px]">
             <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
               <span className="text-[10px] leading-none">✣</span>
               Minha jornada, minhas conquistas
@@ -1262,19 +1262,19 @@ export default function LandingHome({
             <h1 id="home-journey-title" className="mt-2 text-[30px] font-black uppercase leading-none tracking-tight text-white sm:text-[36px] md:text-[38px]">
               Cada desafio conta.
             </h1>
-            <p className="mt-1.5 max-w-[440px] text-[11px] font-medium leading-[1.35] text-white/70 sm:text-xs">
+            <p className="mt-3 max-w-[460px] text-[12px] font-medium leading-[1.5] text-white/72 sm:text-[13px]">
               Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
             </p>
             <Link
               href="/biblioteca"
               aria-label="Explorar os jogos do Rumo à Conquista"
-              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
+              className="mt-5 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
             >
               Explorar jogos <span aria-hidden="true">→</span>
             </Link>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-5 md:left-6 md:right-6 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-8 md:right-8 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
             <Stat symbol="library" value={hasGameData ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={hasGameData ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
             <Stat symbol="trophy" value={hasGameData ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
