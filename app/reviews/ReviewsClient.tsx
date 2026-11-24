@@ -691,7 +691,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         value={ratingFilter}
                         onChange={(event) => setRatingFilter(event.target.value)}
                         aria-label="Filtrar reviews por nota"
-                        className="h-full min-w-0 w-[116px] appearance-none bg-transparent pr-3 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
+                        className="h-full min-w-0 w-[132px] appearance-none bg-transparent pr-3 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
                       >
                         <option value="all">Todas as notas</option>
                         <option value="9-10">Nota 9–10</option>

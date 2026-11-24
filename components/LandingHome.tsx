@@ -484,8 +484,8 @@ function getCurrentGameTheme(game: HomeGame | null): CurrentGameTheme {
   return {
     accent,
     rgb,
-    border: "rgba(" + rgb + ", 0.46)",
-    glow: "rgba(" + rgb + ", 0.145)",
+    border: "rgba(" + rgb + ", 0.26)",
+    glow: "rgba(" + rgb + ", 0.07)",
     soft: "rgba(" + rgb + ", 0.095)",
   };
 }
@@ -1288,7 +1288,7 @@ export default function LandingHome({
       {/* Jogo atual: estrutura horizontal temática inspirada na referência */}
       <section
         className="relative isolate overflow-hidden rounded-2xl border bg-[#06090e] shadow-[0_12px_34px_rgba(0,0,0,0.30)]"
-        style={{ borderColor: currentGameTheme.border, boxShadow: "0 0 22px " + currentGameTheme.glow + ", 0 12px 34px rgba(0,0,0,0.30)" }}
+        style={{ borderColor: currentGameTheme.border, boxShadow: "0 12px 34px rgba(0,0,0,0.30)" }}
         aria-labelledby="current-game-title"
       >
         {currentGame ? (
@@ -1300,7 +1300,7 @@ export default function LandingHome({
                 alt=""
                 loading="eager"
                 decoding="async"
-                className="h-full w-full scale-[1.08] object-cover object-[72%_45%] opacity-65 blur-[3px] saturate-[1.45] contrast-110 brightness-[0.72]"
+                className="h-full w-full scale-[1.08] object-cover object-[72%_45%] opacity-40 blur-[3px] saturate-[1.05] contrast-110 brightness-[0.62]"
                 onError={(event) => {
                   const fallback = currentGame.cardImage;
                   if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
@@ -1313,7 +1313,7 @@ export default function LandingHome({
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#05070b]/90 via-[#05070b]/64 to-[#05070b]/36" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#05070b]/80 via-[#05070b]/28 to-[#05070b]/36" />
-              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 82% 38%, rgba(" + currentGameTheme.rgb + ", 0.25), transparent 58%)" }} />
+              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 82% 38%, rgba(" + currentGameTheme.rgb + ", 0.12), transparent 58%)" }} />
             </div>
 
             <div className="relative z-10">
@@ -1322,7 +1322,7 @@ export default function LandingHome({
                   <span
                     aria-hidden="true"
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-black/20"
-                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border, boxShadow: "0 0 15px " + currentGameTheme.glow }}
+                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border }}
                   >
                     <svg viewBox="0 0 32 32" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M4 10.5 9.2 14l6.8-8 6.8 8 5.2-3.5-2.2 13H6.2L4 10.5Z" />
@@ -1550,7 +1550,7 @@ export default function LandingHome({
                   href={"/games/" + game.slug}
                   className="group/recent-row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025] last:border-b-0"
                 >
-                  <div className="grid grid-cols-[72px_minmax(0,1fr)_64px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+                  <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
                     <div className="h-[93px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
                         src={homeImageSrc(game.cardImage || game.image || "")}
@@ -1619,7 +1619,7 @@ export default function LandingHome({
                       </div>
                     </div>
 
-                    <div className="flex h-[82px] w-[64px] items-center justify-end sm:h-[115px] sm:w-[90px]">
+                    <div className="hidden h-[82px] w-[64px] items-center justify-end sm:flex sm:h-[115px] sm:w-[90px]">
                       <div className="relative flex h-[82px] w-[64px] shrink-0 items-center justify-center overflow-visible sm:h-[115px] sm:w-[90px]">
                         <div className={"relative h-full w-full transition duration-300 " + (
                           completed
