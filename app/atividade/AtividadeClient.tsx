@@ -1239,7 +1239,7 @@ function PremiumIconBadge({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+    <div className="flex h-8 w-7 shrink-0 items-center justify-start text-red-500">
       {children}
     </div>
   );
@@ -1266,7 +1266,7 @@ function Metric({
       <span className="hidden min-[480px]:contents"><PremiumIconBadge>{icon}</PremiumIconBadge></span>
 
       <div className="min-w-0">
-        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
+        <p className="rac-stat-value truncate text-[19px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
 
@@ -2285,7 +2285,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="relative px-5 py-6 sm:min-h-[255px] sm:px-7 sm:py-6 lg:min-h-[230px]">
+            <div className="relative px-5 py-6 sm:min-h-[295px] sm:px-7 sm:py-6 lg:min-h-[270px]">
               <div className="max-w-[400px]">
                 <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                   <span className="text-[10px] leading-none">✣</span>

@@ -942,12 +942,12 @@ function ContentBannerMetric({
         divided ? "border-l border-white/10 pl-2.5 sm:pl-4" : ""
       }`}
     >
-      <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+      <span className="hidden h-8 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
         <ContentBannerIcon type={icon} />
       </span>
 
       <div className="min-w-0">
-        <p className="truncate text-[19px] font-black leading-none tracking-tight text-white">
+        <p className="rac-stat-value truncate text-[19px] font-black leading-none tracking-tight text-white">
           {value}
         </p>
         <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">
@@ -1381,7 +1381,7 @@ export default function ConteudoClient({
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.16),transparent_42%)]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.96)_100%)]" />
 
-            <div className="relative px-5 py-6 md:min-h-[235px] md:px-7 md:py-7">
+            <div className="relative px-5 py-6 md:min-h-[275px] md:px-7 md:py-7">
               <div className="max-w-[400px]">
                 <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                   <span className="text-[10px] leading-none">✣</span>

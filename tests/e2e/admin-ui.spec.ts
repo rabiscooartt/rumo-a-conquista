@@ -23,22 +23,32 @@ test.describe("avatar e entradas do Admin para visitantes", () => {
     });
   }
 
-  test("o menu do perfil mostra só o perfil para visitantes", async ({ page }) => {
+  test("visitantes não têm menu de conta nem links de Perfil e Histórico", async ({ page }) => {
     await blockWrites(page);
     await page.setViewportSize({ width: 1366, height: 900 });
     await page.goto("/");
-    await page.getByRole("button", { name: "Abrir menu do perfil" }).click();
-    await expect(page.getByRole("link", { name: "Meu perfil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Abrir menu do perfil" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /meu perfil|histórico de troféus/i })).toHaveCount(0);
     await expect(page.getByText(/admin/i)).toHaveCount(0);
+  });
+
+  test("endereços antigos de Perfil e Histórico redirecionam", async ({ page }) => {
+    await page.goto("/perfil");
+    await expect(page).toHaveURL(/\/$/);
+    await page.goto("/historico");
+    await expect(page).toHaveURL(/\/atividade$/);
   });
 
   test("o menu móvel não convida para o Admin", async ({ page }) => {
     await blockWrites(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
     const menu = page.locator("#rac-mobile-navigation");
-    await expect(menu).toBeVisible();
+    // Sob carga, o clique pode chegar antes de a página terminar de ativar (hidratação): repete até abrir.
+    await expect(async () => {
+      if (!(await menu.isVisible())) await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
+      await expect(menu).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 15_000 });
     await expect(menu.getByText(/admin|avatar/i)).toHaveCount(0);
   });
 });

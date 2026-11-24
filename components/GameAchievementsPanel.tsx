@@ -1518,7 +1518,8 @@ export default function GameAchievementsPanel(
                 }`}
               >
                 <div className="p-3 sm:p-4">
-                  <div className="grid gap-x-2 gap-y-4 md:grid-cols-[52px_minmax(0,1fr)_48px_146px] md:items-center">
+                  {/* Celular: ícone + texto na primeira linha; troféu (sob o ícone) + episódio e data na segunda. */}
+                  <div className="grid grid-cols-[52px_minmax(0,1fr)] items-center gap-x-3 gap-y-3 md:grid-cols-[52px_minmax(0,1fr)_48px_146px] md:gap-x-2 md:gap-y-4">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
                         visuallyLocked
@@ -1574,8 +1575,8 @@ export default function GameAchievementsPanel(
                         </div>
 
                         <div className={showJourneyLabel || hasEpisodeMetadata
-                          ? "flex min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5"
-                          : "flex min-w-0 flex-col items-end justify-center gap-1 text-right"}>
+                          ? "flex min-w-0 flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 text-left md:flex-col md:justify-center md:gap-1 md:text-center md:pl-1.5"
+                          : "flex min-w-0 flex-col items-start justify-center gap-1 text-left md:items-end md:text-right"}>
                           {showJourneyLabel ? (
                             (() => {
                               const journeyDateValue =
@@ -1608,7 +1609,7 @@ export default function GameAchievementsPanel(
                                     <span className="whitespace-nowrap leading-tight">JORNADA DE ESTREIA</span>
                                   </a>
                                   {journeyDate ? (
-                                    <time dateTime={journeyDateValue} className="w-full whitespace-nowrap text-center text-[10px] font-semibold tabular-nums leading-tight text-white/65">
+                                    <time dateTime={journeyDateValue} className="whitespace-nowrap text-[10px] font-semibold tabular-nums leading-tight text-white/65 md:w-full md:text-center">
                                       {journeyDate}
                                     </time>
                                   ) : null}
@@ -1628,7 +1629,7 @@ export default function GameAchievementsPanel(
                               if (!hasRecord) return null;
 
                               return (
-                                <div className="flex w-full min-w-0 flex-col items-center justify-center gap-1 text-center md:pl-1.5">
+                                <div className="flex w-full min-w-0 flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 text-left md:flex-col md:justify-center md:gap-1 md:text-center md:pl-1.5">
                                   {liveUrl ? (
                                     <a
                                       href={liveUrl}

@@ -601,7 +601,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.94)_25%,rgba(5,6,9,0.75)_49%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-                <div className="relative min-h-[255px] px-5 py-6 sm:min-h-[235px] sm:px-7 sm:py-7">
+                <div className="relative min-h-[285px] px-5 py-6 sm:min-h-[275px] sm:px-7 sm:py-7">
                   <div className="max-w-[400px]">
                     <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                       <span className="text-[10px] leading-none">✣</span>
@@ -615,7 +615,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
 
                   <div className="absolute bottom-5 left-5 right-5 grid grid-cols-2 gap-x-3 sm:bottom-7 sm:left-7 sm:right-7 sm:gap-x-4 sm:max-w-[72%]">
                     <div className="flex min-w-0 items-center gap-2 pr-2 sm:gap-2.5 sm:pr-4">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 sm:h-8 sm:w-8">
+                      <span className="flex h-7 w-6 shrink-0 items-center justify-start text-red-500 sm:h-8 sm:w-7">
                         <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px] sm:h-[22px] sm:w-[22px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <path d="M14 2v6h6" />
@@ -623,18 +623,18 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">{loading ? "…" : games.length}</p>
+                        <p className="rac-stat-value truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">{loading ? "…" : games.length}</p>
                         <p className="mt-1 text-[11px] font-medium leading-tight text-white/70 sm:text-[13px] sm:leading-[1.25] sm:text-white/65">Reviews publicadas</p>
                       </div>
                     </div>
                     <div className="flex min-w-0 items-center gap-2 border-l border-white/10 pl-2 sm:gap-2.5 sm:pl-4">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 sm:h-8 sm:w-8">
+                      <span className="flex h-7 w-6 shrink-0 items-center justify-start text-red-500 sm:h-8 sm:w-7">
                         <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[19px] w-[19px] sm:h-[22px] sm:w-[22px]" fill="currentColor">
                           <path d="m12 2.8 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.36l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.8z" />
                         </svg>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">
+                        <p className="rac-stat-value truncate text-[18px] font-black leading-none tracking-tight text-white sm:text-[19px]">
                           {averageScore === null ? "—" : averageScore.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
                           <span className="ml-1 text-[9px] font-bold text-white/35">/10</span>
                         </p>
@@ -691,7 +691,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         value={ratingFilter}
                         onChange={(event) => setRatingFilter(event.target.value)}
                         aria-label="Filtrar reviews por nota"
-                        className="h-full min-w-0 w-[116px] appearance-none bg-transparent pr-3 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
+                        className="h-full min-w-0 w-[132px] appearance-none bg-transparent pr-3 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
                       >
                         <option value="all">Todas as notas</option>
                         <option value="9-10">Nota 9–10</option>

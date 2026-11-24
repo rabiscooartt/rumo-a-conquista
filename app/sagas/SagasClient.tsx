@@ -660,7 +660,7 @@ function BadgeImage({
 }
 
 function getFilterButtonClass(isActive: boolean) {
-  return `rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.18em] transition ${
+  return `rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
     isActive
       ? "border-red-500/45 bg-red-500/20 text-red-200 shadow-[0_0_24px_rgba(239,68,68,0.14)]"
       : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
@@ -751,7 +751,7 @@ function EmblemCard({
         <div
           className={`relative z-10 h-full w-full transition duration-300 ${
             isLocked
-              ? "scale-100 opacity-[0.58] blur-[4px] grayscale saturate-0 brightness-[0.62]"
+              ? "blur-[10px] brightness-[0.6] saturate-[0.9] group-hover:brightness-[0.72]"
               : "group-hover:brightness-110"
           }`}
         >
@@ -763,17 +763,37 @@ function EmblemCard({
             priority={priority}
           />
         </div>
+        {isLocked ? (
+          // Cadeado discreto: a arte desfocada desperta a curiosidade; o cadeado só sinaliza o estado.
+          <span
+            aria-hidden="true"
+            className="absolute left-1/2 top-1/2 z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/60 transition duration-300 group-hover:text-white/80"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="10.5" width="14" height="10" rx="2" />
+              <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />
+              <path d="M12 14.5v2.5" />
+            </svg>
+          </span>
+        ) : null}
       </div>
 
       <h3
         className={`relative top-[10px] mt-[11px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
           isLarge ? "text-lg" : ""
-        } ${isLocked ? "text-white/45 blur-[2px]" : "text-white"}`}
+        } ${isLocked ? "text-white/35" : "text-white"}`}
       >
-        {emblem.title}
+        {isLocked ? (
+          <>
+            Emblema selado
+            <span className="sr-only">: {emblem.title}</span>
+          </>
+        ) : (
+          emblem.title
+        )}
       </h3>
 
-      <div className={`mt-0.5 flex shrink-0 items-center justify-center gap-1.5 ${isLocked ? "opacity-40 blur-[1.5px]" : ""}`} aria-hidden="true">
+      <div className={`mt-0.5 flex shrink-0 items-center justify-center gap-1.5 ${isLocked ? "opacity-40" : ""}`} aria-hidden="true">
         <span className={`h-px w-4 ${isLocked ? "bg-white/20" : "bg-amber-500/55"}`} />
         <svg
           viewBox="0 0 24 12"
@@ -795,7 +815,7 @@ function EmblemCard({
 
       <p
         className={`mt-0.5 w-full truncate text-[12px] font-bold tracking-[0.01em] ${
-          isLocked ? "text-white/40 blur-[1.5px]" : theme.text
+          isLocked ? "text-white/55" : theme.text
         }`}
       >
         {emblem.gameTitle}
@@ -819,7 +839,7 @@ function EmblemCard({
               <rect x="5" y="10" width="14" height="11" rx="2" />
               <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             </svg>
-            Em progresso no futuro
+            Conclua o jogo para revelar
           </div>
         )}
       </div>

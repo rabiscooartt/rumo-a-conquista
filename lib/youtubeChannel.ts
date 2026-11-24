@@ -211,10 +211,19 @@ async function readYoutube<T>(url: URL, revalidate: number) {
   return { response, data: (await response.json()) as T };
 }
 
+const SITE_CHANNEL_HANDLE = "@orabiisco";
+
+/**
+ * A rota pública só serve o canal do próprio site. Aceitar qualquer handle permitiria usar a chave
+ * do YouTube do projeto para consultar outros canais e esgotar a cota diária. O tamanho da lista
+ * fica em dois degraus (Início: 9, Conteúdo: 50) para que variações não escapem do cache.
+ */
 export function readYoutubeChannelParams(rawHandle: string | null, maxResultsParam: string | null) {
+  const requested = cleanHandle(rawHandle || SITE_CHANNEL_HANDLE).toLowerCase();
+  const requestedMax = Number(maxResultsParam) || 9;
   return {
-    handle: cleanHandle(rawHandle || "@orabiisco"),
-    maxResults: Math.min(50, Math.max(1, Number(maxResultsParam) || 9)),
+    handle: requested === SITE_CHANNEL_HANDLE ? SITE_CHANNEL_HANDLE : null,
+    maxResults: requestedMax > 9 ? 50 : 9,
   };
 }
 

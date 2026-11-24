@@ -394,11 +394,11 @@ function StatIcon({ symbol }: { symbol: string }) {
 function Stat({ symbol, value, label, divided = false }: { symbol: string; value: string | number; label: string; divided?: boolean }) {
   return (
     <div className={`flex min-w-0 items-stretch gap-2 ${divided ? "md:border-l md:border-white/10 md:pl-3" : "md:pr-4"}`}>
-      <span className="flex min-h-[38px] w-9 shrink-0 self-stretch items-center justify-center rounded-[6px] bg-red-600/15 text-red-500">
+      <span className="flex min-h-[38px] w-7 shrink-0 self-stretch items-center justify-start text-red-500">
         <StatIcon symbol={symbol} />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[18px] font-black leading-none tracking-tight text-white">{value}</p>
+        <p className="rac-stat-value truncate text-[18px] font-black leading-none tracking-tight text-white">{value}</p>
         <p className={`mt-1 !text-[12px] font-medium leading-[1.25] text-white/55 ${label === "Conquistas desbloqueadas" ? "2xl:whitespace-nowrap" : ""}`}>{label}</p>
       </div>
     </div>
@@ -484,8 +484,8 @@ function getCurrentGameTheme(game: HomeGame | null): CurrentGameTheme {
   return {
     accent,
     rgb,
-    border: "rgba(" + rgb + ", 0.46)",
-    glow: "rgba(" + rgb + ", 0.145)",
+    border: "rgba(" + rgb + ", 0.26)",
+    glow: "rgba(" + rgb + ", 0.07)",
     soft: "rgba(" + rgb + ", 0.095)",
   };
 }
@@ -1252,9 +1252,11 @@ export default function LandingHome({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
         />
+        {/* No celular o texto ocupa a largura toda e passa sobre a lua: véu leve para manter a leitura. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#050609]/35 md:hidden" />
 
-        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[252px] md:px-6">
-          <div className="max-w-[470px]">
+        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[330px] md:px-8 md:pt-8">
+          <div className="max-w-[600px]">
             <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
               <span className="text-[10px] leading-none">✣</span>
               Minha jornada, minhas conquistas
@@ -1262,19 +1264,19 @@ export default function LandingHome({
             <h1 id="home-journey-title" className="mt-2 text-[30px] font-black uppercase leading-none tracking-tight text-white sm:text-[36px] md:text-[38px]">
               Cada desafio conta.
             </h1>
-            <p className="mt-1.5 max-w-[440px] text-[11px] font-medium leading-[1.35] text-white/70 sm:text-xs">
+            <p className="mt-3 max-w-[460px] text-[12px] font-medium leading-[1.5] text-white/72 sm:text-[13px]">
               Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
             </p>
             <Link
               href="/biblioteca"
               aria-label="Explorar os jogos do Rumo à Conquista"
-              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
+              className="mt-5 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
             >
               Explorar jogos <span aria-hidden="true">→</span>
             </Link>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-5 md:left-6 md:right-6 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-8 md:right-8 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
             <Stat symbol="library" value={hasGameData ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={hasGameData ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
             <Stat symbol="trophy" value={hasGameData ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
@@ -1286,7 +1288,7 @@ export default function LandingHome({
       {/* Jogo atual: estrutura horizontal temática inspirada na referência */}
       <section
         className="relative isolate overflow-hidden rounded-2xl border bg-[#06090e] shadow-[0_12px_34px_rgba(0,0,0,0.30)]"
-        style={{ borderColor: currentGameTheme.border, boxShadow: "0 0 22px " + currentGameTheme.glow + ", 0 12px 34px rgba(0,0,0,0.30)" }}
+        style={{ borderColor: currentGameTheme.border, boxShadow: "0 12px 34px rgba(0,0,0,0.30)" }}
         aria-labelledby="current-game-title"
       >
         {currentGame ? (
@@ -1298,7 +1300,7 @@ export default function LandingHome({
                 alt=""
                 loading="eager"
                 decoding="async"
-                className="h-full w-full scale-[1.08] object-cover object-[72%_45%] opacity-65 blur-[3px] saturate-[1.45] contrast-110 brightness-[0.72]"
+                className="h-full w-full scale-[1.08] object-cover object-[72%_45%] opacity-40 blur-[3px] saturate-[1.05] contrast-110 brightness-[0.62]"
                 onError={(event) => {
                   const fallback = currentGame.cardImage;
                   if (fallback && fallback !== currentGame.image && event.currentTarget.dataset.fallbackApplied !== "true") {
@@ -1311,7 +1313,7 @@ export default function LandingHome({
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#05070b]/90 via-[#05070b]/64 to-[#05070b]/36" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#05070b]/80 via-[#05070b]/28 to-[#05070b]/36" />
-              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 82% 38%, rgba(" + currentGameTheme.rgb + ", 0.25), transparent 58%)" }} />
+              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 82% 38%, rgba(" + currentGameTheme.rgb + ", 0.12), transparent 58%)" }} />
             </div>
 
             <div className="relative z-10">
@@ -1320,7 +1322,7 @@ export default function LandingHome({
                   <span
                     aria-hidden="true"
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-black/20"
-                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border, boxShadow: "0 0 15px " + currentGameTheme.glow }}
+                    style={{ color: currentGameTheme.accent, borderColor: currentGameTheme.border }}
                   >
                     <svg viewBox="0 0 32 32" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M4 10.5 9.2 14l6.8-8 6.8 8 5.2-3.5-2.2 13H6.2L4 10.5Z" />
@@ -1346,11 +1348,13 @@ export default function LandingHome({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(230px,1fr)_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(242px,1.1fr)_minmax(300px,1.3fr)_minmax(180px,0.85fr)] lg:gap-4 lg:px-5">
+              {/* Duas colunas: a capa ocupa a altura do card; a coluna de informações sempre termina no bloco de status
+                  (progresso ou Jornada de Estreia), então não sobra coluna vazia em nenhum estado do jogo. */}
+              <div className="grid grid-cols-1 items-stretch gap-4 px-3 py-3 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:gap-5 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
                 <Link
                   href={"/games/" + currentGame.slug}
                   aria-label={"Abrir jogo: " + currentGame.title}
-                  className="group relative block aspect-[2.25/1] w-full self-center overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition"
+                  className="group relative block aspect-[16/9] w-full overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition sm:aspect-auto sm:h-full sm:min-h-[210px]"
                   style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)" }}
                 >
                   <img
@@ -1370,11 +1374,12 @@ export default function LandingHome({
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/[0.02]" />
                 </Link>
 
-                <div className="flex min-w-0 flex-col justify-center gap-2.5 sm:gap-3">
+                <div className="flex min-w-0 flex-col justify-between gap-4 sm:py-1">
                   <div className="min-w-0">
-                    <h3 className="text-lg font-black leading-tight tracking-[-0.03em] text-white sm:text-xl lg:text-[19px] xl:whitespace-nowrap xl:text-[20px]">{currentGame.title}</h3>
-                    <p className="mt-1 text-[11px] leading-snug text-white/65 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
+                    <h3 className="font-[family-name:var(--font-display)] text-[26px] font-bold leading-[1.02] tracking-[0.005em] text-white sm:text-[28px] xl:text-[32px]">{currentGame.title}</h3>
+                    <p className="mt-1.5 text-xs leading-snug text-white/65">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
+                  <div className="flex min-w-0 flex-col gap-3">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs">
                     {currentGame.platform ? (
                       <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
@@ -1403,14 +1408,13 @@ export default function LandingHome({
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Em andamento
                       </span>
-                      <span className="basis-full text-[11px] leading-snug text-white/55 sm:basis-auto">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
+                      <span className="basis-full text-[11px] leading-snug text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
                     </div>
                   ) : null}
-                </div>
 
                 {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
                   <div
-                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3 sm:col-span-2 lg:col-span-1"
+                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3"
                     style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.20)", backgroundColor: "rgba(0,0,0,0.24)" }}
                     aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}
                   >
@@ -1432,6 +1436,8 @@ export default function LandingHome({
                     ) : null}
                   </div>
                 ) : null}
+                  </div>
+                </div>
               </div>
 
               {!showFirstJourneyPlaceholder ? (
@@ -1544,7 +1550,7 @@ export default function LandingHome({
                   href={"/games/" + game.slug}
                   className="group/recent-row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025] last:border-b-0"
                 >
-                  <div className="grid grid-cols-[72px_minmax(0,1fr)_64px] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+                  <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
                     <div className="h-[93px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
                         src={homeImageSrc(game.cardImage || game.image || "")}
@@ -1613,7 +1619,7 @@ export default function LandingHome({
                       </div>
                     </div>
 
-                    <div className="flex h-[82px] w-[64px] items-center justify-end sm:h-[115px] sm:w-[90px]">
+                    <div className="hidden h-[82px] w-[64px] items-center justify-end sm:flex sm:h-[115px] sm:w-[90px]">
                       <div className="relative flex h-[82px] w-[64px] shrink-0 items-center justify-center overflow-visible sm:h-[115px] sm:w-[90px]">
                         <div className={"relative h-full w-full transition duration-300 " + (
                           completed

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Barlow_Condensed, Inter } from "next/font/google";
 import "./globals.css";
 import BannerSettingsProvider from "@/components/BannerSettingsProvider";
 import { loadCachedSiteBannerSettings } from "@/lib/site-banner-settings";
@@ -7,6 +7,14 @@ import { loadCachedSiteBannerSettings } from "@/lib/site-banner-settings";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+});
+
+// Fonte de exibição: títulos, números de destaque e navegação. O texto corrido continua em Inter.
+const display = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  display: "swap",
+  variable: "--font-display",
 });
 
 export const dynamic = "force-dynamic";
@@ -26,7 +34,7 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${display.variable}`}>
         <BannerSettingsProvider initialSettings={bannerSettings}>
           {children}
         </BannerSettingsProvider>

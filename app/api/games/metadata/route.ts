@@ -1,6 +1,8 @@
 import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { games as baseGames } from "@/data/games";
 import { inferPrimaryGenre } from "@/lib/gameGenres";
+import { loadCachedPublicCatalog } from "@/lib/publicCatalogCache";
 
 type Metadata = {
   genres: string[];
@@ -269,16 +271,39 @@ const getCachedMetadata = unstable_cache(
   { revalidate: METADATA_CACHE_SECONDS }
 );
 
+/**
+ * Rota pública: só consulta Steam/IGDB/RAWG para jogos do próprio catálogo. Título e plataforma
+ * vêm do cadastro, não do pedido; assim ninguém usa a rota para gastar as cotas dessas APIs com
+ * títulos arbitrários ou variando a plataforma para escapar do cache.
+ */
+async function findCatalogGame(title: string) {
+  const wanted = normalize(title);
+  const local = Object.values(baseGames).find((game) => normalize(game.title) === wanted);
+  if (local) return { title: local.title, platform: String((local as { platform?: string }).platform ?? "") };
+
+  try {
+    const catalog = await loadCachedPublicCatalog(false);
+    const game = catalog.games.find((item) => normalize(item.title) === wanted);
+    return game ? { title: game.title, platform: String(game.platform ?? "") } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
-  const title = request.nextUrl.searchParams.get("title")?.trim() ?? "";
-  if (!title) {
+  const requestedTitle = request.nextUrl.searchParams.get("title")?.trim() ?? "";
+  if (!requestedTitle) {
     return NextResponse.json({ error: "Título do jogo é obrigatório." }, { status: 400 });
   }
 
-  const platformHint = request.nextUrl.searchParams.get("platform")?.trim() ?? "";
+  const catalogGame = await findCatalogGame(requestedTitle);
 
   try {
-    return NextResponse.json({ ok: true, metadata: await getCachedMetadata(title, platformHint) });
+    if (!catalogGame) throw new EmptyMetadataError();
+    return NextResponse.json({
+      ok: true,
+      metadata: await getCachedMetadata(catalogGame.title, catalogGame.platform),
+    });
   } catch (error) {
     if (!(error instanceof EmptyMetadataError)) {
       console.warn("[Game Metadata] Falha ao consultar metadados:", error);

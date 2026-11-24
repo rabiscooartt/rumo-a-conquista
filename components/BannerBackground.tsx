@@ -16,6 +16,12 @@ type Props = {
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
+// Onde está o assunto de cada arte, para o recorte em banners mais altos que a imagem.
+const BANNER_FOCAL_POINT: Partial<Record<SiteBannerKey, string>> = {
+  home: "74% 50%",
+  atividade: "72% 50%",
+};
+
 function getBannerEditorLabel(bannerKey: SiteBannerKey) {
   return bannerKey === "home" ? "Página inicial" : bannerKey;
 }
@@ -264,6 +270,13 @@ export default function BannerBackground({
   // Banner enviado pelo Admin (WebP imutável nos envios novos) ou a imagem padrão em cópia leve.
   const visibleImageUrl =
     selectedImagePreview || homeImageSrc(visibleSettings.imageUrl || imageUrl);
+  const offsetY = visibleSettings.y + (bannerKey === "home" ? 3.5 : 0);
+  // A largura segue o zoom salvo; a altura mínima garante que a imagem cubra o banner mesmo
+  // quando ele fica mais alto que a proporção da arte (heros maiores, telas estreitas).
+  // object-cover recorta o excesso sem distorcer; quando a arte já cobre, nada muda.
+  const minHeight = `${visibleSettings.zoom * 100 + 2 * Math.abs(offsetY)}%`;
+  // Quando o recorte acontece, preserva o assunto da arte (na Início, o castelo e a lua à direita).
+  const objectPosition = BANNER_FOCAL_POINT[bannerKey] ?? "50% 50%";
 
   return (
     <>
@@ -278,11 +291,13 @@ export default function BannerBackground({
           draggable={false}
           fetchPriority="high"
           loading="eager"
-          className="pointer-events-none absolute max-w-none select-none"
+          className="pointer-events-none absolute max-w-none select-none object-cover"
           style={{
             width: `${visibleSettings.zoom * 100}%`,
+            minHeight,
+            objectPosition,
             left: `${50 + visibleSettings.x}%`,
-            top: `${50 + visibleSettings.y + (bannerKey === "home" ? 3.5 : 0)}%`,
+            top: `${50 + offsetY}%`,
             transform: "translate(-50%, -50%)",
           }}
         />

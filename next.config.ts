@@ -12,6 +12,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Perfil e Histórico de troféus foram retirados: o perfil já está na página inicial e as
+  // conquistas na Atividade. Links antigos seguem funcionando (redirecionamento temporário).
+  async redirects() {
+    return [
+      { source: "/perfil", destination: "/", permanent: false },
+      { source: "/historico", destination: "/atividade", permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

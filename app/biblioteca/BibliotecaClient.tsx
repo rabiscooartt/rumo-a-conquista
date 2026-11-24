@@ -1644,7 +1644,7 @@ function PlayingNowGame({
     <Link
       prefetch={false}
       href={`/games/${gameSlug}`}
-      className="group/playing flex min-w-0 gap-3.5 rounded-xl border border-white/[0.06] bg-white/[0.015] p-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.035]"
+      className="group/playing flex min-w-0 gap-3.5 -mx-2.5 rounded-xl p-2.5 transition hover:bg-white/[0.04]"
     >
       <div className="h-[112px] w-[86px] shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black shadow-[0_4px_14px_rgba(0,0,0,0.28)]">
         <GameCoverImage src={cardImage} title={gameTitle} />
@@ -2741,7 +2741,7 @@ export default function BibliotecaClient({
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,9,0.99)_0%,rgba(5,6,9,0.97)_24%,rgba(5,6,9,0.78)_46%,rgba(5,6,9,0.22)_78%,rgba(5,6,9,0.06)_100%)]" />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]" />
 
-              <div className="relative px-5 py-5 md:min-h-[195px] md:px-7 md:py-5">
+              <div className="relative px-5 py-5 md:min-h-[240px] md:px-7 md:py-6">
                 <div className="max-w-[470px]">
                   <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500">
                     <span className="text-[10px] leading-none">✣</span>
@@ -2759,31 +2759,31 @@ export default function BibliotecaClient({
 
                 <div className="relative mt-5 grid grid-cols-3 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0">
                   <div className="flex min-w-0 items-center gap-2.5 pr-2.5 sm:pr-4">
-                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? bibliotecaGames.length : "—"}</p>
+                      <p className="rac-stat-value truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? bibliotecaGames.length : "—"}</p>
                       <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Jogos na biblioteca</p>
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-2.5 sm:px-4">
-                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? completedGames.length : "—"}</p>
+                      <p className="rac-stat-value truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? completedGames.length : "—"}</p>
                       <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Finalizados</p>
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-2.5 sm:pl-4">
-                    <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-red-600/15 text-red-500 min-[480px]:flex">
+                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? backlogGames.length : "—"}</p>
+                      <p className="rac-stat-value truncate text-[20px] font-black leading-none tracking-tight text-white">{hasGameData ? backlogGames.length : "—"}</p>
                       <p className="mt-1 text-[11px] font-medium leading-[1.25] text-white/55 sm:truncate sm:text-[13px]">Na fila</p>
                     </div>
                   </div>
@@ -2948,7 +2948,7 @@ export default function BibliotecaClient({
                 <h2 className="text-[13px] font-black uppercase tracking-[0.08em] leading-none text-white">Resumo do Ano</h2>
               </div>
 
-              <div className="rounded-[16px] border border-red-500/[0.12] bg-[#07080c] px-4 py-4">
+              <div className="px-1 pb-1 pt-2">
                 <div className="flex items-center justify-center gap-2">
                   <IconCalendar className="h-[15px] w-[15px] text-red-500" />
                   <div className="relative flex items-center">
@@ -2974,12 +2974,12 @@ export default function BibliotecaClient({
                     role="img"
                     aria-label={`${annualGamesCount} jogos registrados no ano selecionado`}
                     title="Jogos: quantidade de jogos com atividade ou conclusão registrada neste ano."
-                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg px-1 py-2 text-center transition-colors hover:bg-white/[0.04]"
                   >
-                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                    <span className="flex h-[24px] w-[30px] items-center justify-center text-red-400 transition-colors group-hover:text-red-300">
                       <IconGamepad className="h-[17px] w-[17px]" />
                     </span>
-                    <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualGamesCount}</span>
+                    <span className="rac-num mt-1 text-[24px] leading-none tabular-nums text-white">{annualGamesCount}</span>
                     <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Jogos</span>
                   </div>
 
@@ -2987,12 +2987,12 @@ export default function BibliotecaClient({
                     role="img"
                     aria-label={`${annualAchievementsCount} conquistas desbloqueadas no ano selecionado`}
                     title="Conquistas: total de conquistas desbloqueadas durante o ano selecionado."
-                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg px-1 py-2 text-center transition-colors hover:bg-white/[0.04]"
                   >
-                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                    <span className="flex h-[24px] w-[30px] items-center justify-center text-red-400 transition-colors group-hover:text-red-300">
                       <IconTrophy className="h-[17px] w-[17px]" />
                     </span>
-                    <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualAchievementsCount}</span>
+                    <span className="rac-num mt-1 text-[24px] leading-none tabular-nums text-white">{annualAchievementsCount}</span>
                     <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Conquistas</span>
                   </div>
 
@@ -3000,12 +3000,12 @@ export default function BibliotecaClient({
                     role="img"
                     aria-label={`${annualEmblemsCount} emblemas conquistados no ano selecionado`}
                     title="Emblemas: quantidade de emblemas de jogos conquistados neste ano."
-                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg px-1 py-2 text-center transition-colors hover:bg-white/[0.04]"
                   >
-                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                    <span className="flex h-[24px] w-[30px] items-center justify-center text-red-400 transition-colors group-hover:text-red-300">
                       <IconMedal className="h-[17px] w-[17px]" />
                     </span>
-                    <span className="mt-1.5 text-[16px] font-black leading-none tabular-nums text-white">{annualEmblemsCount}</span>
+                    <span className="rac-num mt-1 text-[24px] leading-none tabular-nums text-white">{annualEmblemsCount}</span>
                     <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Emblemas</span>
                   </div>
 
@@ -3013,12 +3013,12 @@ export default function BibliotecaClient({
                     role="img"
                     aria-label={`${annualHours} de jogo no ano selecionado`}
                     title="Tempo jogado: tempo total registrado na Jornada durante o ano selecionado."
-                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg border border-white/[0.05] bg-white/[0.015] px-1 py-2 text-center transition-colors hover:border-red-500/25 hover:bg-red-500/[0.035]"
+                    className="group flex min-w-0 cursor-help flex-col items-center rounded-lg px-1 py-2 text-center transition-colors hover:bg-white/[0.04]"
                   >
-                    <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-red-500/20 bg-red-500/[0.09] text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)] transition-colors group-hover:border-red-500/35 group-hover:bg-red-500/[0.15]">
+                    <span className="flex h-[24px] w-[30px] items-center justify-center text-red-400 transition-colors group-hover:text-red-300">
                       <IconClock className="h-[17px] w-[17px]" />
                     </span>
-                    <span className="mt-1.5 whitespace-nowrap text-[15px] font-black leading-none tabular-nums text-white">{annualHours}</span>
+                    <span className="rac-num mt-1 whitespace-nowrap text-[24px] leading-none tabular-nums text-white">{annualHours}</span>
                     <span className="mt-1 text-[9px] font-semibold leading-none text-white/60">Tempo jogado</span>
                   </div>
                 </div>
