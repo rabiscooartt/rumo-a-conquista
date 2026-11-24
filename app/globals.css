@@ -708,3 +708,18 @@ body h2:is([class*="line-clamp"], .truncate):is(
   font-size: 20px !important;
   letter-spacing: 0.01em;
 }
+
+/*
+  Superfície única dos painéis: Início (#07090d/95) e página de jogo (#090909) usavam tons
+  próprios; todos passam ao padrão do site (#090b0f, borda branca a 10%). Painéis temáticos
+  (Jogo atual, Nota final) e os com borda colorida mantêm a própria cor.
+*/
+body main section:is([class~="bg-[#07090d]/95"], [class~="bg-[#090909]"], [class~="bg-[#090b0f]"]) {
+  background-color: var(--rac-surface-raised);
+}
+body main section:is([class~="bg-[#07090d]/95"], [class~="bg-[#090909]"], [class~="bg-[#090b0f]"]):is(
+  [class~="border-white/[0.08]"],
+  [class~="border-white/[0.09]"]
+) {
+  border-color: rgba(255, 255, 255, 0.1);
+}

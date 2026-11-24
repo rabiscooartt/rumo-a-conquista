@@ -104,7 +104,9 @@ const navLinks = [
   { label: "Banco de Jogos", href: "/admin/sorteio-jogos", adminOnly: true },
 ];
 
-export default function Navbar() {
+// A tela de carregamento usa uma cópia da barra; o sufixo evita ids repetidos enquanto as duas coexistem.
+export default function Navbar({ idSuffix = "" }: { idSuffix?: string } = {}) {
+  const mobileNavId = "rac-mobile-navigation" + idSuffix;
   const pathname = usePathname();
   const router = useRouter();
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -271,7 +273,7 @@ export default function Navbar() {
             </div>
             ) : null}
           </div>
-          <button type="button" onClick={() => { setIsSearchOpen(false); setIsAccountOpen(false); setIsMenuOpen((open) => !open); }} aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={isMenuOpen} aria-controls="rac-mobile-navigation" className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-500/35 bg-red-500/[0.08] text-red-200 transition hover:border-red-400/60 hover:bg-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
+          <button type="button" onClick={() => { setIsSearchOpen(false); setIsAccountOpen(false); setIsMenuOpen((open) => !open); }} aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={isMenuOpen} aria-controls={mobileNavId} className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-500/35 bg-red-500/[0.08] text-red-200 transition hover:border-red-400/60 hover:bg-red-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 min-[1080px]:hidden">
             {isMenuOpen ? <CloseIcon className="h-4 w-4" /> : <MenuIcon className="h-4 w-4" />}
           </button>
         </div>
@@ -281,7 +283,7 @@ export default function Navbar() {
           <SearchForm compact value={searchQuery} onChange={setSearchQuery} />
         </div>
       ) : null}
-      <div id="rac-mobile-navigation" className={"relative z-10 mx-auto w-full px-3 pb-3 min-[1080px]:hidden " + (isMenuOpen ? "block" : "hidden")}>
+      <div id={mobileNavId} className={"relative z-10 mx-auto w-full px-3 pb-3 min-[1080px]:hidden " + (isMenuOpen ? "block" : "hidden")}>
         <div className="rounded-xl border border-white/10 bg-[#08090d]/95 p-2 shadow-[0_18px_45px_rgba(0,0,0,.56)] backdrop-blur-2xl">
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {visibleLinks.map((link) => renderLink(link, true))}

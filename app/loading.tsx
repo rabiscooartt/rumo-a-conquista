@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 export default function Loading() {
   return (
     <main className="min-h-screen text-white" aria-busy="true">
-      <Navbar />
+      <Navbar idSuffix="-loading" />
       <div className="rac-route-progress" role="progressbar" aria-label="Carregando página" />
       <div className="mx-auto w-full max-w-[1500px] px-4 pt-6 md:px-6">
         <div className="rac-skeleton h-[180px] w-full rounded-2xl sm:h-[220px]" />

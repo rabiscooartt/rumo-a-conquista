@@ -43,9 +43,12 @@ test.describe("avatar e entradas do Admin para visitantes", () => {
     await blockWrites(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
     const menu = page.locator("#rac-mobile-navigation");
-    await expect(menu).toBeVisible();
+    // Sob carga, o clique pode chegar antes de a página terminar de ativar (hidratação): repete até abrir.
+    await expect(async () => {
+      if (!(await menu.isVisible())) await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
+      await expect(menu).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 15_000 });
     await expect(menu.getByText(/admin|avatar/i)).toHaveCount(0);
   });
 });

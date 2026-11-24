@@ -1348,11 +1348,13 @@ export default function LandingHome({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 items-center gap-3 px-3 py-3 sm:grid-cols-[minmax(230px,1fr)_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[minmax(242px,1.1fr)_minmax(300px,1.3fr)_minmax(180px,0.85fr)] lg:gap-4 lg:px-5">
+              {/* Duas colunas: a capa ocupa a altura do card; a coluna de informações sempre termina no bloco de status
+                  (progresso ou Jornada de Estreia), então não sobra coluna vazia em nenhum estado do jogo. */}
+              <div className="grid grid-cols-1 items-stretch gap-4 px-3 py-3 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:gap-5 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
                 <Link
                   href={"/games/" + currentGame.slug}
                   aria-label={"Abrir jogo: " + currentGame.title}
-                  className="group relative block aspect-[2.25/1] w-full self-center overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition"
+                  className="group relative block aspect-[16/9] w-full overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition sm:aspect-auto sm:h-full sm:min-h-[210px]"
                   style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)" }}
                 >
                   <img
@@ -1372,11 +1374,12 @@ export default function LandingHome({
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/[0.02]" />
                 </Link>
 
-                <div className="flex min-w-0 flex-col justify-center gap-2.5 sm:gap-3">
+                <div className="flex min-w-0 flex-col justify-between gap-4 sm:py-1">
                   <div className="min-w-0">
-                    <h3 className="text-lg font-black leading-tight tracking-[-0.03em] text-white sm:text-xl lg:text-[19px] xl:whitespace-nowrap xl:text-[20px]">{currentGame.title}</h3>
-                    <p className="mt-1 text-[11px] leading-snug text-white/65 sm:text-xs">{currentGame.subtitle || "Sua jornada em andamento"}</p>
+                    <h3 className="font-[family-name:var(--font-display)] text-[26px] font-bold leading-[1.02] tracking-[0.005em] text-white sm:text-[28px] xl:text-[32px]">{currentGame.title}</h3>
+                    <p className="mt-1.5 text-xs leading-snug text-white/65">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
+                  <div className="flex min-w-0 flex-col gap-3">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs">
                     {currentGame.platform ? (
                       <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
@@ -1405,14 +1408,13 @@ export default function LandingHome({
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Em andamento
                       </span>
-                      <span className="basis-full text-[11px] leading-snug text-white/55 sm:basis-auto">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
+                      <span className="basis-full text-[11px] leading-snug text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
                     </div>
                   ) : null}
-                </div>
 
                 {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
                   <div
-                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3 sm:col-span-2 lg:col-span-1"
+                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3"
                     style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.20)", backgroundColor: "rgba(0,0,0,0.24)" }}
                     aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}
                   >
@@ -1434,6 +1436,8 @@ export default function LandingHome({
                     ) : null}
                   </div>
                 ) : null}
+                  </div>
+                </div>
               </div>
 
               {!showFirstJourneyPlaceholder ? (
