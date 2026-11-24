@@ -1374,12 +1374,12 @@ export default function LandingHome({
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/[0.02]" />
                 </Link>
 
-                <div className="flex min-w-0 flex-col justify-between gap-4 sm:py-1">
+                <div className="flex min-w-0 flex-col justify-center gap-4 sm:py-1">
                   <div className="min-w-0">
                     <h3 className="font-[family-name:var(--font-display)] text-[26px] font-bold leading-[1.02] tracking-[0.005em] text-white sm:text-[28px] xl:text-[32px]">{currentGame.title}</h3>
                     <p className="mt-1.5 text-xs leading-snug text-white/65">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
-                  <div className="flex min-w-0 flex-col gap-3">
+                  <div className="flex min-w-0 flex-col gap-2.5">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs">
                     {currentGame.platform ? (
                       <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
@@ -1402,13 +1402,13 @@ export default function LandingHome({
                     ) : null}
                   </div>
                   {showFirstJourneyPlaceholder ? (
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-2" style={{ borderColor: currentGameTheme.accent }}>
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-1.5" style={{ borderColor: currentGameTheme.accent }}>
                       <span className="text-xs font-bold text-white">Jornada de Estreia</span>
                       <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-300">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Em andamento
                       </span>
-                      <span className="basis-full text-[11px] leading-snug text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
+                      <span className="basis-full text-[11px] leading-tight text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
                     </div>
                   ) : null}
 

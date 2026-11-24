@@ -751,7 +751,7 @@ function EmblemCard({
         <div
           className={`relative z-10 h-full w-full transition duration-300 ${
             isLocked
-              ? "blur-[10px] brightness-[0.6] saturate-[0.9] group-hover:brightness-[0.72]"
+              ? "blur-[10px] grayscale brightness-[0.5] group-hover:brightness-[0.62]"
               : "group-hover:brightness-110"
           }`}
         >
