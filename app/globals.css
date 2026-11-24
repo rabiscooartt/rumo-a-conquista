@@ -662,3 +662,49 @@ body main :is(section, div, aside, article)[class*="rounded-"][class*="border-wh
     inset 0 1px 0 rgba(255, 255, 255, 0.055),
     0 22px 44px -30px rgba(0, 0, 0, 0.95);
 }
+
+/* Números secundários (resumos laterais): mesma voz dos números do topo, um degrau abaixo. */
+body .rac-num {
+  font-family: var(--font-display), var(--rac-display-fallback);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/*
+  Consistência das superfícies: os painéis de página usam o mesmo raio (14px, o mais
+  frequente no site). Os que fugiam dele (12px, xl, 2xl) não tinham motivo visual para isso.
+*/
+body main section[class*="border"]:is(.rounded-xl, .rounded-2xl, [class~="rounded-[12px]"]) {
+  border-radius: 14px;
+}
+
+/*
+  Rótulos em caixa-alta: espaçamento de letras acima de 0,16em deixava os textos pequenos
+  esticados e ruidosos. O teto de 0,14em mantém o caráter de rótulo com mais calma.
+*/
+body :is(
+  [class~="tracking-[0.18em]"],
+  [class~="tracking-[0.2em]"],
+  [class~="tracking-[0.20em]"],
+  [class~="tracking-[0.22em]"],
+  [class~="tracking-[0.24em]"],
+  [class~="tracking-[0.25em]"],
+  [class~="tracking-[0.28em]"],
+  [class~="tracking-[0.3em]"]
+) {
+  letter-spacing: 0.14em;
+}
+
+/* Nomes de jogos em cards e listas são títulos de item, não de seção: degrau menor. */
+body h2:is([class*="line-clamp"], .truncate):is(
+  [class~="text-[14px]"],
+  [class~="text-[15px]"],
+  [class~="text-[16px]"],
+  [class~="text-[18px]"],
+  .text-sm,
+  .text-base,
+  .text-lg
+) {
+  font-size: 20px !important;
+  letter-spacing: 0.01em;
+}
