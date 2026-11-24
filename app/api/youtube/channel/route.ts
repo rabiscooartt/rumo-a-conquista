@@ -6,6 +6,9 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("handle"),
     request.nextUrl.searchParams.get("maxResults")
   );
+  if (!handle) {
+    return NextResponse.json({ error: "Canal não disponível." }, { status: 404 });
+  }
   const result = await loadYoutubeChannel(handle, maxResults);
 
   if (!result.ok) {
