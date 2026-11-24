@@ -751,7 +751,7 @@ function EmblemCard({
         <div
           className={`relative z-10 h-full w-full transition duration-300 ${
             isLocked
-              ? "opacity-70 grayscale contrast-[1.15] brightness-[0.34] group-hover:brightness-[0.45]"
+              ? "blur-[10px] brightness-[0.6] saturate-[0.9] group-hover:brightness-[0.72]"
               : "group-hover:brightness-110"
           }`}
         >
@@ -764,12 +764,12 @@ function EmblemCard({
           />
         </div>
         {isLocked ? (
-          // Selo: a silhueta da arte fica visível (curiosidade), o emblema em si continua guardado.
+          // Cadeado discreto: a arte desfocada desperta a curiosidade; o cadeado só sinaliza o estado.
           <span
             aria-hidden="true"
-            className="absolute left-1/2 top-1/2 z-20 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#07080b]/80 text-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.6)] transition duration-300 group-hover:border-red-500/40 group-hover:text-red-300"
+            className="absolute left-1/2 top-1/2 z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/60 transition duration-300 group-hover:text-white/80"
           >
-            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="10.5" width="14" height="10" rx="2" />
               <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />
               <path d="M12 14.5v2.5" />
