@@ -1252,6 +1252,8 @@ export default function LandingHome({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(5,6,9,0.55)_48%,rgba(5,6,9,0.96)_100%)]"
         />
+        {/* No celular o texto ocupa a largura toda e passa sobre a lua: véu leve para manter a leitura. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#050609]/35 md:hidden" />
 
         <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[330px] md:px-8 md:pt-8">
           <div className="max-w-[600px]">
