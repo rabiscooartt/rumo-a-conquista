@@ -1519,7 +1519,7 @@ export default function GameAchievementsPanel(
               >
                 <div className="p-3 sm:p-4">
                   {/* Celular: ícone + texto na primeira linha; troféu (sob o ícone) + episódio e data na segunda. */}
-                  <div className="grid grid-cols-[52px_minmax(0,1fr)] items-center gap-x-3 gap-y-3 md:grid-cols-[52px_minmax(0,1fr)_48px_146px] md:gap-x-2 md:gap-y-4">
+                  <div className="grid grid-cols-[52px_minmax(0,1fr)_32px] items-start gap-x-3 gap-y-2 md:grid-cols-[52px_minmax(0,1fr)_48px_146px] md:items-center md:gap-x-2 md:gap-y-4">
                     <div
                       className={`h-[52px] w-[52px] overflow-hidden rounded-[10px] border bg-black/45 ${
                         visuallyLocked
@@ -1551,7 +1551,7 @@ export default function GameAchievementsPanel(
                       )}
                     </div>
 
-                    <div className={visuallyLocked ? "min-w-0 md:col-span-3" : "min-w-0"}>
+                    <div className={visuallyLocked ? "min-w-0 col-span-2 md:col-span-3" : "min-w-0"}>
                       <h3 className="text-sm font-black tracking-[-0.01em] text-white sm:text-[15px]">
                         {formatAchievementTitle(achievement.title)}
                       </h3>
@@ -1564,19 +1564,19 @@ export default function GameAchievementsPanel(
 
                     {!visuallyLocked && (
                       <>
-                        <div className="flex min-w-0 items-center justify-center md:justify-end">
+                        <div className="flex min-w-0 items-start justify-end md:items-center">
                           <img
                             src={homeImageSrc(trophyImagePath(rank))}
                             alt={rankLabel(rank)}
                             title={rankLabel(rank)}
                             aria-hidden="false"
-                            className="h-11 w-11 shrink-0 object-contain"
+                            className="h-8 w-8 shrink-0 object-contain md:h-11 md:w-11"
                           />
                         </div>
 
                         <div className={showJourneyLabel || hasEpisodeMetadata
-                          ? "flex min-w-0 flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 text-left md:flex-col md:justify-center md:gap-1 md:text-center md:pl-1.5"
-                          : "flex min-w-0 flex-col items-start justify-center gap-1 text-left md:items-end md:text-right"}>
+                          ? "col-span-2 col-start-2 flex min-w-0 flex-row flex-wrap items-center justify-start gap-x-3 gap-y-1 text-left md:col-span-1 md:col-start-auto md:flex-col md:justify-center md:gap-1 md:text-center md:pl-1.5"
+                          : "col-span-2 col-start-2 flex min-w-0 flex-col items-start justify-center gap-1 text-left md:col-span-1 md:col-start-auto md:items-end md:text-right"}>
                           {showJourneyLabel ? (
                             (() => {
                               const journeyDateValue =

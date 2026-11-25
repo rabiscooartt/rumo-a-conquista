@@ -298,7 +298,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
   const isCustomTitle = normalizeKey(reviewTitle) !== normalizeKey(`Review de ${game.title}`);
 
   return (
-    <article className="group relative isolate grid grid-cols-[96px_minmax(0,1fr)] gap-2.5 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-2.5 py-3 transition-colors duration-200 hover:border-red-500/30 min-[420px]:grid-cols-[112px_minmax(0,1fr)] min-[420px]:gap-3 min-[420px]:px-3 min-[420px]:py-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
+    <article className="group relative isolate grid grid-cols-[72px_minmax(0,1fr)] gap-x-3 gap-y-2 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] px-2.5 py-3 transition-colors duration-200 hover:border-red-500/30 min-[420px]:grid-cols-[84px_minmax(0,1fr)] min-[420px]:gap-x-3.5 min-[420px]:px-3 min-[420px]:py-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4 sm:px-4 sm:py-5 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-4">
       {image ? (
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <img
@@ -312,7 +312,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           <div className="absolute inset-0 bg-[#050608]/30" />
         </div>
       ) : null}
-      <div className="relative z-20 aspect-[3/4] w-full overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
+      <div className="relative z-20 row-span-2 aspect-[3/4] w-full self-start sm:row-span-1 overflow-hidden rounded-md border border-white/10 bg-black pointer-events-none">
         {image ? (
           <img
             src={image}
@@ -326,8 +326,8 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         )}
       </div>
 
-      <div className="relative z-20 flex min-w-0 flex-col py-0.5 pointer-events-none">
-        <div className="flex min-w-0 items-start justify-between gap-3">
+      <div className="contents sm:relative sm:z-20 sm:flex sm:min-w-0 sm:flex-col sm:py-0.5 sm:pointer-events-none">
+        <div className="pointer-events-none relative z-20 col-start-2 flex min-w-0 items-start justify-between gap-3 self-end sm:col-start-auto sm:self-auto">
           <div className="min-w-0">
             <h3 className="break-words text-[15px] font-black leading-snug text-white transition-colors group-hover:text-red-100 sm:text-[17px]">
               {game.title}
@@ -338,7 +338,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           </span>
         </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <div className="pointer-events-none relative z-20 col-start-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 self-start sm:mt-1.5 sm:col-start-auto sm:self-auto">
           {score !== null ? (
             <span className="inline-flex items-center gap-1.5" title={`Nota final: ${score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10`}>
               <StarRating
@@ -375,7 +375,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
         </div>
 
         {isCustomTitle ? (
-          <p className="mt-2.5 text-[13px] font-bold leading-snug text-red-400 sm:text-[14px]">
+          <p className="pointer-events-none relative z-20 col-span-2 mt-1 text-[13px] font-bold leading-snug text-red-400 sm:col-span-1 sm:mt-2.5 sm:text-[14px]">
             {reviewTitle}
           </p>
         ) : null}
@@ -384,7 +384,7 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           <WholeWordPreview
             text={mainExcerpt}
             maxLines={2}
-            className="mt-2.5 text-[13px] leading-[1.6] text-white/80"
+            className="pointer-events-none relative z-20 col-span-2 text-[13px] leading-[1.6] text-white/80 sm:col-span-1 sm:mt-2.5"
           />
         ) : null}
 
@@ -392,11 +392,11 @@ function ReviewCard({ game }: { game: ReviewGame }) {
           <WholeWordPreview
             text={secondaryExcerpt}
             maxLines={2}
-            className="mt-2 text-[13px] leading-[1.6] text-white/70"
+            className="pointer-events-none relative z-20 col-span-2 text-[13px] leading-[1.6] text-white/70 sm:col-span-1 sm:mt-2"
           />
         ) : null}
 
-        <div className="mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3">
+        <div className="pointer-events-none relative z-20 col-span-2 mt-1 flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-white/[0.08] pt-3 sm:col-span-1 sm:mt-auto">
           <Link
             href={`/games/${encodeURIComponent(game.slug)}`}
             className="pointer-events-auto inline-flex items-center gap-1.5 text-[12px] font-bold text-white/60 transition hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"

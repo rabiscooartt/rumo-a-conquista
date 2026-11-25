@@ -660,7 +660,7 @@ function BadgeImage({
 }
 
 function getFilterButtonClass(isActive: boolean) {
-  return `rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
+  return `flex min-h-10 items-center justify-center rounded-xl border px-2 py-1.5 text-center leading-tight sm:inline-flex sm:min-h-0 sm:rounded-full sm:py-2 sm:leading-normal text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
     isActive
       ? "border-red-500/45 bg-red-500/20 text-red-200 shadow-[0_0_24px_rgba(239,68,68,0.14)]"
       : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
@@ -1331,8 +1331,8 @@ export default function SagasClient({
               />
             </label>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-[40px] overflow-hidden rounded-full border border-white/10 bg-black/45">
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center">
+              <div className="order-1 flex h-[40px] overflow-hidden rounded-full border border-white/10 bg-black/45 sm:order-none">
                 <input
                   value={yearInput}
                   onChange={(event) => {
@@ -1367,7 +1367,7 @@ export default function SagasClient({
                 <button
                   type="button"
                   onClick={clearYearFilter}
-                  className="rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-3 py-2 text-[10px] font-black text-emerald-200 transition hover:bg-emerald-500/[0.14]"
+                  className="order-1 rounded-full border border-emerald-400/25 sm:order-none bg-emerald-500/[0.08] px-3 py-2 text-[10px] font-black text-emerald-200 transition hover:bg-emerald-500/[0.14]"
                 >
                   {activeYear} ×
                 </button>
@@ -1442,7 +1442,7 @@ export default function SagasClient({
                 </span>
               </button>
 
-              <label className="flex h-[40px] items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 xl:ml-1">
+              <label className="order-2 col-span-2 flex h-[40px] min-w-0 items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 sm:order-none sm:col-span-1 xl:ml-1">
                 <span aria-hidden="true" className="text-white/40">
                   <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
                     <path d="M4.5 13V3m0 0L2 5.5M4.5 3 7 5.5M11.5 3v10m0 0L9 10.5m2.5 2.5 2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />

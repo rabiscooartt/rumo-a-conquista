@@ -1421,7 +1421,7 @@ export default function ConteudoClient({
             </div>
           </header>          {/* Filtros para telas sem sidebar */}
           <section className="mt-4 lg:hidden">
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:-mx-5 md:px-5 [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-full gap-1 rounded-xl border border-white/10 bg-white/[0.02] p-1" role="group" aria-label="Filtrar conteúdos">
               {filters.map((filter) => {
                 const isActive = activeFilter === filter.value;
 
@@ -1430,10 +1430,10 @@ export default function ConteudoClient({
                     key={filter.value}
                     type="button"
                     onClick={() => setActiveFilter(filter.value)}
-                    className={`inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-lg border px-4 text-[12px] font-bold transition ${
+                    className={`inline-flex min-h-10 min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-lg border px-1 text-[11px] font-bold transition min-[380px]:text-[12px] ${
                       isActive
                         ? "border-red-500/35 bg-red-500/10 text-red-200"
-                        : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"
+                        : "border-transparent text-white/60 hover:text-white"
                     }`}
                   >
                     {filter.label}

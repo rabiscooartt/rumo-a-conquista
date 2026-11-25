@@ -1317,10 +1317,10 @@ function ActivityRow({
   );
 
   return (
-    <article className="border-b border-white/[0.07] px-3 py-3 last:border-b-0 md:px-4 md:py-3.5">
-      <div className={`grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2.5 md:gap-3 md:ml-[30px] md:w-[calc(100%_-_60px)] ${isAdmin ? "md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px]" : "md:grid-cols-[70px_minmax(0,1fr)_96px_120px]"}`}>
+    <article className="border-b border-white/[0.07] px-3.5 py-4 last:border-b-0 md:px-4 md:py-3.5">
+      <div className={`grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 md:ml-[30px] md:w-[calc(100%_-_60px)] ${isAdmin ? "md:grid-cols-[70px_minmax(0,1fr)_96px_120px_62px]" : "md:grid-cols-[70px_minmax(0,1fr)_96px_120px]"}`}>
       <div>
-        <p className="text-[29px] font-black leading-none tracking-tight text-white md:text-[31px]">
+        <p className="text-[29px] font-black leading-none tracking-tight text-white max-md:font-[family-name:var(--font-display)] max-md:text-[34px] max-md:font-bold md:text-[31px]">
           {date.getDate()}
         </p>
 
@@ -1367,7 +1367,18 @@ function ActivityRow({
                   })
               )}
             </span>
+            {/* No celular a coluna de plataforma some; a plataforma vem junto do dia da semana. */}
+            {platform ? <span className="text-white/45 md:hidden">· {platform}</span> : null}
           </div>
+
+          {/* No celular o tempo jogado fica sob o título, liberando a largura toda para o nome do jogo. */}
+          <p className={`mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-bold md:hidden ${Number(entry.playedMinutes || 0) > 0 ? "text-white" : "text-white/35"}`}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 text-red-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="8.5" />
+              <path d="M12 7.5V12l3 1.8" />
+            </svg>
+            {Number(entry.playedMinutes || 0) > 0 ? formatPlayedTime(entry.playedMinutes) : "—"}
+          </p>
         </div>
       </div>
 
@@ -1386,8 +1397,8 @@ function ActivityRow({
         )}
       </div>
 
-      <div className="text-right">
-        <p className={`text-[18px] font-black leading-none md:text-[19px] ${Number(entry.playedMinutes || 0) > 0 ? "text-white" : "text-white/35"}`}>
+      <div className="hidden text-right md:block">
+        <p className={`whitespace-nowrap text-[15px] font-black leading-none md:text-[19px] ${Number(entry.playedMinutes || 0) > 0 ? "text-white" : "text-white/35"}`}>
           {Number(entry.playedMinutes || 0) > 0
             ? formatPlayedTime(entry.playedMinutes)
             : "—"}
