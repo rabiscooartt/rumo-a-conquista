@@ -1077,16 +1077,20 @@ export default function LandingHome({
     if (!rail || showFirstJourneyPlaceholder || typeof ResizeObserver === "undefined") return;
 
     const updateCapacity = () => {
-      const width = rail.getBoundingClientRect().width;
+      // Largura útil da trilha (sem o espaçamento interno) e o espaço real entre as miniaturas.
+      const style = window.getComputedStyle(rail);
+      const width = rail.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
       if (width <= 0) return;
 
       const tileSize = window.innerWidth >= 1024 ? 48 : window.innerWidth >= 640 ? 44 : 40;
-      const gap = 8;
+      const moreTileSize = window.innerWidth >= 1024 ? 54 : window.innerWidth >= 640 ? 50 : 48;
+      const gap = parseFloat(style.columnGap) || 8;
       const availableSlots = Math.max(1, Math.floor((width + gap) / (tileSize + gap)));
       const total = loadedCurrentAchievementCandidates.length;
       const needsMoreTile = total > availableSlots;
+      // Com o indicador "+N", reserva a largura real dele antes de contar as miniaturas.
       const visibleCount = needsMoreTile
-        ? Math.max(1, availableSlots - 1)
+        ? Math.max(1, Math.floor((width - moreTileSize) / (tileSize + gap)))
         : Math.min(total, availableSlots);
 
       setCurrentAchievementRailCapacity((current) => current === visibleCount ? current : visibleCount);
@@ -1350,11 +1354,11 @@ export default function LandingHome({
 
               {/* Duas colunas: a capa ocupa a altura do card; a coluna de informações sempre termina no bloco de status
                   (progresso ou Jornada de Estreia), então não sobra coluna vazia em nenhum estado do jogo. */}
-              <div className="grid grid-cols-1 items-stretch gap-4 px-3 py-3 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:gap-5 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
+              <div className="grid grid-cols-1 items-stretch gap-4 px-3 py-3 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:gap-5 sm:px-4 sm:py-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)] lg:gap-6 lg:px-5 lg:py-5">
                 <Link
                   href={"/games/" + currentGame.slug}
                   aria-label={"Abrir jogo: " + currentGame.title}
-                  className="group relative block aspect-[16/9] w-full overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition sm:aspect-auto sm:h-full sm:min-h-[210px]"
+                  className="group relative block aspect-[16/9] w-full overflow-hidden rounded-xl border border-white/[0.16] bg-black/50 shadow-[0_8px_26px_rgba(0,0,0,0.38)] transition sm:aspect-auto sm:h-full sm:min-h-[210px] lg:aspect-[16/9] lg:min-h-0"
                   style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)" }}
                 >
                   <img
@@ -1374,20 +1378,22 @@ export default function LandingHome({
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/[0.02]" />
                 </Link>
 
-                <div className="flex min-w-0 flex-col justify-between gap-4 sm:py-1">
-                  <div className="min-w-0">
-                    <h3 className="font-[family-name:var(--font-display)] text-[26px] font-bold leading-[1.02] tracking-[0.005em] text-white sm:text-[28px] xl:text-[32px]">{currentGame.title}</h3>
-                    <p className="mt-1.5 text-xs leading-snug text-white/65">{currentGame.subtitle || "Sua jornada em andamento"}</p>
+                {/* Desktop (lg): título e gêneros com divisória; plataforma | data | tempo; painel de progresso até a base da capa. */}
+                <div className="flex min-w-0 flex-col justify-center gap-4 sm:py-1 lg:justify-start lg:gap-3.5 lg:py-0.5">
+                  <div className="min-w-0 lg:border-b lg:border-white/10 lg:pb-3.5">
+                    <h3 className="font-[family-name:var(--font-display)] text-[26px] font-bold leading-[1.02] tracking-[0.005em] text-white sm:text-[28px] lg:text-[clamp(21px,1.42vw,28px)] lg:leading-[1.05]">{currentGame.title}</h3>
+                    <p className="mt-1.5 text-xs leading-snug text-white/65 lg:mt-1 lg:text-white/70">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
-                  <div className="flex min-w-0 flex-col gap-3">
-                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs">
+                  <div className="flex min-w-0 flex-col gap-2.5 lg:flex-1 lg:gap-3.5">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs lg:!text-[clamp(12px,0.78vw,15px)]">
                     {currentGame.platform ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap lg:order-1 lg:rounded-full lg:border lg:border-white/15 lg:bg-white/[0.03] lg:py-1 lg:pl-1.5 lg:pr-3">
                         <PlatformIcon platform={currentGame.platform} className="h-[19px] w-[19px]" />
                         {currentGame.platform}
                       </span>
                     ) : null}
-                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/70">
+                    <span aria-hidden="true" className="hidden h-5 w-px bg-white/15 lg:order-2 lg:block" />
+                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/70 lg:order-5 lg:text-white/85">
                       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="8.5" />
                         <path d="M12 7.5v5l3 2" />
@@ -1395,26 +1401,67 @@ export default function LandingHome({
                       {hasUsefulTimeValue(currentGame.hours) ? readText(currentGame.hours, "") : "-"}
                     </span>
                     {getGameTimestamp(currentGame) ? (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/55">
-                        <span aria-hidden="true" className="h-3.5 w-px bg-white/25" />
-                        {formatShortDate(getGameTimestamp(currentGame))}
-                      </span>
+                      <>
+                        <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-white/55 lg:order-3 lg:text-white/85">
+                          <span aria-hidden="true" className="h-3.5 w-px bg-white/25 lg:hidden" />
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="hidden h-4 w-4 lg:block" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+                            <path d="M16 3v4M8 3v4M3.5 10h17M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" />
+                          </svg>
+                          {formatShortDate(getGameTimestamp(currentGame))}
+                        </span>
+                        <span aria-hidden="true" className="hidden h-5 w-px bg-white/15 lg:order-4 lg:block" />
+                      </>
                     ) : null}
                   </div>
                   {showFirstJourneyPlaceholder ? (
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-2" style={{ borderColor: currentGameTheme.accent }}>
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-1.5" style={{ borderColor: currentGameTheme.accent }}>
                       <span className="text-xs font-bold text-white">Jornada de Estreia</span>
                       <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-300">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Em andamento
                       </span>
-                      <span className="basis-full text-[11px] leading-snug text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
+                      <span className="basis-full text-[11px] leading-tight text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
                     </div>
                   ) : null}
 
                 {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
+                  /* Painel de progresso do desktop, conforme a referência: ocupa o espaço até a base da capa. */
                   <div
-                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3"
+                    className="hidden min-h-0 min-w-0 flex-col justify-between gap-3 rounded-2xl border bg-[#060b10]/70 px-4 py-3.5 lg:flex lg:flex-1 2xl:px-5 2xl:py-4"
+                    style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.55)" }}
+                    aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8 shrink-0 2xl:h-9 2xl:w-9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ color: currentGameTheme.accent }}>
+                          <path d="M8 4.5h8v4.7a4 4 0 0 1-8 0V4.5Z" />
+                          <path d="M8 6H5.5v2a3 3 0 0 0 3 3M16 6h2.5v2a3 3 0 0 1-3 3M12 13v4M8.5 20h7" />
+                        </svg>
+                        <span className="min-w-0">
+                          <span className="rac-num block text-[clamp(16px,1vw,20px)] leading-none text-white">{currentCounts.unlocked} / {currentCounts.total}</span>
+                          <span className="mt-1 block text-[11px] font-medium text-white/70">Conquistas desbloqueadas</span>
+                        </span>
+                      </div>
+                      <span className="rac-num shrink-0 text-[clamp(20px,1.3vw,26px)] leading-none text-white">{currentProgress}%</span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/[0.12]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={currentProgress} aria-label={"Progresso de " + currentGame.title}>
+                      <div className="h-full rounded-full transition-[width] duration-300" style={{ width: currentProgress + "%", backgroundColor: currentGameTheme.accent }} />
+                    </div>
+                    {getGameTimestamp(currentGame) ? (
+                      <p className="inline-flex items-center gap-2 text-[11px] font-medium text-white/65">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 text-white/55" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4" />
+                        </svg>
+                        Atualizado em {formatShortDate(getGameTimestamp(currentGame))}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {!showFirstJourneyPlaceholder && currentCounts && currentCounts.total > 0 ? (
+                  <div
+                    className="min-w-0 rounded-xl border bg-black/25 px-3 py-3 lg:hidden"
                     style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.20)", backgroundColor: "rgba(0,0,0,0.24)" }}
                     aria-label={"Progresso de " + currentGame.title + ": " + currentCounts.unlocked + " de " + currentCounts.total + " conquistas"}
                   >
@@ -1442,11 +1489,11 @@ export default function LandingHome({
 
               {!showFirstJourneyPlaceholder ? (
                 <div
-                  className="mx-3 mb-3 grid grid-cols-1 gap-2.5 rounded-xl border bg-black/35 px-3 py-2.5 sm:mx-4 sm:mb-4 sm:grid-cols-[190px_minmax(0,1fr)_auto] sm:items-center sm:gap-3 sm:px-4 lg:mx-5"
+                  className="mx-3 mb-3 grid grid-cols-1 gap-2.5 rounded-xl border bg-black/35 px-3 py-2.5 sm:mx-4 sm:mb-4 sm:grid-cols-[190px_minmax(0,1fr)_auto] sm:items-center sm:gap-3 sm:px-4 lg:mx-5 lg:mb-5 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-0 lg:rounded-2xl lg:bg-[#060b10]/70 lg:px-4 lg:py-3"
                   style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.38)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px " + currentGameTheme.glow }}
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-black/25" style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)", color: currentGameTheme.accent }}>
+                    <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-black/25 lg:h-10 lg:w-10" style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)", color: currentGameTheme.accent }}>
                       <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="8.2" />
                         <circle cx="12" cy="12" r="2.7" />
@@ -1454,13 +1501,13 @@ export default function LandingHome({
                       </svg>
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[9px] font-black uppercase tracking-[0.09em] text-white sm:text-[10px]">Próximas conquistas</span>
-                      <span className="mt-0.5 block text-[9px] font-semibold text-white/45">{pendingCurrentAchievementList.length} pendentes</span>
+                      <span className="block text-[9px] font-black uppercase tracking-[0.09em] text-white sm:text-[10px] lg:font-[family-name:var(--font-display)] lg:text-[15px] lg:font-bold lg:tracking-[0.03em]">Próximas conquistas</span>
+                      <span className="mt-0.5 block text-[9px] font-semibold text-white/45 lg:text-[11px] lg:font-medium lg:text-white/65">{pendingCurrentAchievementList.length} pendentes</span>
                     </span>
                   </div>
                   <div
                     ref={currentAchievementRailRef}
-                    className="flex min-w-0 items-center gap-2 overflow-hidden py-0.5"
+                    className="flex min-w-0 items-center gap-2 overflow-hidden py-0.5 lg:mx-5 lg:gap-2.5 lg:border-x lg:border-white/10 lg:px-5"
                     aria-label="Miniaturas das próximas conquistas"
                   >
                     {loadedCurrentAchievementCandidates.slice(0, visibleCurrentAchievementCount).map((achievement, index) => (
@@ -1486,7 +1533,7 @@ export default function LandingHome({
                       </Link>
                     ) : null}
                   </div>
-                  <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 whitespace-nowrap text-right text-[10px] font-black uppercase text-white/75 transition hover:text-white sm:text-left" style={{ color: currentGameTheme.accent }}>
+                  <Link href={"/games/" + currentGame.slug} aria-label="Ver todas as conquistas" className="shrink-0 whitespace-nowrap text-right text-[10px] font-black uppercase text-white/75 transition hover:text-white sm:text-left lg:pr-1 lg:font-[family-name:var(--font-display)] lg:text-[15px] lg:font-bold lg:tracking-[0.04em]" style={{ color: currentGameTheme.accent }}>
                     Ver todas <span aria-hidden="true">→</span>
                   </Link>
                 </div>
@@ -1561,7 +1608,7 @@ export default function LandingHome({
                     </div>
 
                     <div className="min-w-0 pt-0.5">
-                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 overflow-hidden sm:flex-nowrap">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 overflow-hidden sm:flex-nowrap sm:gap-x-2 sm:gap-y-1">
                         <h3
                           className="min-w-0 basis-full line-clamp-2 break-words text-[16px] leading-tight sm:truncate sm:leading-normal sm:max-w-[72%] sm:shrink sm:basis-auto font-black tracking-tight text-white sm:text-[19px]"
                           title={game.title}
@@ -1575,12 +1622,12 @@ export default function LandingHome({
                             className="h-[14px] !text-[12px] !tracking-[-0.04em]"
                           />
                         ) : null}
-                        <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] " + statusClass}>
+                        <span className={"shrink-0 rounded-full border px-2 py-0.5 max-sm:ml-auto text-[10px] font-black uppercase tracking-[0.08em] " + statusClass}>
                           {statusLabel}
                         </span>
                       </div>
 
-                      <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] font-medium text-white/65">
+                      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] sm:mt-2.5 sm:gap-x-2.5 sm:gap-y-1 font-medium text-white/65">
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <PlatformIcon platform={platform} className="h-[18px] w-[18px] text-white/65" />
                           {platform}
