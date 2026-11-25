@@ -1380,12 +1380,12 @@ export default function LandingHome({
                 </Link>
 
                 {/* Desktop (lg): título e gêneros com divisória; plataforma | data | tempo; painel de progresso até a base da capa. */}
-                <div className="flex min-w-0 flex-col justify-center gap-4 sm:py-1 lg:justify-start lg:gap-3.5 lg:py-0.5">
+                <div className="flex min-w-0 flex-col justify-between gap-4 sm:py-1 lg:justify-start lg:gap-3.5 lg:py-0.5">
                   <div className="min-w-0 lg:border-b lg:border-white/10 lg:pb-3.5">
                     <h3 className="font-[family-name:var(--font-display)] text-[26px] font-bold leading-[1.02] tracking-[0.005em] text-white sm:text-[28px] lg:text-[clamp(21px,1.42vw,28px)] lg:leading-[1.05]">{currentGame.title}</h3>
                     <p className="mt-1.5 text-xs leading-snug text-white/65 lg:mt-1 lg:text-white/70">{currentGame.subtitle || "Sua jornada em andamento"}</p>
                   </div>
-                  <div className="flex min-w-0 flex-col gap-2.5 lg:flex-1 lg:gap-3.5">
+                  <div className="flex min-w-0 flex-col gap-3 lg:flex-1 lg:gap-3.5">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-bold text-white/85 sm:gap-x-4 sm:text-xs lg:!text-[clamp(12px,0.78vw,15px)]">
                     {currentGame.platform ? (
                       <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap lg:order-1 lg:rounded-full lg:border lg:border-white/15 lg:bg-white/[0.03] lg:py-1 lg:pl-1.5 lg:pr-3">
@@ -1416,13 +1416,13 @@ export default function LandingHome({
                     ) : null}
                   </div>
                   {showFirstJourneyPlaceholder ? (
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-1.5" style={{ borderColor: currentGameTheme.accent }}>
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-2" style={{ borderColor: currentGameTheme.accent }}>
                       <span className="text-xs font-bold text-white">Jornada de Estreia</span>
                       <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-300">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Em andamento
                       </span>
-                      <span className="basis-full text-[11px] leading-tight text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
+                      <span className="basis-full text-[11px] leading-snug text-white/55">Conclua esta etapa para revelar as miniaturas das conquistas.</span>
                     </div>
                   ) : null}
 
@@ -1609,7 +1609,7 @@ export default function LandingHome({
                     </div>
 
                     <div className="min-w-0 pt-0.5">
-                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 overflow-hidden sm:flex-nowrap sm:gap-x-2 sm:gap-y-1">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 overflow-hidden sm:flex-nowrap">
                         <h3
                           className="min-w-0 basis-full line-clamp-2 break-words text-[16px] leading-tight sm:truncate sm:leading-normal sm:max-w-[72%] sm:shrink sm:basis-auto font-black tracking-tight text-white sm:text-[19px]"
                           title={game.title}
@@ -1623,12 +1623,12 @@ export default function LandingHome({
                             className="h-[14px] !text-[12px] !tracking-[-0.04em]"
                           />
                         ) : null}
-                        <span className={"shrink-0 rounded-full border px-2 py-0.5 max-sm:ml-auto text-[10px] font-black uppercase tracking-[0.08em] " + statusClass}>
+                        <span className={"shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] " + statusClass}>
                           {statusLabel}
                         </span>
                       </div>
 
-                      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] sm:mt-2.5 sm:gap-x-2.5 sm:gap-y-1 font-medium text-white/65">
+                      <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] font-medium text-white/65">
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <PlatformIcon platform={platform} className="h-[18px] w-[18px] text-white/65" />
                           {platform}
