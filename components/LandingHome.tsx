@@ -1416,7 +1416,38 @@ export default function LandingHome({
                     ) : null}
                   </div>
                   {showFirstJourneyPlaceholder ? (
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-2" style={{ borderColor: currentGameTheme.accent }}>
+                    /* Desktop (lg): mesma presença do painel de progresso, ocupando o espaço até a base da capa. */
+                    <div
+                      className="hidden min-h-0 min-w-0 flex-col justify-between gap-3 rounded-2xl border bg-[#060b10]/70 px-4 py-3.5 lg:flex lg:flex-1 2xl:px-5 2xl:py-4"
+                      style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.45)" }}
+                    >
+                      <div className="flex min-w-0 items-center gap-3.5">
+                        <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-black/30 2xl:h-12 2xl:w-12" style={{ borderColor: "rgba(" + currentGameTheme.rgb + ", 0.35)", color: currentGameTheme.accent }}>
+                          <svg viewBox="0 0 24 24" className="h-5 w-5 2xl:h-6 2xl:w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5.5 21V4.5" />
+                            <path d="M5.5 5h11.2l-2.2 3.6 2.2 3.6H5.5" />
+                          </svg>
+                        </span>
+                        <span className="flex min-w-0 flex-col items-start gap-1.5">
+                          <span className="block font-[family-name:var(--font-display)] text-[clamp(18px,1.15vw,22px)] font-bold leading-none tracking-[0.01em] text-white">Jornada de Estreia</span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-2.5 py-[3px] text-[10px] font-black uppercase tracking-[0.08em] text-emerald-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+                            Em andamento
+                          </span>
+                        </span>
+                      </div>
+                      <div aria-hidden="true" className="h-px w-full bg-white/10" />
+                      <p className="flex items-start gap-2.5 text-[12px] leading-snug text-white/65 2xl:text-[13px]">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-px h-4 w-4 shrink-0 text-white/50" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="5" y="10.5" width="14" height="10" rx="2" />
+                          <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+                        </svg>
+                        Conclua esta etapa para revelar as miniaturas das conquistas.
+                      </p>
+                    </div>
+                  ) : null}
+                  {showFirstJourneyPlaceholder ? (
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 border-l-2 bg-black/25 px-3 py-2 lg:hidden" style={{ borderColor: currentGameTheme.accent }}>
                       <span className="text-xs font-bold text-white">Jornada de Estreia</span>
                       <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-300">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
