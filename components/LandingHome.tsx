@@ -503,8 +503,9 @@ function AchievementPreviewLink({
 }) {
   // Cópia WebP leve primeiro; o original só é baixado se a cópia falhar.
   const individualImages = lightImageCandidates(getIndividualAchievementImages(achievement));
-  const fallbackImage = getAchievementFallbackImage(achievement);
-  const imageSources = Array.from(new Set([...individualImages, fallbackImage]));
+  // Troféu padrão também em cópia leve (o original fica como reserva).
+  const fallbackImages = lightImageCandidates([getAchievementFallbackImage(achievement)]);
+  const imageSources = Array.from(new Set([...individualImages, ...fallbackImages]));
   const [sourceIndex, setSourceIndex] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
 
