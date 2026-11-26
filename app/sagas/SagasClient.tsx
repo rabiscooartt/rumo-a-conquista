@@ -2,11 +2,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { Cinzel } from "next/font/google";
 import BannerBackground from "@/components/BannerBackground";
 import Navbar from "@/components/Navbar";
 import { type HomeGamesCatalog, useSiteGames } from "@/lib/useSiteGames";
 import { largeImageSrc } from "@/lib/homeImages";
 import { type SiteSaga, useSiteSagas } from "@/lib/useSiteSagas";
+
+// Nomes dos emblemas: Cinzel SemiBold, carregada só nesta página e sem pré-carregamento.
+const emblemTitleFont = Cinzel({
+  subsets: ["latin"],
+  weight: "600",
+  display: "swap",
+  preload: false,
+});
 
 type AccentTheme = {
   border: string;
@@ -751,7 +760,7 @@ function EmblemCard({
         <div
           className={`relative z-10 h-full w-full transition duration-300 ${
             isLocked
-              ? "blur-[10px] brightness-[0.6] saturate-[0.9] group-hover:brightness-[0.72]"
+              ? "blur-[10px] brightness-[0.5] grayscale group-hover:brightness-[0.62]"
               : "group-hover:brightness-110"
           }`}
         >
@@ -779,9 +788,9 @@ function EmblemCard({
       </div>
 
       <h3
-        className={`relative top-[10px] mt-[11px] min-h-[30px] w-full line-clamp-2 font-serif text-[16px] font-bold uppercase leading-tight tracking-[0.025em] ${
-          isLarge ? "text-lg" : ""
-        } ${isLocked ? "text-white/35" : "text-white"}`}
+        className={`${emblemTitleFont.className} relative top-[10px] mt-[11px] min-h-[30px] w-full text-balance break-words uppercase leading-[1.2] tracking-[0.02em] ${
+          isLarge ? "text-[16px] sm:text-[17px]" : "text-[14px] sm:text-[15px] lg:text-[16px]"
+        } ${isLocked ? "text-white/50" : "text-white"}`}
       >
         {isLocked ? (
           <>
