@@ -104,6 +104,13 @@ const navLinks = [
   { label: "Banco de Jogos", href: "/admin/sorteio-jogos", adminOnly: true },
 ];
 
+// Ordem das abas só no desktop; o menu mobile segue a ordem de navLinks. Itens fora da lista vêm depois, na ordem original.
+const desktopOrder = ["/", "/biblioteca", "/atividade", "/conteudo", "/sagas", "/reviews"];
+const desktopRank = (href: string) => {
+  const index = desktopOrder.indexOf(href);
+  return index === -1 ? desktopOrder.length : index;
+};
+
 // A tela de carregamento usa uma cópia da barra; o sufixo evita ids repetidos enquanto as duas coexistem.
 export default function Navbar({ idSuffix = "" }: { idSuffix?: string } = {}) {
   const mobileNavId = "rac-mobile-navigation" + idSuffix;
@@ -172,6 +179,8 @@ export default function Navbar({ idSuffix = "" }: { idSuffix?: string } = {}) {
   const visibleLinks = navLinks.filter(
     (link) => (!("adminOnly" in link) || !link.adminOnly || isAdminMode)
   );
+  // Array.prototype.sort é estável: itens com o mesmo rank mantêm a ordem original.
+  const desktopLinks = [...visibleLinks].sort((a, b) => desktopRank(a.href) - desktopRank(b.href));
 
   function renderLink(link: (typeof navLinks)[number], mobile = false) {
     const targetHref = "adminHref" in link && isAdminMode && link.adminHref ? link.adminHref : link.href;
@@ -234,7 +243,7 @@ export default function Navbar({ idSuffix = "" }: { idSuffix?: string } = {}) {
           aria-label="Navegação principal"
           className="hidden shrink-0 items-center justify-start gap-1 min-[1080px]:flex"
         >
-          {visibleLinks.map((link) => renderLink(link))}
+          {desktopLinks.map((link) => renderLink(link))}
         </nav>
 
         <div className="hidden w-[184px] shrink-0 items-center min-[1080px]:flex min-[1360px]:w-[212px] min-[1360px]:min-w-[212px] min-[1360px]:max-w-[480px] min-[1360px]:flex-1 min-[1360px]:shrink">
