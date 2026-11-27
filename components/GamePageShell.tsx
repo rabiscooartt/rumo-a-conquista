@@ -510,7 +510,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                     </p>
                   </div>
 
-                  <div className="mt-7 inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-red-400">
+                  <div className="mt-7 inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.14em] text-red-400">
                     Na fila
                   </div>
 
@@ -528,7 +528,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
 
                   <div className="mt-8 flex items-center gap-4 border-t border-white/[0.08] pt-5">
                     <div>
-                      <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">
+                      <p className="text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.16em] text-white/25">
                         Próximo passo
                       </p>
                       <p className="mt-1 text-[11px] font-black uppercase tracking-[0.10em] text-white/65">
@@ -539,7 +539,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                     <div className="h-8 w-px bg-white/[0.08]" />
 
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black uppercase tracking-[0.16em] text-white/25">
+                      <p className="text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.16em] text-white/25">
                         Jogo
                       </p>
                       <p className="mt-1 truncate text-[12px] font-black text-white/75">
@@ -548,7 +548,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                     </div>
                   </div>
 
-                  <p className="mt-10 text-[8px] font-black uppercase tracking-[0.14em] text-white/20">
+                  <p className="mt-10 text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.14em] text-white/20">
                     Rumo à Conquista
                   </p>
                 </div>
@@ -564,7 +564,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
                     <div className="absolute bottom-5 left-5 right-5">
-                      <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                      <p className="text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
                         Jogo
                       </p>
                       <p className="mt-1 text-[15px] font-black leading-tight text-white">
@@ -598,7 +598,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/30 to-[#090909]" />
                   <div className="absolute bottom-4 left-4 right-4">
-                    <p className="text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                    <p className="text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
                       Jogo
                     </p>
                     <p className="mt-1 text-[13px] font-black leading-tight text-white">
@@ -616,7 +616,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                   </div>
 
                   <div className="mt-7">
-                    <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-red-400">
+                    <div className="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/[0.08] px-2.5 py-1 text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.14em] text-red-400">
                       Jornada em andamento
                     </div>
 
@@ -639,7 +639,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                   </div>
 
                   <div className="mt-7 border-t border-white/[0.07] pt-4">
-                    <p className="text-[8px] font-black uppercase tracking-[0.14em] text-white/25">
+                    <p className="text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.14em] text-white/25">
                       Rumo à Conquista
                     </p>
                   </div>
@@ -672,11 +672,11 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                         </p>
         
                         <div className="col-start-2 mt-2 flex flex-wrap items-center gap-1.5 self-start">
-                          <span className={`rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-500"}`}>
+                          <span className={`rounded-full border px-1.5 py-0.5 text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.08em] ${status === "completed" ? "border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300" : status === "planned" ? "border-cyan-400/25 bg-cyan-500/[0.08] text-cyan-300" : "border-red-500/25 bg-red-500/[0.08] text-red-500"}`}>
                             {statusLabel}
                           </span>
                           {game.platform && (
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white/40">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] px-1.5 py-0.5 text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.08em] text-white/40">
                               {normalizeText(game.platform) === "steam" ? (
                                 <img
                                   src="/images/platforms/steam.png"
@@ -805,7 +805,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                               title={reviewScoreValid ? `${reviewScoreDisplay}/10 · ${reviewRatingText}/5 estrelas` : "Nota pendente"}
                             />
                             {!reviewScoreValid && (
-                              <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.1em] text-white/40">
+                              <p className="mt-1 text-[8px] max-lg:text-[10px] font-bold uppercase tracking-[0.1em] text-white/40">
                                 Nota pendente
                               </p>
                             )}
@@ -938,7 +938,7 @@ export default function GamePageShell({ slug, game, initialJourneyRows }: Props)
                             </div>
         
                             <div className="min-w-0 flex-1">
-                              <p className="text-[8px] font-black uppercase tracking-[0.14em] text-red-500">
+                              <p className="text-[8px] max-lg:text-[10px] font-black uppercase tracking-[0.14em] text-red-500">
                                 Objetivo atual
                               </p>
                               <p className="mt-1 truncate text-[13px] font-black leading-tight text-white">

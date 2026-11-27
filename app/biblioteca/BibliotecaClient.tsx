@@ -2957,7 +2957,7 @@ export default function BibliotecaClient({
                       onClick={(event) => event.stopPropagation()}
                       onChange={(event) => setSelectedAnnualYear(Number(event.target.value))}
                       aria-label="Selecionar ano do resumo"
-                      className="appearance-none bg-transparent pr-4 text-[19px] font-black leading-none tracking-tight text-white outline-none cursor-pointer"
+                      className="appearance-none bg-transparent pr-4 text-[19px] font-black leading-none tracking-tight text-white outline-none cursor-pointer max-lg:-my-3 max-lg:py-3"
                     >
                       {availableAnnualYears.map((year) => (
                         <option key={year} value={year} className="bg-[#090b0f] text-white">
@@ -3080,7 +3080,7 @@ export default function BibliotecaClient({
                         onClick={() => setShowPlayingNow((current) => !current)}
                         aria-expanded={showPlayingNow}
                         aria-label={showPlayingNow ? "Ocultar outros jogos em andamento" : "Mostrar outros jogos em andamento"}
-                        className="mt-2 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/35 transition hover:text-white/70"
+                        className="mt-2 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/35 transition hover:text-white/70 max-lg:-mb-6 max-lg:pb-6"
                       >
                         <span
                           className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${
@@ -3128,7 +3128,7 @@ export default function BibliotecaClient({
                     setFilterMenu(null);
                     handleFilterChange("backlog");
                   }}
-                  className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 transition hover:text-red-300"
+                  className="text-[10px] font-black uppercase tracking-[0.15em] text-red-400 transition hover:text-red-300 max-lg:-my-3 max-lg:py-3"
                 >
                   Ver fila
                 </button>
@@ -3150,7 +3150,7 @@ export default function BibliotecaClient({
                           onClick={() => setShowBacklogQueue((current) => !current)}
                           aria-expanded={showBacklogQueue}
                           aria-label={showBacklogQueue ? "Ocultar os próximos jogos da fila" : "Mostrar os próximos jogos da fila"}
-                          className="mt-2 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/35 transition hover:text-white/70"
+                          className="mt-2 flex w-full justify-center border-t border-white/[0.06] pt-2 text-white/35 transition hover:text-white/70 max-lg:-mb-6 max-lg:pb-6"
                         >
                           <span
                             className={`block h-[5px] w-[5px] rotate-45 border-b border-r border-white/35 transition-transform duration-200 ${
