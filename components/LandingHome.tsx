@@ -718,16 +718,42 @@ function getRecentGameRating(game: HomeGame) {
     : 0;
 }
 
-function getRecentGameDate(game: HomeGame) {
-  const title = normalizeKey(game.title);
-  if (title === "crisoltheaterofidols") return "27/03/2026 → 06/04/2026";
-  if (title === "hogwartslegacy") return "25/01/2026 → 10/02/2026";
+// Datas de início registradas manualmente; o término de reserva só vale se o registro da Maestria não carregar.
+const RECENT_GAME_KNOWN_DATES: Record<string, { start: string; end: string }> = {
+  crisoltheaterofidols: { start: "27/03/2026", end: "06/04/2026" },
+  hogwartslegacy: { start: "25/01/2026", end: "10/02/2026" },
+};
+
+/**
+ * Data de término = data em que a Maestria foi conquistada. Ela vem do registro da Maestria Final
+ * (firstJourney.achievementMeta["<slug>-final-mastery"].date), gravado pelo admin junto com a conquista;
+ * sem esse registro não há término.
+ */
+function getFinalMasteryDate(game: HomeGame) {
+  const raw = readText(game.firstJourney?.achievementMeta?.[game.slug + "-final-mastery"]?.date, "").trim();
+  const isoDate = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDate) return `${isoDate[3]}/${isoDate[2]}/${isoDate[1]}`;
+  return /^\d{2}\/\d{2}\/\d{4}$/.test(raw) ? raw : "";
+}
+
+function getRecentGameDates(game: HomeGame) {
+  const known = RECENT_GAME_KNOWN_DATES[normalizeKey(game.title)];
+  const start = known?.start ?? "";
+  const end = getFinalMasteryDate(game) || known?.end || "";
+  if (end) return { start, end, other: "" };
 
   const raw = readText(game.updatedAt, "") || readText(game.createdAt, "");
-  if (!raw) return "";
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("pt-BR", { timeZone: HOME_TIME_ZONE });
+  const date = raw ? new Date(raw) : null;
+  const other = date && !Number.isNaN(date.getTime())
+    ? date.toLocaleDateString("pt-BR", { timeZone: HOME_TIME_ZONE })
+    : "";
+  return { start, end: "", other };
+}
+
+function getRecentGameDate(game: HomeGame) {
+  const { start, end, other } = getRecentGameDates(game);
+  if (end) return start ? `${start} → ${end}` : end;
+  return other;
 }
 
 function parseRecentGameTimestamp(value: unknown) {
@@ -1625,6 +1651,8 @@ export default function LandingHome({
                 ? "bg-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.55)]"
                 : "bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.45)]";
               const achievementPreviews = getRecentAchievementPreviews(game);
+              // No celular as datas ganham faixa própria: início (quando registrado) e término (data da Maestria) rotulados.
+              const { start: dateStart, end: dateEnd, other: dateOther } = getRecentGameDates(game);
 
               return (
                 <Link
@@ -1632,7 +1660,7 @@ export default function LandingHome({
                   href={"/games/" + game.slug}
                   className="group/recent-row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025] last:border-b-0"
                 >
-                  <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+                  <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 max-sm:items-start sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
                     <div className="h-[93px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
                         src={homeImageSrc(game.cardImage || game.image || "")}
@@ -1680,13 +1708,39 @@ export default function LandingHome({
                         {date ? (
                           <>
                             <span className="hidden h-4 w-px bg-white/15 sm:block" />
-                            <span className="inline-flex max-w-full items-center gap-1.5 sm:whitespace-nowrap">
+                            <span className="inline-flex max-w-full items-center gap-1.5 max-sm:hidden sm:whitespace-nowrap">
                               <RecentMetadataIcon type="calendar" className="h-4 w-4 shrink-0 text-violet-400" />
                               <span className="min-w-0">{date}</span>
                             </span>
                           </>
                         ) : null}
                       </div>
+
+                      {date ? (
+                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/[0.07] pt-2.5 text-[12px] font-medium text-white/75 sm:hidden">
+                          {dateEnd ? (
+                            <>
+                              {dateStart ? (
+                                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                                  <RecentMetadataIcon type="calendar" className="h-4 w-4 shrink-0 text-violet-400" />
+                                  <span className="text-white/45">Início</span>
+                                  {dateStart}
+                                </span>
+                              ) : null}
+                              <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                                <RecentMetadataIcon type="calendar" className="h-4 w-4 shrink-0 text-emerald-400" />
+                                <span className="text-white/45">Término</span>
+                                {dateEnd}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                              <RecentMetadataIcon type="calendar" className="h-4 w-4 shrink-0 text-violet-400" />
+                              {dateOther}
+                            </span>
+                          )}
+                        </div>
+                      ) : null}
 
                       <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2.5 gap-y-0">
                         <div className="h-[5px] min-w-0 overflow-hidden rounded-full bg-white/[0.07]">
