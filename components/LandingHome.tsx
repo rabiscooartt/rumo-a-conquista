@@ -8,6 +8,7 @@ import PlatformIcon from "@/components/PlatformIcon";
 import StarRating from "@/components/StarRating";
 import { type HomeGamesCatalog, type SiteGame, useSiteGames } from "@/lib/useSiteGames";
 import { games as baseGames } from "@/data/games";
+import { supabase } from "@/lib/supabase";
 import { fallbackToOriginal, homeImageSrc, lightImageCandidates } from "@/lib/homeImages";
 
 type HomeGame = SiteGame & {
@@ -718,13 +719,34 @@ function getRecentGameRating(game: HomeGame) {
     : 0;
 }
 
-// Datas de início registradas manualmente; o término de reserva só vale se o registro da Maestria não carregar.
-// Mouse: início = live do EP01 ("Dia 1", youtubeFirstLiveUrl), transmitida em 15/08/2026.
+// Reserva manual para jogos anteriores à aba Atividade (sem registros lá). O início real vem do primeiro
+// registro do jogo na Atividade; o término de reserva só vale se o registro da Maestria não carregar.
 const RECENT_GAME_KNOWN_DATES: Record<string, { start: string; end?: string }> = {
   crisoltheaterofidols: { start: "27/03/2026", end: "06/04/2026" },
   hogwartslegacy: { start: "25/01/2026", end: "10/02/2026" },
-  "mouse-p-i-for-hire": { start: "15/08/2026" },
 };
+
+/** "AAAA-MM-DD" (ou ISO) para "DD/MM/AAAA", sem conversão de fuso. */
+function formatIsoDay(value: string) {
+  const isoDate = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return isoDate ? `${isoDate[3]}/${isoDate[2]}/${isoDate[1]}` : "";
+}
+
+/** Primeiro registro de cada jogo na aba Atividade (journey_entries), por slug e por título normalizado. */
+function buildFirstActivityDates(rows: Array<{ gameSlug?: unknown; gameTitle?: unknown; date?: unknown }>) {
+  const firstDates: Record<string, string> = {};
+  for (const row of rows) {
+    const day = formatIsoDay(readText(row.date, ""));
+    if (!day) continue;
+    const sortable = day.split("/").reverse().join("");
+    for (const key of [readText(row.gameSlug, "").trim(), normalizeKey(readText(row.gameTitle, ""))]) {
+      if (!key) continue;
+      const current = firstDates[key];
+      if (!current || sortable < current.split("/").reverse().join("")) firstDates[key] = day;
+    }
+  }
+  return firstDates;
+}
 
 /**
  * Data de término = data em que a Maestria foi conquistada. Ela vem do registro da Maestria Final
@@ -733,14 +755,16 @@ const RECENT_GAME_KNOWN_DATES: Record<string, { start: string; end?: string }> =
  */
 function getFinalMasteryDate(game: HomeGame) {
   const raw = readText(game.firstJourney?.achievementMeta?.[game.slug + "-final-mastery"]?.date, "").trim();
-  const isoDate = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoDate) return `${isoDate[3]}/${isoDate[2]}/${isoDate[1]}`;
-  return /^\d{2}\/\d{2}\/\d{4}$/.test(raw) ? raw : "";
+  return formatIsoDay(raw) || (/^\d{2}\/\d{2}\/\d{4}$/.test(raw) ? raw : "");
 }
 
-function getRecentGameDates(game: HomeGame) {
-  const known = RECENT_GAME_KNOWN_DATES[normalizeKey(game.title)] ?? RECENT_GAME_KNOWN_DATES[game.slug];
-  const start = known?.start ?? "";
+/**
+ * Início = primeiro registro do jogo na aba Atividade; término = data da Maestria.
+ * firstActivityDates vem de buildFirstActivityDates (vazio enquanto a consulta não termina).
+ */
+function getRecentGameDates(game: HomeGame, firstActivityDates: Record<string, string> = {}) {
+  const known = RECENT_GAME_KNOWN_DATES[normalizeKey(game.title)];
+  const start = firstActivityDates[game.slug] || firstActivityDates[normalizeKey(game.title)] || known?.start || "";
   const end = getFinalMasteryDate(game) || known?.end || "";
   if (end) return { start, end, other: "" };
 
@@ -752,8 +776,8 @@ function getRecentGameDates(game: HomeGame) {
   return { start, end: "", other };
 }
 
-function getRecentGameDate(game: HomeGame) {
-  const { start, end, other } = getRecentGameDates(game);
+function getRecentGameDate(game: HomeGame, firstActivityDates: Record<string, string> = {}) {
+  const { start, end, other } = getRecentGameDates(game, firstActivityDates);
   if (end) return start ? `${start} → ${end}` : end;
   return other;
 }
@@ -873,6 +897,21 @@ export default function LandingHome({
   initialAvatar: InitialAvatar | null;
 }) {
   const { gamesList, isLoaded, loadFailed } = useSiteGames({ publicOnly: true, initialCatalog });
+  // Início das jornadas: primeiro registro de cada jogo na aba Atividade (consulta única, só leitura).
+  const [firstActivityDates, setFirstActivityDates] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let active = true;
+    void supabase
+      .from("journey_entries")
+      .select("gameSlug,gameTitle,date")
+      .then(({ data, error }) => {
+        if (!active || error || !data) return;
+        setFirstActivityDates(buildFirstActivityDates(data));
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const [featuredVideo, setFeaturedVideo] = useState<YoutubeItem | null>(null);
   const [recentVideos, setRecentVideos] = useState<YoutubeItem[]>([]);
   const [isLive, setIsLive] = useState(false);
@@ -1641,7 +1680,7 @@ export default function LandingHome({
               const completed = getGameStatus(game) === "completed";
               const progress = completed ? 100 : Math.max(0, Math.min(100, Number(game.progress) || 0));
               const emblem = homeImageSrc(getGameEmblemImage(game) || "/images/games/emblem.png");
-              const date = getRecentGameDate(game);
+              const date = getRecentGameDate(game, firstActivityDates);
               const rating = getRecentGameRating(game);
               const platform = readText(game.platform, "").trim() || "Steam";
               const playedTime = readText(game.hours, "0h");
@@ -1654,7 +1693,7 @@ export default function LandingHome({
                 : "bg-red-500 shadow-[0_0_14px_rgba(239,68,68,0.45)]";
               const achievementPreviews = getRecentAchievementPreviews(game);
               // No celular as datas ganham faixa própria: início (quando registrado) e término (data da Maestria) rotulados.
-              const { start: dateStart, end: dateEnd, other: dateOther } = getRecentGameDates(game);
+              const { start: dateStart, end: dateEnd, other: dateOther } = getRecentGameDates(game, firstActivityDates);
 
               return (
                 <Link
