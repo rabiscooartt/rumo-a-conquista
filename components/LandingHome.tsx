@@ -719,9 +719,11 @@ function getRecentGameRating(game: HomeGame) {
 }
 
 // Datas de início registradas manualmente; o término de reserva só vale se o registro da Maestria não carregar.
-const RECENT_GAME_KNOWN_DATES: Record<string, { start: string; end: string }> = {
+// Mouse: início = live do EP01 ("Dia 1", youtubeFirstLiveUrl), transmitida em 15/08/2026.
+const RECENT_GAME_KNOWN_DATES: Record<string, { start: string; end?: string }> = {
   crisoltheaterofidols: { start: "27/03/2026", end: "06/04/2026" },
   hogwartslegacy: { start: "25/01/2026", end: "10/02/2026" },
+  "mouse-p-i-for-hire": { start: "15/08/2026" },
 };
 
 /**
@@ -737,7 +739,7 @@ function getFinalMasteryDate(game: HomeGame) {
 }
 
 function getRecentGameDates(game: HomeGame) {
-  const known = RECENT_GAME_KNOWN_DATES[normalizeKey(game.title)];
+  const known = RECENT_GAME_KNOWN_DATES[normalizeKey(game.title)] ?? RECENT_GAME_KNOWN_DATES[game.slug];
   const start = known?.start ?? "";
   const end = getFinalMasteryDate(game) || known?.end || "";
   if (end) return { start, end, other: "" };
@@ -1660,8 +1662,8 @@ export default function LandingHome({
                   href={"/games/" + game.slug}
                   className="group/recent-row block border-b border-white/[0.07] px-3 py-[18px] transition hover:bg-white/[0.025] last:border-b-0"
                 >
-                  <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 max-sm:items-start sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
-                    <div className="h-[93px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
+                  <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 max-sm:items-start max-sm:gap-y-0 sm:grid-cols-[103px_minmax(0,1fr)_108px] sm:gap-4 lg:grid-cols-[112px_minmax(0,1fr)_108px]">
+                    <div className="h-[93px] w-[72px] shrink-0 overflow-hidden rounded-sm border border-white/15 bg-black shadow-[0_0_0_1px_rgba(255,255,255,0.02)] max-sm:row-span-2 sm:h-[132px] sm:w-[103px] lg:h-[144px] lg:w-[112px]">
                       <img
                         src={homeImageSrc(game.cardImage || game.image || "")}
                         alt={game.title + " — capa"}
@@ -1670,8 +1672,10 @@ export default function LandingHome({
                       />
                     </div>
 
-                    <div className="min-w-0 pt-0.5">
-                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 overflow-hidden sm:flex-nowrap sm:gap-x-2 sm:gap-y-1">
+                    {/* No celular este bloco se desfaz (contents): título e informações ficam ao lado da capa,
+                        e datas, progresso e miniaturas ocupam a largura toda abaixo dela. */}
+                    <div className="min-w-0 pt-0.5 max-sm:contents">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 overflow-hidden max-sm:col-start-2 max-sm:self-end sm:flex-nowrap sm:gap-x-2 sm:gap-y-1">
                         <h3
                           className="min-w-0 basis-full line-clamp-2 break-words text-[16px] leading-tight sm:truncate sm:leading-normal sm:max-w-[72%] sm:shrink sm:basis-auto font-black tracking-tight text-white sm:text-[19px]"
                           title={game.title}
@@ -1690,10 +1694,10 @@ export default function LandingHome({
                         </span>
                       </div>
 
-                      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] sm:mt-2.5 sm:gap-x-2.5 sm:gap-y-1 font-medium text-white/65">
+                      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] max-sm:col-start-2 max-sm:self-start sm:mt-2.5 sm:gap-x-2.5 sm:gap-y-1 font-medium text-white/65">
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <PlatformIcon platform={platform} className="h-[18px] w-[18px] text-white/65" />
-                          {platform}
+                          <span className="max-sm:sr-only">{platform}</span>
                         </span>
                         <span className="hidden h-4 w-px bg-white/15 sm:block" />
                         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -1717,7 +1721,7 @@ export default function LandingHome({
                       </div>
 
                       {date ? (
-                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/[0.07] pt-2.5 text-[12px] font-medium text-white/75 sm:hidden">
+                        <div className="col-span-2 mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-white/[0.07] pt-2.5 text-[12px] font-medium text-white/75 sm:hidden">
                           {dateEnd ? (
                             <>
                               {dateStart ? (
@@ -1742,7 +1746,7 @@ export default function LandingHome({
                         </div>
                       ) : null}
 
-                      <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2.5 gap-y-0">
+                      <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_40px] items-center gap-x-2.5 gap-y-0 max-sm:col-span-2">
                         <div className="h-[5px] min-w-0 overflow-hidden rounded-full bg-white/[0.07]">
                           <div className={"h-full rounded-full transition-all duration-500 " + progressClass} style={{ width: progress + "%" }} />
                         </div>
