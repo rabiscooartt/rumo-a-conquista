@@ -1259,11 +1259,12 @@ function Metric({
 }) {
   return (
     <div
-      className={`flex min-w-0 items-center gap-2.5 ${
+      className={`flex min-w-0 items-center gap-2.5 max-[479px]:flex-col max-[479px]:items-start max-[479px]:gap-2 ${
         divided ? "border-l border-white/10 pl-2.5 sm:pl-4" : ""
       }`}
     >
-      <span className="hidden min-[480px]:contents"><PremiumIconBadge>{icon}</PremiumIconBadge></span>
+      {/* Abaixo de 480 px o ícone fica acima do número; as colunas se alinham pelo topo. */}
+      <span className="contents max-[479px]:[&>div]:h-6"><PremiumIconBadge>{icon}</PremiumIconBadge></span>
 
       <div className="min-w-0">
         <p className="rac-stat-value truncate text-[19px] font-black leading-none tracking-tight text-white">
@@ -2504,7 +2505,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2.5 p-3 sm:p-4 md:flex-row md:flex-wrap 2xl:flex-nowrap">
+                <div className="flex flex-col gap-2.5 p-3 max-sm:gap-2 sm:p-4 md:flex-row md:flex-wrap 2xl:flex-nowrap">
                   <div className="relative min-w-0 md:flex-1 md:basis-[320px]">
                     <IconSearch className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
 
@@ -2520,7 +2521,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                             ? "Buscar jogo, conquista ou descrição..."
                             : "Buscar jogo ou atividade..."
                       }
-                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[12px] font-semibold text-white outline-none placeholder:text-white/40 transition focus:border-red-500/50 focus-visible:ring-2 focus-visible:ring-red-500/20"
+                      className="w-full rounded-xl border border-white/10 bg-black/25 py-3 pl-10 pr-4 text-[12px] font-semibold text-white outline-none max-sm:py-2.5 max-sm:!text-[14px] placeholder:text-white/40 transition focus:border-red-500/50 focus-visible:ring-2 focus-visible:ring-red-500/20"
                     />
                   </div>
 
@@ -2533,7 +2534,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           aria-label="Filtrar reviews por mês"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "month"}
-                          className="flex h-12 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
+                          className="flex h-12 min-w-[122px] w-full max-sm:h-10 max-sm:min-w-0 max-sm:gap-2 max-sm:px-3 max-[359px]:[&>span>svg]:hidden items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
@@ -2585,7 +2586,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           aria-label="Filtrar reviews por plataforma"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "platform"}
-                          className="flex h-12 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
+                          className="flex h-12 min-w-[146px] w-full max-sm:h-10 max-sm:min-w-0 max-sm:gap-2 max-sm:px-3 max-[359px]:[&>span>svg]:hidden items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
@@ -2638,7 +2639,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           aria-label="Filtrar conquistas por mês"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "achievement-month"}
-                          className="flex h-12 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
+                          className="flex h-12 min-w-[122px] w-full max-sm:h-10 max-sm:min-w-0 max-sm:gap-2 max-sm:px-3 max-[359px]:[&>span>svg]:hidden items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
@@ -2690,7 +2691,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           aria-label="Filtrar conquistas por plataforma"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "achievement-platform"}
-                          className="flex h-12 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
+                          className="flex h-12 min-w-[146px] w-full max-sm:h-10 max-sm:min-w-0 max-sm:gap-2 max-sm:px-3 max-[359px]:[&>span>svg]:hidden items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
@@ -2743,7 +2744,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           aria-label="Filtrar atividades por mês"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "game-month"}
-                          className="flex h-12 min-w-[122px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
+                          className="flex h-12 min-w-[122px] w-full max-sm:h-10 max-sm:min-w-0 max-sm:gap-2 max-sm:px-3 max-[359px]:[&>span>svg]:hidden items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[122px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
@@ -2795,7 +2796,7 @@ export default function AtividadeClient({ adminSession }: { adminSession: boolea
                           aria-label="Filtrar atividades por plataforma"
                           aria-haspopup="listbox"
                           aria-expanded={openActivityFilter === "game-platform"}
-                          className="flex h-12 min-w-[146px] w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
+                          className="flex h-12 min-w-[146px] w-full max-sm:h-10 max-sm:min-w-0 max-sm:gap-2 max-sm:px-3 max-[359px]:[&>span>svg]:hidden items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-3.5 text-[12px] font-bold text-white/80 transition hover:border-white/20 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 sm:w-[146px]"
                         >
                           <span className="flex items-center gap-2.5">
                             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
