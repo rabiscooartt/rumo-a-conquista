@@ -1967,8 +1967,7 @@ export default function LandingHome({
                       <span className="absolute bottom-2 left-2 flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-[#FB2C36] text-xs text-white shadow-lg transition group-hover:scale-105">▶</span>
                     </div>
                     <h3 className="mt-2.5 line-clamp-2 text-[12px] font-bold leading-snug text-white/95 transition group-hover:text-white">{video.title}</h3>
-                    <div className="mt-2 flex min-w-0 items-center gap-1.5 text-[10px] text-white/60">
-                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-[#FB2C36] text-[8px] text-white">▶</span>
+                    <div className="mt-2 flex min-h-4 min-w-0 items-center gap-1.5 text-[10px] text-white/60">
                       <span className="font-semibold text-white/65">YouTube</span>
                       <span aria-hidden="true" className="text-white/25">·</span>
                       <span className="truncate">{formatPublishedDate(video.publishedAt) || "Canal Rabiisco"}</span>
