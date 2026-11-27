@@ -2758,8 +2758,8 @@ export default function BibliotecaClient({
                 </div>
 
                 <div className="relative mt-5 grid grid-cols-3 md:absolute md:bottom-6 md:left-7 md:right-7 md:mt-0">
-                  <div className="flex min-w-0 items-center gap-2.5 pr-2.5 sm:pr-4">
-                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
+                  <div className="flex min-w-0 items-center gap-2.5 pr-2.5 max-[479px]:flex-col max-[479px]:items-start max-[479px]:gap-2 sm:pr-4">
+                    <span className="flex h-6 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:h-9">
                       <IconGamepad className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2768,8 +2768,8 @@ export default function BibliotecaClient({
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-2.5 sm:px-4">
-                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 px-2.5 max-[479px]:flex-col max-[479px]:items-start max-[479px]:gap-2 sm:px-4">
+                    <span className="flex h-6 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:h-9">
                       <IconTrophy className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2778,8 +2778,8 @@ export default function BibliotecaClient({
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-2.5 sm:pl-4">
-                    <span className="hidden h-9 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
+                  <div className="flex min-w-0 items-center gap-2.5 border-l border-white/10 pl-2.5 max-[479px]:flex-col max-[479px]:items-start max-[479px]:gap-2 sm:pl-4">
+                    <span className="flex h-6 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:h-9">
                       <IconTarget className="h-[24px] w-[24px]" />
                     </span>
                     <div className="min-w-0">
@@ -2791,7 +2791,7 @@ export default function BibliotecaClient({
               </div>
             </header>
 
-            <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
+            <section className="mt-4 overflow-hidden rounded-[14px] border border-white/[0.10] bg-[#090b0f] max-sm:mt-2">
               <div className="border-b border-white/[0.08] px-3 py-2">
                 <div className="flex min-w-0 items-center gap-2">
                   <button
@@ -2815,22 +2815,23 @@ export default function BibliotecaClient({
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por nome do jogo..."
-                      className="h-10 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-4 text-[11px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-red-500/40 focus:bg-white/[0.04]"
+                      className="h-10 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-4 text-[11px] font-semibold text-white outline-none max-sm:!text-[14px] placeholder:text-white/30 focus:border-red-500/40 focus:bg-white/[0.04]"
                     />
                   </div>
 
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <div className="relative">
+                {/* Celular: Status, Plataformas e ordenação dividem a largura em uma faixa (quebram para duas só em telas muito estreitas). */}
+                <div className="mt-2 flex flex-wrap items-center gap-2 max-sm:gap-1.5">
+                  <div className="relative max-sm:flex-1">
                     <button
                       type="button"
                       onClick={() => setFilterMenu(filterMenu === "status" ? null : "status")}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${activeFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition max-sm:h-10 max-sm:w-full max-sm:justify-center max-sm:whitespace-nowrap max-sm:px-2 ${activeFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}
                     >
                       <IconTarget className="h-3.5 w-3.5" />
                       Status
-                      <span className="text-white/30">⌄</span>
+                      <span className="text-white/30 max-sm:hidden">⌄</span>
                     </button>
                     {filterMenu === "status" ? (
                       <div className="absolute left-0 top-full z-50 mt-2 min-w-[170px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
@@ -2844,14 +2845,14 @@ export default function BibliotecaClient({
                     ) : null}
                   </div>
 
-                  <div className="relative">
-                    <button type="button" onClick={() => setFilterMenu(filterMenu === "platform" ? null : "platform")} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition ${platformFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}>
+                  <div className="relative max-sm:flex-1">
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "platform" ? null : "platform")} className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-black transition max-sm:h-10 max-sm:w-full max-sm:justify-center max-sm:whitespace-nowrap max-sm:px-2 ${platformFilter !== "all" ? "border-red-500/35 bg-red-500/10 text-white" : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/20 hover:text-white"}`}>
                       <IconGamepad className="h-3.5 w-3.5" />
                       Plataformas
-                      <span className="text-white/30">⌄</span>
+                      <span className="text-white/30 max-sm:hidden">⌄</span>
                     </button>
                     {filterMenu === "platform" ? (
-                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[190px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
+                      <div className="absolute left-0 top-full z-50 mt-2 min-w-[190px] max-sm:left-auto max-sm:right-0 rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
                         <button type="button" onClick={() => { setPlatformFilter("all"); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === "all" ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>Todas as plataformas</button>
                         {platformOptions.map((platform) => (
                           <button key={platform} type="button" onClick={() => { setPlatformFilter(platform); setFilterMenu(null); }} className={`flex w-full rounded-lg px-3 py-2 text-left text-[10px] font-black transition ${platformFilter === platform ? "bg-red-500/15 text-red-300" : "text-white/55 hover:bg-white/[0.04] hover:text-white"}`}>{platform}</button>
@@ -2860,11 +2861,11 @@ export default function BibliotecaClient({
                     ) : null}
                   </div>
 
-                  <div className="relative ml-auto">
-                    <button type="button" onClick={() => setFilterMenu(filterMenu === "sort" ? null : "sort")} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-[10px] font-black text-white/65 transition hover:border-white/20 hover:text-white">
+                  <div className="relative ml-auto max-sm:ml-0 max-sm:flex-1">
+                    <button type="button" onClick={() => setFilterMenu(filterMenu === "sort" ? null : "sort")} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-[10px] font-black text-white/65 transition hover:border-white/20 hover:text-white max-sm:h-10 max-sm:w-full max-sm:justify-center max-sm:whitespace-nowrap max-sm:px-2">
                       <IconTrend className="h-3.5 w-3.5" />
                       {sortMode === "recent" ? "Recentes" : sortMode === "alphabetical" ? "Alfabético" : sortMode === "playtime" ? "Tempo de Jogo" : sortMode === "rating" ? "Avaliação" : sortMode === "progress" ? "Progresso" : sortMode === "startDate" ? "Data de Início" : "Data de Conclusão"}
-                      <span className="text-white/30">⌄</span>
+                      <span className="text-white/30 max-sm:hidden">⌄</span>
                     </button>
                     {filterMenu === "sort" ? (
                       <div className="absolute right-0 top-full z-50 mt-2 min-w-[175px] rounded-xl border border-white/10 bg-[#0b0d11] p-1.5 shadow-2xl">
