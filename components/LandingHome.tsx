@@ -1716,11 +1716,20 @@ export default function LandingHome({
                     <div className="min-w-0 pt-0.5 max-sm:contents">
                       <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 overflow-hidden max-sm:col-start-2 max-sm:self-end sm:flex-nowrap sm:gap-x-2 sm:gap-y-1">
                         <h3
-                          className="min-w-0 basis-full line-clamp-2 break-words text-[16px] leading-tight sm:truncate sm:leading-normal sm:max-w-[72%] sm:shrink sm:basis-auto font-black tracking-tight text-white sm:text-[19px]"
+                          className={"min-w-0 basis-full line-clamp-2 break-words text-[16px] leading-tight sm:truncate sm:leading-normal sm:max-w-[72%] sm:shrink sm:basis-auto font-black tracking-tight text-white sm:text-[19px]" + (completed ? " max-sm:flex-1 max-sm:basis-[calc(100%-2rem)]" : "")}
                           title={game.title}
                         >
                           {game.title}
                         </h3>
+                        {completed ? (
+                          // Celular: jogo concluído indicado só por um check circular verde no canto do título.
+                          <span role="img" aria-label="Finalizado" title="Finalizado" className="shrink-0 self-start text-emerald-400 sm:hidden">
+                            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <circle cx="12" cy="12" r="9.25" />
+                              <path d="m8 12.3 2.7 2.7L16 9.7" />
+                            </svg>
+                          </span>
+                        ) : null}
                         {completed && rating > 0 ? (
                           <StarRating
                             rating={rating}
@@ -1728,7 +1737,7 @@ export default function LandingHome({
                             className="h-[14px] !text-[12px] !tracking-[-0.04em]"
                           />
                         ) : null}
-                        <span className={"shrink-0 rounded-full border px-2 py-0.5 max-sm:ml-auto text-[10px] font-black uppercase tracking-[0.08em] " + statusClass}>
+                        <span className={"shrink-0 rounded-full border px-2 py-0.5 max-sm:ml-auto text-[10px] font-black uppercase tracking-[0.08em] " + (completed ? "max-sm:hidden " : "") + statusClass}>
                           {statusLabel}
                         </span>
                       </div>
