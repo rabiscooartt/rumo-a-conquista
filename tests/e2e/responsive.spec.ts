@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { blockWrites, collectConsoleErrors, testCredentials } from "./helpers";
 
-export const WIDTHS = [320, 360, 390, 430, 768, 1024, 1280, 1440];
+export const WIDTHS = [320, 360, 375, 390, 430, 768, 1024, 1280, 1440];
 
 const PUBLIC_ROUTES = [
   "/",

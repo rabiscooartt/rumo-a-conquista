@@ -335,12 +335,8 @@ export async function GET(request: NextRequest) {
     console.error("[Public Game Data] Erro:", error);
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível carregar o jogo.",
-      },
+      // Rota pública: o detalhe do erro (banco, ambiente) fica só no log do servidor.
+      { error: "Não foi possível carregar o jogo." },
       { status: 500 }
     );
   }

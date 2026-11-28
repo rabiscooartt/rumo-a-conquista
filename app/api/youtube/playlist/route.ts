@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rejectUnlessAdmin } from "@/lib/admin-guard";
 
 type YouTubeThumbnail = {
   url?: string;
@@ -95,6 +96,11 @@ function normalizeLiveStatus(
 }
 
 export async function GET(request: NextRequest) {
+  // Só o Admin (Preparar jogo) usa esta rota. Aberta, ela servia de proxy para playlists
+  // arbitrárias com a chave do servidor e permitia esgotar a cota da API do YouTube.
+  const denied = await rejectUnlessAdmin(request);
+  if (denied) return denied;
+
   const apiKey = process.env.YOUTUBE_API_KEY;
   const playlistId = request.nextUrl.searchParams.get("playlistId")?.trim() || "";
 

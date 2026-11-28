@@ -5,7 +5,7 @@ import { ADMIN_COOKIE, signTestSession, testCredentials } from "./helpers";
 // e com sessão válida só são feitas leituras.
 
 const ADMIN_PAGES = ["/admin/jogos", "/admin/jornada", "/admin/backlog", "/admin/sagas", "/admin/sorteio-jogos", "/admin/preparar-jogo"];
-const ADMIN_READS = ["/api/admin/games", "/api/admin/games/sync", "/api/admin/achievement-reference", "/api/admin/final-mastery-references", "/api/youtube/channel/games/sync"];
+const ADMIN_READS = ["/api/admin/games", "/api/admin/games/sync", "/api/admin/achievement-reference", "/api/admin/final-mastery-references", "/api/youtube/channel/games/sync", "/api/youtube/playlist?playlistId=PLx"];
 const ADMIN_WRITES: Array<[string, string]> = [
   ["POST", "/api/admin/games"],
   ["PUT", "/api/admin/games"],

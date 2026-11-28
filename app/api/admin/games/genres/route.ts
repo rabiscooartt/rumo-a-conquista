@@ -763,7 +763,8 @@ export async function GET() {
   } catch (error) {
     console.error("[Genres] Erro:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Não foi possível identificar os gêneros." },
+      // GET é público (Biblioteca): o detalhe do erro fica só no log do servidor.
+      { error: "Não foi possível identificar os gêneros." },
       { status: 500 }
     );
   }
