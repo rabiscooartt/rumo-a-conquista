@@ -1,0 +1,29 @@
+/* Indicador na tela (estilo "gravando" da NVIDIA): pequeno, discreto, sem receber cliques. */
+html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; font: 13px "Segoe UI", system-ui, sans-serif; }
+body { display: flex; align-items: flex-end; justify-content: flex-end; padding: 6px; box-sizing: border-box; }
+body[data-corner^="top"] { align-items: flex-start; }
+body[data-corner$="left"] { justify-content: flex-start; }
+
+.pill {
+  display: flex; align-items: center; gap: 8px; height: 34px; padding: 3px; border-radius: 18px;
+  background: rgba(10, 11, 15, .72); border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .45); color: #f4f5f7; opacity: .8;
+  transition: opacity .2s, background .2s, border-color .2s, padding .2s;
+}
+.pill img { width: 26px; height: 26px; flex: none; }
+.text { display: none; flex-direction: column; line-height: 1.15; padding-right: 10px; white-space: nowrap; }
+.text b { font-size: 13px; }
+.text span { font-size: 11px; color: rgba(244, 245, 247, .7); max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+.pill[data-hidden="1"] { opacity: 0; }
+
+/* Ao marcar: cresce e destaca por ~2,5 s. */
+.pill[data-state="marking"], .pill[data-state="recording"], .pill[data-state="ok"], .pill[data-state="error"] { opacity: 1; padding-right: 4px; }
+.pill[data-state="marking"] .text, .pill[data-state="recording"] .text, .pill[data-state="ok"] .text, .pill[data-state="error"] .text { display: flex; }
+.pill[data-state="marking"] { border-color: rgba(251, 44, 54, .8); }
+/* Gravando: borda vermelha pulsando, como o indicador de gravação. */
+.pill[data-state="recording"] { border-color: rgba(251, 44, 54, .95); animation: rec 1.2s ease-in-out infinite; }
+@keyframes rec { 50% { border-color: rgba(251, 44, 54, .35); box-shadow: 0 0 0 3px rgba(251, 44, 54, .18), 0 4px 14px rgba(0, 0, 0, .45); } }
+.pill[data-state="ok"] { border-color: rgba(52, 211, 153, .9); background: rgba(6, 40, 28, .85); }
+.pill[data-state="error"] { border-color: rgba(248, 113, 113, .95); background: rgba(60, 8, 10, .88); }
+.pill[data-state="marking"] img, .pill[data-state="ok"] img { animation: pop .35s cubic-bezier(.2, .9, .3, 1.4); }
+@keyframes pop { from { transform: scale(.6); } to { transform: scale(1); } }

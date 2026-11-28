@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+<title>Rumo à Conquista — Configurações</title>
+<link rel="stylesheet" href="./settings.css">
+</head>
+<body>
+<main>
+  <h1>Configurações</h1>
+  <section>
+    <h2>Aplicativo</h2>
+    <div class="field"><span>Atalho de captura ("Marcar momento")</span>
+      <div class="row">
+        <input id="hotkey" placeholder="Clique aqui e aperte a tecla" autocomplete="off" readonly>
+        <button type="button" class="secondary" id="hotkey-default">Padrão (Pause)</button>
+        <button type="button" class="secondary" id="hotkey-clear">Desativar</button>
+      </div>
+      <small>Clique no campo e aperte <b>qualquer tecla</b> (com ou sem Ctrl/Alt/Shift). Funciona com o jogo em tela cheia. A tecla fica reservada para o app: um jogo que use a mesma tecla deixa de recebê-la.</small>
+    </div>
+    <label class="check"><input type="checkbox" id="captureSound"> Som de confirmação ao marcar (um "plim" curto, ouvido dentro do jogo)</label>
+    <p class="note">Se o OBS capturar o áudio da área de trabalho, o som também vai para a live.</p>
+    <div class="field"><span>Indicador na tela (canto da tela, como o "gravando" da NVIDIA)</span>
+      <div class="row">
+        <select id="indicatorMode" aria-label="Quando mostrar o indicador">
+          <option value="on-mark">Só ao marcar (do aperto até o clip salvo)</option>
+          <option value="always">Sempre visível (troféu pequeno)</option>
+          <option value="off">Desligado</option>
+        </select>
+        <select id="indicatorCorner" aria-label="Canto do indicador">
+          <option value="bottom-right">Inferior direito</option>
+          <option value="bottom-left">Inferior esquerdo</option>
+          <option value="top-right">Superior direito</option>
+          <option value="top-left">Superior esquerdo</option>
+        </select>
+      </div>
+      <small>Aparece sobre jogos em janela e em tela cheia <b>sem bordas</b>; não aparece na live (fica fora da captura do OBS).</small>
+    </div>
+    <label class="check" id="startRow"><input type="checkbox" id="startWithWindows"> Iniciar com o Windows</label>
+    <p class="note" id="hotkeyError" hidden></p>
+  </section>
+  <section>
+    <h2>Agente</h2>
+    <div id="fields"></div>
+    <p class="note">Senha do OBS e token do site não aparecem aqui e não são alterados.</p>
+  </section>
+  <div class="actions">
+    <button id="save">Salvar</button>
+    <span id="status" role="status"></span>
+  </div>
+  <p class="foot" id="dataDir"></p>
+</main>
+<script src="./settings.js"></script>
+</body>
+</html>

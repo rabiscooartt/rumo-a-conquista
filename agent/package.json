@@ -1,0 +1,10 @@
+{
+  "name": "rumo-a-conquista-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agente Windows do Rumo à Conquista: motor operacional local (eventos, persistência, conexões).",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  }
+}
