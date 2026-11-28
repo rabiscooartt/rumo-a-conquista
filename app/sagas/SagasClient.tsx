@@ -669,7 +669,7 @@ function BadgeImage({
 }
 
 function getFilterButtonClass(isActive: boolean) {
-  return `flex min-h-10 items-center justify-center rounded-xl border px-2 py-1.5 text-center leading-tight sm:inline-flex sm:min-h-0 sm:rounded-full sm:py-2 sm:leading-normal text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
+  return `flex min-h-10 items-center justify-center rounded-xl border px-2 py-1.5 text-center leading-tight sm:inline-flex sm:min-h-0 sm:rounded-full sm:py-2 sm:leading-normal text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden max-[379px]:px-1.5 max-[379px]:tracking-normal sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
     isActive
       ? "border-red-500/45 bg-red-500/20 text-red-200 shadow-[0_0_24px_rgba(239,68,68,0.14)]"
       : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
@@ -1241,6 +1241,42 @@ export default function SagasClient({
     });
   }
 
+  // Painel de progresso da coleção: no banner a partir de sm; no celular, abaixo da pesquisa e dos filtros.
+  const collectionProgressPanel = (
+    <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[310px] lg:w-[292px]">
+      <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/75">
+        Progresso da coleção
+      </p>
+      <div className="mt-3 flex items-center gap-4">
+        <div
+          className="flex h-[86px] w-[86px] shrink-0 items-center justify-center rounded-full p-[7px]"
+          style={{
+            background: `conic-gradient(#f21d2f ${totalProgress}%, rgba(255,255,255,0.12) ${totalProgress}% 100%)`,
+          }}
+          aria-label={`${totalProgress}% da coleção conquistada`}
+        >
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-[#08090c] text-xl font-black text-white">
+            {totalProgress}%
+          </div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-2xl font-black leading-none text-white">
+            {completedEmblems} <span className="text-white/35">/ {totalEmblems}</span>
+          </p>
+          <p className="mt-2 text-[11px] font-medium text-white/60">
+            Emblemas conquistados
+          </p>
+          <div className="mt-3 h-[7px] overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,29,47,0.48)] transition-all duration-500"
+              style={{ width: `${totalProgress}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <main
       id="topo-emblemas"
@@ -1261,7 +1297,7 @@ export default function SagasClient({
 
       <section className="mx-auto w-full max-w-[1780px] px-4 pb-6 pt-3 sm:px-6 lg:px-8 lg:pb-8 lg:pt-4">
         <div className="min-w-0">
-        <header className="relative isolate mt-1 min-h-[220px] overflow-hidden rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
+        <header className="relative isolate mt-1 min-h-[220px] overflow-hidden max-sm:min-h-0 rounded-[14px] border border-white/10 bg-[#050505] shadow-[0_18px_55px_rgba(0,0,0,0.38)] lg:min-h-[224px]">
           <BannerBackground
             bannerKey="emblemas"
             imageUrl="/images/emblems-hero.webp"
@@ -1271,7 +1307,7 @@ export default function SagasClient({
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,2,3,0.96)_0%,rgba(2,2,3,0.78)_27%,rgba(2,2,3,0.18)_54%,rgba(2,2,3,0.30)_73%,rgba(2,2,3,0.86)_100%)]" />
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.5),transparent_45%,rgba(0,0,0,0.08))]" />
 
-          <div className="relative z-10 flex min-h-[220px] flex-col justify-between gap-5 p-5 sm:p-6 lg:min-h-[224px] lg:flex-row lg:items-center lg:gap-8 lg:px-7">
+          <div className="relative z-10 flex min-h-[220px] flex-col justify-between gap-5 p-5 max-sm:min-h-0 sm:p-6 lg:min-h-[224px] lg:flex-row lg:items-center lg:gap-8 lg:px-7">
             <div className="min-w-0 max-w-[760px] border-l-[4px] border-red-500 pl-4 sm:pl-5">
               <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-white/80">
                 <span className="text-red-500">◆</span>
@@ -1286,43 +1322,13 @@ export default function SagasClient({
               </p>
             </div>
 
-            <div className="w-full shrink-0 rounded-[18px] border border-white/10 bg-[#07080b]/90 p-4 shadow-[0_14px_40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-[310px] lg:w-[292px]">
-              <p className="text-[10px] font-black uppercase tracking-[0.17em] text-white/75">
-                Progresso da coleção
-              </p>
-              <div className="mt-3 flex items-center gap-4">
-                <div
-                  className="flex h-[86px] w-[86px] shrink-0 items-center justify-center rounded-full p-[7px]"
-                  style={{
-                    background: `conic-gradient(#f21d2f ${totalProgress}%, rgba(255,255,255,0.12) ${totalProgress}% 100%)`,
-                  }}
-                  aria-label={`${totalProgress}% da coleção conquistada`}
-                >
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-[#08090c] text-xl font-black text-white">
-                    {totalProgress}%
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-black leading-none text-white">
-                    {completedEmblems} <span className="text-white/35">/ {totalEmblems}</span>
-                  </p>
-                  <p className="mt-2 text-[11px] font-medium text-white/60">
-                    Emblemas conquistados
-                  </p>
-                  <div className="mt-3 h-[7px] overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,29,47,0.48)] transition-all duration-500"
-                      style={{ width: `${totalProgress}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* No celular o progresso sai do banner e vem depois da pesquisa e dos filtros. */}
+            <div className="contents max-sm:hidden">{collectionProgressPanel}</div>
           </div>
         </header>
 
         <section className="mt-3 rounded-[14px] border border-white/10 bg-[linear-gradient(105deg,rgba(7,7,8,0.98),rgba(13,13,16,0.96),rgba(5,5,5,0.98))] p-3 shadow-[0_12px_32px_rgba(0,0,0,0.25)]">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <div className="flex flex-col gap-3 max-sm:gap-2.5 xl:flex-row xl:items-center">
             <label className="relative min-w-0 flex-1 xl:min-w-[220px]">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" className="h-[14px] w-[14px]">
@@ -1336,7 +1342,7 @@ export default function SagasClient({
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Buscar emblema por jogo, franquia ou saga..."
                 aria-label="Buscar emblema por jogo, franquia ou saga"
-                className="h-[42px] w-full rounded-[10px] border border-white/15 bg-black/55 pl-10 pr-4 text-xs font-medium text-white outline-none transition placeholder:text-white/35 hover:border-white/25 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/10"
+                className="h-[42px] w-full rounded-[10px] border border-white/15 bg-black/55 pl-10 pr-4 text-xs font-medium text-white outline-none transition max-sm:!text-[13px] placeholder:text-white/35 hover:border-white/25 focus:border-red-500/60 focus:ring-2 focus:ring-red-500/10"
               />
             </label>
 
@@ -1356,12 +1362,12 @@ export default function SagasClient({
                   placeholder="Ano"
                   inputMode="numeric"
                   aria-label="Filtrar por ano"
-                  className="w-[62px] bg-transparent px-3 text-xs font-bold text-white outline-none placeholder:text-white/35"
+                  className="w-[62px] bg-transparent px-3 text-xs font-bold text-white outline-none placeholder:text-white/35 max-sm:w-auto max-sm:min-w-0 max-sm:flex-1 max-[379px]:px-2"
                 />
                 <button
                   type="button"
                   onClick={() => applyYearFilter(yearInput)}
-                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-white/55 transition hover:bg-red-500/20 hover:text-white"
+                  className="border-l border-red-500/25 bg-red-500/10 px-3 text-white/55 transition hover:bg-red-500/20 hover:text-white max-[379px]:px-2"
                   aria-label="Aplicar filtro de ano"
                   title="Filtrar por ano"
                 >
@@ -1382,6 +1388,8 @@ export default function SagasClient({
                 </button>
               )}
 
+              {/* Celular: os três status em grade própria (Todos mais estreito); a partir de sm o bloco some (contents). */}
+              <div className="col-span-3 grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.25fr)_minmax(0,1fr)] gap-1.5 sm:contents">
               <button
                 type="button"
                 onClick={() => {
@@ -1403,7 +1411,7 @@ export default function SagasClient({
                     <rect x="3" y="12" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
                     <rect x="12" y="12" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
-                  <span>Todos ({totalEmblems})</span>
+                  <span>Todos<span className="max-sm:block max-sm:opacity-70"> ({totalEmblems})</span></span>
                 </span>
               </button>
               <button
@@ -1425,7 +1433,7 @@ export default function SagasClient({
                     <path d="M8 4h8v4.5a4 4 0 0 1-8 0V4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
                     <path d="M8 6H5v1.5a4 4 0 0 0 4 4M16 6h3v1.5a4 4 0 0 1-4 4M12 13v4M9 17h6M8 21h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span>Conquistados ({completedEmblems})</span>
+                  <span>Conquistados<span className="max-sm:block max-sm:opacity-70"> ({completedEmblems})</span></span>
                 </span>
               </button>
               <button
@@ -1447,9 +1455,10 @@ export default function SagasClient({
                     <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7" />
                     <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span>Bloqueados ({lockedEmblems})</span>
+                  <span>Bloqueados<span className="max-sm:block max-sm:opacity-70"> ({lockedEmblems})</span></span>
                 </span>
               </button>
+              </div>
 
               <label className="order-2 col-span-2 flex h-[40px] min-w-0 items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 sm:order-none sm:col-span-1 xl:ml-1">
                 <span aria-hidden="true" className="text-white/40">
@@ -1457,12 +1466,12 @@ export default function SagasClient({
                     <path d="M4.5 13V3m0 0L2 5.5M4.5 3 7 5.5M11.5 3v10m0 0L9 10.5m2.5 2.5 2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-                <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.08em] text-white/65">Ordem:</span>
+                <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.08em] text-white/65 max-[359px]:hidden">Ordem:</span>
                 <select
                   value={sortOrder}
                   onChange={(event) => setSortOrder(event.target.value as "alphabetical" | "recent")}
                   aria-label="Ordenar emblemas"
-                  className="max-w-[135px] bg-transparent text-[10px] font-bold text-white outline-none max-lg:self-stretch"
+                  className="max-w-[135px] bg-transparent text-[10px] font-bold text-white outline-none max-lg:self-stretch max-sm:min-w-0 max-sm:max-w-none max-sm:flex-1"
                 >
                   <option value="alphabetical" className="bg-zinc-950">Alfabética</option>
                   <option value="recent" className="bg-zinc-950">Mais recentes</option>
@@ -1471,6 +1480,8 @@ export default function SagasClient({
             </div>
           </div>
         </section>
+
+        <div className="mt-3 sm:hidden">{collectionProgressPanel}</div>
 
         <section className="mt-4">
           {!isLoaded ? (
