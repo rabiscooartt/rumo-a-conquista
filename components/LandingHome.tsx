@@ -1327,28 +1327,28 @@ export default function LandingHome({
         {/* No celular o texto ocupa a largura toda e passa sobre a lua: véu leve para manter a leitura. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#050609]/35 md:hidden" />
 
-        <div className="relative min-h-[296px] px-4 pb-5 pt-6 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[330px] md:px-8 md:pt-8">
+        <div className="relative min-h-[296px] px-4 pb-5 pt-6 max-sm:min-h-0 max-sm:pb-4 max-sm:pt-4 sm:px-6 sm:pb-5 sm:pt-6 md:min-h-[330px] md:px-8 md:pt-8">
           <div className="max-w-[600px]">
             <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-red-500 sm:text-[10px]">
               <span className="text-[10px] leading-none">✣</span>
               Minha jornada, minhas conquistas
             </p>
-            <h1 id="home-journey-title" className="mt-2 text-[30px] font-black uppercase leading-none tracking-tight text-white sm:text-[36px] md:text-[38px]">
+            <h1 id="home-journey-title" className="mt-2 text-[30px] font-black uppercase leading-none tracking-tight text-white max-sm:mt-1.5 max-sm:!text-[30px] sm:text-[36px] md:text-[38px]">
               Cada desafio conta.
             </h1>
-            <p className="mt-3 max-w-[460px] text-[12px] font-medium leading-[1.5] text-white/72 sm:text-[13px]">
+            <p className="mt-3 max-w-[460px] text-[12px] font-medium leading-[1.5] text-white/72 max-sm:mt-2 max-sm:leading-[1.4] sm:text-[13px]">
               Cada jogo tem uma história. Aqui registro minhas jornadas, celebro minhas vitórias e busco a maestria, uma conquista de cada vez.
             </p>
             <Link
               href="/biblioteca"
               aria-label="Explorar os jogos do Rumo à Conquista"
-              className="mt-5 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
+              className="mt-5 inline-flex min-h-9 items-center gap-2 rounded-md border border-red-400/50 bg-[#FB2C36] px-4 py-1.5 text-[13px] font-bold max-sm:mt-3 max-sm:gap-1.5 max-sm:px-3.5 max-sm:text-[12px] tracking-[0.01em] text-white shadow-[0_5px_20px_rgba(251,44,54,0.16)] transition hover:border-red-300 hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06070a] sm:px-4"
             >
               Explorar jogos <span aria-hidden="true">→</span>
             </Link>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 md:absolute md:bottom-6 md:left-8 md:right-8 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 max-sm:mt-4 max-sm:gap-y-3 md:absolute md:bottom-6 md:left-8 md:right-8 md:mt-0 md:grid-cols-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.12fr)_minmax(0,1fr)] md:gap-x-0 md:gap-y-0">
             <Stat symbol="library" value={hasGameData ? summary.games.toLocaleString("pt-BR") : "—"} label="Jogos registrados" />
             <Stat symbol="check" value={hasGameData ? summary.completed.toLocaleString("pt-BR") : "—"} label="Jogos concluídos" divided />
             <Stat symbol="trophy" value={hasGameData ? summary.unlocked.toLocaleString("pt-BR") : "—"} label="Conquistas desbloqueadas" divided />
