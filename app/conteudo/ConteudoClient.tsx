@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import BannerBackground from "@/components/BannerBackground";
 import { games as baseGames } from "@/data/games";
@@ -938,11 +938,12 @@ function ContentBannerMetric({
 }) {
   return (
     <div
-      className={`flex min-w-0 items-center gap-2.5 ${ 
+      className={`flex min-w-0 items-center gap-2.5 max-[479px]:flex-col max-[479px]:items-start max-[479px]:gap-2 ${
         divided ? "border-l border-white/10 pl-2.5 sm:pl-4" : ""
       }`}
     >
-      <span className="hidden h-8 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:flex">
+      {/* Abaixo de 480 px o ícone fica acima do número; as colunas se alinham pelo topo. */}
+      <span className="flex h-6 w-7 shrink-0 items-center justify-start text-red-500 min-[480px]:h-8">
         <ContentBannerIcon type={icon} />
       </span>
 
@@ -972,6 +973,24 @@ export default function ConteudoClient({
   const hasInitialChannel = initialChannel !== null;
   const [error, setError] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  // Celular: categorias num seletor compacto que fecha ao escolher, ao tocar fora ou com Esc.
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const categoryMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!categoryMenuOpen) return;
+    const handlePointer = (event: PointerEvent) => {
+      if (!categoryMenuRef.current?.contains(event.target as Node)) setCategoryMenuOpen(false);
+    };
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCategoryMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [categoryMenuOpen]);
   const [requestedEpisode, setRequestedEpisode] = useState("");
   const [journeyStartRequested, setJourneyStartRequested] = useState(false);
   const [journeyGameTitle, setJourneyGameTitle] = useState("");
@@ -1421,7 +1440,54 @@ export default function ConteudoClient({
             </div>
           </header>          {/* Filtros para telas sem sidebar */}
           <section className="mt-4 lg:hidden">
-            <div className="flex w-full gap-1 rounded-xl border border-white/10 bg-white/[0.02] p-1" role="group" aria-label="Filtrar conteúdos">
+            {/* Celular: seletor compacto com a categoria escolhida; a barra segmentada fica do sm ao lg. */}
+            <div ref={categoryMenuRef} className="relative sm:hidden">
+              <button
+                type="button"
+                onClick={() => setCategoryMenuOpen((open) => !open)}
+                aria-haspopup="listbox"
+                aria-expanded={categoryMenuOpen}
+                aria-label="Filtrar conteúdos por categoria"
+                className={`flex h-11 w-full items-center justify-between gap-3 rounded-xl border px-3.5 text-[13px] font-bold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 ${categoryMenuOpen ? "border-red-500/40 bg-red-500/[0.06]" : "border-white/10 bg-white/[0.025] hover:border-white/20"}`}
+              >
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0 text-white/60">
+                    <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                  </svg>
+                  <span className="truncate">
+                    {activeFilter === "all" ? "Todos os conteúdos" : filters.find((filter) => filter.value === activeFilter)?.label}
+                  </span>
+                </span>
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className={`h-4 w-4 shrink-0 text-white/50 transition ${categoryMenuOpen ? "rotate-180" : ""}`}>
+                  <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {categoryMenuOpen ? (
+                <div role="listbox" aria-label="Categorias de conteúdo" className="absolute inset-x-0 top-full z-50 mt-2 rounded-xl border border-white/[0.12] bg-[#090b0f] p-1.5 shadow-2xl shadow-black/50">
+                  {filters.map((filter) => {
+                    const selected = activeFilter === filter.value;
+                    return (
+                      <button
+                        key={filter.value}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        onClick={() => {
+                          setActiveFilter(filter.value);
+                          setCategoryMenuOpen(false);
+                        }}
+                        className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-3 text-left text-[13px] font-semibold transition hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 ${selected ? "bg-white/[0.045] text-white" : "text-white/70"}`}
+                      >
+                        <span>{filter.value === "all" ? "Todos os conteúdos" : filter.label}</span>
+                        <span aria-hidden="true" className={`text-[14px] font-black text-red-300 ${selected ? "opacity-100" : "opacity-0"}`}>✓</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex w-full gap-1 rounded-xl border border-white/10 bg-white/[0.02] p-1 max-sm:hidden" role="group" aria-label="Filtrar conteúdos">
               {filters.map((filter) => {
                 const isActive = activeFilter === filter.value;
 
