@@ -435,6 +435,8 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [reviewOrder, setReviewOrder] = useState("recent");
+  // Celular: nota e ordenação ficam num painel aberto pelo botão de filtros ao lado da pesquisa.
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -645,8 +647,9 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                 </div>
               </header>
 
-              <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f]">
-                <div className="border-b border-white/[0.08] px-3 pt-3">
+              <section className="mt-4 rounded-[14px] border border-white/[0.10] bg-[#090b0f] max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent">
+                {/* Celular: a seção vira duas boxes (pesquisa/filtros e Reviews publicadas); a aba única fica oculta. */}
+                <div className="border-b border-white/[0.08] px-3 pt-3 max-sm:hidden">
                   <div className="flex items-center gap-1">
                     <span className="inline-flex items-center gap-1.5 rounded-t-lg bg-red-500/10 px-4 py-3 text-[12px] font-black text-red-300">
                       <span aria-hidden="true">✎</span> Reviews
@@ -655,7 +658,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2.5 p-3 sm:flex-row sm:items-center">
+                <div className="flex flex-col gap-2.5 p-3 max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_2.75rem] max-sm:gap-2 max-sm:rounded-[14px] max-sm:border max-sm:border-white/[0.10] max-sm:bg-[#090b0f] sm:flex-row sm:items-center">
                   <label className="relative block min-w-0 flex-1">
                     <span className="sr-only">Buscar review ou jogo</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true" className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -666,7 +669,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Buscar por jogo ou título da review..."
-                      className="h-9 w-full rounded-full border border-white/10 bg-[#050608] pl-9 pr-9 text-[11px] font-semibold text-white outline-none placeholder:text-white/40 transition focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20"
+                      className="h-9 w-full rounded-full border border-white/10 bg-[#050608] pl-9 pr-9 text-[11px] font-semibold text-white outline-none max-sm:h-11 max-sm:!text-[13px] placeholder:text-white/40 transition focus:border-red-500/45 focus-visible:ring-2 focus-visible:ring-red-500/20"
                     />
                     {search ? (
                       <button
@@ -681,8 +684,25 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                     ) : null}
                   </label>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <label className={`relative inline-flex h-9 min-w-0 items-center gap-2 rounded-full border px-3 transition focus-within:ring-2 focus-within:ring-red-500/20 ${ratingFilter === "all" ? "border-red-500/50 bg-red-500/10 text-red-300" : "border-white/10 bg-[#090b0f] text-white/75 focus-within:border-red-500/45"}`}>
+                  <button
+                    type="button"
+                    onClick={() => setMobileFiltersOpen((open) => !open)}
+                    aria-expanded={mobileFiltersOpen}
+                    aria-controls="reviews-mobile-filters"
+                    aria-label={mobileFiltersOpen ? "Ocultar filtros" : "Mostrar filtros"}
+                    title="Filtros"
+                    className={`relative flex h-11 items-center justify-center rounded-full border transition sm:hidden ${mobileFiltersOpen ? "border-red-500/45 bg-red-500/15 text-red-200" : "border-white/10 bg-[#050608] text-white/60 hover:border-white/20 hover:text-white"}`}
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                      <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                    </svg>
+                    {!mobileFiltersOpen && (ratingFilter !== "all" || reviewOrder !== "recent") ? (
+                      <span aria-hidden="true" className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-400" />
+                    ) : null}
+                  </button>
+
+                  <div id="reviews-mobile-filters" className={`flex flex-wrap items-center gap-2 max-sm:col-span-2 max-sm:grid max-sm:grid-cols-2 ${mobileFiltersOpen ? "" : "max-sm:hidden"}`}>
+                    <label className={`relative inline-flex h-9 min-w-0 items-center gap-2 rounded-full border px-3 transition max-sm:h-10 max-sm:w-full focus-within:ring-2 focus-within:ring-red-500/20 ${ratingFilter === "all" ? "border-red-500/50 bg-red-500/10 text-red-300" : "border-white/10 bg-[#090b0f] text-white/75 focus-within:border-red-500/45"}`}>
                       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" />
                       </svg>
@@ -691,7 +711,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         value={ratingFilter}
                         onChange={(event) => setRatingFilter(event.target.value)}
                         aria-label="Filtrar reviews por nota"
-                        className="h-full min-w-0 w-[132px] appearance-none bg-transparent pr-3 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
+                        className="h-full min-w-0 w-[132px] appearance-none bg-transparent pr-3 max-sm:w-auto max-sm:flex-1 text-[10px] font-black uppercase tracking-[0.07em] text-current outline-none"
                       >
                         <option value="all">Todas as notas</option>
                         <option value="9-10">Nota 9–10</option>
@@ -705,7 +725,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                       </svg>
                     </label>
 
-                    <label className="relative inline-flex h-9 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-[#090b0f] px-3 text-white/75 transition focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/20">
+                    <label className="relative inline-flex h-9 min-w-0 items-center gap-2 rounded-full border border-white/10 bg-[#090b0f] px-3 text-white/75 max-sm:h-10 max-sm:w-full transition focus-within:border-red-500/45 focus-within:ring-2 focus-within:ring-red-500/20">
                       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M8 4v15m0-15L5 7m3-3 3 3M16 20V5m0 15 3-3m-3 3-3-3" />
                       </svg>
@@ -714,7 +734,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                         value={reviewOrder}
                         onChange={(event) => setReviewOrder(event.target.value)}
                         aria-label="Ordenar reviews"
-                        className="h-full min-w-0 w-[80px] appearance-none bg-transparent pr-3 text-[10px] font-black text-white outline-none"
+                        className="h-full min-w-0 w-[80px] appearance-none bg-transparent pr-3 text-[10px] font-black text-white outline-none max-sm:w-auto max-sm:flex-1"
                       >
                         <option value="recent">Recentes</option>
                         <option value="title">Título</option>
@@ -728,7 +748,7 @@ export default function ReviewsClient({ initialGames }: { initialGames: ReviewGa
                   </div>
                 </div>
 
-                <div className="px-3 pb-3">
+                <div className="px-3 pb-3 max-sm:mt-3 max-sm:rounded-[14px] max-sm:border max-sm:border-white/[0.10] max-sm:bg-[#090b0f] max-sm:pt-3">
                   <p className="mb-2.5 px-1 text-[12px] font-black uppercase tracking-[0.16em] text-white/75">
                     Reviews publicadas
                   </p>
