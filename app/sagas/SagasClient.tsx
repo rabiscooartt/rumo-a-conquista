@@ -669,7 +669,7 @@ function BadgeImage({
 }
 
 function getFilterButtonClass(isActive: boolean) {
-  return `flex min-h-10 items-center justify-center rounded-xl border px-2 py-1.5 text-center leading-tight sm:inline-flex sm:min-h-0 sm:rounded-full sm:py-2 sm:leading-normal text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden max-[379px]:px-1.5 max-[379px]:tracking-normal sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
+  return `flex min-h-10 items-center justify-center rounded-xl border px-2 py-1.5 text-center leading-tight sm:inline-flex sm:min-h-0 sm:rounded-full sm:py-2 sm:leading-normal text-[10px] font-black uppercase tracking-[0.06em] transition [&_svg]:hidden max-sm:normal-case max-sm:tracking-normal max-[379px]:px-1 sm:px-4 sm:text-xs sm:tracking-[0.12em] sm:[&_svg]:block ${
     isActive
       ? "border-red-500/45 bg-red-500/20 text-red-200 shadow-[0_0_24px_rgba(239,68,68,0.14)]"
       : "border-white/10 bg-white/[0.03] text-white/45 hover:border-white/20 hover:text-white"
@@ -943,6 +943,8 @@ export default function SagasClient({
   const [yearInput, setYearInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"alphabetical" | "recent">("alphabetical");
+  // Celular: Ano e Ordenação ficam num painel aberto pelo botão Filtros (a partir de sm continuam sempre visíveis).
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -1347,7 +1349,7 @@ export default function SagasClient({
             </label>
 
             <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center">
-              <div className="order-1 flex h-[40px] overflow-hidden rounded-full border border-white/10 bg-black/45 sm:order-none">
+              <div className={`order-1 flex h-[40px] overflow-hidden rounded-full border border-white/10 bg-black/45 sm:order-none ${mobileFiltersOpen ? "" : "max-sm:hidden"}`}>
                 <input
                   value={yearInput}
                   onChange={(event) => {
@@ -1382,14 +1384,14 @@ export default function SagasClient({
                 <button
                   type="button"
                   onClick={clearYearFilter}
-                  className="order-1 rounded-full border border-emerald-400/25 sm:order-none bg-emerald-500/[0.08] px-3 py-2 text-[10px] font-black text-emerald-200 transition hover:bg-emerald-500/[0.14]"
+                  className={`order-1 rounded-full border border-emerald-400/25 sm:order-none bg-emerald-500/[0.08] px-3 py-2 text-[10px] font-black text-emerald-200 transition hover:bg-emerald-500/[0.14] ${mobileFiltersOpen ? "" : "max-sm:hidden"}`}
                 >
                   {activeYear} ×
                 </button>
               )}
 
               {/* Celular: os três status em grade própria (Todos mais estreito); a partir de sm o bloco some (contents). */}
-              <div className="col-span-3 grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.25fr)_minmax(0,1fr)] gap-1.5 sm:contents">
+              <div className="col-span-3 grid grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)_minmax(0,1.1fr)_2.5rem] gap-1.5 sm:contents">
               <button
                 type="button"
                 onClick={() => {
@@ -1411,7 +1413,7 @@ export default function SagasClient({
                     <rect x="3" y="12" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
                     <rect x="12" y="12" width="5" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
-                  <span>Todos<span className="max-sm:block max-sm:opacity-70"> ({totalEmblems})</span></span>
+                  <span>Todos<span className="max-sm:hidden"> ({totalEmblems})</span></span>
                 </span>
               </button>
               <button
@@ -1433,7 +1435,7 @@ export default function SagasClient({
                     <path d="M8 4h8v4.5a4 4 0 0 1-8 0V4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
                     <path d="M8 6H5v1.5a4 4 0 0 0 4 4M16 6h3v1.5a4 4 0 0 1-4 4M12 13v4M9 17h6M8 21h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span>Conquistados<span className="max-sm:block max-sm:opacity-70"> ({completedEmblems})</span></span>
+                  <span>Conquistados<span className="max-sm:hidden"> ({completedEmblems})</span></span>
                 </span>
               </button>
               <button
@@ -1455,12 +1457,27 @@ export default function SagasClient({
                     <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.7" />
                     <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span>Bloqueados<span className="max-sm:block max-sm:opacity-70"> ({lockedEmblems})</span></span>
+                  <span>Bloqueados<span className="max-sm:hidden"> ({lockedEmblems})</span></span>
                 </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen((open) => !open)}
+                aria-expanded={mobileFiltersOpen}
+                aria-label={mobileFiltersOpen ? "Ocultar filtros de ano e ordenação" : "Mostrar filtros de ano e ordenação"}
+                title="Filtros: ano e ordenação"
+                className={`relative flex min-h-10 items-center justify-center rounded-xl border transition sm:hidden ${mobileFiltersOpen ? "border-red-500/45 bg-red-500/20 text-red-200" : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/20 hover:text-white"}`}
+              >
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                  <path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                </svg>
+                {activeYear !== "all" || sortOrder !== "alphabetical" ? (
+                  <span aria-hidden="true" className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-400" />
+                ) : null}
               </button>
               </div>
 
-              <label className="order-2 col-span-2 flex h-[40px] min-w-0 items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 sm:order-none sm:col-span-1 xl:ml-1">
+              <label className={`order-2 col-span-2 flex h-[40px] min-w-0 items-center gap-2 rounded-[10px] border border-white/10 bg-black/35 px-3 text-white/50 sm:order-none sm:col-span-1 xl:ml-1 ${mobileFiltersOpen ? "" : "max-sm:hidden"}`}>
                 <span aria-hidden="true" className="text-white/40">
                   <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
                     <path d="M4.5 13V3m0 0L2 5.5M4.5 3 7 5.5M11.5 3v10m0 0L9 10.5m2.5 2.5 2.5-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
